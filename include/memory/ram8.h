@@ -1,0 +1,1 @@
+#include "../../src/component/memory/memory8/ram8.h"

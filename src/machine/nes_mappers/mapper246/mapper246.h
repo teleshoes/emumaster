@@ -1,0 +1,23 @@
+#ifndef MAPPER246_H
+#define MAPPER246_H
+
+#include "nesmapper.h"
+#include "nescpumemorymapper.h"
+#include "nesppumemorymapper.h"
+
+class CpuMapper246 : public NesCpuMemoryMapper {
+	Q_OBJECT
+public:
+	explicit CpuMapper246(NesMapper *mapper);
+	void write(quint16 address, quint8 data);
+};
+
+#define PpuMapper246 NesPpuMemoryMapper
+
+class NesMapper246Plugin : public NesMapperPlugin {
+	Q_OBJECT
+public:
+	NesMapper *create(NesMachine *machine);
+};
+
+#endif // MAPPER246_H

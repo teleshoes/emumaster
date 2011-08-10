@@ -1,0 +1,1 @@
+#include "../../src/component/memory/memory8/rom8.h"

@@ -1,0 +1,19 @@
+
+syntax: regexp
+\.exp$
+syntax: regexp
+\.ilk$
+syntax: regexp
+\.lib$
+syntax: regexp
+\.pdb$
+syntax: regexp
+^data$
+syntax: regexp
+^debug$
+syntax: regexp
+^release$
+syntax: regexp
+\.user$
+syntax: regexp
+^.project$

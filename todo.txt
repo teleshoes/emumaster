@@ -1,0 +1,8 @@
+save/load state (save on exit) fast save/load
+net play
+load roms from zipped files
+install rom gui - move or copy file, detect machine by file ext
+disable swipe
+test against call
+multiple keys at once on screen
+bomberman not working
