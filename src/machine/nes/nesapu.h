@@ -20,7 +20,6 @@ public:
 	void setChannelUserEnabled(int channelNo, bool on);
 	void setSampleRate(int rate);
 	void setStereoEnabled(bool on);
-	void setMasterVolume(int value);
 
 	void clockFrameCounter(int nCycles);
 	const char *grabBuffer(int *size);
@@ -45,68 +44,73 @@ private:
 
 	bool m_frameIrqGenerated;
 	bool m_frameIrqEnable;
-	int frameIrqCounterMax;
+	int m_frameIrqCounterMax;
 	int m_initCounter;
 	bool m_initializingHardware;
 
 	static const int SampleBufferSize = 2048*4;
-	char sampleBuffer[SampleBufferSize];
+	char m_sampleBuffer[SampleBufferSize];
 
-	int masterVolume;
-	int bufferIndex;
-	int sampleRate;
-	bool stereo;
+	int m_bufferIndex;
+	int m_sampleRate;
+	bool m_stereo;
 
-	int masterFrameCounter;
-	int derivedFrameCounter;
-	int countSequence;
-	int sampleTimer;
-	int frameTime;
-	int sampleTimerMax;
-	int sampleCount;
+	int m_masterFrameCounter;
+	int m_derivedFrameCounter;
+	int m_countSequence;
+	int m_sampleTimer;
+	int m_frameTime;
+	int m_sampleTimerMax;
+	int m_sampleCount;
 
-	int triValue;
+	int m_triValue;
 
-	int smpR1;
-	int smpR2;
-	int smpTR;
-	int smpNS;
-	int smpDM;
-	int accCount;
+	int m_smpR1;
+	int m_smpR2;
+	int m_smpTR;
+	int m_smpNS;
+	int m_smpDM;
+	int m_accCount;
 
-	int extraCycles;
+	int m_extraCycles;
 
-	static const int SquareTableSize = 32 * 16;
-	static const int TndTableSize = 204 * 16;
+	static const int RectangleLUTSize = 32 * 16;
+	static const int TriangleLUTSize = 204 * 16;
 
-	int square_table[SquareTableSize];
-	int tnd_table[TndTableSize];
+	int m_rectangleLUT[RectangleLUTSize];
+	int m_triangleLUT[TriangleLUTSize];
 
-	int sampleValueL;
-	int sampleValueR;
-	int prevSampleL;
-	int prevSampleR;
-	int smpAccumL;
-	int smpAccumR;
-	int smpDiffL;
-	int smpDiffR;
+	int m_sampleValueL;
+	int m_sampleValueR;
+	int m_prevSampleL;
+	int m_prevSampleR;
+	int m_smpAccumL;
+	int m_smpAccumR;
+	int m_smpDiffL;
+	int m_smpDiffR;
 
-	int dcValue;
+	int m_dcValue;
 
-	int stereoPosLSquare1;
-	int stereoPosLSquare2;
-	int stereoPosLTriangle;
-	int stereoPosLNoise;
-	int stereoPosLDMC;
-	int stereoPosRSquare1;
-	int stereoPosRSquare2;
-	int stereoPosRTriangle;
-	int stereoPosRNoise;
-	int stereoPosRDMC;
+	int m_stereoPosLR1;
+	int m_stereoPosLR2;
+	int m_stereoPosLTR;
+	int m_stereoPosLNS;
+	int m_stereoPosLDM;
+	int m_stereoPosRR1;
+	int m_stereoPosRR2;
+	int m_stereoPosRTR;
+	int m_stereoPosRNS;
+	int m_stereoPosRDM;
 
 	bool m_irqSignal;
 
 	friend class NesApuDMChannel;
 };
+
+inline const char *NesApu::grabBuffer(int *size) {
+	*size = m_bufferIndex;
+	m_bufferIndex = 0;
+	return m_sampleBuffer;
+}
 
 #endif // NESAPU_H

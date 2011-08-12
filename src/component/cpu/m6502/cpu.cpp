@@ -53,7 +53,7 @@ void M6502::executeOne() {
 	execute(opcode);
 }
 
-void M6502::runTo(quint64 endCycle) {
+void M6502::clockTo(quint64 endCycle) {
 	while (m_cycle < endCycle)
 		executeOne();
 }

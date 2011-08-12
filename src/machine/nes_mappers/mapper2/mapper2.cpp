@@ -1,12 +1,17 @@
 #include "mapper2.h"
+#include "nesdisk.h"
 
 CpuMapper2::CpuMapper2(NesMapper *mapper) :
 	NesCpuMemoryMapper(mapper) {
+}
+
+void CpuMapper2::reset() {
+	NesCpuMemoryMapper::reset();
 	setRom16KBank(0, 0);
 	setRom16KBank(1, romSize16KB() - 1);
-//	TODO patch = 0;
-
-//	DWORD	crc = nes->rom->GetPROM_CRC();
+	m_patch = 0;
+	m_hasBattery = mapper()->machine()->disk()->hasBatteryBackedRam();
+//	TODO DWORD	crc = nes->rom->GetPROM_CRC();
 ////	if( crc == 0x322c9b09 ) {	// Metal Gear (Alt)(J)
 //////		nes->SetFrameIRQmode( FALSE );
 ////	}
@@ -27,21 +32,19 @@ CpuMapper2::CpuMapper2(NesMapper *mapper) :
 //	}
 }
 
+void CpuMapper2::write(quint16 address, quint8 data) {
+	if (!m_hasBattery && address >= 0x5000 && m_patch == 1)
+		setRom16KBank(0, data);
+	else
+		NesCpuMemoryMapper::write(address, data);
+}
+
 void CpuMapper2::writeHigh(quint16 address, quint8 data) {
 	Q_UNUSED(address)
-//	if (patch != 2)
+	if (m_patch != 2)
 		setRom16KBank(0, data);
-//	else
-//		SetPROM_16K_Bank( 4, data>>4 );
+	else
+		setRom16KBank(0, data >> 4);
 }
-//void	Mapper002::WriteLow( WORD addr, BYTE data )
-//{
-//	if( !nes->rom->IsSAVERAM() ) {
-//		if( addr >= 0x5000 && patch == 1 )
-//			SetPROM_16K_Bank( 4, data );
-//	} else {
-//		Mapper::WriteLow( addr, data );
-//	}
-//}
 
-NES_MAPPER_PLUGIN_SOURCE(2, "UNROM")
+NES_MAPPER_PLUGIN_EXPORT(2, "UNROM")

@@ -14,7 +14,7 @@ public:
 	void setMemory(NesCpuMemoryMapper *memory);
 	NesMachine *machine() const;
 	NesApu *apu() const;
-	void runTo(quint64 endCycle);
+	void clockTo(quint64 endCycle);
 public slots:
 	void reset_i(bool on);
 protected:

@@ -27,4 +27,4 @@ void CpuMapper228::writeHigh(quint16 address, quint8 data) {
 		mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Vertical);
 }
 
-NES_MAPPER_PLUGIN_SOURCE(228, "Action 52")
+NES_MAPPER_PLUGIN_EXPORT(228, "Action 52")

@@ -1,0 +1,30 @@
+#ifndef MAPPER60_H
+#define MAPPER60_H
+
+#include "nesmapper.h"
+#include "nescpumemorymapper.h"
+#include "nesppumemorymapper.h"
+
+class CpuMapper60 : public NesCpuMemoryMapper {
+	Q_OBJECT
+public:
+	explicit CpuMapper60(NesMapper *mapper);
+	void reset();
+	void writeHigh(quint16 address, quint8 data);
+
+	void save(QDataStream &s);
+	bool load(QDataStream &s);
+private:
+	quint8 m_patch;
+	quint8 game_sel;
+};
+
+#define PpuMapper60 NesPpuMemoryMapper
+
+class NesMapper60Plugin : public NesMapperPlugin {
+	Q_OBJECT
+public:
+	NesMapper *create(NesMachine *machine);
+};
+
+#endif // MAPPER60_H

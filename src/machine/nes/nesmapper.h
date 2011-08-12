@@ -14,14 +14,23 @@ public:
 	static NesMapper *load(NesMachine *machine, quint8 type);
 
 	explicit NesMapper(const QString &name, NesMachine *machine);
+	void reset();
 	NesMachine *machine() const;
 	QString name() const;
 	NesCpuMemoryMapper *cpuMemory() const;
 	NesPpuMemoryMapper *ppuMemory() const;
 	void setMappers(NesCpuMemoryMapper *cpuMapper, NesPpuMemoryMapper *ppuMapper);
+	void setIrqSignalOut(bool on);
+
+	void saveState(QDataStream &s);
+	bool loadState(QDataStream &s);
+signals:
+	// TODO connect
+	void irq_o(bool on);
 private:
-	NesCpuMemoryMapper *m_cpuMappper;
+	NesCpuMemoryMapper *m_cpuMapper;
 	NesPpuMemoryMapper *m_ppuMapper;
+	bool m_irqOut;
 	QString m_name;
 };
 
@@ -36,14 +45,21 @@ inline NesMachine *NesMapper::machine() const
 inline QString NesMapper::name() const
 { return m_name; }
 inline NesCpuMemoryMapper *NesMapper::cpuMemory() const
-{ return m_cpuMappper; }
+{ return m_cpuMapper; }
 inline NesPpuMemoryMapper *NesMapper::ppuMemory() const
 { return m_ppuMapper; }
+inline void NesMapper::setIrqSignalOut(bool on) {
+	if (on != m_irqOut) {
+		m_irqOut = on;
+		emit irq_o(on);
+	}
+}
 
-#define NES_MAPPER_PLUGIN_SOURCE(n,name) \
+#define NES_MAPPER_PLUGIN_EXPORT(n,name) \
 	NesMapper *NesMapper##n##Plugin::create(NesMachine *machine) { \
 		NesMapper *mapper = new NesMapper(name, machine); \
 		mapper->setMappers(new CpuMapper##n(mapper), new PpuMapper##n(mapper)); \
+		mapper->reset(); \
 		return mapper; \
 	} \
 	Q_EXPORT_PLUGIN2(mapper##n, NesMapper##n##Plugin)

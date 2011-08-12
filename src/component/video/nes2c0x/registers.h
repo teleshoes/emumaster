@@ -81,6 +81,7 @@ public:
 	void updateType();
 	bool isBackgroundVisible() const;
 	bool isSpriteVisible() const;
+	bool isDisplayOn() const;
 	bool isBackgroundClippingEnabled() const;
 	bool isSpriteClippingEnabled() const;
 	int spriteSize() const;
@@ -105,6 +106,8 @@ inline bool Nes2C0XRegisters::isBackgroundVisible() const
 { return m_regs[Control1] & DisplayBackgroundCR1Bit; }
 inline bool Nes2C0XRegisters::isSpriteVisible() const
 { return m_regs[Control1] & DisplaySpriteCR1Bit; }
+inline bool Nes2C0XRegisters::isDisplayOn() const
+{ return isBackgroundVisible() || isSpriteVisible(); }
 inline bool Nes2C0XRegisters::isBackgroundClippingEnabled() const
 { return !(m_regs[Control1] & DisableBackgroundClipCR1Bit); }
 inline bool Nes2C0XRegisters::isSpriteClippingEnabled() const

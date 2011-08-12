@@ -39,7 +39,7 @@ public:
 	void stoleCycles(uint n);
 	quint64 cycle() const;
 	void executeOne();
-	void runTo(quint64 endCycle);
+	void clockTo(quint64 endCycle);
 
 	static const char *instructionName(quint8 instruction);
 	static int instructionSize(quint8 instruction);

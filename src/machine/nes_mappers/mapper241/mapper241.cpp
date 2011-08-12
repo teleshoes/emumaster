@@ -9,4 +9,4 @@ void CpuMapper241::writeHigh(quint16 address, quint8 data) {
 		setRomBank(data);
 }
 
-NES_MAPPER_PLUGIN_SOURCE(241, "Fon Serm Bon")
+NES_MAPPER_PLUGIN_EXPORT(241, "Fon Serm Bon")

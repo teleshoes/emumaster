@@ -20,4 +20,4 @@ void CpuMapper233::writeHigh(quint16 address, quint8 data) {
 	}
 }
 
-NES_MAPPER_PLUGIN_SOURCE(233, "42-in-1")
+NES_MAPPER_PLUGIN_EXPORT(233, "42-in-1")

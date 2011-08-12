@@ -36,4 +36,4 @@ void CpuMapper70::writeHigh(quint16 address, quint8 data) {
 	}
 }
 
-NES_MAPPER_PLUGIN_SOURCE(70, "Bandai 74161")
+NES_MAPPER_PLUGIN_EXPORT(70, "Bandai 74161")

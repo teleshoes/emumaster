@@ -2,6 +2,7 @@
 #include "nesmachine.h"
 #include "nescpumemorymapper.h"
 #include "nesapu.h"
+#include "nesmapper.h"
 #include <QDebug>
 
 NesCpu::NesCpu(NesMachine *machine) :
@@ -28,11 +29,12 @@ void NesCpu::reset_i(bool on) {
 	m_reset = on;
 }
 
-void NesCpu::runTo(quint64 endCycle) {
+void NesCpu::clockTo(quint64 endCycle) {
 	if (m_reset) {
 		while (cycle() < endCycle)
 			executeOne();
 		m_apu->reset();
+		machine()->mapper()->reset();
 	} else {
 		while (cycle() < endCycle) {
 			quint64 prv = cycle();

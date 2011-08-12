@@ -10,6 +10,8 @@
 #include <audio/hostaudio.h>
 #include <QTimer>
 
+// TODO zmienić tam gdzie powinno być quint16
+
 NesMachine::NesMachine(QObject *parent) :
 	QObject(parent),
 	m_disk(0),
@@ -39,7 +41,7 @@ NesMachine::NesMachine(QObject *parent) :
 
 	m_timer = new QTimer(this);
 	m_timer->setSingleShot(true);
-	QObject::connect(m_timer, SIGNAL(timeout()), SLOT(machineStep()));
+	QObject::connect(m_timer, SIGNAL(timeout()), SLOT(clock()));
 }
 
 NesMachine::~NesMachine() {
@@ -50,7 +52,7 @@ void NesMachine::reset() {
 	if (m_running) {
 		m_cpu->reset_i(true);
 		m_cycles += 600;
-		m_cpu->runTo(m_cycles);
+		m_cpu->clockTo(m_cycles);
 		m_cpu->reset_i(false);
 	}
 }
@@ -92,12 +94,12 @@ void NesMachine::setRunning(bool run) {
 	}
 }
 
-void NesMachine::machineStep() {
+void NesMachine::clock() {
 	bool lastLine = false;
-	qreal cyclesPerScanline = ((m_type == NTSC) ? 113.66 : 106.53);
+	qreal cyclesPerScanline = ((m_type == NTSC) ? NES_NTSC_CPU_CLK_PER_SCANLINE : NES_PAL_CPU_CLK_PER_SCANLINE);
 	while (!lastLine) {
 		m_cycles += cyclesPerScanline;
-		m_cpu->runTo(m_cycles);
+		m_cpu->clockTo(m_cycles);
 		m_ppu->processScanline(&lastLine);
 	}
 	int size;

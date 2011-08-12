@@ -42,6 +42,7 @@ public:
 	Nes2C0XPalette *palette() const;
 
 	void processScanline(bool *lastLine);
+	int scanline() const;
 	const QImage &frame() const;
 protected:
 	virtual void write(quint16 address, quint8 data) = 0;
@@ -89,6 +90,8 @@ inline Nes2C0XPalette *Nes2C0XPpu::palette() const
 { return m_palette; }
 inline Nes2C0XPpu::ChipType Nes2C0XPpu::chipType() const
 { return m_type; }
+inline int Nes2C0XPpu::scanline() const
+{ return m_scanline; }
 inline const QImage &Nes2C0XPpu::frame() const
 { return m_frame; }
 

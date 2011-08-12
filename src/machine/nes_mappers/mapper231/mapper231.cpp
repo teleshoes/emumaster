@@ -18,4 +18,4 @@ void CpuMapper231::writeHigh(quint16 address, quint8 data) {
 		mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Vertical);
 }
 
-NES_MAPPER_PLUGIN_SOURCE(231, "20-in-1")
+NES_MAPPER_PLUGIN_EXPORT(231, "20-in-1")

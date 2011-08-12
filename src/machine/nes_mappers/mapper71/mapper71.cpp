@@ -32,4 +32,4 @@ void CpuMapper71::write(quint16 address, quint8 data) {
 		NesCpuMemoryMapper::write(address, data);
 }
 
-NES_MAPPER_PLUGIN_SOURCE(71, "Camerica")
+NES_MAPPER_PLUGIN_EXPORT(71, "Camerica")

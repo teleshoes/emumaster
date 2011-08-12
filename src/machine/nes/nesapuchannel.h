@@ -8,14 +8,19 @@ public:
 	explicit NesApuChannel(int channelNo);
 	virtual void reset();
 
+	int channelNo() const;
 	void setVolumeDecay(quint8 data);
+	int masterVolume() const;
 	void setLinearCounter(quint8 data);
 	void setFrequency(quint8 data);
 	void setLength(quint8 data);
 	void setEnabled(bool on);
+	bool isEnabled() const;
 	void setUserEnabled(bool on);
+	bool isUserEnabled() const;
 
 	bool lengthStatus() const;
+	int dutyMode() const;
 
 	void clockLengthCounter();
 	void clockEnvelopeDecay();
@@ -24,38 +29,48 @@ public:
 	virtual void updateSampleCondition();
 	virtual void updateSampleValue() {}
 
-	int channelNo;
-	bool enable;
-	bool userEnable;
+	bool sampleCondition;
+	int sampleValue;
 
-	int masterVolume;
-	int volume;
-
-	bool lengthCounterEnable;
-	int lengthCounter;
-
-	int envelopeVolume;
-	int envelopeDecayRate;
-	bool envelopeDecayDisable;
-	bool envelopeDecayLoopEnable;
-	int envelopeDecayCounter;
-
+	int progTimerMax;
+	int progTimerCount;
+protected:
 	union {
 		bool envelopeReset;
 		bool linearCounterHalt;
 	};
+	bool lengthCounterEnable;
+	int lengthCounter;
+private:
+	int m_channelNo;
+	bool m_enabled;
+	bool m_userEnabled;
 
-	int progTimerMax;
-	int progTimerCount;
+	int m_masterVolume;
+	int m_volume;
 
-	int dutyMode;
-	bool sampleCondition;
-	int sampleValue;
+	int m_envelopeVolume;
+	int m_envelopeDecayRate;
+	bool m_envelopeDecayDisable;
+	bool m_envelopeDecayLoopEnable;
+	int m_envelopeDecayCounter;
 
-	static int lengthMaxLUT[32];
+	int m_dutyMode;
+
+	static int m_lengthMaxLUT[32];
 };
 
+inline int NesApuChannel::channelNo() const
+{ return m_channelNo; }
+inline int NesApuChannel::masterVolume() const
+{ return m_masterVolume; }
+inline bool NesApuChannel::isEnabled() const
+{ return m_enabled; }
+inline bool NesApuChannel::isUserEnabled() const
+{ return m_userEnabled; }
 inline bool NesApuChannel::lengthStatus() const
-{ return lengthCounter != 0 && enable; }
+{ return lengthCounter != 0 && m_enabled; }
+inline int NesApuChannel::dutyMode() const
+{ return m_dutyMode; }
 
 #endif // NESAPUCHANNEL_H

@@ -9,15 +9,22 @@ class CpuMapper1 : public NesCpuMemoryMapper {
 	Q_OBJECT
 public:
 	explicit CpuMapper1(NesMapper *mapper);
+	void reset();
 	void writeHigh(quint16 address, quint8 data);
+
+	void save(QDataStream &s);
+	bool load(QDataStream &s);
 private:
 	NesPpuMemoryMapper::Mirroring mirroringFromRegs() const;
 
-	quint8 patch;
-	quint8 wram_patch;
-	quint16 last_addr;
-	quint8 reg[4];
-	quint8 shift, regbuf;
+	NesPpuMemoryMapper *m_ppuMemory;
+	quint8 m_patch;
+	quint8 m_wramPatch;
+	quint8 m_wramBank;
+	quint8 m_wramCount;
+	quint16 m_lastAddress;
+	quint8 m_reg[4];
+	quint8 m_shift, m_regbuf;
 };
 
 #define PpuMapper1 NesPpuMemoryMapper

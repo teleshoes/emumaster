@@ -55,7 +55,7 @@ public:
 signals:
 	void frameGenerated();
 private slots:
-	void machineStep();
+	void clock();
 private:
 	Type m_type;
 	NesCpu *m_cpu;

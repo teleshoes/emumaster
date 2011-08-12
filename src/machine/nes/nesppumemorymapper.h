@@ -2,6 +2,7 @@
 #define NESPPUMEMORYMAPPER_H
 
 class Nes2C0XPalette;
+class Nes2C0XRegisters;
 class NesMapper;
 #include "nes_global.h"
 #include "nesmachine.h"
@@ -18,8 +19,17 @@ public:
 		FourScreen
 	};
 	explicit NesPpuMemoryMapper(NesMapper *mapper);
+	NesMapper *mapper() const;
+	Nes2C0XRegisters *ppuRegisters() const;
+	virtual void reset();
 	virtual void write(quint16 address, quint8 data);
 	virtual quint8 read(quint16 address);
+	// TODO call this
+	virtual void horizontalSync(int scanline);
+	virtual void verticalSync();
+
+	virtual void save(QDataStream &s);
+	virtual bool load(QDataStream &s);
 
 	void setMirroring(Mirroring mirroring);
 	void setMirroring(int bank0, int bank1, int bank2, int bank3);
@@ -44,9 +54,10 @@ private:
 
 	quint8 *m_banks[16];
 	quint8 m_ram[0x800];
-	quint8 m_cram[0x2000];
+	quint8 m_cram[0x8000];
 
-	Nes2C0XPalette *m_palette;
+	Nes2C0XPalette *m_ppuPalette;
+	Nes2C0XRegisters *m_ppuRegisters;
 };
 
 inline void NesPpuMemoryMapper::setRomBank(uint bank) {
@@ -101,5 +112,7 @@ inline uint NesPpuMemoryMapper::romSize2KB() const
 { return m_romSize / 0x800; }
 inline uint NesPpuMemoryMapper::romSize1KB() const
 { return m_romSize / 0x400; }
+inline Nes2C0XRegisters *NesPpuMemoryMapper::ppuRegisters() const
+{ return m_ppuRegisters; }
 
 #endif // NESPPUMEMORYMAPPER_H

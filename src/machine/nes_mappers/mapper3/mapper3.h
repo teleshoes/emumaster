@@ -9,6 +9,7 @@ class CpuMapper3 : public NesCpuMemoryMapper {
 	Q_OBJECT
 public:
 	explicit CpuMapper3(NesMapper *mapper);
+	void reset();
 	void writeHigh(quint16 address, quint8 data);
 };
 

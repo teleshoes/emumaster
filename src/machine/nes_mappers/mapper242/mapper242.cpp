@@ -10,4 +10,4 @@ void CpuMapper242::writeHigh(quint16 address, quint8 data) {
 		setRomBank((address >> 3) & 0x1F);
 }
 
-NES_MAPPER_PLUGIN_SOURCE(242, "Wai Xing Zhan Shi")
+NES_MAPPER_PLUGIN_EXPORT(242, "Wai Xing Zhan Shi")

@@ -3,58 +3,53 @@
 
 NesApuDMChannel::NesApuDMChannel(NesApu *apu, int channelNo) :
 	NesApuChannel(channelNo),
-	apu(apu) {
+	m_apu(apu) {
 }
 
 void NesApuDMChannel::reset() {
 	NesApuChannel::reset();
-	hasSample = false;
+	m_hasSample = false;
 	irqGenerated = false;
 
-	playMode = Normal;
-	dmaFrequency = 0;
-	dmaCounter = 0;
-	deltaCounter = 0;
-	playLength = 0;
-	shiftCounter = 0;
-	status = 0;
-	dacLsb = 0;
-	shiftReg = 0;
+	m_playMode = Normal;
+	m_dmaFrequency = 0;
+	m_dmaCounter = 0;
+	m_deltaCounter = 0;
+	m_playLength = 0;
+	m_shiftCounter = 0;
+	m_status = 0;
+	m_dacLsb = 0;
+	m_shiftReg = 0;
 
-	playStartAddress = 0;
-	playAddress = 0;
-
-	reg0x4012 = 0;
-	reg0x4013 = 0;
+	m_playStartAddress = 0;
+	m_playAddress = 0;
 }
 
 void NesApuDMChannel::write0x4010(quint8 data) {
 	int tmp = data >> 6;
 	if (tmp & 1)
 		tmp &= 1;
-	playMode = static_cast<Mode>(tmp);
+	m_playMode = static_cast<Mode>(tmp);
 	if (!(data & 0x80))
 		irqGenerated = false;
-	dmaFrequency = frequencyLUT[data & 0xF];
+	m_dmaFrequency = m_frequencyLUT[data & 0xF];
 }
 
 void NesApuDMChannel::write0x4011(quint8 data) {
-	deltaCounter = (data >> 1) & 0x3F;
-	dacLsb = data & 1;
-	if (userEnable)
-		sampleValue = ((deltaCounter << 1) + dacLsb);
+	m_deltaCounter = (data >> 1) & 0x3F;
+	m_dacLsb = data & 1;
+	if (isUserEnabled())
+		sampleValue = ((m_deltaCounter << 1) + m_dacLsb);
 }
 
 void NesApuDMChannel::write0x4012(quint8 data) {
-	playStartAddress = (data << 6) | 0xC000;
-	playAddress = playStartAddress;
-	reg0x4012 = data;
+	m_playStartAddress = (data << 6) | 0xC000;
+	m_playAddress = m_playStartAddress;
 }
 
 void NesApuDMChannel::write0x4013(quint8 data) {
-	playLength = (data << 4) + 1;
-	lengthCounter = playLength;
-	reg0x4013 = data;
+	m_playLength = (data << 4) + 1;
+	lengthCounter = m_playLength;
 }
 
 void NesApuDMChannel::write0x4015(quint8 data) {
@@ -63,59 +58,59 @@ void NesApuDMChannel::write0x4015(quint8 data) {
 		lengthCounter = 0;
 	} else {
 		// Restart:
-		playAddress = playStartAddress;
-		lengthCounter = playLength;
+		m_playAddress = m_playStartAddress;
+		lengthCounter = m_playLength;
 	}
 	irqGenerated = false;
 }
 
 void NesApuDMChannel::updateSampleValue()
-{ lengthCounter = playLength; }
+{ lengthCounter = m_playLength; }
 
-void NesApuDMChannel::clock() {
+void NesApuDMChannel::clockDM() {
 	// only alter DAC value if the sample buffer has data:
-	if (hasSample){
-		if (shiftReg & 1){
-			if (deltaCounter < 0x3F)
-				deltaCounter++;
+	if (m_hasSample){
+		if (m_shiftReg & 1){
+			if (m_deltaCounter < 0x3F)
+				m_deltaCounter++;
 		} else {
-			if (deltaCounter > 0x00)
-				deltaCounter--;
+			if (m_deltaCounter > 0x00)
+				m_deltaCounter--;
 		}
-		sampleValue = (enable ? ((deltaCounter << 1) + dacLsb) : 0);
-		shiftReg >>= 1;
+		sampleValue = (isEnabled() ? ((m_deltaCounter << 1) + m_dacLsb) : 0);
+		m_shiftReg >>= 1;
 	}
-	dmaCounter--;
-	if (dmaCounter <= 0){
+	m_dmaCounter--;
+	if (m_dmaCounter <= 0){
 		// no more sample bits.
-		hasSample = false;
+		m_hasSample = false;
 		endOfSample();
-		dmaCounter = 8;
+		m_dmaCounter = 8;
 	}
 }
 
 void NesApuDMChannel::endOfSample() {
-	if (!lengthCounter && playMode == Loop) {
-		playAddress = playStartAddress;
-		lengthCounter = playLength;
+	if (!lengthCounter && m_playMode == Loop) {
+		m_playAddress = m_playStartAddress;
+		lengthCounter = m_playLength;
 	}
 	if (lengthCounter > 0) {
 		nextSample();
-		if(!lengthCounter && playMode == Irq)
+		if(!lengthCounter && m_playMode == Irq)
 			irqGenerated = true;
 	}
 }
 
 void NesApuDMChannel::nextSample() {
-	shiftReg = apu->fetchData(playAddress);
+	m_shiftReg = m_apu->fetchData(m_playAddress);
 	lengthCounter--;
-	playAddress++;
-	if (playAddress > 0xFFFF)
-		playAddress = 0x8000;
-	hasSample = true;
+	m_playAddress++;
+	if (m_playAddress > 0xFFFF)
+		m_playAddress = 0x8000;
+	m_hasSample = true;
 }
 
-int NesApuDMChannel::frequencyLUT[16] = {
+int NesApuDMChannel::m_frequencyLUT[16] = {
 	0xD60, 0xBE0, 0xAA0, 0xA00,
 	0x8F0, 0x7F0, 0x710, 0x6B0,
 	0x5F0, 0x500, 0x470, 0x400,

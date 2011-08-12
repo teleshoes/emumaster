@@ -7,31 +7,31 @@ NesApuTriangleChannel::NesApuTriangleChannel(int channelNo) :
 void NesApuTriangleChannel::reset() {
 	NesApuChannel::reset();
 	linearCounterHalt = true;
-	linearCounterControl = false;
-	linearCounterLoadValue = 0;
-	linearCounter = 0;
+	m_linearCounterControl = false;
+	m_linearCounterLoadValue = 0;
+	m_linearCounter = 0;
 	sampleValue = 0x0F;
 }
 
 void NesApuTriangleChannel::setLinearCounter(quint8 data) {
 	// new values for linear counter
-	linearCounterControl = data & 0x80;
-	linearCounterLoadValue = data & 0x7F;
-	lengthCounterEnable = !linearCounterControl;
+	m_linearCounterControl = data & 0x80;
+	m_linearCounterLoadValue = data & 0x7F;
+	lengthCounterEnable = !m_linearCounterControl;
 	updateSampleCondition();
 }
 
 void NesApuTriangleChannel::clockLinearCounter() {
 	if (linearCounterHalt) {
 		// load
-		linearCounter = linearCounterLoadValue;
+		m_linearCounter = m_linearCounterLoadValue;
 		updateSampleCondition();
-	} else if (linearCounter > 0) {
+	} else if (m_linearCounter > 0) {
 		// decrement
-		linearCounter--;
+		m_linearCounter--;
 		updateSampleCondition();
 	}
-	if (!linearCounterControl)
+	if (!m_linearCounterControl)
 		linearCounterHalt = false;
 }
 
@@ -40,16 +40,16 @@ void NesApuTriangleChannel::clockProgrammableTimer(int nCycles) {
 		progTimerCount += nCycles;
 		while (progTimerMax > 0 && progTimerCount >= progTimerMax) {
 			progTimerCount -= progTimerMax;
-			if (lengthStatus() && linearCounter > 0)
+			if (lengthStatus() && m_linearCounter > 0)
 				clockTriangleGenerator();
 		}
 	}
 }
 
 void NesApuTriangleChannel::clockTriangleGenerator(){
-	triangleCounter++;
-	triangleCounter &= 0x1F;
+	m_triangleCounter++;
+	m_triangleCounter &= 0x1F;
 }
 
 void NesApuTriangleChannel::updateSampleCondition()
-{ sampleCondition = (lengthStatus() && progTimerMax > 7 && linearCounter > 0); }
+{ sampleCondition = (lengthStatus() && progTimerMax > 7 && m_linearCounter > 0); }

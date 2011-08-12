@@ -14,4 +14,4 @@ void CpuMapper244::writeHigh(quint16 address, quint8 data) {
 	}
 }
 
-NES_MAPPER_PLUGIN_SOURCE(244, "Mapper244")
+NES_MAPPER_PLUGIN_EXPORT(244, "Mapper244")

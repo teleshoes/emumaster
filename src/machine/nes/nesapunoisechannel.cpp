@@ -2,25 +2,25 @@
 
 NesApuNoiseChannel::NesApuNoiseChannel(int channelNo) :
 	NesApuChannel(channelNo) {
-	accValue = 0;
-	accCount = 1;
+	m_accValue = 0;
+	m_accCount = 1;
 }
 
 void NesApuNoiseChannel::reset() {
 	NesApuChannel::reset();
-	randomBit = 0;
-	randomMode = 0;
-	shiftReg = 1;
+	m_randomBit = 0;
+	m_randomMode = 0;
+	m_shiftReg = 1;
 }
 
 void NesApuNoiseChannel::updateSampleValue() {
 	if (lengthStatus())
-		sampleValue = randomBit * masterVolume;
+		sampleValue = m_randomBit * masterVolume();
 }
 
 void NesApuNoiseChannel::setFrequency(quint8 data) {
 	progTimerMax = m_noiseWavelengthLUT[data & 0x0F];
-	randomMode = data >> 7;
+	m_randomMode = data >> 7;
 }
 
 int NesApuNoiseChannel::m_noiseWavelengthLUT[16] = {

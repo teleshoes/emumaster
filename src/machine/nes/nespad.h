@@ -22,7 +22,8 @@ public:
 	explicit NesPad(QObject *parent = 0);
 	void reset();
 	void setButtonState(Button button, bool state);
-	quint8 read();
+	void write(quint16 address, quint8 data);
+	quint8 read(quint16 address);
 private:
 	Buttons m_buttons;
 	int m_pointer;

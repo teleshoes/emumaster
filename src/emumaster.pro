@@ -3,7 +3,8 @@ TEMPLATE = subdirs
 SUBDIRS += \
     component \
 	machine \
-    testnes
+    testnes \
+    algorithm
 
 OTHER_FILES += \
 	../include/numeric.h

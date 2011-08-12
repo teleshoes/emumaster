@@ -15,4 +15,4 @@ void CpuMapper240::write(quint16 address, quint8 data) {
 	}
 }
 
-NES_MAPPER_PLUGIN_SOURCE(240, "Gen Ke Le Zhuan")
+NES_MAPPER_PLUGIN_EXPORT(240, "Gen Ke Le Zhuan")

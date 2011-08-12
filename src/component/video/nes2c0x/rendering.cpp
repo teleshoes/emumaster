@@ -243,7 +243,7 @@ void Nes2C0XPpu::renderScanline() {
 void Nes2C0XPpu::updateScanline() {
 	if (m_scanline < VisibleScreenHeight) {
 		/* Render this scanline if appropriate */
-		if (m_registers->isBackgroundVisible() || m_registers->isSpriteVisible()) {
+		if (m_registers->isDisplayOn()) {
 			/* If background or sprites are enabled, copy the ppu address latch */
 			/* Copy only the scroll x-coarse and the x-overflow bit */
 			m_refreshData &= ~0x041F;
@@ -287,7 +287,7 @@ void Nes2C0XPpu::processScanline(bool *lastLine) {
 		m_registers->clearStatus();
 	else if (m_scanline == m_scanlinesPerFrame) { /* if we rolled */
 		/* if background or sprites are enabled, copy the ppu address latch */
-		if (m_registers->isBackgroundVisible() || m_registers->isSpriteVisible())
+		if (m_registers->isDisplayOn())
 			m_refreshData = m_refreshLatch;
 		m_scanline = 0;
 		*lastLine = true;

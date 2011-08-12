@@ -11,51 +11,54 @@ public:
 	void setFrequency(quint8 data);
 	void updateSampleValue();
 
-	void step(int nCycles);
-
-	int randomBit;
-	bool randomMode;
-	int shiftReg;
-	int accValue;
-	int accCount;
+	int sample();
+	void clock(int nCycles);
+private:
+	int m_randomBit;
+	bool m_randomMode;
+	int m_shiftReg;
+	int m_accValue;
+	int m_accCount;
 
 	static int m_noiseWavelengthLUT[16];
 };
 
-inline void NesApuNoiseChannel::step(int nCycles) {
+inline int NesApuNoiseChannel::sample() {
+	int result = (m_accValue << 4) / m_accCount;
+	m_accValue = result >> 4;
+	m_accCount = 1;
+	return result;
+}
+
+inline void NesApuNoiseChannel::clock(int nCycles) {
+	Q_ASSERT(nCycles > 0);
 	if (progTimerCount - nCycles > 0) {
 		// do all cycles at once
 		progTimerCount -= nCycles;
-		accCount       += nCycles;
-		Q_ASSERT(accCount != 0);
-		accValue       += nCycles * sampleValue;
+		m_accCount += nCycles;
+		m_accValue += nCycles * sampleValue;
 	} else {
 		// slow-step
 		for (; nCycles > 0; nCycles--) {
 			progTimerCount--;
 			if (progTimerCount <= 0 && progTimerMax > 0) {
-				shiftReg <<= 1;
-				int noiseTmp = shiftReg;
-				noiseTmp <<= (randomMode ? 6 : 1);
-				noiseTmp ^= shiftReg;
+				m_shiftReg <<= 1;
+				int noiseTmp = m_shiftReg;
+				noiseTmp <<= (m_randomMode ? 6 : 1);
+				noiseTmp ^= m_shiftReg;
 				noiseTmp &= 0x8000;
 				if (noiseTmp) {
-					shiftReg |= 0x01;
-					randomBit = 0;
+					m_shiftReg |= 0x01;
+					m_randomBit = 0;
 					sampleValue = 0;
 				} else {
-					randomBit = 1;
-					if (lengthStatus()) {
-						sampleValue = masterVolume;
-					} else {
-						sampleValue = 0;
-					}
+					m_randomBit = 1;
+					sampleValue = (lengthStatus() ? masterVolume() : 0);
 				}
 				progTimerCount += progTimerMax;
 			}
-			accValue += sampleValue;
-			accCount++;
-			Q_ASSERT(accCount != 0);
+			m_accValue += sampleValue;
+			m_accCount++;
 		}
 	}
 }

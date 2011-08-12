@@ -26,4 +26,4 @@ void CpuMapper246::write(quint16 address, quint8 data) {
 	}
 }
 
-NES_MAPPER_PLUGIN_SOURCE(246, "Phone Serm Berm")
+NES_MAPPER_PLUGIN_EXPORT(246, "Phone Serm Berm")

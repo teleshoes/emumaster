@@ -8,7 +8,7 @@ class NesApuDMChannel : public NesApuChannel {
 public:
 	enum Mode { Normal, Loop, Irq };
 
-	explicit NesApuDMChannel(NesApu *apu, int channelNo);
+	explicit NesApuDMChannel(NesApu *m_apu, int channelNo);
 	void reset();
 
 	void write0x4010(quint8 data);
@@ -19,32 +19,42 @@ public:
 
 	void updateSampleValue(); // for setEnabled
 
-	void clock();
+	void clockDM();
 	void endOfSample();
 	void nextSample();
 
-	bool hasSample;
+	void clock(int nCycles);
+
 	bool irqGenerated;
+private:
+	bool m_hasSample;
 
-	Mode playMode;
-	int dmaFrequency;
-	int dmaCounter;
-	int deltaCounter;
-	int playLength;
-	int shiftCounter;
-	int status;
-	int dacLsb;
-	int shiftReg;
+	Mode m_playMode;
+	int m_dmaFrequency;
+	int m_dmaCounter;
+	int m_deltaCounter;
+	int m_playLength;
+	int m_shiftCounter;
+	int m_status;
+	int m_dacLsb;
+	int m_shiftReg;
 
-	uint playStartAddress;
-	uint playAddress;
+	uint m_playStartAddress;
+	uint m_playAddress;
 
-	quint8 reg0x4012;
-	quint8 reg0x4013;
+	NesApu *m_apu;
 
-	NesApu *apu;
-
-	static int frequencyLUT[16];
+	static int m_frequencyLUT[16];
 };
+
+inline void NesApuDMChannel::clock(int nCycles) {
+	if (isEnabled()) {
+		m_shiftCounter -= (nCycles << 3);
+		while (m_shiftCounter <= 0 && m_dmaFrequency > 0) {
+			m_shiftCounter += m_dmaFrequency;
+			clockDM();
+		}
+	}
+}
 
 #endif // NESAPUDPCMCHANNEL_H
