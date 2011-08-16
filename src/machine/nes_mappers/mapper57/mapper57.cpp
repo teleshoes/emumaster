@@ -2,11 +2,11 @@
 #include <QDataStream>
 
 CpuMapper57::CpuMapper57(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper) {
 }
 
 void CpuMapper57::reset() {
-	NesCpuMemoryMapper::reset();
+	NesCpuMapper::reset();
 	setRom16KBank(0, 0);
 	setRom16KBank(1, 0);
 	mapper()->ppuMemory()->setRomBank(0);
@@ -32,20 +32,20 @@ void CpuMapper57::writeHigh(quint16 address, quint8 data) {
 		}
 		mapper()->ppuMemory()->setRomBank((data&0x07) + ((data&0x10)>>1));
 		if (data & 0x08)
-			mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Horizontal);
+			mapper()->ppuMemory()->setMirroring(NesPpuMapper::Horizontal);
 		else
-			mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Vertical);
+			mapper()->ppuMemory()->setMirroring(NesPpuMapper::Vertical);
 		break;
 	}
 }
 
 void CpuMapper57::save(QDataStream &s) {
-	NesCpuMemoryMapper::save(s);
+	NesCpuMapper::save(s);
 	s << m_reg;
 }
 
 bool CpuMapper57::load(QDataStream &s) {
-	if (!NesCpuMemoryMapper::load(s))
+	if (!NesCpuMapper::load(s))
 		return false;
 	s >> m_reg;
 	return true;

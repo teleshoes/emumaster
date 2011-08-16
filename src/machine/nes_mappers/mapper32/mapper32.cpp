@@ -1,43 +1,44 @@
 #include "mapper32.h"
+#include "nesdisk.h"
 #include <QDataStream>
 
 CpuMapper32::CpuMapper32(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper),
+	ppuMapper(0) {
 }
 
 void CpuMapper32::reset() {
-	NesCpuMemoryMapper::reset();
-	m_patch = 0;
-	m_reg = 0;
-	setRom16KBank(0, 0);
-	setRom16KBank(1, romSize16KB()-1);
-	if (mapper()->ppuMemory()->romSize())
-		mapper()->ppuMemory()->setRomBank(0);
-	/* TODO DWORD	crc = nes->rom->GetPROM_CRC();
+	ppuMapper = mapper()->ppuMapper();
+
+	patch = 0;
+	reg = 0;
+
+	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	if (ppuMapper->vromSize1KB())
+		ppuMapper->setVrom8KBank(0);
+
+	quint32 crc = disk()->crc();
 	// For Major League(J)
 	if (crc == 0xc0fed437) {
 		patch = 1;
 	}
 	// For Ai Sensei no Oshiete - Watashi no Hoshi(J)
 	if (crc == 0xfd3fc292) {
-		SetPROM_32K_Bank( 30, 31, 30, 31);
-	}*/
+		setRom8KBanks(30, 31, 30, 31);
+	}
 }
 
 void CpuMapper32::writeHigh(quint16 address, quint8 data) {
 	switch (address & 0xF000) {
 	case 0x8000:
-		if (m_reg & 0x02)
-			setRom8KBank(2, data);
+		if (reg & 0x02)
+			setRom8KBank(6, data);
 		else
-			setRom8KBank(0, data);
+			setRom8KBank(4, data);
 		break;
 	case 0x9000:
-		m_reg = data;
-		if (data & 0x01)
-			mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Horizontal);
-		else
-			mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Vertical);
+		reg = data;
+		ppuMapper->setMirroring(static_cast<NesPpuMapper::Mirroring>(data & 0x01));
 		break;
 	case 0xA000:
 		setRom8KBank(1, data);
@@ -50,30 +51,32 @@ void CpuMapper32::writeHigh(quint16 address, quint8 data) {
 	case 0xB003:
 	case 0xB004:
 	case 0xB005:
-		mapper()->ppuMemory()->setRom1KBank(address & 0x0007, data);
+		ppuMapper->setVrom1KBank(address & 0x0007, data);
 		break;
 	case 0xB006:
-		mapper()->ppuMemory()->setRom1KBank(6, data);
-		if (m_patch && (data & 0x40))
-			mapper()->ppuMemory()->setMirroring(0, 0, 0, 1);
+		ppuMapper->setVrom1KBank(6, data);
+		if (patch && (data & 0x40))
+			ppuMapper->setMirroring(0, 0, 0, 1);
 		break;
 	case 0xB007:
-		mapper()->ppuMemory()->setRom1KBank(7, data);
-		if (m_patch && (data & 0x40))
-			mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::SingleLow);
+		ppuMapper->setVrom1KBank(7, data);
+		if (patch && (data & 0x40))
+			ppuMapper->setMirroring(NesPpuMapper::SingleLow);
 		break;
 	}
 }
 
-void CpuMapper32::save(QDataStream &s) {
-	NesCpuMemoryMapper::save(s);
-	s << m_reg;
+bool CpuMapper32::save(QDataStream &s) {
+	if (!NesCpuMapper::save(s))
+		return false;
+	s << reg;
+	return true;
 }
 
 bool CpuMapper32::load(QDataStream &s) {
-	if (!NesCpuMemoryMapper::load(s))
+	if (!NesCpuMapper::load(s))
 		return false;
-	s >> m_reg;
+	s >> reg;
 	return true;
 }
 

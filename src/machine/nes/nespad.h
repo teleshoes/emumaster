@@ -21,12 +21,23 @@ public:
 
 	explicit NesPad(QObject *parent = 0);
 	void reset();
-	void setButtonState(Button button, bool state);
+	bool isZapperMode() const;
+
+	void setButtonState(int player, Button button, bool on);
 	void write(quint16 address, quint8 data);
 	quint8 read(quint16 address);
 private:
-	Buttons m_buttons;
-	int m_pointer;
+	void strobe();
+
+	bool m_nextStrobe;
+	Buttons m_padA;
+	Buttons m_padB;
+
+	quint8 m_padAReg;
+	quint8 m_padBReg;
 };
+
+inline bool NesPad::isZapperMode() const
+{ return false; } // TODO zapper
 
 #endif // NESPAD_H

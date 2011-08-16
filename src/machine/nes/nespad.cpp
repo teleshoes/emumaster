@@ -2,25 +2,54 @@
 #include <QDebug>
 
 NesPad::NesPad(QObject *parent) :
-	QObject(parent),
-	m_pointer(0) {
+	QObject(parent) {
 }
 
-void NesPad::setButtonState(Button button, bool state) {
-	if (state)
-		m_buttons |= button;
+void NesPad::setButtonState(int player, Button button, bool on) {
+	Q_ASSERT(player == 0 || player == 1);
+	Buttons &pad = ((player == 0) ? m_padA : m_padB);
+	if (on)
+		pad |= button;
 	else
-		m_buttons &= ~button;
+		pad &= ~button;
 }
 
-quint8 NesPad::read() {
-	quint8 ret = 0;
-	if (m_pointer < 8) {
-		ret = m_buttons & static_cast<Button> (1 << m_pointer);
-		m_pointer++;
+void NesPad::reset() {
+	m_padAReg = 0;
+	m_padBReg = 0;
+}
+
+void NesPad::write(quint16 address, quint8 data) {
+	Q_ASSERT(address < 2);
+	if (address == 0) {
+		if (data & 0x01) {
+			m_nextStrobe = true;
+		} else if (m_nextStrobe) {
+			m_nextStrobe = false;
+			strobe();
+		}
+	} else {
+		// TODO expad
 	}
-	return ret ? 1 : 0;
 }
 
-void NesPad::reset()
-{ m_pointer = 0; }
+quint8 NesPad::read(quint16 address) {
+	Q_ASSERT(address < 2);
+	quint8 data;
+	if (address == 0) {
+		data = m_padAReg & 1;
+		m_padAReg >>= 1;
+		// TODO expad
+	} else {
+		data = m_padBReg & 1;
+		m_padBReg >>= 1;
+		// TODO expad
+	}
+	return	data;
+}
+
+void NesPad::strobe() {
+	m_padAReg = int(m_padA);
+	m_padBReg = int(m_padB);
+	// TODO expad
+}

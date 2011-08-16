@@ -2,12 +2,10 @@
 #define MAPPER8_H
 
 #include "nesmapper.h"
-#include "nescpumemorymapper.h"
-#include "nesppumemorymapper.h"
+#include "nescpumapper.h"
+#include "nesppumapper.h"
 
-class PpuMapper8;
-
-class CpuMapper8 : public NesCpuMemoryMapper {
+class CpuMapper8 : public NesCpuMapper {
 	Q_OBJECT
 public:
 	explicit CpuMapper8(NesMapper *mapper);
@@ -15,7 +13,7 @@ public:
 	void writeHigh(quint16 address, quint8 data);
 };
 
-#define PpuMapper8 NesPpuMemoryMapper
+#define PpuMapper8 NesPpuMapper
 
 class NesMapper8Plugin : public NesMapperPlugin {
 	Q_OBJECT

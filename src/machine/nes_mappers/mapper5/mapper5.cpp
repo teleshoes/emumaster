@@ -1,4 +1,6 @@
 #include "mapper5.h"
+#include "nesdisk.h"
+#include "nesppu.h"
 #include <QDataStream>
 
 class NesMapper5Data {
@@ -31,7 +33,6 @@ public:
 	quint8	chr_mode;		// $5120-$512B use
 	quint8	chr_page[2][8];		// $5120-$512B
 	quint8 *BG_MEM_BANK[8];
-	quint8	BG_MEM_PAGE[8];
 
 	quint8	irq_status;		// $5204(R)
 	quint8	irq_enable;		// $5204(W)
@@ -41,11 +42,13 @@ public:
 	quint8	irq_type;
 
 	quint8	mult_a, mult_b;		// $5205-$5206
+
+	bool cpu_bank_wren[8];
 };
 
 CpuMapper5::CpuMapper5(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper),
-	m_ppuMapper(0) {
+	NesCpuMapper(mapper),
+	ppuMapper(0) {
 	d = new NesMapper5Data();
 }
 
@@ -54,8 +57,17 @@ CpuMapper5::~CpuMapper5() {
 }
 
 void CpuMapper5::reset() {
-	NesCpuMemoryMapper::reset();
-	m_ppuMapper = static_cast<PpuMapper5 *>(mapper()->ppuMemory());
+	ppuMapper = static_cast<PpuMapper5 *>(mapper()->ppuMapper());
+
+	d->cpu_bank_wren[0] = true;
+	d->cpu_bank_wren[1] = true;
+	d->cpu_bank_wren[2] = true;
+	d->cpu_bank_wren[3] = true;
+	d->cpu_bank_wren[4] = false;
+	d->cpu_bank_wren[5] = false;
+	d->cpu_bank_wren[6] = false;
+	d->cpu_bank_wren[7] = false;
+
 	d->prg_size = 3;
 	d->chr_size = 3;
 
@@ -77,30 +89,24 @@ void CpuMapper5::reset() {
 	d->irq_line = 0;
 	d->irq_clear = 0;
 
-	d->irq_type = 0;
+	d->irq_type = NesMapper5Data::IrqNone;
 
 	d->mult_a = d->mult_b = 0;
 
 	d->chr_type = 0;
 	d->chr_mode = 0;
-	for (i = 0; i < 8; i++) {
+
+	for (int i = 0; i < 8; i++) {
 		d->chr_page[0][i] = i;
 		d->chr_page[1][i] = 4+(i&0x03);
 	}
-	for (int i = 0; i < 4; i++)
+	for (int i = 4; i < 8; i++)
 		setRom8KBank(i, romSize8KB()-1);
-	m_ppuMapper->setRomBank(0);
-
-	for (i = 0; i < 8; i++) {
-		d->BG_MEM_BANK[i] = VROM+0x0400*i;
-		d->BG_MEM_PAGE[i] = i;
-	}
-	SetBank_SRAM( 3, 0);
+	setBankSram(3, 0);
 
 	d->sram_size = 0;
-	nes->SetSAVERAM_SIZE( 16*1024);
 
-/*	uint	crc = nes->rom->GetPROM_CRC();
+	quint32 crc = disk()->crc();
 
 	if (crc == 0x2b548d75	// Bandit Kings of Ancient China(U)
 	 || crc == 0xf4cd4998	// Dai Koukai Jidai(J)
@@ -113,47 +119,43 @@ void CpuMapper5::reset() {
 	 || crc == 0xe6c28c5f	// Suikoden - Tenmei no Chikai(J)
 	 || crc == 0xcd35e2e9) {	// Uncharted Waters(U)
 		d->sram_size = 1;
-		nes->SetSAVERAM_SIZE( 32*1024);
 	} else
 	if (crc == 0xf4120e58	// Aoki Ookami to Shiroki Mejika - Genchou Hishi(J)
 	 || crc == 0x286613d8	// Nobunaga no Yabou - Bushou Fuuun Roku(J)
 	 || crc == 0x11eaad26	// Romance of the Three Kingdoms 2(U)
 	 || crc == 0x95ba5733) {	// Sangokushi 2(J)
 		d->sram_size = 2;
-		nes->SetSAVERAM_SIZE( 64*1024);
 	}
 
 	if (crc == 0x95ca9ec7) { // Castlevania 3 - Dracula's Curse(U)
-		nes->SetRenderMethod( NES::TILE_RENDER);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 
 	if (crc == 0xcd9acf43) { // Metal Slader Glory(J)
-		d->irq_type = IrqMetal;
+		d->irq_type = NesMapper5Data::IrqMetal;
 	}
 
 	if (crc == 0xe91548d8) { // Shin 4 Nin Uchi Mahjong - Yakuman Tengoku(J)
 		d->chr_type = 1;
-	}*/
+	}
 
-	nes->ppu->SetExtLatchMode( TRUE);
-	nes->apu->SelectExSound( 8);
+	ppu()->setExternalLatchEnabled(true);
+// TODO ex sound	nes->apu->SelectExSound( 8);
 }
 
-quint8	Mapper005::ReadLow( quint16 addr)
-{
-quint8	data = (quint8)(addr>>8);
+quint8 CpuMapper5::readLow(quint16 address) {
+	quint8 data = address >> 8;
 
-	switch (addr) {
+	switch (address) {
 	case 0x5015:
-		data = nes->apu->ExRead( addr);
+		// TODO ex souund data = nes->apu->ExRead( address);
 		break;
 
 	case 0x5204:
 		data = d->irq_status;
 //		d->irq_status = 0;
 		d->irq_status &= ~0x80;
-
-		nes->cpu->ClrIRQ( IRQ_MAPPER);
+		setIrqSignalOut(false);
 		break;
 	case 0x5205:
 		data = d->mult_a*d->mult_b;
@@ -163,19 +165,18 @@ quint8	data = (quint8)(addr>>8);
 		break;
 	}
 
-	if (addr >= 0x5C00 && addr <= 0x5FFF) {
+	if (address >= 0x5C00 && address <= 0x5FFF) {
 		if (d->graphic_mode >= 2) { // ExRAM mode
-			data = VRAM[0x0800+(addr&0x3FF)];
+			data = ppuMapper->m_vram[0x0800+(address&0x3FF)];
 		}
-	} else if (addr >= 0x6000 && addr <= 0x7FFF) {
-		data = Mapper::ReadLow( addr);
+	} else if (address >= 0x6000 && address <= 0x7FFF) {
+		data = NesCpuMapper::readLow(address);
 	}
-
-	return	data;
+	return data;
 }
 
-void	Mapper005::WriteLow( quint16 addr, quint8 data) {
-	switch (addr) {
+void CpuMapper5::writeLow(quint16 address, quint8 data) {
+	switch (address) {
 	case 0x5100:
 		d->prg_size = data & 0x03;
 		break;
@@ -195,9 +196,9 @@ void	Mapper005::WriteLow( quint16 addr, quint8 data) {
 		break;
 	case 0x5105:
 		d->nametable_mode = data;
-		for (i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++) {
 			d->nametable_type[i] = data&0x03;
-			SetVRAM_1K_Bank( 8+i, d->nametable_type[i]);
+			ppuMapper->setVram1KBank(8+i, d->nametable_type[i]);
 			data >>= 2;
 		}
 		break;
@@ -210,14 +211,14 @@ void	Mapper005::WriteLow( quint16 addr, quint8 data) {
 		break;
 
 	case 0x5113:
-		SetBank_SRAM( 3, data&0x07);
+		setBankSram(3, data&0x07);
 		break;
 
 	case 0x5114:
 	case 0x5115:
 	case 0x5116:
 	case 0x5117:
-		SetBank_CPU( addr, data);
+		setBank(address, data);
 		break;
 
 	case 0x5120:
@@ -229,8 +230,8 @@ void	Mapper005::WriteLow( quint16 addr, quint8 data) {
 	case 0x5126:
 	case 0x5127:
 		d->chr_mode = 0;
-		d->chr_page[0][addr&0x07] = data;
-		SetBank_PPU();
+		d->chr_page[0][address&0x07] = data;
+		ppuMapper->updateBanks();
 		break;
 
 	case 0x5128:
@@ -238,9 +239,9 @@ void	Mapper005::WriteLow( quint16 addr, quint8 data) {
 	case 0x512A:
 	case 0x512B:
 		d->chr_mode = 1;
-		d->chr_page[1][(addr&0x03)+0] = data;
-		d->chr_page[1][(addr&0x03)+4] = data;
-		SetBank_PPU();
+		d->chr_page[1][(address&0x03)+0] = data;
+		d->chr_page[1][(address&0x03)+4] = data;
+		ppuMapper->updateBanks();
 		break;
 
 	case 0x5200:
@@ -255,13 +256,11 @@ void	Mapper005::WriteLow( quint16 addr, quint8 data) {
 
 	case 0x5203:
 		d->irq_line = data;
-
-		nes->cpu->ClrIRQ( IRQ_MAPPER);
+		setIrqSignalOut(false);
 		break;
 	case 0x5204:
 		d->irq_enable = data;
-
-		nes->cpu->ClrIRQ( IRQ_MAPPER);
+		setIrqSignalOut(false);
 		break;
 
 	case 0x5205:
@@ -272,22 +271,22 @@ void	Mapper005::WriteLow( quint16 addr, quint8 data) {
 		break;
 
 	default:
-		if (addr >= 0x5000 && addr <= 0x5015) {
-			nes->apu->ExWrite( addr, data);
-		} else if (addr >= 0x5C00 && addr <= 0x5FFF) {
+		if (address >= 0x5000 && address <= 0x5015) {
+			// TODO ex apu nes->apu->ExWrite( address, data);
+		} else if (address >= 0x5C00 && address <= 0x5FFF) {
 			if (d->graphic_mode == 2) {		// ExRAM
-				VRAM[0x0800+(addr&0x3FF)] = data;
+				ppuMapper->m_vram[0x0800+(address&0x3FF)] = data;
 			} else if (d->graphic_mode != 3) {	// Split,ExGraphic
 				if (d->irq_status&0x40) {
-					VRAM[0x0800+(addr&0x3FF)] = data;
+					ppuMapper->m_vram[0x0800+(address&0x3FF)] = data;
 				} else {
-					VRAM[0x0800+(addr&0x3FF)] = 0;
+					ppuMapper->m_vram[0x0800+(address&0x3FF)] = 0;
 				}
 			}
-		} else if (addr >= 0x6000 && addr <= 0x7FFF) {
+		} else if (address >= 0x6000 && address <= 0x7FFF) {
 			if ((d->sram_we_a == 0x02) && (d->sram_we_b == 0x01)) {
-				if (CPU_MEM_TYPE[3] == BANKTYPE_RAM) {
-					CPU_MEM_BANK[3][addr&0x1FFF] = data;
+				if (d->cpu_bank_wren[3]) {
+					writeDirect(address, data);
 				}
 			}
 		}
@@ -295,177 +294,190 @@ void	Mapper005::WriteLow( quint16 addr, quint8 data) {
 	}
 }
 
-void	Mapper005::Write( quint16 addr, quint8 data)
-{
+void CpuMapper5::writeHigh(quint16 address, quint8 data) {
 	if (d->sram_we_a == 0x02 && d->sram_we_b == 0x01) {
-		if (addr >= 0x8000 && addr < 0xE000) {
-			if (CPU_MEM_TYPE[addr>>13] == BANKTYPE_RAM) {
-				CPU_MEM_BANK[addr>>13][addr&0x1FFF] = data;
+		if (address >= 0x8000 && address < 0xE000) {
+			if (d->cpu_bank_wren[address >> 13]) {
+				writeDirect(address, data);
 			}
 		}
 	}
 }
 
-void	Mapper005::SetBank_CPU( quint16 addr, quint8 data)
-{
+void CpuMapper5::setBank(quint16 address, quint8 data) {
 	if (data & 0x80) {
-	// PROM Bank
-		switch (addr & 7) {
+		// PROM Bank
+		switch (address & 7) {
 		case 4:
 			if (d->prg_size == 3) {
-				SetPROM_8K_Bank( 4, data&0x7F);
+				setRom8KBank(4, data&0x7F);
+				d->cpu_bank_wren[4] = false;
 			}
 			break;
 		case 5:
 			if (d->prg_size == 1 || d->prg_size == 2) {
-				SetPROM_16K_Bank( 4, (data&0x7F)>>1);
+				setRom16KBank(4, (data&0x7F)>>1);
+				d->cpu_bank_wren[4] = false;
+				d->cpu_bank_wren[5] = false;
 			} else if (d->prg_size == 3) {
-				SetPROM_8K_Bank( 5, (data&0x7F));
+				setRom8KBank(5, (data&0x7F));
+				d->cpu_bank_wren[5] = false;
 			}
 			break;
 		case 6:
 			if (d->prg_size == 2 || d->prg_size == 3) {
-				SetPROM_8K_Bank( 6, (data&0x7F));
+				setRom8KBank(6, (data&0x7F));
+				d->cpu_bank_wren[6] = false;
 			}
 			break;
 		case 7:
 			if (d->prg_size == 0) {
-				SetPROM_32K_Bank( (data&0x7F)>>2);
+				setRom32KBank((data&0x7F)>>2);
+				d->cpu_bank_wren[4] = false;
+				d->cpu_bank_wren[5] = false;
+				d->cpu_bank_wren[6] = false;
+				d->cpu_bank_wren[7] = false;
 			} else if (d->prg_size == 1) {
-				SetPROM_16K_Bank( 6, (data&0x7F)>>1);
+				setRom16KBank(6, (data&0x7F)>>1);
+				d->cpu_bank_wren[6] = false;
+				d->cpu_bank_wren[7] = false;
 			} else if (d->prg_size == 2 || d->prg_size == 3) {
-				SetPROM_8K_Bank( 7, (data&0x7F));
+				setRom8KBank(7, (data&0x7F));
+				d->cpu_bank_wren[7] = false;
 			}
 			break;
 		}
 	} else {
-	// WRAM Bank
-		switch (addr & 7) {
+		// WRAM Bank
+		switch (address & 7) {
 		case 4:
 			if (d->prg_size == 3) {
-				SetBank_SRAM( 4, data&0x07);
+				setBankSram(4, data&0x07);
 			}
 			break;
 		case 5:
 			if (d->prg_size == 1 || d->prg_size == 2) {
-				SetBank_SRAM( 4, (data&0x06)+0);
-				SetBank_SRAM( 5, (data&0x06)+1);
+				setBankSram(4, (data&0x06)+0);
+				setBankSram(5, (data&0x06)+1);
 			} else if (d->prg_size == 3) {
-				SetBank_SRAM( 5, data&0x07);
+				setBankSram(5, data&0x07);
 			}
 			break;
 		case 6:
 			if (d->prg_size == 2 || d->prg_size == 3) {
-				SetBank_SRAM( 6, data&0x07);
+				setBankSram(6, data&0x07);
 			}
 			break;
 		}
 	}
 }
 
-void	Mapper005::SetBank_SRAM( quint8 page, quint8 data)
-{
+void CpuMapper5::setBankSram(quint8 page, quint8 data) {
 	if (d->sram_size == 0) data = (data > 3) ? 8 : 0;
 	if (d->sram_size == 1) data = (data > 3) ? 1 : 0;
 	if (d->sram_size == 2) data = (data > 3) ? 8 : data;
 	if (d->sram_size == 3) data = (data > 3) ? 4 : data;
 
 	if (data != 8) {
-		SetPROM_Bank( page, &WRAM[0x2000*data], BANKTYPE_RAM);
-		CPU_MEM_PAGE[page] = data;
+		setWram8KBank(page, data);
+		d->cpu_bank_wren[page] = true;
 	} else {
-		CPU_MEM_TYPE[page] = BANKTYPE_ROM;
+		d->cpu_bank_wren[page] = false;
 	}
 }
 
-void	Mapper005::SetBank_PPU()
-{
-INT	i;
+PpuMapper5::PpuMapper5(NesMapper *mapper) :
+	NesPpuMapper(mapper),
+	d(0),
+	cpuMapper(0),
+	ppu(0),
+	ppuRegisters(0) {
+}
 
+void PpuMapper5::reset() {
+	cpuMapper = static_cast<CpuMapper5 *>(mapper()->cpuMapper());
+	d = cpuMapper->d;
+	ppu = cpuMapper->ppu();
+	ppuRegisters = ppu->registers();
+
+	setVrom8KBank(0);
+
+	for (int i = 0; i < 8; i++) {
+		d->BG_MEM_BANK[i] = m_vrom+0x0400*i;
+	}
+
+}
+
+void PpuMapper5::updateBanks() {
 	if (d->chr_mode == 0) {
-	// PPU SP Bank
+		// PPU SP Bank
 		switch (d->chr_size) {
 		case 0:
-			SetVROM_8K_Bank( d->chr_page[0][7]);
+			setVrom8KBank(d->chr_page[0][7]);
 			break;
 		case 1:
-			SetVROM_4K_Bank( 0, d->chr_page[0][3]);
-			SetVROM_4K_Bank( 4, d->chr_page[0][7]);
+			setVrom4KBank(0, d->chr_page[0][3]);
+			setVrom4KBank(4, d->chr_page[0][7]);
 			break;
 		case 2:
-			SetVROM_2K_Bank( 0, d->chr_page[0][1]);
-			SetVROM_2K_Bank( 2, d->chr_page[0][3]);
-			SetVROM_2K_Bank( 4, d->chr_page[0][5]);
-			SetVROM_2K_Bank( 6, d->chr_page[0][7]);
+			setVrom2KBank(0, d->chr_page[0][1]);
+			setVrom2KBank(2, d->chr_page[0][3]);
+			setVrom2KBank(4, d->chr_page[0][5]);
+			setVrom2KBank(6, d->chr_page[0][7]);
 			break;
 		case 3:
-			SetVROM_8K_Bank( d->chr_page[0][0],
-					 d->chr_page[0][1],
-					 d->chr_page[0][2],
-					 d->chr_page[0][3],
-					 d->chr_page[0][4],
-					 d->chr_page[0][5],
-					 d->chr_page[0][6],
-					 d->chr_page[0][7]);
+			for (int i = 0; i < 8; i++)
+				setVrom1KBank(i, d->chr_page[0][i]);
 			break;
 		}
 	} else if (d->chr_mode == 1) {
 		// PPU BG Bank
 		switch (d->chr_size) {
 		case 0:
-			for (i = 0; i < 8; i++) {
-				d->BG_MEM_BANK[i] = VROM+0x2000*(d->chr_page[1][7]%VROM_8K_SIZE)+0x0400*i;
-				d->BG_MEM_PAGE[i] = (d->chr_page[1][7]%VROM_8K_SIZE)*8+i;
+			for (int i = 0; i < 8; i++) {
+				d->BG_MEM_BANK[i] = m_vrom+0x2000*(d->chr_page[1][7]%vromSize8KB())+0x0400*i;
 			}
 			break;
 		case 1:
-			for (i = 0; i < 4; i++) {
-				d->BG_MEM_BANK[i+0] = VROM+0x1000*(d->chr_page[1][3]%VROM_4K_SIZE)+0x0400*i;
-				d->BG_MEM_BANK[i+4] = VROM+0x1000*(d->chr_page[1][7]%VROM_4K_SIZE)+0x0400*i;
-				d->BG_MEM_PAGE[i+0] = (d->chr_page[1][3]%VROM_4K_SIZE)*4+i;
-				d->BG_MEM_PAGE[i+4] = (d->chr_page[1][7]%VROM_4K_SIZE)*4+i;
+			for (int i = 0; i < 4; i++) {
+				d->BG_MEM_BANK[i+0] = m_vrom+0x1000*(d->chr_page[1][3]%vromSize4KB())+0x0400*i;
+				d->BG_MEM_BANK[i+4] = m_vrom+0x1000*(d->chr_page[1][7]%vromSize4KB())+0x0400*i;
 			}
 			break;
 		case 2:
-			for (i = 0; i < 2; i++) {
-				d->BG_MEM_BANK[i+0] = VROM+0x0800*(d->chr_page[1][1]%VROM_2K_SIZE)+0x0400*i;
-				d->BG_MEM_BANK[i+2] = VROM+0x0800*(d->chr_page[1][3]%VROM_2K_SIZE)+0x0400*i;
-				d->BG_MEM_BANK[i+4] = VROM+0x0800*(d->chr_page[1][5]%VROM_2K_SIZE)+0x0400*i;
-				d->BG_MEM_BANK[i+6] = VROM+0x0800*(d->chr_page[1][7]%VROM_2K_SIZE)+0x0400*i;
-				d->BG_MEM_PAGE[i+0] = (d->chr_page[1][1]%VROM_2K_SIZE)*2+i;
-				d->BG_MEM_PAGE[i+2] = (d->chr_page[1][3]%VROM_2K_SIZE)*2+i;
-				d->BG_MEM_PAGE[i+4] = (d->chr_page[1][5]%VROM_2K_SIZE)*2+i;
-				d->BG_MEM_PAGE[i+6] = (d->chr_page[1][7]%VROM_2K_SIZE)*2+i;
+			for (int i = 0; i < 2; i++) {
+				d->BG_MEM_BANK[i+0] = m_vrom+0x0800*(d->chr_page[1][1]%vromSize2KB())+0x0400*i;
+				d->BG_MEM_BANK[i+2] = m_vrom+0x0800*(d->chr_page[1][3]%vromSize2KB())+0x0400*i;
+				d->BG_MEM_BANK[i+4] = m_vrom+0x0800*(d->chr_page[1][5]%vromSize2KB())+0x0400*i;
+				d->BG_MEM_BANK[i+6] = m_vrom+0x0800*(d->chr_page[1][7]%vromSize2KB())+0x0400*i;
 			}
 			break;
 		case 3:
-			for (i = 0; i < 8; i++) {
-				d->BG_MEM_BANK[i] = VROM+0x0400*(d->chr_page[1][i]%VROM_1K_SIZE);
-				d->BG_MEM_PAGE[i] = (d->chr_page[1][i]%VROM_1K_SIZE)+i;
+			for (int i = 0; i < 8; i++) {
+				d->BG_MEM_BANK[i] = m_vrom+0x0400*(d->chr_page[1][i]%vromSize1KB());
 			}
 			break;
 		}
 	}
 }
 
-void	Mapper005::HSync( INT scanline)
-{
-	if (d->irq_type & IrqMetal) {
+void PpuMapper5::horizontalSync(int scanline) {
+	if (d->irq_type & NesMapper5Data::IrqMetal) {
 		if (d->irq_scanline == d->irq_line) {
 			d->irq_status |= 0x80;
 		}
 	}
-	if (nes->ppu->IsDispON() && scanline < 240) {
+	if (ppuRegisters->isDisplayOn() && scanline < NesPpu::VisibleScreenHeight) {
 		d->irq_scanline++;
 		d->irq_status |= 0x40;
 		d->irq_clear = 0;
-	} else if (d->irq_type & IrqMetal) {
+	} else if (d->irq_type & NesMapper5Data::IrqMetal) {
 		d->irq_scanline = 0;
 		d->irq_status &= ~0x80;
 		d->irq_status &= ~0x40;
 	}
 
-	if (!(d->irq_type & IrqMetal)) {
+	if (!(d->irq_type & NesMapper5Data::IrqMetal)) {
 		if (d->irq_scanline == d->irq_line) {
 			d->irq_status |= 0x80;
 		}
@@ -474,13 +486,12 @@ void	Mapper005::HSync( INT scanline)
 			d->irq_scanline = 0;
 			d->irq_status &= ~0x80;
 			d->irq_status &= ~0x40;
-
-			nes->cpu->ClrIRQ( IRQ_MAPPER);
+			cpuMapper->setIrqSignalOut(false);
 		}
 	}
 
 	if ((d->irq_enable & 0x80) && (d->irq_status & 0x80) && (d->irq_status & 0x40)) {
-		nes->cpu->SetIRQ( IRQ_MAPPER);
+		cpuMapper->setIrqSignalOut(true);
 ///		nes->cpu->IRQ_NotPending();
 	}
 
@@ -488,7 +499,7 @@ void	Mapper005::HSync( INT scanline)
 	if (scanline == 0) {
 		d->split_yofs = d->split_scroll&0x07;
 		d->split_addr = ((d->split_scroll&0xF8)<<2);
-	} else if (nes->ppu->IsDispON()) {
+	} else if (ppuRegisters->isDisplayOn()) {
 		if (d->split_yofs == 7) {
 			d->split_yofs = 0;
 			if ((d->split_addr & 0x03E0) == 0x03A0) {
@@ -506,196 +517,188 @@ void	Mapper005::HSync( INT scanline)
 	}
 }
 
-void	Mapper005::PPU_ExtLatchX( INT x)
-{
+void PpuMapper5::extensionLatchX(uint x) {
 	d->split_x = x;
 }
 
-void	Mapper005::PPU_ExtLatch( quint16 addr, quint8& chr_l, quint8& chr_h, quint8& attr)
-{
-quint16	ntbladr, attradr, tileadr, tileofs;
-quint16	tile_yofs;
-Dquint16	tilebank;
-BOOL	bSplit;
+void PpuMapper5::extensionLatch(quint16 address, quint8 *plane1, quint8 *plane2, quint8 *attribute) {
+	quint16	ntbladr, attradr, tileadr, tileofs;
+	quint16	tile_yofs;
+	uint tilebank;
+	bool bSplit;
 
-	tile_yofs = nes->ppu->GetTILEY();
+	tile_yofs = ppu->scrollTileYOffset();
 
-	bSplit = FALSE;
+	bSplit = false;
 	if (d->split_control & 0x80) {
 		if (!(d->split_control&0x40)) {
-		// Left side
+			// Left side
 			if ((d->split_control&0x1F) > d->split_x) {
-				bSplit = TRUE;
+				bSplit = true;
 			}
 		} else {
-		// Right side
+			// Right side
 			if ((d->split_control&0x1F) <= d->split_x) {
-				bSplit = TRUE;
+				bSplit = true;
 			}
 		}
 	}
 
 	if (!bSplit) {
-		if (d->nametable_type[(addr&0x0C00)>>10] == 3) {
-		// Fill mode
+		if (d->nametable_type[(address&0x0C00)>>10] == 3) {
+			// Fill mode
 			if (d->graphic_mode == 1) {
-			// ExGraphic mode
-				ntbladr = 0x2000+(addr&0x0FFF);
+				// ExGraphic mode
+				ntbladr = 0x2000+(address&0x0FFF);
 				// Get Nametable
 				tileadr = d->fill_chr*0x10+tile_yofs;
 				// Get TileBank
-				tilebank = 0x1000*((VRAM[0x0800+(ntbladr&0x03FF)]&0x3F)%VROM_4K_SIZE);
+				tilebank = 0x1000*((m_vram[0x0800+(ntbladr&0x03FF)]&0x3F)%vromSize4KB());
 				// Attribute
-				attr = (d->fill_pal<<2)&0x0C;
+				*attribute = (d->fill_pal<<2)&0x0C;
 				// Get Pattern
-				chr_l = VROM[tilebank+tileadr  ];
-				chr_h = VROM[tilebank+tileadr+8];
+				*plane1 = m_vrom[tilebank+tileadr  ];
+				*plane2 = m_vrom[tilebank+tileadr+8];
 			} else {
-			// Normal
-				tileofs = (PPUREG[0]&PPU_BGTBL_BIT)?0x1000:0x0000;
+				// Normal
+				tileofs = ppu->tilePageOffset();
 				tileadr = tileofs+d->fill_chr*0x10+tile_yofs;
-				attr = (d->fill_pal<<2)&0x0C;
+				*attribute = (d->fill_pal<<2)&0x0C;
 				// Get Pattern
 				if (d->chr_type) {
-					chr_l = PPU_MEM_BANK[tileadr>>10][ tileadr&0x03FF   ];
-					chr_h = PPU_MEM_BANK[tileadr>>10][(tileadr&0x03FF)+8];
+					*plane1 = read(tileadr + 0);
+					*plane2 = read(tileadr + 8);
 				} else {
-					chr_l = d->BG_MEM_BANK[tileadr>>10][ tileadr&0x03FF   ];
-					chr_h = d->BG_MEM_BANK[tileadr>>10][(tileadr&0x03FF)+8];
+					*plane1 = d->BG_MEM_BANK[tileadr>>10][ tileadr&0x03FF   ];
+					*plane2 = d->BG_MEM_BANK[tileadr>>10][(tileadr&0x03FF)+8];
 				}
 			}
 		} else if (d->graphic_mode == 1) {
-		// ExGraphic mode
-			ntbladr = 0x2000+(addr&0x0FFF);
+			// ExGraphic mode
+			ntbladr = 0x2000+(address&0x0FFF);
 			// Get Nametable
-			tileadr = (quint16)PPU_MEM_BANK[ntbladr>>10][ntbladr&0x03FF]*0x10+tile_yofs;
+			tileadr = (quint16)read(ntbladr)*0x10+tile_yofs;
 			// Get TileBank
-			tilebank = 0x1000*((VRAM[0x0800+(ntbladr&0x03FF)]&0x3F)%VROM_4K_SIZE);
+			tilebank = 0x1000*((m_vram[0x0800+(ntbladr&0x03FF)]&0x3F)%vromSize4KB());
 			// Get Attribute
-			attr = (VRAM[0x0800+(ntbladr&0x03FF)]&0xC0)>>4;
+			*attribute = (m_vram[0x0800+(ntbladr&0x03FF)]&0xC0)>>4;
 			// Get Pattern
-			chr_l = VROM[tilebank+tileadr  ];
-			chr_h = VROM[tilebank+tileadr+8];
+			*plane1 = m_vrom[tilebank+tileadr  ];
+			*plane2 = m_vrom[tilebank+tileadr+8];
 		} else {
-		// Normal or ExVRAM
-			tileofs = (PPUREG[0]&PPU_BGTBL_BIT)?0x1000:0x0000;
-			ntbladr = 0x2000+(addr&0x0FFF);
-			attradr = 0x23C0+(addr&0x0C00)+((addr&0x0380)>>4)+((addr&0x001C)>>2);
+			// Normal or ExVRAM
+			tileofs = ppu->tilePageOffset();
+			ntbladr = 0x2000+(address&0x0FFF);
+			attradr = 0x23C0+(address&0x0C00)+((address&0x0380)>>4)+((address&0x001C)>>2);
 			// Get Nametable
-			tileadr = tileofs+PPU_MEM_BANK[ntbladr>>10][ntbladr&0x03FF]*0x10+tile_yofs;
+			tileadr = tileofs+read(ntbladr)*0x10+tile_yofs;
 			// Get Attribute
-			attr = PPU_MEM_BANK[attradr>>10][attradr&0x03FF];
-			if (ntbladr & 0x0002) attr >>= 2;
-			if (ntbladr & 0x0040) attr >>= 4;
-			attr = (attr&0x03)<<2;
+			*attribute = read(attradr);
+			if (ntbladr & 0x0002) *attribute >>= 2;
+			if (ntbladr & 0x0040) *attribute >>= 4;
+			*attribute = (*attribute&0x03)<<2;
 			// Get Pattern
 			if (d->chr_type) {
-				chr_l = PPU_MEM_BANK[tileadr>>10][ tileadr&0x03FF   ];
-				chr_h = PPU_MEM_BANK[tileadr>>10][(tileadr&0x03FF)+8];
+				*plane1 = read(tileadr + 0);
+				*plane2 = read(tileadr + 8);
 			} else {
-				chr_l = d->BG_MEM_BANK[tileadr>>10][ tileadr&0x03FF   ];
-				chr_h = d->BG_MEM_BANK[tileadr>>10][(tileadr&0x03FF)+8];
+				*plane1 = d->BG_MEM_BANK[tileadr>>10][ tileadr&0x03FF   ];
+				*plane2 = d->BG_MEM_BANK[tileadr>>10][(tileadr&0x03FF)+8];
 			}
 		}
 	} else {
 		ntbladr = ((d->split_addr&0x03E0)|(d->split_x&0x1F))&0x03FF;
 		// Get Split TileBank
-		tilebank = 0x1000*((INT)d->split_page%VROM_4K_SIZE);
-		tileadr  = (quint16)VRAM[0x0800+ntbladr]*0x10+d->split_yofs;
+		tilebank = 0x1000*((int)d->split_page%vromSize4KB());
+		tileadr  = (quint16)m_vram[0x0800+ntbladr]*0x10+d->split_yofs;
 		// Get Attribute
 		attradr = 0x03C0+((ntbladr&0x0380)>>4)+((ntbladr&0x001C)>>2);
-		attr = VRAM[0x0800+attradr];
-		if (ntbladr & 0x0002) attr >>= 2;
-		if (ntbladr & 0x0040) attr >>= 4;
-		attr = (attr&0x03)<<2;
+		*attribute = m_vram[0x0800+attradr];
+		if (ntbladr & 0x0002) *attribute >>= 2;
+		if (ntbladr & 0x0040) *attribute >>= 4;
+		*attribute = (*attribute&0x03)<<2;
 		// Get Pattern
-		chr_l = VROM[tilebank+tileadr  ];
-		chr_h = VROM[tilebank+tileadr+8];
+		*plane1 = m_vrom[tilebank+tileadr  ];
+		*plane2 = m_vrom[tilebank+tileadr+8];
 	}
 }
 
-void	Mapper005::SaveState( LPquint8 p)
-{
-	p[ 0] = d->prg_size;
-	p[ 1] = d->chr_size;
-	p[ 2] = d->sram_we_a;
-	p[ 3] = d->sram_we_b;
-	p[ 4] = d->graphic_mode;
-	p[ 5] = d->nametable_mode;
-	p[ 6] = d->nametable_type[0];
-	p[ 7] = d->nametable_type[1];
-	p[ 8] = d->nametable_type[2];
-	p[ 9] = d->nametable_type[3];
-	p[10] = d->sram_page;
-	p[11] = d->fill_chr;
-	p[12] = d->fill_pal;
-	p[13] = d->split_control;
-	p[14] = d->split_scroll;
-	p[15] = d->split_page;
-	p[16] = d->chr_mode;
-	p[17] = d->irq_status;
-	p[18] = d->irq_enable;
-	p[19] = d->irq_line;
-	p[20] = d->irq_scanline;
-	p[21] = d->irq_clear;
-	p[22] = d->mult_a;
-	p[23] = d->mult_b;
+bool CpuMapper5::save(QDataStream &s) {
+	if (!NesCpuMapper::save(s))
+		return false;
+	s << d->prg_size;
+	s << d->chr_size;
+	s << d->sram_we_a;
+	s << d->sram_we_b;
+	s << d->graphic_mode;
+	s << d->nametable_mode;
+	s << d->nametable_type[0];
+	s << d->nametable_type[1];
+	s << d->nametable_type[2];
+	s << d->nametable_type[3];
+	s << d->sram_page;
+	s << d->fill_chr;
+	s << d->fill_pal;
+	s << d->split_control;
+	s << d->split_scroll;
+	s << d->split_page;
+	s << d->chr_mode;
+	s << d->irq_status;
+	s << d->irq_enable;
+	s << d->irq_line;
+	s << d->irq_scanline;
+	s << d->irq_clear;
+	s << d->mult_a;
+	s << d->mult_b;
 
-	INT	i, j;
-	for (j = 0; j < 2; j++) {
-		for (i = 0; i < 8; i++) {
-			p[24+j*8+i] = d->chr_page[j][i];
+	for (int j = 0; j < 2; j++) {
+		for (int i = 0; i < 8; i++) {
+			s << d->chr_page[j][i];
 		}
 	}
-//	for (i = 0; i < 8; i++) {
-//		p[40+i] = d->BG_MEM_PAGE[i];
-//	}
+	for (int i = 0; i < 8; i++)
+		s << d->cpu_bank_wren[i];
+	return true;
 }
 
-void	Mapper005::LoadState( LPquint8 p)
-{
-	d->prg_size	  = p[ 0];
-	d->chr_size	  = p[ 1];
-	d->sram_we_a	  = p[ 2];
-	d->sram_we_b	  = p[ 3];
-	d->graphic_mode	  = p[ 4];
-	d->nametable_mode	  = p[ 5];
-	d->nametable_type[0] = p[ 6];
-	d->nametable_type[1] = p[ 7];
-	d->nametable_type[2] = p[ 8];
-	d->nametable_type[3] = p[ 9];
-	d->sram_page	  = p[10];
-	d->fill_chr	  = p[11];
-	d->fill_pal	  = p[12];
-	d->split_control	  = p[13];
-	d->split_scroll	  = p[14];
-	d->split_page	  = p[15];
-	d->chr_mode          = p[16];
-	d->irq_status	  = p[17];
-	d->irq_enable	  = p[18];
-	d->irq_line	  = p[19];
-	d->irq_scanline	  = p[20];
-	d->irq_clear	  = p[21];
-	d->mult_a		  = p[22];
-	d->mult_b		  = p[23];
+bool CpuMapper5::load(QDataStream &s) {
+	if (!NesCpuMapper::load(s))
+		return false;
+	s >> d->prg_size;
+	s >> d->chr_size;
+	s >> d->sram_we_a;
+	s >> d->sram_we_b;
+	s >> d->graphic_mode;
+	s >> d->nametable_mode;
+	s >> d->nametable_type[0];
+	s >> d->nametable_type[1];
+	s >> d->nametable_type[2];
+	s >> d->nametable_type[3];
+	s >> d->sram_page;
+	s >> d->fill_chr;
+	s >> d->fill_pal;
+	s >> d->split_control;
+	s >> d->split_scroll;
+	s >> d->split_page;
+	s >> d->chr_mode;
+	s >> d->irq_status;
+	s >> d->irq_enable;
+	s >> d->irq_line;
+	s >> d->irq_scanline;
+	s >> d->irq_clear;
+	s >> d->mult_a;
+	s >> d->mult_b;
 
-	INT	i, j;
-
-	for (j = 0; j < 2; j++) {
-		for (i = 0; i < 8; i++) {
-			d->chr_page[j][i] = p[24+j*8+i];
+	for (int j = 0; j < 2; j++) {
+		for (int i = 0; i < 8; i++) {
+			s >> d->chr_page[j][i];
 		}
 	}
-//	// BGƒoƒ“ƒN‚Ì�Ä�Ý’è�ˆ—�
-//	for (i = 0; i < 8; i++) {
-//		d->BG_MEM_PAGE[i] = p[40+i]%VROM_1K_SIZE;
-//	}
-//	for (i = 0; i < 8; i++) {
-//		d->BG_MEM_BANK[i] = VROM+0x0400*d->BG_MEM_PAGE[i];
-//	}
+	for (int i = 0; i < 8; i++)
+		s >> d->cpu_bank_wren[i];
 
-	SetBank_PPU();
-
+	ppuMapper->updateBanks();
+	return true;
 }
 
-NES_MAPPER_PLUGIN_SOURCE(5, "Nintendo MMC5")
+NES_MAPPER_PLUGIN_EXPORT(5, "Nintendo MMC5")

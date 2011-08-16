@@ -1,7 +1,5 @@
 #include "m6502.h"
 
-#define ADDCYC stoleCycles
-
 #define X_ZN(val)	P &= ~(Z|N); P |= ZNTable[val]
 #define X_ZNT(val)	P |= ZNTable[val]
 

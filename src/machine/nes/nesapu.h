@@ -13,9 +13,11 @@ class NesApu : public QObject {
     Q_OBJECT
 public:
 	explicit NesApu(NesCpu *cpu);
+	void updateMachineType();
 	void reset();
-	void write(uint address, quint8 data);
-	quint8 read(uint address);
+
+	void write(quint16 address, quint8 data);
+	quint8 read(quint16 address);
 
 	void setChannelUserEnabled(int channelNo, bool on);
 	void setSampleRate(int rate);
@@ -23,13 +25,13 @@ public:
 
 	void clockFrameCounter(int nCycles);
 	const char *grabBuffer(int *size);
-	void updateFrameRate();
 signals:
 	void request_irq_o(bool on);
 private:
 	NesMachine *machine() const;
 	NesCpu *cpu() const;
-	quint8 fetchData(uint address);
+	quint8 fetchData(quint16 address);
+	void updateFrameRate();
 	void initDACLUTs();
 	void updateIrqSignal();
 	void sample();

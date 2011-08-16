@@ -1,7 +1,7 @@
 #include "mapper240.h"
 
 CpuMapper240::CpuMapper240(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper) {
 	setRom16KBank(0, 0);
 	setRom16KBank(1, romSize16KB() - 1);
 }
@@ -11,7 +11,7 @@ void CpuMapper240::write(quint16 address, quint8 data) {
 		setRomBank((data & 0xF0) >> 4);
 		mapper()->cpuMemory()->setRomBank(data & 0xF);
 	} else {
-		NesCpuMemoryMapper::write(address, data);
+		NesCpuMapper::write(address, data);
 	}
 }
 

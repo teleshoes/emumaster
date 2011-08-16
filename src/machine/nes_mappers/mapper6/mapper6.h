@@ -2,37 +2,39 @@
 #define MAPPER6_H
 
 #include "nesmapper.h"
-#include "nescpumemorymapper.h"
-#include "nesppumemorymapper.h"
+#include "nescpumapper.h"
+#include "nesppumapper.h"
 
 class NesMapper6Data;
 class PpuMapper6;
 
-class CpuMapper6 : public NesCpuMemoryMapper {
+class CpuMapper6 : public NesCpuMapper {
 	Q_OBJECT
 public:
 	explicit CpuMapper6(NesMapper *mapper);
 	~CpuMapper6();
 	void reset();
-	void write(quint16 address, quint8 data);
+	void writeLow(quint16 address, quint8 data);
 	void writeHigh(quint16 address, quint8 data);
 
-	void save(QDataStream &s);
+	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 private:
 	NesMapper6Data *d;
-	PpuMapper6 *m_ppuMapper;
+	PpuMapper6 *ppuMapper;
 	friend class PpuMapper6;
 };
 
-class PpuMapper6: public NesPpuMemoryMapper {
+class PpuMapper6: public NesPpuMapper {
 	Q_OBJECT
 public:
 	explicit PpuMapper6(NesMapper *mapper);
 	void reset();
+
 	void horizontalSync(int scanline);
 private:
 	NesMapper6Data *d;
+	CpuMapper6 *cpuMapper;
 };
 
 class NesMapper6Plugin : public NesMapperPlugin {

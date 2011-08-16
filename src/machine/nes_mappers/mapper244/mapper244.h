@@ -2,17 +2,17 @@
 #define MAPPER244_H
 
 #include "nesmapper.h"
-#include "nescpumemorymapper.h"
-#include "nesppumemorymapper.h"
+#include "nescpumapper.h"
+#include "nesppumapper.h"
 
-class CpuMapper244 : public NesCpuMemoryMapper {
+class CpuMapper244 : public NesCpuMapper {
 	Q_OBJECT
 public:
 	explicit CpuMapper244(NesMapper *mapper);
 	void writeHigh(quint16 address, quint8 data);
 };
 
-#define PpuMapper244 NesPpuMemoryMapper
+#define PpuMapper244 NesPpuMapper
 
 class NesMapper244Plugin : public NesMapperPlugin {
 	Q_OBJECT

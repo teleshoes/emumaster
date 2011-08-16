@@ -2,12 +2,12 @@
 #define MAPPER51_H
 
 #include "nesmapper.h"
-#include "nescpumemorymapper.h"
-#include "nesppumemorymapper.h"
+#include "nescpumapper.h"
+#include "nesppumapper.h"
 
 class PpuMapper51;
 
-class CpuMapper51 : public NesCpuMemoryMapper {
+class CpuMapper51 : public NesCpuMapper {
 	Q_OBJECT
 public:
 	explicit CpuMapper51(NesMapper *mapper);
@@ -25,7 +25,7 @@ private:
 	quint8 *m_lowMemBankData;
 };
 
-#define PpuMapper51 NesPpuMemoryMapper
+#define PpuMapper51 NesPpuMapper
 
 class NesMapper51Plugin : public NesMapperPlugin {
 	Q_OBJECT

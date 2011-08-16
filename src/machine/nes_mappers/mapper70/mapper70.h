@@ -2,10 +2,10 @@
 #define MAPPER70_H
 
 #include "nesmapper.h"
-#include "nescpumemorymapper.h"
-#include "nesppumemorymapper.h"
+#include "nescpumapper.h"
+#include "nesppumapper.h"
 
-class CpuMapper70 : public NesCpuMemoryMapper {
+class CpuMapper70 : public NesCpuMapper {
 	Q_OBJECT
 public:
 	explicit CpuMapper70(NesMapper *mapper);
@@ -14,7 +14,7 @@ private:
 	bool m_patch;
 };
 
-#define PpuMapper70 NesPpuMemoryMapper
+#define PpuMapper70 NesPpuMapper
 
 class NesMapper70Plugin : public NesMapperPlugin {
 	Q_OBJECT

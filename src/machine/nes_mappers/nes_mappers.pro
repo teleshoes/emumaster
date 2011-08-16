@@ -1,47 +1,37 @@
 TEMPLATE = subdirs
 
-# mapper5
-# mapper9
-# mapper10
-# mapper12
-# mapper16
-# mapper17
-# mapper18
-# mapper19
-# mapper21
+# mapper14
+# mapper20
+# mapper28-31
+# mapper35-39
 
 SUBDIRS += \
-    mapper0 \
+	mapper0 \
 	mapper1 \
 	mapper2 \
 	mapper3 \
 	mapper4 \
+	mapper5 \
 	mapper6 \
 	mapper7 \
 	mapper8 \
+	mapper9 \
+	mapper10 \
 	mapper11 \
+	mapper12 \
 	mapper13 \
-    mapper71 \
-    mapper70 \
-    mapper227 \
-    mapper228 \
-    mapper229 \
-    mapper230 \
-    mapper231 \
-    mapper233 \
-    mapper240 \
-    mapper241 \
-    mapper242 \
-    mapper244 \
-	mapper246 \
-    mapper15 \
-    mapper22 \
-    mapper32 \
-    mapper34 \
-    mapper41 \
-    mapper46 \
-    mapper51 \
-    mapper57 \
-    mapper58 \
-    mapper60 \
-    mapper61
+	mapper15 \
+    mapper16 \
+    mapper17 \
+    mapper18 \
+    mapper19 \
+	mapper21 \
+	mapper22 \
+    mapper23 \
+    mapper24 \
+    mapper25 \
+    mapper26 \
+	mapper27 \
+	mapper32 \
+	mapper33 \
+	mapper34

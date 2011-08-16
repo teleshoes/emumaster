@@ -1,11 +1,11 @@
 #include "mapper58.h"
 
 CpuMapper58::CpuMapper58(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper) {
 }
 
 void CpuMapper58::reset() {
-	NesCpuMemoryMapper::reset();
+	NesCpuMapper::reset();
 	setRom16KBank(0, 0);
 	setRom16KBank(1, 0);
 	if (mapper()->ppuMemory()->romSize())
@@ -22,9 +22,9 @@ void CpuMapper58::writeHigh(quint16 address, quint8 data) {
 	if (mapper()->ppuMemory()->romSize())
 		mapper()->ppuMemory()->setRomBank((address & 0x38) >> 3);
 	if (data & 0x02)
-		mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Vertical);
+		mapper()->ppuMemory()->setMirroring(NesPpuMapper::Vertical);
 	else
-		mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Horizontal);
+		mapper()->ppuMemory()->setMirroring(NesPpuMapper::Horizontal);
 }
 
 NES_MAPPER_PLUGIN_EXPORT(58, "58")

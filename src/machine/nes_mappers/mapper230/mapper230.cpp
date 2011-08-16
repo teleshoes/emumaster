@@ -1,7 +1,7 @@
 #include "mapper230.h"
 
 CpuMapper230::CpuMapper230(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper),
+	NesCpuMapper(mapper),
 	m_switch(false) {
 	// TODO m_switch = !m_switch; on reset
 	if (m_switch) {
@@ -29,9 +29,9 @@ void CpuMapper230::writeHigh(quint16 address, quint8 data) {
 			setRomBank(((data >> 1) & 0x0F) + 4);
 		}
 		if (data & 0x40)
-			mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Vertical);
+			mapper()->ppuMemory()->setMirroring(NesPpuMapper::Vertical);
 		else
-			mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Horizontal);
+			mapper()->ppuMemory()->setMirroring(NesPpuMapper::Horizontal);
 	}
 }
 

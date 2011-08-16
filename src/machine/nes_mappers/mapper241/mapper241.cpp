@@ -1,7 +1,7 @@
 #include "mapper241.h"
 
 CpuMapper241::CpuMapper241(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper) {
 }
 
 void CpuMapper241::writeHigh(quint16 address, quint8 data) {

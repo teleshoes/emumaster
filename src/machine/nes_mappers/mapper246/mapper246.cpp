@@ -1,7 +1,7 @@
 #include "mapper246.h"
 
 CpuMapper246::CpuMapper246(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper) {
 	setRom16KBank(0, 0);
 	setRom16KBank(1, romSize16KB() - 1);
 }
@@ -18,11 +18,11 @@ void CpuMapper246::write(quint16 address, quint8 data) {
 		case 0x6006: mapper()->ppuMemory()->setRom2KBank(2, data); break;
 		case 0x6007: mapper()->ppuMemory()->setRom2KBank(3, data); break;
 		default:
-			NesCpuMemoryMapper::write(address, data);
+			NesCpuMapper::write(address, data);
 			break;
 		}
 	} else {
-		NesCpuMemoryMapper::write(address, data);
+		NesCpuMapper::write(address, data);
 	}
 }
 

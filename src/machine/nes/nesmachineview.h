@@ -18,6 +18,7 @@ protected:
 	void keyReleaseEvent(QKeyEvent *e);
 private:
 	NesMachine *m_machine;
+	QRectF m_sourceRect;
 	QString m_error;
 };
 

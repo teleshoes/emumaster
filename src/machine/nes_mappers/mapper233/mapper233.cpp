@@ -1,7 +1,7 @@
 #include "mapper233.h"
 
 CpuMapper233::CpuMapper233(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper) {
 }
 
 void CpuMapper233::writeHigh(quint16 address, quint8 data) {
@@ -14,9 +14,9 @@ void CpuMapper233::writeHigh(quint16 address, quint8 data) {
 	}
 	switch (data >> 6) {
 	case 0: mapper()->ppuMemory()->setMirroring(0, 0, 0, 1);
-	case 1: mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Vertical);
-	case 2: mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Horizontal);
-	case 3: mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::SingleHigh);
+	case 1: mapper()->ppuMemory()->setMirroring(NesPpuMapper::Vertical);
+	case 2: mapper()->ppuMemory()->setMirroring(NesPpuMapper::Horizontal);
+	case 3: mapper()->ppuMemory()->setMirroring(NesPpuMapper::SingleHigh);
 	}
 }
 

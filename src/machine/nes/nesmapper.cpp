@@ -1,6 +1,6 @@
 #include "nesmapper.h"
-#include "nescpumemorymapper.h"
-#include "nesppumemorymapper.h"
+#include "nescpumapper.h"
+#include "nesppumapper.h"
 #include <QPluginLoader>
 #include <QDataStream>
 
@@ -24,24 +24,20 @@ NesMapper *NesMapper::load(NesMachine *machine, quint8 type) {
 	return plugin->create(machine);
 }
 
-void NesMapper::setMappers(NesCpuMemoryMapper *cpuMapper, NesPpuMemoryMapper *ppuMapper) {
+void NesMapper::setMappers(NesCpuMapper *cpuMapper, NesPpuMapper *ppuMapper) {
 	m_cpuMapper = cpuMapper;
 	m_ppuMapper = ppuMapper;
 }
 
 void NesMapper::reset() {
-	m_irqOut = false;
-	emit irq_o(false);
-	if (m_cpuMapper)
-		m_cpuMapper->reset();
-	if (m_ppuMapper)
-		m_ppuMapper->reset();
+	Q_ASSERT(m_cpuMapper != 0 && m_ppuMapper != 0);
+	m_cpuMapper->reset();
+	m_ppuMapper->reset();
 }
 
 void NesMapper::saveState(QDataStream &s) {
 	m_cpuMapper->save(s);
 	m_ppuMapper->save(s);
-	s << m_irqOut;
 }
 
 bool NesMapper::loadState(QDataStream &s) {
@@ -49,6 +45,5 @@ bool NesMapper::loadState(QDataStream &s) {
 		return false;
 	if (!m_ppuMapper->load(s))
 		return false;
-	s >> m_irqOut;
 	return true;
 }

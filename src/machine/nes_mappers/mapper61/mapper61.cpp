@@ -1,11 +1,11 @@
 #include "mapper61.h"
 
 CpuMapper61::CpuMapper61(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper) {
 }
 
 void CpuMapper61::reset() {
-	NesCpuMemoryMapper::reset();
+	NesCpuMapper::reset();
 	setRom16KBank(0, 0);
 	setRom16KBank(1, romSize16KB()-1);
 }
@@ -25,9 +25,9 @@ void CpuMapper61::writeHigh(quint16 address, quint8 data) {
 		break;
 	}
 	if (address & 0x80)
-		mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Horizontal);
+		mapper()->ppuMemory()->setMirroring(NesPpuMapper::Horizontal);
 	else
-		mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Vertical);
+		mapper()->ppuMemory()->setMirroring(NesPpuMapper::Vertical);
 }
 
 NES_MAPPER_PLUGIN_EXPORT(61, "61")

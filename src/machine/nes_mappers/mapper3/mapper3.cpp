@@ -1,22 +1,17 @@
 #include "mapper3.h"
+#include "nesdisk.h"
 
 CpuMapper3::CpuMapper3(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper) {
 }
 
 void CpuMapper3::reset() {
-	NesCpuMemoryMapper::reset();
-//	TODO DWORD	crc = nes->rom->GetPROM_CRC();
-
-//	if( crc == 0x2b72fe7e ) {	// Ganso Saiyuuki - Super Monkey Dai Bouken(J)
-//		nes->SetRenderMethod( NES::TILE_RENDER );
-//		nes->ppu->SetExtNameTableMode( TRUE );
-//	}
+	setRom32KBank(0);
 }
 
 void CpuMapper3::writeHigh(quint16 address, quint8 data) {
 	Q_UNUSED(address)
-	mapper()->ppuMemory()->setRomBank(data);
+	mapper()->ppuMapper()->setVrom8KBank(data);
 }
 
 NES_MAPPER_PLUGIN_EXPORT(3, "CNROM")

@@ -26,11 +26,9 @@ NesApu::NesApu(NesCpu *cpu) :
 	m_stereoPosRTR = 256 - m_stereoPosLTR;
 	m_stereoPosRNS = 256 - m_stereoPosLNS;
 	m_stereoPosRDM = 256 - m_stereoPosLDM;
-
-	reset();
 }
 
-void NesApu::write(uint address, quint8 data) {
+void NesApu::write(quint16 address, quint8 data) {
 	Q_ASSERT(address <= 0x17);
 	Q_ASSERT_X(m_sampleRate > 0, "NesApu", "set sample rate first");
 	switch (address) {
@@ -83,7 +81,7 @@ void NesApu::write(uint address, quint8 data) {
 	}
 }
 
-quint8 NesApu::read(uint address) {
+quint8 NesApu::read(quint16 address) {
 	Q_ASSERT(address <= 0x17);
 	Q_ASSERT_X(m_sampleRate > 0, "NesApu", "set sample rate first");
 	if (address == 0x15) {
@@ -392,10 +390,10 @@ void NesApu::updateFrameRate() {
 	m_bufferIndex = 0;
 }
 
-quint8 NesApu::fetchData(uint address) {
+quint8 NesApu::fetchData(quint16 address) {
 	NesCpu *cpu = machine()->cpu();
 	quint8 data = cpu->read(address);
-	cpu->stoleCycles(4);
+	cpu->ADDCYC(4);//TODO
 	return data;
 }
 
@@ -403,3 +401,6 @@ NesCpu *NesApu::cpu() const
 { return static_cast<NesCpu *>(parent()); }
 NesMachine *NesApu::machine() const
 { return cpu()->machine(); }
+
+void NesApu::updateMachineType()
+{ updateFrameRate(); }

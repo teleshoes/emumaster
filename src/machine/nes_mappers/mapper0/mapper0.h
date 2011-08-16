@@ -2,11 +2,17 @@
 #define MAPPER0_H
 
 #include "nesmapper.h"
-#include "nescpumemorymapper.h"
-#include "nesppumemorymapper.h"
+#include "nescpumapper.h"
+#include "nesppumapper.h"
 
-#define CpuMapper0 NesCpuMemoryMapper
-#define PpuMapper0 NesPpuMemoryMapper
+class CpuMapper0 : public NesCpuMapper {
+	Q_OBJECT
+public:
+	explicit CpuMapper0(NesMapper *mapper);
+	void reset();
+};
+
+#define PpuMapper0 NesPpuMapper
 
 class NesMapper0Plugin : public NesMapperPlugin {
 	Q_OBJECT

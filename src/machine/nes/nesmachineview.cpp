@@ -10,6 +10,7 @@
 NesMachineView::NesMachineView(const QString &diskName, QWidget *parent) :
 	QGLWidget(parent) {
 // TODO Harmattan -> fullScreen()
+	m_sourceRect = QRectF(8.0f, 0.0f, NesPpu::VisibleScreenWidth, NesPpu::VisibleScreenHeight);
 	resize(854, 480);
 	m_machine = new NesMachine(this);
 	NesDisk *disk = new NesDisk(diskName, this);
@@ -30,8 +31,7 @@ void NesMachineView::paintEvent(QPaintEvent *) {
 	painter.begin(this);
 	if (m_error.isEmpty()) {
 		painter.scale(2.0f, 2.0f);
-		painter.translate(342/4, 0);
-		painter.drawImage(QPoint(), m_machine->ppu()->frame());
+		painter.drawImage(QPointF(342.0f/4.0f, 0.0f), m_machine->ppu()->frame(), m_sourceRect);
 	} else {
 		painter.setPen(Qt::red);
 		painter.drawText(rect(), Qt::AlignCenter, m_error);
@@ -41,44 +41,44 @@ void NesMachineView::paintEvent(QPaintEvent *) {
 
 void NesMachineView::keyPressEvent(QKeyEvent *e) {
 	if (!e->isAutoRepeat()) {
-		NesPad *pad = m_machine->pad0();
+		NesPad *pad = m_machine->pad();
 		if (e->key() == Qt::Key_Up)
-			pad->setButtonState(NesPad::Up, true);
+			pad->setButtonState(0, NesPad::Up, true);
 		else if (e->key() == Qt::Key_Down)
-			pad->setButtonState(NesPad::Down, true);
+			pad->setButtonState(0, NesPad::Down, true);
 		else if (e->key() == Qt::Key_Left)
-			pad->setButtonState(NesPad::Left, true);
+			pad->setButtonState(0, NesPad::Left, true);
 		else if (e->key() == Qt::Key_Right)
-			pad->setButtonState(NesPad::Right, true);
+			pad->setButtonState(0, NesPad::Right, true);
 		else if (e->key() == Qt::Key_C)
-			pad->setButtonState(NesPad::A, true);
+			pad->setButtonState(0, NesPad::A, true);
 		else if (e->key() == Qt::Key_X)
-			pad->setButtonState(NesPad::B, true);
+			pad->setButtonState(0, NesPad::B, true);
 		else if (e->key() == Qt::Key_S)
-			pad->setButtonState(NesPad::Start, true);
+			pad->setButtonState(0, NesPad::Start, true);
 		else if (e->key() == Qt::Key_Space)
-			pad->setButtonState(NesPad::Select, true);
+			pad->setButtonState(0, NesPad::Select, true);
 	}
 }
 
 void NesMachineView::keyReleaseEvent(QKeyEvent *e) {
 	if (!e->isAutoRepeat()) {
-		NesPad *pad = m_machine->pad0();
+		NesPad *pad = m_machine->pad();
 		if (e->key() == Qt::Key_Up)
-			pad->setButtonState(NesPad::Up, false);
+			pad->setButtonState(0, NesPad::Up, false);
 		else if (e->key() == Qt::Key_Down)
-			pad->setButtonState(NesPad::Down, false);
+			pad->setButtonState(0, NesPad::Down, false);
 		else if (e->key() == Qt::Key_Left)
-			pad->setButtonState(NesPad::Left, false);
+			pad->setButtonState(0, NesPad::Left, false);
 		else if (e->key() == Qt::Key_Right)
-			pad->setButtonState(NesPad::Right, false);
+			pad->setButtonState(0, NesPad::Right, false);
 		else if (e->key() == Qt::Key_C)
-			pad->setButtonState(NesPad::A, false);
+			pad->setButtonState(0, NesPad::A, false);
 		else if (e->key() == Qt::Key_X)
-			pad->setButtonState(NesPad::B, false);
+			pad->setButtonState(0, NesPad::B, false);
 		else if (e->key() == Qt::Key_S)
-			pad->setButtonState(NesPad::Start, false);
+			pad->setButtonState(0, NesPad::Start, false);
 		else if (e->key() == Qt::Key_Space)
-			pad->setButtonState(NesPad::Select, false);
+			pad->setButtonState(0, NesPad::Select, false);
 	}
 }

@@ -2,7 +2,7 @@
 #define NESCPU_H
 
 class NesMachine;
-class NesCpuMemoryMapper;
+class NesCpuMapper;
 class NesApu;
 #include "nes_global.h"
 #include <cpu/m6502.h>
@@ -11,19 +11,29 @@ class NES_EXPORT NesCpu : public M6502 {
 	Q_OBJECT
 public:
 	explicit NesCpu(NesMachine *machine);
-	void setMemory(NesCpuMemoryMapper *memory);
+	~NesCpu();
+	void setMapper(NesCpuMapper *mapper);
 	NesMachine *machine() const;
 	NesApu *apu() const;
-	void clockTo(quint64 endCycle);
+	uint clock(uint cycles);
+	void dma(uint cycles);
+	//TODO save
+	// TODO load
 public slots:
-	void reset_i(bool on);
+	void nes_reset_i(bool on);
+	void apu_irq_i(bool on);
+	void mapper_irq_i(bool on);
 protected:
 	void write(quint16 address, quint8 data);
 	quint8 read(quint16 address);
 private:
-	NesCpuMemoryMapper *m_memory;
+	NesCpuMapper *m_mapper;
 	NesApu *m_apu;
 	bool m_reset;
+	uint m_dmaCycles;
+
+	bool m_apuIrq;
+	bool m_mapperIrq;
 
 	friend class NesApu;
 };

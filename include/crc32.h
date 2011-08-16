@@ -1,0 +1,1 @@
+#include "../src/algorithm/crc32/crc32.h"

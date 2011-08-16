@@ -1,38 +1,39 @@
 #include "mapper7.h"
+#include "nesppu.h"
+#include "nesdisk.h"
 
 CpuMapper7::CpuMapper7(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper) {
 }
 
 void CpuMapper7::reset() {
-	NesCpuMemoryMapper::reset();
-	m_patch = 0;
-	setRomBank(0);
-	mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::SingleLow);
-	/* TODO DWORD	crc = nes->rom->GetPROM_CRC();
+	patch = 0;
+	setRom32KBank(0);
+	mapper()->ppuMapper()->setMirroring(NesPpuMapper::SingleLow);
+	quint32 crc = disk()->crc();
 	if( crc == 0x3c9fe649 ) {	// WWF Wrestlemania Challenge(U)
-		SetVRAM_Mirror( VRAM_VMIRROR );
-		m_patch = 1;
+		mapper()->ppuMapper()->setMirroring(NesPpuMapper::Vertical);
+		patch = 1;
 	}
 	if( crc == 0x09874777 ) {	// Marble Madness(U)
-		nes->SetRenderMethod( NES::TILE_RENDER );
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 
 	if( crc == 0x279710DC		// Battletoads (U)
 	 || crc == 0xCEB65B06 ) {	// Battletoads Double Dragon (U)
-		nes->SetRenderMethod( NES::PRE_ALL_RENDER );
-		::memset( WRAM, 0, sizeof(WRAM) );
- } */
+		ppu()->setRenderMethod(NesPpu::PreAllRender);
+		qMemSet(m_wram, 0, sizeof(m_wram));
+	}
 }
 
 void CpuMapper7::writeHigh(quint16 address, quint8 data) {
 	Q_UNUSED(address)
-	setRomBank(data & 0x07);
-	if (!m_patch) {
+	setRom32KBank(data & 0x07);
+	if (!patch) {
 		if (data & 0x10)
-			mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::SingleHigh);
+			mapper()->ppuMapper()->setMirroring(NesPpuMapper::SingleHigh);
 		else
-			mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::SingleLow);
+			mapper()->ppuMapper()->setMirroring(NesPpuMapper::SingleLow);
 	}
 }
 

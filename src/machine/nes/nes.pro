@@ -1,5 +1,5 @@
 include(../machine.pri)
-LIBS += -lnes2c0x -lmemory8 -lm6502 -lhostaudio
+LIBS += -lmemory8 -lm6502 -lhostaudio -lcrc32
 DEFINES += NES_PROJECT
 QT += opengl multimedia
 
@@ -7,9 +7,9 @@ HEADERS += \
     nesdisk.h \
     nespad.h \
     nesmachine.h \
-    nescpumemorymapper.h \
+	nescpumapper.h \
     nesmapper.h \
-    nesppumemorymapper.h \
+	nesppumapper.h \
     nes_global.h \
     nesmachineview.h \
 	nesapu.h \
@@ -19,15 +19,20 @@ HEADERS += \
     nesaputrianglechannel.h \
     nesapudmchannel.h \
     nescpu.h \
-    nesppu.h
+    nesppu.h \
+    nesppusprite.h \
+    nesppuregisters.h \
+    nesppupalette.h \
+    nesdisk_p.h \
+    nesmappereeprom.h
 
 SOURCES += \
     nesdisk.cpp \
     nespad.cpp \
     nesmachine.cpp \
-    nescpumemorymapper.cpp \
+	nescpumapper.cpp \
     nesmapper.cpp \
-    nesppumemorymapper.cpp \
+	nesppumapper.cpp \
     nesmachineview.cpp \
 	nesapu.cpp \
     nesapunoisechannel.cpp \
@@ -36,4 +41,8 @@ SOURCES += \
     nesaputrianglechannel.cpp \
     nesapudmchannel.cpp \
     nescpu.cpp \
-    nesppu.cpp
+    nesppu.cpp \
+    nesppuregisters.cpp \
+    nesppupalette.cpp \
+    nesdisk_patch.cpp \
+    nesmappereeprom.cpp

@@ -2,26 +2,28 @@
 #define MAPPER32_H
 
 #include "nesmapper.h"
-#include "nescpumemorymapper.h"
-#include "nesppumemorymapper.h"
+#include "nescpumapper.h"
+#include "nesppumapper.h"
 
 class PpuMapper32;
 
-class CpuMapper32 : public NesCpuMemoryMapper {
+class CpuMapper32 : public NesCpuMapper {
 	Q_OBJECT
 public:
 	explicit CpuMapper32(NesMapper *mapper);
 	void reset();
 	void writeHigh(quint16 address, quint8 data);
 
-	void save(QDataStream &s);
+	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 private:
-	quint8 m_patch;
-	quint8 m_reg;
+	NesPpuMapper *ppuMapper;
+
+	quint8 patch;
+	quint8 reg;
 };
 
-#define PpuMapper32 NesPpuMemoryMapper
+#define PpuMapper32 NesPpuMapper
 
 class NesMapper32Plugin : public NesMapperPlugin {
 	Q_OBJECT

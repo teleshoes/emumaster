@@ -1,7 +1,7 @@
 #include "mapper228.h"
 
 CpuMapper228::CpuMapper228(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper) {
 }
 
 void CpuMapper228::writeHigh(quint16 address, quint8 data) {
@@ -22,9 +22,9 @@ void CpuMapper228::writeHigh(quint16 address, quint8 data) {
 	}
 	mapper()->ppuMemory()->setRomBank(((address & 0x000F) << 2) | (data & 0x03));
 	if (address & 0x2000)
-		mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Horizontal);
+		mapper()->ppuMemory()->setMirroring(NesPpuMapper::Horizontal);
 	else
-		mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Vertical);
+		mapper()->ppuMemory()->setMirroring(NesPpuMapper::Vertical);
 }
 
 NES_MAPPER_PLUGIN_EXPORT(228, "Action 52")

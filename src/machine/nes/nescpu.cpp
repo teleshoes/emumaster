@@ -1,46 +1,88 @@
 #include "nescpu.h"
 #include "nesmachine.h"
-#include "nescpumemorymapper.h"
+#include "nescpumapper.h"
 #include "nesapu.h"
 #include "nesmapper.h"
 #include <QDebug>
 
 NesCpu::NesCpu(NesMachine *machine) :
 	M6502(machine),
-	m_memory(0),
+	m_mapper(0),
 	m_reset(true) {
 	m_apu = new NesApu(this);
-	QObject::connect(m_apu, SIGNAL(request_irq_o(bool)), SLOT(irq0_i(bool)));
+	QObject::connect(m_apu, SIGNAL(request_irq_o(bool)), SLOT(apu_irq_i(bool)));
 }
 
-void NesCpu::setMemory(NesCpuMemoryMapper *memory)
-{ m_memory = memory; }
+NesCpu::~NesCpu() {
+}
+
+void NesCpu::setMapper(NesCpuMapper *mapper) {
+	m_mapper = mapper;
+	QObject::connect(mapper, SIGNAL(request_irq_o(bool)), SLOT(mapper_irq_i(bool)));
+}
 
 void NesCpu::write(quint16 address, quint8 data)
-{ m_memory->write(address, data); }
+{ m_mapper->write(address, data); }
 quint8 NesCpu::read(quint16 address)
-{ return m_memory->read(address); }
+{ return m_mapper->read(address); }
 
 NesMachine *NesCpu::machine() const
 { return static_cast<NesMachine *>(parent()); }
 
-void NesCpu::reset_i(bool on) {
-	M6502::reset_i(on);
+uint NesCpu::clock(uint cycles) {
+	uint executedCycles = 0;
+	if (m_reset) {
+		m_apuIrq = false;
+		m_mapperIrq = false;
+		irq0_i(false);
+
+		while (executedCycles < cycles)
+			executedCycles += executeOne();
+		m_apu->reset();
+		m_dmaCycles = 0;
+	} else {
+		if (m_dmaCycles) {
+			if (cycles <= m_dmaCycles) {
+				m_dmaCycles -= cycles;
+				m_mapper->clock(cycles);
+				return cycles;
+			} else {
+				executedCycles += m_dmaCycles;
+				m_dmaCycles = 0;
+				m_mapper->clock(executedCycles);
+			}
+		}
+		while (executedCycles < cycles) {
+			uint instrCycles = executeOne();
+			// TODO mapper clock enable
+			m_mapper->clock(instrCycles);
+			executedCycles += instrCycles;
+			m_apu->clockFrameCounter(instrCycles);
+		}
+	}
+	return executedCycles;
+}
+
+void NesCpu::dma(uint cycles)
+{ m_dmaCycles += cycles; }
+
+void NesCpu::nes_reset_i(bool on) {
+	reset_i(on);
 	m_reset = on;
 }
 
-void NesCpu::clockTo(quint64 endCycle) {
-	if (m_reset) {
-		while (cycle() < endCycle)
-			executeOne();
-		m_apu->reset();
-		machine()->mapper()->reset();
-	} else {
-		while (cycle() < endCycle) {
-			quint64 prv = cycle();
-			executeOne();
-			quint64 now = cycle();
-			m_apu->clockFrameCounter(now - prv);
-		}
-	}
+void NesCpu::apu_irq_i(bool on) {
+	bool oldIrqState = (m_apuIrq && m_mapperIrq);
+	m_apuIrq = on;
+	bool newIrqState = (m_apuIrq && m_mapperIrq);
+	if (newIrqState != oldIrqState)
+		irq0_i(newIrqState);
+}
+
+void NesCpu::mapper_irq_i(bool on) {
+	bool oldIrqState = (m_apuIrq && m_mapperIrq);
+	m_mapperIrq = on;
+	bool newIrqState = (m_apuIrq && m_mapperIrq);
+	if (newIrqState != oldIrqState)
+		irq0_i(newIrqState);
 }

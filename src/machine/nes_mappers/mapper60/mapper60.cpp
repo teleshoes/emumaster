@@ -2,11 +2,11 @@
 #include <QDataStream>
 
 CpuMapper60::CpuMapper60(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper) {
 }
 
 void CpuMapper60::reset() {
-	NesCpuMemoryMapper::reset();
+	NesCpuMapper::reset();
 	m_patch = 0;
 	/* TODO DWORD	crc = nes->rom->GetPROM_CRC();
 	if (crc == 0xf9c484a0) {	// Reset Based 4-in-1(Unl)
@@ -30,22 +30,22 @@ void CpuMapper60::writeHigh(quint16 address, quint8 data) {
 		} else {
 			setRomBank((address & 0x70) >> 5);
 		}
-		NesPpuMemoryMapper *ppuMapper = mapper()->ppuMemory();
+		NesPpuMapper *ppuMapper = mapper()->ppuMemory();
 		ppuMapper->setRomBank(address & 0x07);
 		if (data & 0x08)
-			ppuMapper->setMirroring(NesPpuMemoryMapper::Vertical);
+			ppuMapper->setMirroring(NesPpuMapper::Vertical);
 		else
-			ppuMapper->setMirroring(NesPpuMemoryMapper::Horizontal);
+			ppuMapper->setMirroring(NesPpuMapper::Horizontal);
 	}
 }
 
 void CpuMapper60::save(QDataStream &s) {
-	NesCpuMemoryMapper::save(s);
+	NesCpuMapper::save(s);
 	s << game_sel;
 }
 
 bool CpuMapper60::load(QDataStream &s) {
-	if (!NesCpuMemoryMapper::load(s))
+	if (!NesCpuMapper::load(s))
 		return false;
 	s >> game_sel;
 	return true;

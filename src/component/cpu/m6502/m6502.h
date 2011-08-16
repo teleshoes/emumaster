@@ -36,10 +36,8 @@ public:
 	};
 	explicit M6502(QObject *parent = 0);
 	void setPC(quint16 address);
-	void stoleCycles(uint n);
-	quint64 cycle() const;
-	void executeOne();
-	void clockTo(quint64 endCycle);
+	uint executeOne();
+	void ADDCYC(uint n);
 
 	static const char *instructionName(quint8 instruction);
 	static int instructionSize(quint8 instruction);
@@ -47,7 +45,7 @@ public:
 public slots:
 	void irq0_i(bool on);
 	void nmi_i(bool on);
-	virtual void reset_i(bool on);
+	void reset_i(bool on);
 protected:
 	virtual void write(quint16 address, quint8 data) = 0;
 	virtual quint8 read(quint16 address) = 0;
@@ -63,7 +61,6 @@ private:
 	quint8 READ(quint16 addr);
 	void PUSH(quint8 data);
 	quint8 M6502::POP();
-	void ADDCYC(uint n);
 
 	static const int StackBase = 0x100;
 
@@ -76,8 +73,7 @@ private:
 	quint8 S; // stack pointer register
 	quint8 P; // processor status register
 	bool m_nmiState;
-
-	quint64 m_cycle;
+	uint m_currentCycles;
 
 	static const quint8 cyclesTable[256];
 	static const quint8 sizeTable[256];
@@ -96,10 +92,8 @@ inline void M6502::PUSH(quint8 data)
 inline quint8 M6502::POP()
 { return READ(StackBase + (++S)); }
 
-inline void M6502::stoleCycles(uint n)
-{ m_cycle += n; }
-inline quint64 M6502::cycle() const
-{ return m_cycle; }
+inline void M6502::ADDCYC(uint n)
+{ m_currentCycles += n; }
 
 inline const char *M6502::instructionName(quint8 instruction)
 { return nameTable[instruction]; }

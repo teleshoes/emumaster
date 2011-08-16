@@ -12,8 +12,6 @@ public:
 		IrqDBZ2,
 		IrqRockman3
 	};
-	// TODO wram
-	char expansionRam[0x1000];
 
 	quint8	reg[8];
 	quint8	prg0, prg1;
@@ -32,8 +30,8 @@ public:
 };
 
 CpuMapper4::CpuMapper4(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper),
-	m_ppuMapper(0) {
+	NesCpuMapper(mapper),
+	ppuMapper(0) {
 	d = new NesMapper4Data();
 }
 
@@ -42,8 +40,7 @@ CpuMapper4::~CpuMapper4() {
 }
 
 void CpuMapper4::reset() {
-	NesCpuMemoryMapper::reset();
-	m_ppuMapper = static_cast<PpuMapper4 *>(mapper()->ppuMemory());
+	ppuMapper = static_cast<PpuMapper4 *>(mapper()->ppuMapper());
 	qMemSet(d->reg, 0, sizeof(d->reg));
 	d->prg0 = 0;
 	d->prg1 = 1;
@@ -58,139 +55,107 @@ void CpuMapper4::reset() {
 
 	d->irq_type = NesMapper4Data::IrqNone;
 
-/*	TODO DWORD	crc = nes->rom->GetPROM_CRC();
+	quint32 crc = disk()->crc();
 
 	if (crc == 0x5c707ac4) {	// Mother(J)
-		nes->SetIrqType( NES::IRQ_HSYNC);
-		nes->SetRenderMethod( NES::TILE_RENDER);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0xcb106f49) {	// F-1 Sensation(J)
-		nes->SetRenderMethod( NES::TILE_RENDER);
-	}
-	if (crc == 0x1170392a) {	// Karakuri Kengou Den - Musashi Road - Karakuri Nin Hashiru!(J)
-		nes->SetIrqType( NES::IRQ_HSYNC);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0x14a01c70) {	// Gun-Dec(J)
-		nes->SetRenderMethod( NES::TILE_RENDER);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0xeffeea40) {	// For Klax(J)
-		irq_type = NesMapper4Data::IrqKlax;
-		nes->SetIrqType( NES::IRQ_HSYNC);
-		nes->SetRenderMethod( NES::TILE_RENDER);
+		d->irq_type = NesMapper4Data::IrqKlax;
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0xc17ae2dc) {	// God Slayer - Haruka Tenkuu no Sonata(J)
-		nes->SetRenderMethod( NES::TILE_RENDER);
-	}
-	if (crc == 0x126ea4a0) {	// Summer Carnival '92 - Recca(J)
-		nes->SetIrqType( NES::IRQ_HSYNC);
-	}
-	if (crc == 0x1f2f4861) {	// J League Fighting Soccer - The King of Ace Strikers(J)
-		nes->SetIrqType( NES::IRQ_HSYNC);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0x5a6860f1) {	// Shougi Meikan '92(J)
-		irq_type = NesMapper4Data::IrqShougimeikan;
-		nes->SetIrqType( NES::IRQ_HSYNC);
+		d->irq_type = NesMapper4Data::IrqShougimeikan;
 	}
 	if (crc == 0xae280e20) {	// Shougi Meikan '93(J)
-		irq_type = NesMapper4Data::IrqShougimeikan;
-		nes->SetIrqType( NES::IRQ_HSYNC);
+		d->irq_type = NesMapper4Data::IrqShougimeikan;
 	}
 	if (crc == 0xe19a2473) {	// Sugoro Quest - Dice no Senshi Tachi(J)
-		nes->SetIrqType( NES::IRQ_HSYNC);
-		nes->SetRenderMethod( NES::TILE_RENDER);
-	}
-	if (crc == 0x702d9b33) {	// Star Wars - The Empire Strikes Back(Victor)(J)
-		nes->SetIrqType( NES::IRQ_HSYNC);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0xa9a0d729) {	// Dai Kaijuu - Deburas(J)
-		nes->SetRenderMethod( NES::TILE_RENDER);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0xc5fea9f2) {	// Dai 2 Ji - Super Robot Taisen(J)
-		irq_type = NesMapper4Data::IrqDai2JiSuper;
+		d->irq_type = NesMapper4Data::IrqDai2JiSuper;
 	}
 	if (crc == 0xd852c2f7) {	// Time Zone(J)
-		nes->SetRenderMethod( NES::TILE_RENDER);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0xecfd3c69) {	// Taito Chase H.Q.(J)
-		nes->SetRenderMethod( NES::TILE_RENDER);
-	}
-	if (crc == 0x7a748058) {	// Tom & Jerry (and Tuffy)(J)
-		nes->SetIrqType( NES::IRQ_HSYNC);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0xaafe699c) {	// Ninja Ryukenden 3 - Yomi no Hakobune(J)
-		nes->SetRenderMethod( NES::TILE_RENDER);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0x6cc62c06) {	// Hoshi no Kirby - Yume no Izumi no Monogatari(J)
-		nes->SetRenderMethod( NES::TILE_RENDER);
-	}
-	if (crc == 0x877dba77) {	// My Life My Love - Boku no Yume - Watashi no Negai(J)
-		nes->SetIrqType( NES::IRQ_HSYNC);
-	}
-	if (crc == 0x6f96ed15) {	// Max Warrior - Wakusei Kaigenrei(J)
-		nes->SetIrqType( NES::IRQ_HSYNC);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0x8685f366) {	// Matendouji(J)
-		nes->SetRenderMethod( NES::TILE_RENDER);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0x8635fed1) {	// Mickey Mouse 3 - Yume Fuusen(J)
-		nes->SetRenderMethod( NES::TILE_RENDER);
-	}
-	if (crc == 0x26ff3ea2) {	// Yume Penguin Monogatari(J)
-		nes->SetIrqType( NES::IRQ_HSYNC);
-	}
-	if (crc == 0x7671bc51) {	// Red Ariimaa 2(J)
-		nes->SetIrqType( NES::IRQ_HSYNC);
-	}
-	if (crc == 0xade11141) {	// Wanpaku Kokkun no Gourmet World(J)
-		nes->SetIrqType( NES::IRQ_HSYNC);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0x7c7ab58e) {	// Walkuere no Bouken - Toki no Kagi Densetsu(J)
-		nes->SetRenderMethod( NES::POST_RENDER);
+		ppu()->setRenderMethod(NesPpu::PostRender);
 	}
 	if (crc == 0x26ff3ea2) {	// Yume Penguin Monogatari(J)
-		nes->SetRenderMethod( NES::TILE_RENDER);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0x126ea4a0) {	// Summer Carnival '92 Recca(J)
-		nes->SetRenderMethod( NES::TILE_RENDER);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 
 	if (crc == 0x1d2e5018		// Rockman 3(J)
 	 || crc == 0x6b999aaf) {	// Megaman 3(U)
-		irq_type = NesMapper4Data::IrqRockman3;
+		d->irq_type = NesMapper4Data::IrqRockman3;
 	}
 
 	if (crc == 0xd88d48d7) {	// Kick Master(U)
-		irq_type = NesMapper4Data::IrqRockman3;
+		d->irq_type = NesMapper4Data::IrqRockman3;
 	}
 
 	if (crc == 0xA67EA466) {	// Alien 3(U)
-		nes->SetRenderMethod( NES::TILE_RENDER);
+		ppu()->setRenderMethod(NesPpu::TileRender);
 	}
 
 	if (crc == 0xe763891b) {	// DBZ2
-		irq_type = NesMapper4Data::IrqDBZ2;
-	}*/
+		d->irq_type = NesMapper4Data::IrqDBZ2;
+	}
 
 	// VS-Unisystem
 	d->vs_patch = 0;
 	d->vs_index = 0;
 
-/*	TODO if (crc == 0xeb2dba63		// VS TKO Boxing
+	if (crc == 0xeb2dba63		// VS TKO Boxing
 	 || crc == 0x98cfe016) {	// VS TKO Boxing (Alt)
-		vs_patch = 1;
+		d->vs_patch = 1;
 	}
 	if (crc == 0x135adf7c) {	// VS Atari RBI Baseball
-		vs_patch = 2;
+		d->vs_patch = 2;
 	}
 	if (crc == 0xf9d3b0a3		// VS Super Xevious
 	 || crc == 0x9924980a		// VS Super Xevious (b1)
 	 || crc == 0x66bb838f) {	// VS Super Xevious (b2)
-		vs_patch = 3;
-	}*/
+		d->vs_patch = 3;
+	}
 }
 
-quint8 CpuMapper4::read(quint16 address) {
-	if (d->vs_patch) {
+quint8 CpuMapper4::readLow(quint16 address) {
+	if (!d->vs_patch) {
+		if (address >= 0x5000 && address < 0x6000)
+			return m_xram[address - 0x4000];
+	} else {
 		if (d->vs_patch == 1) {
 			// VS TKO Boxing Security
 			if (address == 0x5E00) {
@@ -227,7 +192,7 @@ quint8 CpuMapper4::read(quint16 address) {
 				else
 					return 0x01;
 				break;
-			case 0x578f:
+			case 0x578F:
 				if (d->vs_index)
 					return 0xD1;
 				else
@@ -246,18 +211,15 @@ quint8 CpuMapper4::read(quint16 address) {
 				break;
 			}
 		}
-	} else {
-		if (address >= 0x5000 && address < 0x6000)
-			return d->expansionRam[address - 0x5000];
 	}
-	return NesCpuMemoryMapper::read(address);
+	return NesCpuMapper::readLow(address);
 }
 
-void CpuMapper4::write(quint16 address, quint8 data) {
+void CpuMapper4::writeLow(quint16 address, quint8 data) {
 	if (address >= 0x5000 && address < 0x6000)
-		d->expansionRam[address - 0x5000] = data;
+		m_xram[address - 0x4000] = data;
 	else
-		NesCpuMemoryMapper::write(address, data);
+		NesCpuMapper::writeLow(address, data);
 }
 
 void CpuMapper4::writeHigh(quint16 address, quint8 data) {
@@ -265,28 +227,28 @@ void CpuMapper4::writeHigh(quint16 address, quint8 data) {
 	case 0x8000:
 		d->reg[0] = data;
 		updateBanks();
-		m_ppuMapper->updateBanks();
+		ppuMapper->updateBanks();
 		break;
 	case 0x8001:
 		d->reg[1] = data;
 		switch (d->reg[0] & 0x07) {
-		case 0x00: d->chr01 = data & 0xFE; m_ppuMapper->updateBanks(); break;
-		case 0x01: d->chr23 = data & 0xFE; m_ppuMapper->updateBanks(); break;
-		case 0x02: d->chr4 = data; m_ppuMapper->updateBanks(); break;
-		case 0x03: d->chr5 = data; m_ppuMapper->updateBanks(); break;
-		case 0x04: d->chr6 = data; m_ppuMapper->updateBanks(); break;
-		case 0x05: d->chr7 = data; m_ppuMapper->updateBanks(); break;
+		case 0x00: d->chr01 = data & 0xFE; ppuMapper->updateBanks(); break;
+		case 0x01: d->chr23 = data & 0xFE; ppuMapper->updateBanks(); break;
+		case 0x02: d->chr4 = data; ppuMapper->updateBanks(); break;
+		case 0x03: d->chr5 = data; ppuMapper->updateBanks(); break;
+		case 0x04: d->chr6 = data; ppuMapper->updateBanks(); break;
+		case 0x05: d->chr7 = data; ppuMapper->updateBanks(); break;
 		case 0x06: d->prg0 = data; updateBanks(); break;
 		case 0x07: d->prg1 = data; updateBanks(); break;
 		}
 		break;
 	case 0xA000:
 		d->reg[2] = data;
-		if (mapper()->machine()->disk()->mirroring() != NesPpuMemoryMapper::FourScreen) {
+		if (disk()->mirroring() != NesPpuMapper::FourScreen) {
 			if (data & 0x01)
-				m_ppuMapper->setMirroring(NesPpuMemoryMapper::Horizontal);
+				ppuMapper->setMirroring(NesPpuMapper::Horizontal);
 			else
-				m_ppuMapper->setMirroring(NesPpuMemoryMapper::Vertical);
+				ppuMapper->setMirroring(NesPpuMapper::Vertical);
 		}
 		break;
 	case 0xA001:
@@ -306,7 +268,7 @@ void CpuMapper4::writeHigh(quint16 address, quint8 data) {
 		if (d->irq_type == NesMapper4Data::IrqKlax || d->irq_type == NesMapper4Data::IrqRockman3) {
 			d->irq_latch = data;
 		} else {
-			if ((mapper()->machine()->ppu()->scanline() < 240) || (d->irq_type == NesMapper4Data::IrqShougimeikan)) {
+			if ((ppu()->scanline() < NesPpu::VisibleScreenHeight) || (d->irq_type == NesMapper4Data::IrqShougimeikan)) {
 				d->irq_counter |= 0x80;
 				d->irq_preset = 0xFF;
 			} else {
@@ -320,7 +282,7 @@ void CpuMapper4::writeHigh(quint16 address, quint8 data) {
 		d->reg[6] = data;
 		d->irq_enable = 0;
 		d->irq_request = 0;
-		mapper()->setIrqSignalOut(false);
+		setIrqSignalOut(false);
 		break;
 	case 0xE001:
 		d->reg[7] = data;
@@ -331,59 +293,24 @@ void CpuMapper4::writeHigh(quint16 address, quint8 data) {
 }
 
 void CpuMapper4::updateBanks() {
-	if (d->reg[0] & 0x40) {
-		setRom8KBank(0, romSize8KB()-2);
-		setRom8KBank(1, d->prg1);
-		setRom8KBank(2, d->prg0);
-		setRom8KBank(3, romSize8KB()-1);
-	} else {
-		setRom8KBank(0, d->prg0);
-		setRom8KBank(1, d->prg1);
-		setRom8KBank(2, romSize8KB()-2);
-		setRom8KBank(3, romSize8KB()-1);
-	}
-}
-
-void CpuMapper4::save(QDataStream &s) {
-	NesCpuMemoryMapper::save(s);
-	s.writeRawData(d->expansionRam, sizeof(d->expansionRam));
-	for (int i = 0; i < sizeof(d->reg); i++)
-		s << d->reg[i];
-	s << d->prg0 << d->prg1;
-	s << d->chr01 << d->chr23 << d->chr4 << d->chr5 << d->chr6 << d->chr7;
-	s << d->irq_enable;
-	s << d->irq_counter;
-	s << d->irq_latch;
-	s << d->irq_request;
-	s << d->irq_preset;
-	s << d->irq_preset_vbl;
-}
-
-bool CpuMapper4::load(QDataStream &s) {
-	if (!NesCpuMemoryMapper::load(s))
-		return false;
-	if (s.readRawData(d->expansionRam, sizeof(d->expansionRam)) != sizeof(d->expansionRam))
-		return false;
-	for (int i = 0; i < sizeof(d->reg); i++)
-		s >> d->reg[i];
-	s >> d->prg0 >> d->prg1;
-	s >> d->chr01 >> d->chr23 >> d->chr4 >> d->chr5 >> d->chr6 >> d->chr7;
-	s >> d->irq_enable;
-	s >> d->irq_counter;
-	s >> d->irq_latch;
-	s >> d->irq_request;
-	s >> d->irq_preset;
-	s >> d->irq_preset_vbl;
-	return true;
+	if (d->reg[0] & 0x40)
+		setRom8KBanks(romSize8KB()-2, d->prg1, d->prg0, romSize8KB()-1);
+	else
+		setRom8KBanks(d->prg0, d->prg1, romSize8KB()-2, romSize8KB()-1);
 }
 
 PpuMapper4::PpuMapper4(NesMapper *mapper) :
-	NesPpuMemoryMapper(mapper) {
+	NesPpuMapper(mapper),
+	d(0),
+	cpuMapper(0),
+	ppuRegisters(0) {
 }
 
 void PpuMapper4::reset() {
-	NesPpuMemoryMapper::reset();
-	d = static_cast<CpuMapper4 *>(mapper()->cpuMemory())->d;
+	cpuMapper = static_cast<CpuMapper4 *>(mapper()->cpuMapper());
+	d = cpuMapper->d;
+	ppuRegisters = cpuMapper->ppu()->registers();
+
 	d->chr01 = 0;
 	d->chr23 = 2;
 	d->chr4  = 4;
@@ -395,7 +322,7 @@ void PpuMapper4::reset() {
 
 void PpuMapper4::horizontalSync(int scanline) {
 	if (d->irq_type == NesMapper4Data::IrqKlax) {
-		if ((scanline >= 0 && scanline < 240) && ppuRegisters()->isDisplayOn()) {
+		if (scanline < NesPpu::VisibleScreenHeight && ppuRegisters->isDisplayOn()) {
 			if (d->irq_enable) {
 				if (d->irq_counter == 0) {
 					d->irq_counter = d->irq_latch;
@@ -406,9 +333,9 @@ void PpuMapper4::horizontalSync(int scanline) {
 			}
 		}
 		if (d->irq_request)
-			mapper()->setIrqSignalOut(true);
+			cpuMapper->setIrqSignalOut(true);
 	} else if (d->irq_type == NesMapper4Data::IrqRockman3) {
-		if ((scanline >= 0 && scanline < 240) && ppuRegisters()->isDisplayOn()) {
+		if (scanline < NesPpu::VisibleScreenHeight && ppuRegisters->isDisplayOn()) {
 			if (d->irq_enable) {
 				if (!(--d->irq_counter)) {
 					d->irq_request = 0xFF;
@@ -417,9 +344,9 @@ void PpuMapper4::horizontalSync(int scanline) {
 			}
 		}
 		if (d->irq_request)
-			mapper()->setIrqSignalOut(true);
+			cpuMapper->setIrqSignalOut(true);
 	} else {
-		if ((scanline >= 0 && scanline < 240) && ppuRegisters()->isDisplayOn()) {
+		if (scanline < NesPpu::VisibleScreenHeight && ppuRegisters->isDisplayOn()) {
 			if (d->irq_preset_vbl) {
 				d->irq_counter = d->irq_latch;
 				d->irq_preset_vbl = 0;
@@ -436,7 +363,7 @@ void PpuMapper4::horizontalSync(int scanline) {
 			if (d->irq_counter == 0) {
 				if (d->irq_enable) {
 					d->irq_request = 0xFF;
-					mapper()->setIrqSignalOut(true);
+					cpuMapper->setIrqSignalOut(true);
 				}
 				d->irq_preset = 0xFF;
 			}
@@ -445,25 +372,25 @@ void PpuMapper4::horizontalSync(int scanline) {
 }
 
 void PpuMapper4::updateBanks() {
-	if (romSize1KB()) {
+	if (vromSize1KB()) {
 		if (d->reg[0] & 0x80) {
-			setRom1KBank(4, d->chr01);
-			setRom1KBank(5, d->chr01+1);
-			setRom1KBank(6, d->chr23);
-			setRom1KBank(7, d->chr23+1);
-			setRom1KBank(0, d->chr4);
-			setRom1KBank(1, d->chr5);
-			setRom1KBank(2, d->chr6);
-			setRom1KBank(3, d->chr7);
+			setVrom1KBank(4, d->chr01);
+			setVrom1KBank(5, d->chr01+1);
+			setVrom1KBank(6, d->chr23);
+			setVrom1KBank(7, d->chr23+1);
+			setVrom1KBank(0, d->chr4);
+			setVrom1KBank(1, d->chr5);
+			setVrom1KBank(2, d->chr6);
+			setVrom1KBank(3, d->chr7);
 		} else {
-			setRom1KBank(0, d->chr01);
-			setRom1KBank(1, d->chr01+1);
-			setRom1KBank(2, d->chr23);
-			setRom1KBank(3, d->chr23+1);
-			setRom1KBank(4, d->chr4);
-			setRom1KBank(5, d->chr5);
-			setRom1KBank(6, d->chr6);
-			setRom1KBank(7, d->chr7);
+			setVrom1KBank(0, d->chr01);
+			setVrom1KBank(1, d->chr01+1);
+			setVrom1KBank(2, d->chr23);
+			setVrom1KBank(3, d->chr23+1);
+			setVrom1KBank(4, d->chr4);
+			setVrom1KBank(5, d->chr5);
+			setVrom1KBank(6, d->chr6);
+			setVrom1KBank(7, d->chr7);
 		}
 	} else {
 		if (d->reg[0] & 0x80) {
@@ -486,6 +413,38 @@ void PpuMapper4::updateBanks() {
 			setCram1KBank(7, d->chr7&0x07);
 		}
 	}
+}
+
+bool CpuMapper4::save(QDataStream &s) {
+	if (!NesCpuMapper::save(s))
+		return false;
+	for (int i = 0; i < sizeof(d->reg); i++)
+		s << d->reg[i];
+	s << d->prg0 << d->prg1;
+	s << d->chr01 << d->chr23 << d->chr4 << d->chr5 << d->chr6 << d->chr7;
+	s << d->irq_enable;
+	s << d->irq_counter;
+	s << d->irq_latch;
+	s << d->irq_request;
+	s << d->irq_preset;
+	s << d->irq_preset_vbl;
+	return true;
+}
+
+bool CpuMapper4::load(QDataStream &s) {
+	if (!NesCpuMapper::load(s))
+		return false;
+	for (int i = 0; i < sizeof(d->reg); i++)
+		s >> d->reg[i];
+	s >> d->prg0 >> d->prg1;
+	s >> d->chr01 >> d->chr23 >> d->chr4 >> d->chr5 >> d->chr6 >> d->chr7;
+	s >> d->irq_enable;
+	s >> d->irq_counter;
+	s >> d->irq_latch;
+	s >> d->irq_request;
+	s >> d->irq_preset;
+	s >> d->irq_preset_vbl;
+	return true;
 }
 
 NES_MAPPER_PLUGIN_EXPORT(4, "Nintendo MMC3")

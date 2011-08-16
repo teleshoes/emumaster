@@ -1,10 +1,11 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
+	algorithm \
     component \
 	machine \
-    testnes \
-    algorithm
+	testnes
 
 OTHER_FILES += \
+	../todo.txt \
 	../include/numeric.h

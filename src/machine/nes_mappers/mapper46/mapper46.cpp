@@ -1,14 +1,14 @@
 #include "mapper46.h"
 
 CpuMapper46::CpuMapper46(NesMapper *mapper) :
-	NesCpuMemoryMapper(mapper) {
+	NesCpuMapper(mapper) {
 }
 
 void CpuMapper46::reset() {
-	NesCpuMemoryMapper::reset();
+	NesCpuMapper::reset();
 	qMemSet(m_reg[0], 0, 4);
 	updateBanks();
-	mapper()->ppuMemory()->setMirroring(NesPpuMemoryMapper::Vertical);
+	mapper()->ppuMemory()->setMirroring(NesPpuMapper::Vertical);
 }
 
 void CpuMapper46::write(quint16 address, quint8 data) {
@@ -17,7 +17,7 @@ void CpuMapper46::write(quint16 address, quint8 data) {
 		m_reg[1] = (data & 0xF0) >> 4;
 		updateBanks();
 	} else {
-		NesCpuMemoryMapper::write(address, data);
+		NesCpuMapper::write(address, data);
 	}
 }
 
@@ -34,13 +34,13 @@ void CpuMapper46::updateBanks() {
 }
 
 void CpuMapper46::save(QDataStream &s) {
-	NesCpuMemoryMapper::save(s);
+	NesCpuMapper::save(s);
 	for (int i = 0; i < sizeof(m_reg); i++)
 		s << m_reg[i];
 }
 
 bool CpuMapper46::load(QDataStream &s) {
-	if (!NesCpuMemoryMapper::load(s))
+	if (!NesCpuMapper::load(s))
 		return false;
 	for (int i = 0; i < sizeof(m_reg); i++)
 		s >> m_reg[i];
