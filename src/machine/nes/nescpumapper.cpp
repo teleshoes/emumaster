@@ -140,16 +140,10 @@ quint8 NesCpuMapper::readReg(quint16 address) {
 		return 0x14;
 	} if (address == 0x4016) {
 		quint8 data = m_pad->read(0);
-		if (m_disk->isVSSystem())
-			return data;
-		else
-			return data | 0x40; //! TODO | m_TapeOut
+		return data | 0x40; //! TODO | m_TapeOut
 	} else if (address == 0x4017) {
 		quint8 data = m_pad->read(1);
-		if (m_disk->isVSSystem())
-			return data;
-		else
-			return data | m_apu->read(0x17);
+		return data | m_apu->read(0x17);
 	} else if (address < 0x4017) {
 		return m_apu->read(address & 0x1F);
 	} else {

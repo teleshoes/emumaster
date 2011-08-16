@@ -3,85 +3,75 @@
 
 CpuMapper51::CpuMapper51(NesMapper *mapper) :
 	NesCpuMapper(mapper),
-	m_lowMemBankData(0) {
+	ppuMapper(0) {
 }
 
 void CpuMapper51::reset() {
-	NesCpuMapper::reset();
+	ppuMapper = mapper()->ppuMapper();
+
 	bank = 0;
 	mode = 1;
 	updateBanks();
-	mapper()->ppuMemory()->setCramBank(0);
+	ppuMapper->setCram8KBank(0);
 }
 
-quint8 CpuMapper51::read(quint16 address) {
-	if (address >= 0x6000 && address < 0x8000)
-		return m_lowMemBankData[address - 0x6000];
-	return NesCpuMapper::read(address);
-}
-
-void CpuMapper51::write(quint16 address, quint8 data) {
-	if (address >= 0x4100) {
-		if (address >= 0x6000) {
-			mode = ((data & 0x10) >> 3) | ((data & 0x02) >> 1);
-			updateBanks();
-		}
-	} else {
-		NesCpuMapper::write(address, data);
+void CpuMapper51::writeLow(quint16 address, quint8 data) {
+	if (address >= 0x6000) {
+		mode = ((data & 0x10) >> 3) | ((data & 0x02) >> 1);
+		updateBanks();
 	}
 }
 
 void CpuMapper51::writeHigh(quint16 address, quint8 data) {
 	bank = (data & 0x0f) << 2;
-	if (address >= 0xC000 && address < 0xE000)
+	if (0xC000 <= address && address <= 0xDFFF)
 		mode = (mode & 0x01) | ((data & 0x10) >> 3);
 	updateBanks();
 }
 
 void CpuMapper51::updateBanks() {
-	NesPpuMapper *ppuMapper = mapper()->ppuMemory();
 	switch (mode) {
 	case 0:
 		ppuMapper->setMirroring(NesPpuMapper::Vertical);
-		m_lowMemBankData = bank8KData(bank|0x2c|3);
-		setRom8KBank(0, (bank|0x00|0));
-		setRom8KBank(1, (bank|0x00|1));
-		setRom8KBank(2, (bank|0x0c|2));
-		setRom8KBank(3, (bank|0x0c|3));
+		setRom8KBank(3, (bank|0x2c|3));
+		setRom8KBank(4, (bank|0x00|0));
+		setRom8KBank(5, (bank|0x00|1));
+		setRom8KBank(6, (bank|0x0c|2));
+		setRom8KBank(7, (bank|0x0c|3));
 		break;
 	case 1:
 		ppuMapper->setMirroring(NesPpuMapper::Vertical);
-		m_lowMemBankData = bank8KData(bank|0x20|3);
-		setRom8KBank(0, (bank|0x00|0));
-		setRom8KBank(1, (bank|0x00|1));
-		setRom8KBank(2, (bank|0x00|2));
-		setRom8KBank(3, (bank|0x00|3));
+		setRom8KBank(3, (bank|0x20|3));
+		setRom8KBank(4, (bank|0x00|0));
+		setRom8KBank(5, (bank|0x00|1));
+		setRom8KBank(6, (bank|0x00|2));
+		setRom8KBank(7, (bank|0x00|3));
 		break;
 	case 2:
 		ppuMapper->setMirroring(NesPpuMapper::Vertical);
-		m_lowMemBankData = bank8KData(bank|0x2e|3);
-		setRom8KBank(0, (bank|0x02|0));
-		setRom8KBank(1, (bank|0x02|1));
-		setRom8KBank(2, (bank|0x0e|2));
-		setRom8KBank(3, (bank|0x0e|3));
+		setRom8KBank(3, (bank|0x2e|3));
+		setRom8KBank(4, (bank|0x02|0));
+		setRom8KBank(5, (bank|0x02|1));
+		setRom8KBank(6, (bank|0x0e|2));
+		setRom8KBank(7, (bank|0x0e|3));
 		break;
 	case 3:
 		ppuMapper->setMirroring(NesPpuMapper::Horizontal);
-		m_lowMemBankData = bank8KData(bank|0x20|3);
-		setRom8KBank(0, (bank|0x00|0));
-		setRom8KBank(1, (bank|0x00|1));
-		setRom8KBank(2, (bank|0x00|2));
-		setRom8KBank(3, (bank|0x00|3));
+		setRom8KBank(3, (bank|0x20|3));
+		setRom8KBank(4, (bank|0x00|0));
+		setRom8KBank(5, (bank|0x00|1));
+		setRom8KBank(6, (bank|0x00|2));
+		setRom8KBank(7, (bank|0x00|3));
 		break;
-	default:
-		Q_ASSERT(false);
 	}
 }
 
-void CpuMapper51::save(QDataStream &s) {
-	NesCpuMapper::save(s);
+bool CpuMapper51::save(QDataStream &s) {
+	if (!NesCpuMapper::save(s))
+		return false;
 	s << mode;
 	s << bank;
+	return true;
 }
 
 bool CpuMapper51::load(QDataStream &s) {
@@ -89,7 +79,6 @@ bool CpuMapper51::load(QDataStream &s) {
 		return false;
 	s >> mode;
 	s >> bank;
-	updateBanks();
 	return true;
 }
 

@@ -117,7 +117,7 @@ quint8 NesPpuRegisters::read(quint16 address) {
 		m_toggle = false;
 		/* if the vblank bit is set, clear all status bits but the 2 sprite flags */
 		if (m_dataLatch & VBlankSRBit) {
-			m_regs[Status] &= (Sprite0HitSRBit | SpriteMaxSRBit);
+			m_regs[Status] &= (Sprite0HitSRBit | SpriteMaxSRBit); // TODO [virtuanes ~VBlankSRBit]
 			ppu->updateVBlankOut();
 		}
 		break;

@@ -125,4 +125,4 @@ bool CpuMapper17::load(QDataStream &s) {
 	return true;
 }
 
-NES_MAPPER_PLUGIN_EXPORT(6, "FFE F8XX")
+NES_MAPPER_PLUGIN_EXPORT(17, "FFE F8XX")

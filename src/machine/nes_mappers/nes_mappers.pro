@@ -4,6 +4,10 @@ TEMPLATE = subdirs
 # mapper20
 # mapper28-31
 # mapper35-39
+# mapper39
+# mapper52-56
+# mapper59
+# mapper63
 
 SUBDIRS += \
 	mapper0 \
@@ -34,4 +38,22 @@ SUBDIRS += \
 	mapper27 \
 	mapper32 \
 	mapper33 \
-	mapper34
+	mapper34 \
+	mapper40 \
+	mapper41 \
+    mapper42 \
+    mapper43 \
+    mapper44 \
+	mapper45 \
+	mapper46 \
+    mapper47 \
+    mapper48 \
+	mapper50 \
+	mapper51 \
+	mapper57 \
+	mapper58 \
+	mapper60 \
+	mapper61 \
+    mapper62 \
+    mapper64 \
+    mapper65

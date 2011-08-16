@@ -12,17 +12,19 @@ class CpuMapper51 : public NesCpuMapper {
 public:
 	explicit CpuMapper51(NesMapper *mapper);
 	void reset();
-	quint8 read(quint16 address);
-	void write(quint16 address, quint8 data);
+
+	void writeLow(quint16 address, quint8 data);
 	void writeHigh(quint16 address, quint8 data);
 
-	void save(QDataStream &s);
-	bool load(QDataStream &s);
-private:
 	void updateBanks();
 
-	quint32 mode, bank;
-	quint8 *m_lowMemBankData;
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+private:
+	NesPpuMapper *ppuMapper;
+
+	quint32 mode;
+	quint32 bank;
 };
 
 #define PpuMapper51 NesPpuMapper

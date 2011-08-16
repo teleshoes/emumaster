@@ -22,14 +22,13 @@ void NesPpuPalette::updateColorEmphasisAndMask() {
 void NesPpuPalette::write(quint16 address, quint8 data) {
 	Q_ASSERT(address < 32);
 	data &= 0x3F;
-	m_memory[address] = data;
-	if (!(address & 3)) {
-		if (!(address & 0xF)) {
+	if (!(address & 0x03)) {
+		if (!(address & 0x0F)) {
 			for (int i = 0; i < 32; i += 4)
 				m_memory[i] = data;
-		} else {
-			m_memory[address & 0xF] = m_memory[(address & 0xF) | 0x10] = data;
 		}
+	} else {
+		m_memory[address] = data;
 	}
 	m_penLutNeedsRebuild = true;
 }

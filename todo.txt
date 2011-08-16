@@ -1,15 +1,12 @@
-save/load state (save on exit) fast save/load with screenshot, datetime, name
+save/load state (save on exit) fast save/load with screenshot, datetime, name, quick save/load
 net play - full sync, pause on 20ms delay (convert time to cycles) and no data
 load roms from zipped files
-install rom gui - move or copy file, detect machine by file ext
 disable swipe
 test against call
 multiple keys at once on screen with one finger
-bomberman not working
 game genie cheat selector
 paddle (e.g. arkanoid) - dialog for choose
 IPS patcher
 zapper
 accelerometer as controller (shake to jump)
 crc cache - fast CRC load
-in mappers include number in name

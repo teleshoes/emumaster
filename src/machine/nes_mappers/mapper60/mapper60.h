@@ -10,12 +10,15 @@ class CpuMapper60 : public NesCpuMapper {
 public:
 	explicit CpuMapper60(NesMapper *mapper);
 	void reset();
+
 	void writeHigh(quint16 address, quint8 data);
 
-	void save(QDataStream &s);
+	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 private:
-	quint8 m_patch;
+	NesPpuMapper *ppuMapper;
+
+	quint8 patch;
 	quint8 game_sel;
 };
 

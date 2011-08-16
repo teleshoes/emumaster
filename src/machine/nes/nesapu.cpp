@@ -84,22 +84,24 @@ void NesApu::write(quint16 address, quint8 data) {
 quint8 NesApu::read(quint16 address) {
 	Q_ASSERT(address <= 0x17);
 	Q_ASSERT_X(m_sampleRate > 0, "NesApu", "set sample rate first");
+	quint8 data = 0;
 	if (address == 0x15) {
-		quint8 result = 0;
-		result |= (						m_r1ch.lengthStatus() ? 0x01 : 0);
-		result |= (						m_r2ch.lengthStatus() ? 0x02 : 0);
-		result |= (						m_trch.lengthStatus() ? 0x04 : 0);
-		result |= (						m_nsch.lengthStatus() ? 0x08 : 0);
-		result |= (						m_dmch.lengthStatus() ? 0x10 : 0);
+		data |= (						m_r1ch.lengthStatus() ? 0x01 : 0);
+		data |= (						m_r2ch.lengthStatus() ? 0x02 : 0);
+		data |= (						m_trch.lengthStatus() ? 0x04 : 0);
+		data |= (						m_nsch.lengthStatus() ? 0x08 : 0);
+		data |= (						m_dmch.lengthStatus() ? 0x10 : 0);
 
-		result |= ( (m_frameIrqGenerated && m_frameIrqEnable) ? 0x40 : 0);
-		result |= (						  m_dmch.irqGenerated ? 0x80 : 0);
+		data |= (	(m_frameIrqGenerated && m_frameIrqEnable) ? 0x40 : 0);
+		data |= (						  m_dmch.irqGenerated ? 0x80 : 0);
 		m_frameIrqGenerated = false;
 		m_dmch.irqGenerated = false;
 		updateIrqSignal();
-		return result;
+	} else if (address == 0x17) {
+		if (!m_frameIrqGenerated)
+			data = 0x40;
 	}
-	return 0;
+	return data;
 }
 
 void NesApu::setChannelUserEnabled(int channelNo, bool on) {
