@@ -56,7 +56,17 @@ unix:!symbian:!maemo5 {
 
 OTHER_FILES += \
     ../../../qml/nes/main.qml \
-    ../../../qml/nes/MainPage.qml
+    ../../../qml/nes/MainPage.qml \
+    ../../../qml/nes/VideoPage.qml \
+    ../../../qml/nes/AudioPage.qml \
+    ../../../qml/nes/InputPage.qml \
+    ../../../qml/nes/StatePage.qml \
+    ../../../qml/nes/CheatPage.qml
+
+
+
+
+
 
 
 
