@@ -9,12 +9,8 @@ class NesDisk;
 class NesMapper;
 class NesCpuMapper;
 class NesPpuMapper;
-class HostAudio;
 #include "nes_global.h"
-#include <QObject>
-#include <QTime>
-class QTimer;
-class QAudioFormat;
+#include <imachine.h>
 
 #define NES_PPU_NTSC_CLK	21477270.0
 #define NES_PPU_PAL_CLK		26601712.0
@@ -28,7 +24,7 @@ class QAudioFormat;
 #define NES_NTSC_SCANLINE_CLOCKS	1364
 #define NES_PAL_SCANLINE_CLOCKS		1598
 
-class NES_EXPORT NesMachine : public QObject {
+class NES_EXPORT NesMachine : public IMachine {
 	Q_OBJECT
 public:
 	enum Type { NTSC, PAL };
@@ -42,23 +38,19 @@ public:
 	NesDisk *disk() const;
 	bool setDisk(NesDisk *disk);
 
-	void setHostAudioSampleRate(int rate);
-	void setHostAudioStereoEnabled(bool on);
-	QAudioFormat hostAudioFormat() const;
-
-	void setRunning(bool on);
-	void clockCpu(uint cycles);
-
 	NesCpu *cpu() const;
 	NesPpu *ppu() const;
 	NesApu *apu() const;
 	NesPad *pad() const;
 	NesMapper *mapper() const;
-private slots:
-	void emulateNextFrame();
+
+	void clockCpu(uint cycles);
+	const char *grabAudioBuffer(int *size);
+	void setPadKey(PadKey key, bool state);
+	const QImage &frame() const;
 	void emulateFrame(bool drawEnabled);
-signals:
-	void frameGenerated();
+protected:
+	void updateSettings();
 private:
 	void emulateFrameNoTile(bool drawEnabled);
 	void emulateVisibleScanlineNoTile(int scanline);
@@ -78,11 +70,6 @@ private:
 	NesMapper *m_mapper;
 	NesPpuMapper *m_ppuMapper;
 
-	bool m_running;
-	QTimer *m_timer;
-	QTime m_time;
-	qreal m_desiredTime;
-
 	uint m_scanlineCycles;
 	uint m_scanlineEndCycles;
 	uint m_hDrawCycles;
@@ -90,9 +77,6 @@ private:
 
 	quint64 m_cpuCycleCounter;
 	quint64 m_ppuCycleCounter;
-
-	HostAudio *m_hostAudio;
-	QAudioFormat *m_hostAudioFormat;
 
 	bool bZapper; // TODO zapper
 	int ZapperY;

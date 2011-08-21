@@ -5,3 +5,8 @@ HEADERS += \
 
 SOURCES += \
     mapper32.cpp
+
+unix:!symbian:!maemo5 {
+    target.path = /opt/mapper32/lib
+    INSTALLS += target
+}

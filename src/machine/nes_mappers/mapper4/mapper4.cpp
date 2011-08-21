@@ -1,6 +1,7 @@
 #include "mapper4.h"
 #include "nesppu.h"
 #include "nesdisk.h"
+#include <QDebug>
 
 class NesMapper4Data {
 public:
@@ -41,6 +42,7 @@ CpuMapper4::~CpuMapper4() {
 
 void CpuMapper4::reset() {
 	ppuMapper = static_cast<PpuMapper4 *>(mapper()->ppuMapper());
+
 	qMemSet(d->reg, 0, sizeof(d->reg));
 	d->prg0 = 0;
 	d->prg1 = 1;
@@ -418,7 +420,7 @@ void PpuMapper4::updateBanks() {
 bool CpuMapper4::save(QDataStream &s) {
 	if (!NesCpuMapper::save(s))
 		return false;
-	for (int i = 0; i < sizeof(d->reg); i++)
+        for (uint i = 0; i < sizeof(d->reg); i++)
 		s << d->reg[i];
 	s << d->prg0 << d->prg1;
 	s << d->chr01 << d->chr23 << d->chr4 << d->chr5 << d->chr6 << d->chr7;
@@ -434,7 +436,7 @@ bool CpuMapper4::save(QDataStream &s) {
 bool CpuMapper4::load(QDataStream &s) {
 	if (!NesCpuMapper::load(s))
 		return false;
-	for (int i = 0; i < sizeof(d->reg); i++)
+        for (uint i = 0; i < sizeof(d->reg); i++)
 		s >> d->reg[i];
 	s >> d->prg0 >> d->prg1;
 	s >> d->chr01 >> d->chr23 >> d->chr4 >> d->chr5 >> d->chr6 >> d->chr7;

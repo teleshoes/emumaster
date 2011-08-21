@@ -71,6 +71,7 @@ public:
 	void dma(NesCpuMapper *cpuMapper, quint8 page);
 
 	void processFrameStart();
+	void processFrameEnd();
 	void processScanlineStart();
 	void processScanlineNext();
 	void processScanline();
@@ -109,6 +110,7 @@ private:
 	int m_scanline;
 	int m_scanlinesPerFrame;
 	QRgb *m_scanlineData;
+	QRgb *m_scanline0Data;
 	QImage m_frame;
 
 	bool m_characterLatchEnabled;

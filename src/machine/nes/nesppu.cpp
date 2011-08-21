@@ -6,11 +6,12 @@
 #include "nesppusprite.h"
 #include "nesmachine.h"
 #include <QDataStream>
+#include <QDebug>
 
 NesPpu::NesPpu(NesMachine *machine) :
 	QObject(machine),
 	m_mapper(0),
-	m_frame(8+VisibleScreenWidth+8, VisibleScreenHeight, QImage::Format_RGB32) {
+	m_frame(8+VisibleScreenWidth+8, VisibleScreenHeight, QImage::Format_ARGB32) {
 
 	m_registers = new NesPpuRegisters(this);
 	m_palette = new NesPpuPalette(this);
@@ -20,6 +21,7 @@ NesPpu::NesPpu(NesMachine *machine) :
 
 	m_scanline = 0;
 	m_scanlineData = 0;
+	m_scanline0Data = reinterpret_cast<QRgb *>(m_frame.scanLine(0));
 
 	m_characterLatchEnabled = false;
 	m_externalLatchEnabled = false;
@@ -72,7 +74,7 @@ void NesPpu::setRenderMethod(NesPpu::RenderMethod method)
 void NesPpu::setScanline(int line) {
 	m_scanline = line;
 	if (m_scanline < VisibleScreenHeight)
-		m_scanlineData = reinterpret_cast<QRgb *>(m_frame.scanLine(line));
+		m_scanlineData = reinterpret_cast<QRgb *>(reinterpret_cast<uchar *>(m_scanline0Data) + line * m_frame.bytesPerLine());
 }
 
 void NesPpu::updateVBlankOut() {
@@ -100,6 +102,10 @@ void NesPpu::processFrameStart() {
 		m_loopyShift = m_scrollTileXOffset;
 		m_scrollTileYOffset = (m_vramAddress & 0x7000) >> 12;
 	}
+}
+
+void NesPpu::processFrameEnd() {
+	m_frame.detach();
 }
 
 void NesPpu::processScanlineStart() {
@@ -187,7 +193,9 @@ void NesPpu::drawBackgroundNoTileNoExtLatch() {
 		attribute = (attribute & 3) << 2;
 
 		if (cacheTile == tileAddress && cacheAttribute == attribute) {
-			qMemCopy(dst, dst-8, 8*sizeof(QRgb));
+			// FIXME
+//			qMemCopy(dst, dst-8, 8*sizeof(QRgb));
+			memcpy(dst, dst-8, 8*sizeof(QRgb));
 			*bgWritten = *(bgWritten - 1);
 		} else {
 			cacheTile = tileAddress;
@@ -489,9 +497,8 @@ void NesPpu::drawSprites() {
 
 void NesPpu::fillScanline(int color, int count) {
 	QRgb pen = m_palette->currentPens()[color];
-	QRgb *data = reinterpret_cast<QRgb *>(m_frame.scanLine(m_scanline));
 	for (int i = 0; i < count; i++)
-		data[i] = pen;
+		m_scanlineData[i] = pen;
 }
 
 void NesPpu::processDummyScanline() {

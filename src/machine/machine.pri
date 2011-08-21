@@ -1,4 +1,4 @@
 TEMPLATE = lib
-DESTDIR = ../../../bin
-LIBS += -L../../../bin
+DESTDIR = ../../../lib
+LIBS += -L../../../lib
 INCLUDEPATH += ../../../include

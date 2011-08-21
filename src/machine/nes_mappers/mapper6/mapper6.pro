@@ -5,3 +5,8 @@ HEADERS += \
 
 SOURCES += \
     mapper6.cpp
+
+unix:!symbian:!maemo5 {
+    target.path = /opt/mapper6/lib
+    INSTALLS += target
+}

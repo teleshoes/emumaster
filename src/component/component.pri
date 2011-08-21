@@ -1,4 +1,4 @@
 TEMPLATE = lib
-DESTDIR = ../../../../bin
+DESTDIR = ../../../../lib
 INCLUDEPATH += ../../../../include
 DEFINES += HOSTAUDIO_PROJECT

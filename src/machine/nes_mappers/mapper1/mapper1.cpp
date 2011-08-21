@@ -211,7 +211,7 @@ NesPpuMapper::Mirroring CpuMapper1::mirroringFromRegs() const {
 bool CpuMapper1::save(QDataStream &s) {
 	if (!NesCpuMapper::save(s))
 		return false;
-	for (int i = 0; i < sizeof(reg); i++)
+        for (uint i = 0; i < sizeof(reg); i++)
 		s << reg[i];
 	s << shift << regbuf;
 	s << wram_bank << wram_count;
@@ -222,7 +222,7 @@ bool CpuMapper1::save(QDataStream &s) {
 bool CpuMapper1::load(QDataStream &s) {
 	if (!NesCpuMapper::load(s))
 		return false;
-	for (int i = 0; i < sizeof(reg); i++)
+        for (uint i = 0; i < sizeof(reg); i++)
 		s >> reg[i];
 	s >> shift >> regbuf;
 	s >> wram_bank >> wram_count;

@@ -1,5 +1,5 @@
 TEMPLATE = lib
 CONFIG += plugin
-DESTDIR = ../../../../bin/nes_mappers
-LIBS += -L../../../../bin -lnes
+DESTDIR = ../../../../lib/nes_mappers
+LIBS += -L../../../../lib -lnes
 INCLUDEPATH += ../../nes ../../../../include

@@ -1,5 +1,5 @@
 TEMPLATE = lib
-DESTDIR = ../../../bin
+DESTDIR = ../../../lib
 DEFINES += CRC32_PROJECT
 
 SOURCES += \

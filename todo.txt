@@ -1,12 +1,43 @@
-save/load state (save on exit) fast save/load with screenshot, datetime, name, quick save/load
-net play - full sync, pause on 20ms delay (convert time to cycles) and no data
-load roms from zipped files
-disable swipe
-test against call
-multiple keys at once on screen with one finger
-game genie cheat selector
-paddle (e.g. arkanoid) - dialog for choose
-IPS patcher
-zapper
-accelerometer as controller (shake to jump)
-crc cache - fast CRC load
+save/load:
+ - auto save on exit, auto load on start
+ - quick save/load
+ - screenshot, datetime
+ - save settings
+
+net play:
+ - full sync
+ - pause on 20ms delay (convert time to cycles) and no data
+
+input:
+ - disable swipe
+ - multiple keys at once on screen with one finger
+ - paddle (e.g. arkanoid) - dialog for choose
+ - zapper
+ - accelerometer as controller (shake to jump)
+ - pad transparency
+
+cheat:
+ - game genie codes
+ - cheat selector
+
+roms:
+ - load roms from zipped files
+ - IPS patcher
+
+tests:
+ - test against call
+
+misc:
+ - icon to main menu from game:
+   1. require screenshot
+   2. give the ability to choose 80x80 area
+   3. apply mask and gloss effects, save icon (not in MyDocs), maybe in emumaster dir
+   4. create desktop file
+ - show message on first application run howto install roms and donate
+ - about page - donate button
+ - game policy http://library.developer.nokia.com/index.jsp?topic=/MeeGo_1.2_Harmattan_API/html/guide/html/Developer_Library_Best_practices_for_application_development_Using_Resource_Policy_to_enhance_games_a32a.html
+ - Meegotouch Control Panel http://www.developer.nokia.com/Community/Wiki/SettingsApplet
+ - translations
+
+issues:
+ - kick master (mapper 4) not working

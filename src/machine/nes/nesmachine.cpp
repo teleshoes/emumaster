@@ -7,17 +7,12 @@
 #include "nesppumapper.h"
 #include "nesdisk.h"
 #include "nespad.h"
-#include <audio/hostaudio.h>
-#include <QTimer>
-
-// TODO refactor remove audio remove frameGenerated signal, remove timing
 
 NesMachine::NesMachine(QObject *parent) :
-	QObject(parent),
+	IMachine(parent),
 	m_disk(0),
 	m_mapper(0),
-	m_ppuMapper(0),
-	m_running(false) {
+	m_ppuMapper(0) {
 
 	m_cpu = new NesCpu(this);
 	m_ppu = new NesPpu(this);
@@ -25,27 +20,14 @@ NesMachine::NesMachine(QObject *parent) :
 	m_pad = new NesPad(this);
 
 	QObject::connect(m_ppu, SIGNAL(vblank_o(bool)), m_cpu, SLOT(nmi_i(bool)));
-
-	m_apu->setSampleRate(22050);
-	m_apu->setStereoEnabled(true);
-
-	m_hostAudioFormat = new QAudioFormat();
-	m_hostAudioFormat->setSampleRate(22050);
-	m_hostAudioFormat->setChannelCount(2);
-	m_hostAudioFormat->setSampleSize(16);
-	m_hostAudioFormat->setCodec("audio/pcm");
-	m_hostAudioFormat->setByteOrder(QAudioFormat::LittleEndian);
-	m_hostAudioFormat->setSampleType(QAudioFormat::UnSignedInt);
-	m_hostAudio = new HostAudio(this);
-	m_hostAudio->setFormat(*m_hostAudioFormat);
-
-	m_timer = new QTimer(this);
-	m_timer->setSingleShot(true);
-	QObject::connect(m_timer, SIGNAL(timeout()), SLOT(emulateNextFrame()));
 }
 
 NesMachine::~NesMachine() {
-	delete m_hostAudioFormat;
+}
+
+void NesMachine::updateSettings() {
+	m_apu->setSampleRate(audioSampleRate());
+	m_apu->setStereoEnabled(isAudioStereo());
 }
 
 void NesMachine::reset() {
@@ -58,7 +40,6 @@ void NesMachine::reset() {
 }
 
 bool NesMachine::setDisk(NesDisk *disk) {
-	m_running = false;
 	if (!disk->isLoaded())
 		return false;
 
@@ -77,12 +58,14 @@ bool NesMachine::setDisk(NesDisk *disk) {
 	// TODO VS system
 	if (m_type == NTSC) {
 		m_ppu->setChipType(NesPpu::PPU2C02);
+		setFrameRate(NES_NTSC_FRAMERATE);
 		m_scanlineCycles = NES_NTSC_SCANLINE_CLOCKS;
 		m_hDrawCycles = 1024;
 		m_hBlankCycles = 340;
 		m_scanlineEndCycles = 4;
 	} else {
 		m_ppu->setChipType(NesPpu::PPU2C07);
+		setFrameRate(NES_PAL_FRAMERATE);
 		m_scanlineCycles = NES_PAL_SCANLINE_CLOCKS;
 		m_hDrawCycles = 1200;
 		m_hBlankCycles = 398;
@@ -91,43 +74,6 @@ bool NesMachine::setDisk(NesDisk *disk) {
 	m_apu->updateMachineType();
 	reset();
 	return true;
-}
-
-void NesMachine::setHostAudioSampleRate(int rate) {
-	if (rate == m_hostAudioFormat->sampleRate())
-		return;
-	m_cpu->apu()->setSampleRate(rate);
-	m_hostAudioFormat->setSampleRate(rate);
-	m_hostAudio->setFormat(*m_hostAudioFormat);
-}
-
-void NesMachine::setHostAudioStereoEnabled(bool on) {
-	int nChannels = (on ? 2 : 1);
-	if (nChannels == m_hostAudioFormat->channelCount())
-		return;
-	m_cpu->apu()->setStereoEnabled(on);
-	m_hostAudioFormat->setChannelCount(nChannels);
-	m_hostAudio->setFormat(*m_hostAudioFormat);
-}
-
-QAudioFormat NesMachine::hostAudioFormat() const
-{ return *m_hostAudioFormat; }
-
-void NesMachine::setRunning(bool run) {
-	if (m_running == run)
-		return;
-	if (run) {
-		if (m_disk) {
-			run = m_running;
-			m_timer->start(0);
-			m_running = true;
-			m_time.start();
-			m_desiredTime = 0.0;
-		}
-	} else {
-		m_running = false;
-		m_timer->stop();
-	}
 }
 
 void NesMachine::clockCpu(uint cycles) {
@@ -141,6 +87,28 @@ void NesMachine::clockCpu(uint cycles) {
 		m_cpuCycleCounter += m_cpu->clock(realCycles);
 }
 
+const char *NesMachine::grabAudioBuffer(int *size)
+{ return m_apu->grabBuffer(size); }
+
+void NesMachine::setPadKey(IMachine::PadKey key, bool state) {
+	switch (key) {
+	case Left_PadKey:		m_pad->setButtonState(0, NesPad::Left, state); break;
+	case Right_PadKey:		m_pad->setButtonState(0, NesPad::Right, state); break;
+	case Up_PadKey:			m_pad->setButtonState(0, NesPad::Up, state); break;
+	case Down_PadKey:		m_pad->setButtonState(0, NesPad::Down, state); break;
+	case A_PadKey:			m_pad->setButtonState(0, NesPad::B, state); break;
+	case B_PadKey:			m_pad->setButtonState(0, NesPad::A, state); break;
+//	TODO case X_PadKey:		m_pad->setButtonState(0, NesPad::Left, state); break;
+//	TODO case Y_PadKey:		m_pad->setButtonState(0, NesPad::Left, state); break;
+	case Start_PadKey:		m_pad->setButtonState(0, NesPad::Start, state); break;
+	case Select_PadKey:		m_pad->setButtonState(0, NesPad::Select, state); break;
+	default: break;
+	}
+}
+
+const QImage &NesMachine::frame() const
+{ return m_ppu->frame(); }
+
 void NesMachine::emulateFrame(bool drawEnabled) {
 	processCheatCodes();
 	bZapper = false;
@@ -149,10 +117,6 @@ void NesMachine::emulateFrame(bool drawEnabled) {
 	else
 		emulateFrameNoTile(drawEnabled);
 	m_cpu->nes_reset_i(false);
-
-	int size;
-	const char *data = m_apu->grabBuffer(&size);
-	m_hostAudio->write(data, size);
 }
 
 inline void NesMachine::updateZapper(int scanline) {
@@ -248,6 +212,7 @@ void NesMachine::emulateFrameNoTile(bool drawEnabled) {
 		if (scanline != totalScanlines-1)
 			updateZapper(scanline);
 	}
+	m_ppu->processFrameEnd();
 }
 
 inline void NesMachine::emulateVisibleScanlineTile(int scanline) {
@@ -314,22 +279,9 @@ void NesMachine::emulateFrameTile(bool drawEnabled) {
 		if (scanline != totalScanlines-1)
 			updateZapper(scanline);
 	}
+	m_ppu->processFrameEnd();
 }
 
 void NesMachine::processCheatCodes() {
 	// TODO cheat codes
-}
-
-void NesMachine::emulateNextFrame() {
-	emulateFrame(true);
-
-	m_desiredTime += 1000.0 / ((m_type == NTSC) ? NES_NTSC_FRAMERATE : NES_PAL_FRAMERATE);
-	if (m_time.elapsed() > m_desiredTime) {
-		m_desiredTime = 0.0;
-		m_time.start();
-		m_timer->start();
-	} else {
-		m_timer->start(m_desiredTime - m_time.elapsed());
-	}
-	emit frameGenerated();
 }

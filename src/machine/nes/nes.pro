@@ -1,7 +1,7 @@
 include(../machine.pri)
-LIBS += -lmemory8 -lm6502 -lhostaudio -lcrc32
+LIBS += -lmemory8 -lm6502 -lcrc32
 DEFINES += NES_PROJECT
-QT += opengl multimedia
+QT += opengl declarative
 
 HEADERS += \
     nesdisk.h \
@@ -11,7 +11,6 @@ HEADERS += \
     nesmapper.h \
 	nesppumapper.h \
     nes_global.h \
-    nesmachineview.h \
 	nesapu.h \
     nesapunoisechannel.h \
     nesapuchannel.h \
@@ -24,7 +23,9 @@ HEADERS += \
     nesppuregisters.h \
     nesppupalette.h \
     nesdisk_p.h \
-    nesmappereeprom.h
+    nesmappereeprom.h \
+    nessettingsview.h \
+    nesmachineview.h
 
 SOURCES += \
     nesdisk.cpp \
@@ -33,7 +34,6 @@ SOURCES += \
 	nescpumapper.cpp \
     nesmapper.cpp \
 	nesppumapper.cpp \
-    nesmachineview.cpp \
 	nesapu.cpp \
     nesapunoisechannel.cpp \
     nesapuchannel.cpp \
@@ -45,4 +45,23 @@ SOURCES += \
     nesppuregisters.cpp \
     nesppupalette.cpp \
     nesdisk_patch.cpp \
-    nesmappereeprom.cpp
+    nesmappereeprom.cpp \
+    nessettingsview.cpp \
+    nesmachineview.cpp
+
+unix:!symbian:!maemo5 {
+    target.path = /opt/nes/lib
+    INSTALLS += target
+}
+
+OTHER_FILES += \
+    ../../../qml/nes/main.qml \
+    ../../../qml/nes/MainPage.qml
+
+
+
+
+
+
+
+

@@ -60,7 +60,7 @@ private:
 	void WRITE(quint16 addr, quint8 data);
 	quint8 READ(quint16 addr);
 	void PUSH(quint8 data);
-	quint8 M6502::POP();
+        quint8 POP();
 
 	static const int StackBase = 0x100;
 

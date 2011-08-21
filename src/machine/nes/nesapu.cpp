@@ -10,8 +10,8 @@ NesApu::NesApu(NesCpu *cpu) :
 	m_trch(2),
 	m_nsch(3),
 	m_dmch(this, 4),
-	m_stereo(true),
-	m_sampleRate(-1) {
+        m_sampleRate(-1),
+        m_stereo(true) {
 	m_extraCycles = 0;
 	initDACLUTs();
 
@@ -135,6 +135,9 @@ void NesApu::clockFrameCounter(int nCycles) {
 	} else {
 		m_extraCycles = 0;
 	}
+	// TODO why ??? GALAGA
+	if (nCycles <= 0)
+		return;
 	m_dmch.clock(nCycles);
 	m_trch.clock(nCycles);
 	m_r1ch.clock(nCycles);
@@ -272,13 +275,15 @@ void NesApu::sample() {
 		m_smpAccumR 	+= m_smpDiffR - (m_smpAccumR >> 10);
 		m_sampleValueR = m_smpAccumR;
 
-		if(m_bufferIndex+4 < SampleBufferSize){
-			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueL   ) & 0xFF;
-			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueL>>8) & 0xFF;
-			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueR   ) & 0xFF;
-			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueR>>8) & 0xFF;
+		// TODO signed
+		if(m_bufferIndex+4 < SampleBufferSize) {
+			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueL>>1   ) & 0xFF;
+			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueL>>9) & 0xFF;
+			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueR>>1   ) & 0xFF;
+			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueR>>9) & 0xFF;
 		}
 	} else {
+		// TODO signed
 		if (m_bufferIndex+2 < SampleBufferSize) {
 			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueL   ) & 0xFF;
 			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueL>>8) & 0xFF;

@@ -14,9 +14,13 @@ NesPpuPalette::NesPpuPalette(NesPpu *ppu) :
 
 void NesPpuPalette::updateColorEmphasisAndMask() {
 	NesPpu *ppu = static_cast<NesPpu *>(parent());
-	m_emphasis = ppu->m_registers->colorEmphasis();
-	m_mask = (ppu->m_registers->isMonochromeModeSet() ? 0xF0 : 0xFF);
-	m_penLutNeedsRebuild = true;
+	int newEmphasis = ppu->m_registers->colorEmphasis();
+	int newMask = (ppu->m_registers->isMonochromeModeSet() ? 0xF0 : 0xFF);
+	if (newEmphasis != m_emphasis || newMask != m_mask) {
+		m_emphasis = newEmphasis;
+		m_mask = newMask;
+		m_penLutNeedsRebuild = true;
+	}
 }
 
 void NesPpuPalette::write(quint16 address, quint8 data) {
@@ -24,13 +28,18 @@ void NesPpuPalette::write(quint16 address, quint8 data) {
 	data &= 0x3F;
 	if (!(address & 0x03)) {
 		if (!(address & 0x0F)) {
-			for (int i = 0; i < 32; i += 4)
-				m_memory[i] = data;
+			if (m_memory[0] != data) {
+				for (int i = 0; i < 32; i += 4)
+					m_memory[i] = data;
+				m_penLutNeedsRebuild = true;
+			}
 		}
 	} else {
-		m_memory[address] = data;
+		if (m_memory[address] != data) {
+			m_memory[address] = data;
+			m_penLutNeedsRebuild = true;
+		}
 	}
-	m_penLutNeedsRebuild = true;
 }
 
 QRgb *NesPpuPalette::currentPens() {

@@ -17,3 +17,7 @@ syntax: regexp
 \.user$
 syntax: regexp
 ^.project$
+syntax: regexp
+^lib$
+syntax: regexp
+^bin$

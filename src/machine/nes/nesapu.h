@@ -9,6 +9,8 @@ class NesCpu;
 #include "nesapudmchannel.h"
 #include <QObject>
 
+// TODO audio enable/disable
+
 class NesApu : public QObject {
     Q_OBJECT
 public:

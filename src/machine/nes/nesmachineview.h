@@ -1,28 +1,13 @@
 #ifndef NESMACHINEVIEW_H
 #define NESMACHINEVIEW_H
 
-class NesMachine;
-#include "nes_global.h"
-#include <QGLWidget>
+#include <machineview.h>
 
-class NES_EXPORT NesMachineView : public QGLWidget {
+class NesMachineView : public MachineView {
     Q_OBJECT
 public:
-	explicit NesMachineView(const QString &diskName, QWidget *parent = 0);
-	NesMachine *machine() const;
-signals:
-	void showSettingsView();
-protected:
-	void paintEvent(QPaintEvent *);
-	void keyPressEvent(QKeyEvent *e);
-	void keyReleaseEvent(QKeyEvent *e);
-private:
-	NesMachine *m_machine;
-	QRectF m_sourceRect;
-	QString m_error;
+	explicit NesMachineView(const QString &path, QWidget *parent = 0);
+	~NesMachineView();
 };
-
-inline NesMachine *NesMachineView::machine() const
-{ return m_machine; }
 
 #endif // NESMACHINEVIEW_H

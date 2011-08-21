@@ -57,8 +57,9 @@ uint NesCpu::clock(uint cycles) {
 			// TODO mapper clock enable
 			m_mapper->clock(instrCycles);
 			executedCycles += instrCycles;
-			m_apu->clockFrameCounter(instrCycles);
+//			m_apu->clockFrameCounter(instrCycles);
 		}
+		m_apu->clockFrameCounter(executedCycles);
 	}
 	return executedCycles;
 }
@@ -72,17 +73,17 @@ void NesCpu::nes_reset_i(bool on) {
 }
 
 void NesCpu::apu_irq_i(bool on) {
-	bool oldIrqState = (m_apuIrq && m_mapperIrq);
+	bool oldIrqState = (m_apuIrq || m_mapperIrq);
 	m_apuIrq = on;
-	bool newIrqState = (m_apuIrq && m_mapperIrq);
+	bool newIrqState = (m_apuIrq || m_mapperIrq);
 	if (newIrqState != oldIrqState)
 		irq0_i(newIrqState);
 }
 
 void NesCpu::mapper_irq_i(bool on) {
-	bool oldIrqState = (m_apuIrq && m_mapperIrq);
+	bool oldIrqState = (m_apuIrq || m_mapperIrq);
 	m_mapperIrq = on;
-	bool newIrqState = (m_apuIrq && m_mapperIrq);
+	bool newIrqState = (m_apuIrq || m_mapperIrq);
 	if (newIrqState != oldIrqState)
 		irq0_i(newIrqState);
 }
