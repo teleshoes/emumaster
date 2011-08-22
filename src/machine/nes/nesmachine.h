@@ -26,6 +26,8 @@ class NesPpuMapper;
 
 class NES_EXPORT NesMachine : public IMachine {
 	Q_OBJECT
+	Q_PROPERTY(NesPpu *ppu READ ppu CONSTANT)
+	Q_PROPERTY(NesApu *apu READ apu CONSTANT)
 public:
 	enum Type { NTSC, PAL };
 
@@ -36,7 +38,7 @@ public:
 	Type type() const;
 
 	NesDisk *disk() const;
-	bool setDisk(NesDisk *disk);
+	QString setDisk(const QString &path);
 
 	NesCpu *cpu() const;
 	NesPpu *ppu() const;
@@ -44,11 +46,15 @@ public:
 	NesPad *pad() const;
 	NesMapper *mapper() const;
 
+	quint32 diskCrc() const;
+
 	void clockCpu(uint cycles);
 	const char *grabAudioBuffer(int *size);
 	void setPadKey(PadKey key, bool state);
 	const QImage &frame() const;
 	void emulateFrame(bool drawEnabled);
+	QRectF videoSrcRect() const;
+	QRectF videoDstRect() const;
 protected:
 	void updateSettings();
 private:

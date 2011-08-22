@@ -49,8 +49,6 @@ void HostVideo::initializeGL() {
 }
 
 void HostVideo::paintEvent(QPaintEvent *) {
-	if (!m_thread->m_inFrameGenerated)
-		return;
 	MachineView *machineView = static_cast<MachineView *>(parent());
 	IMachine *machine = machineView->m_machine;
 	Q_ASSERT(machine != 0);
@@ -65,11 +63,14 @@ void HostVideo::paintEvent(QPaintEvent *) {
 	if (!m_error.isEmpty()) {
 		QFont font = painter.font();
 		font.setPointSize(12);
+		font.setBold(true);
 		painter.setFont(font);
 		painter.setPen(Qt::red);
 		painter.drawText(rect(), Qt::AlignCenter, m_error);
 	} else if (machine != 0) {
-		painter.drawImage(m_destRect, machine->frame(), m_sourceRect);
+		if (!m_thread->m_inFrameGenerated)
+			return;
+		painter.drawImage(m_dstRect, machine->frame(), m_srcRect);
 		if (m_fpsVisble) {
 			// TODO performance
 			m_fpsCounter++;
@@ -91,6 +92,7 @@ void HostVideo::paintEvent(QPaintEvent *) {
 }
 
 void HostVideo::mousePressEvent(QMouseEvent *me) {
+	Q_UNUSED(me)
 	static_cast<MachineView *>(parent())->pause();
 }
 
@@ -103,7 +105,7 @@ QImage HostVideo::screenShotGrayscaled() const {
 	QPainter painter;
 	painter.begin(&screenShot);
 	painter.fillRect(QRectF(QPointF(0.0f, 0.0f), size()), qRgb(0xE0, 0xE1, 0xE2));
-	painter.drawImage(m_destRect, machine->frame(), m_sourceRect);
+	painter.drawImage(m_dstRect, machine->frame(), m_srcRect);
 	painter.end();
 
 	int pixelCount = screenShot.width() * screenShot.height();

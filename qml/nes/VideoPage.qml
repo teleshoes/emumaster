@@ -11,6 +11,7 @@ Page {
 
 			Button {
 				text: qsTr("Save Screenshot")
+				onClicked: machineView.saveScreenShot()
 			}
 			Button {
 				text: qsTr("Show FPS")
@@ -62,6 +63,8 @@ Page {
 			Button {
 				text: qsTr("Sprite Clipping")
 				checkable: true
+				checked: machine.ppu.spriteClippingEnable
+				onClicked: machine.ppu.spriteClippingEnable = !machine.ppu.spriteClippingEnable
 			}
 		}
 	}

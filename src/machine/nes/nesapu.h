@@ -9,10 +9,13 @@ class NesCpu;
 #include "nesapudmchannel.h"
 #include <QObject>
 
-// TODO audio enable/disable
-
 class NesApu : public QObject {
     Q_OBJECT
+	Q_PROPERTY(bool rectangle1Enable READ isRectangle1Enabled WRITE setRectangle1Enabled NOTIFY channelUserEnableChanged)
+	Q_PROPERTY(bool rectangle2Enable READ isRectangle2Enabled WRITE setRectangle2Enabled NOTIFY channelUserEnableChanged)
+	Q_PROPERTY(bool triangleEnable READ isTriangleEnabled WRITE setTriangleEnabled NOTIFY channelUserEnableChanged)
+	Q_PROPERTY(bool noiseEnable READ isNoiseEnabled WRITE setNoiseEnabled NOTIFY channelUserEnableChanged)
+	Q_PROPERTY(bool dmcEnable READ isDmcEnabled WRITE setDmcEnabled NOTIFY channelUserEnableChanged)
 public:
 	explicit NesApu(NesCpu *cpu);
 	void updateMachineType();
@@ -21,7 +24,24 @@ public:
 	void write(quint16 address, quint8 data);
 	quint8 read(quint16 address);
 
+	bool isChannelUserEnabled(int channelNo) const;
 	void setChannelUserEnabled(int channelNo, bool on);
+
+	bool isRectangle1Enabled() const;
+	void setRectangle1Enabled(bool on);
+
+	bool isRectangle2Enabled() const;
+	void setRectangle2Enabled(bool on);
+
+	bool isTriangleEnabled() const;
+	void setTriangleEnabled(bool on);
+
+	bool isNoiseEnabled() const;
+	void setNoiseEnabled(bool on);
+
+	bool isDmcEnabled() const;
+	void setDmcEnabled(bool on);
+
 	void setSampleRate(int rate);
 	void setStereoEnabled(bool on);
 
@@ -29,6 +49,7 @@ public:
 	const char *grabBuffer(int *size);
 signals:
 	void request_irq_o(bool on);
+	void channelUserEnableChanged();
 private:
 	NesMachine *machine() const;
 	NesCpu *cpu() const;

@@ -4,6 +4,7 @@
 #include "machine_common_global.h"
 #include <QObject>
 class QImage;
+class QRectF;
 
 class MACHINE_COMMON_EXPORT IMachine : public QObject {
     Q_OBJECT
@@ -22,9 +23,12 @@ public:
 		Start_PadKey,
 		Select_PadKey
 	};
+	static IMachine *loadMachine(const QString &name);
 
-    explicit IMachine(QObject *parent = 0);
+	explicit IMachine(const QString &name, QObject *parent = 0);
 	~IMachine();
+
+	QString name() const;
 
 	qreal frameRate() const;
 
@@ -32,10 +36,14 @@ public:
 	bool isAudioStereo() const;
 	int audioSampleRate() const;
 
+	virtual QString setDisk(const QString &path) = 0;
+	virtual quint32 diskCrc() const = 0;
+	virtual QRectF videoSrcRect() const = 0;
+	virtual QRectF videoDstRect() const = 0;
 	virtual void emulateFrame(bool drawEnabled) = 0;
 	virtual const QImage &frame() const = 0;
 	virtual const char *grabAudioBuffer(int *size) = 0;
-	virtual void setPadKey(PadKey key, bool state) = 0;
+	virtual void setPadKey(PadKey key, bool state);
 protected:
 	virtual void updateSettings() = 0;
 	void setFrameRate(qreal rate);
@@ -44,9 +52,13 @@ private:
 	bool m_audioEnable;
 	bool m_audioStereoEnable;
 	int m_audioSampleRate;
+	QString m_name;
 
 	friend class MachineView;
 };
+
+inline QString IMachine::name() const
+{ return m_name; }
 
 inline qreal IMachine::frameRate() const
 { return m_frameRate; }

@@ -104,17 +104,6 @@ quint8 NesApu::read(quint16 address) {
 	return data;
 }
 
-void NesApu::setChannelUserEnabled(int channelNo, bool on) {
-	switch (channelNo) {
-	case 0: m_r1ch.setUserEnabled(on); break;
-	case 1: m_r2ch.setUserEnabled(on); break;
-	case 2: m_trch.setUserEnabled(on); break;
-	case 3: m_nsch.setUserEnabled(on); break;
-	case 4: m_dmch.setUserEnabled(on); break;
-	default: Q_ASSERT(false); break;
-	}
-}
-
 void NesApu::clockFrameCounter(int nCycles) {
 	Q_ASSERT(nCycles > 0);
 	Q_ASSERT_X(m_sampleRate > 0, "NesApu", "set sample rate first");
@@ -409,3 +398,53 @@ NesMachine *NesApu::machine() const
 
 void NesApu::updateMachineType()
 { updateFrameRate(); }
+
+void NesApu::setChannelUserEnabled(int channelNo, bool on) {
+	if (isChannelUserEnabled(channelNo) == on)
+		return;
+	switch (channelNo) {
+	case 0: m_r1ch.setUserEnabled(on); break;
+	case 1: m_r2ch.setUserEnabled(on); break;
+	case 2: m_trch.setUserEnabled(on); break;
+	case 3: m_nsch.setUserEnabled(on); break;
+	case 4: m_dmch.setUserEnabled(on); break;
+	default: Q_ASSERT(false); break;
+	}
+	emit channelUserEnableChanged();
+}
+
+bool NesApu::isChannelUserEnabled(int channelNo) const {
+	switch (channelNo) {
+	case 0: return m_r1ch.isUserEnabled(); break;
+	case 1: return m_r2ch.isUserEnabled(); break;
+	case 2: return m_trch.isUserEnabled(); break;
+	case 3: return m_nsch.isUserEnabled(); break;
+	case 4: return m_dmch.isUserEnabled(); break;
+	default: Q_ASSERT(false); return false; break;
+	}
+}
+
+bool NesApu::isRectangle1Enabled() const
+{ return isChannelUserEnabled(0); }
+void NesApu::setRectangle1Enabled(bool on)
+{ setChannelUserEnabled(0, on); }
+
+bool NesApu::isRectangle2Enabled() const
+{ return isChannelUserEnabled(1); }
+void NesApu::setRectangle2Enabled(bool on)
+{ setChannelUserEnabled(1, on); }
+
+bool NesApu::isTriangleEnabled() const
+{ return isChannelUserEnabled(2); }
+void NesApu::setTriangleEnabled(bool on)
+{ setChannelUserEnabled(2, on); }
+
+bool NesApu::isNoiseEnabled() const
+{ return isChannelUserEnabled(3); }
+void NesApu::setNoiseEnabled(bool on)
+{ setChannelUserEnabled(3, on); }
+
+bool NesApu::isDmcEnabled() const
+{ return isChannelUserEnabled(4); }
+void NesApu::setDmcEnabled(bool on)
+{ setChannelUserEnabled(4, on); }

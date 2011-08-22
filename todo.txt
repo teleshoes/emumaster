@@ -9,12 +9,12 @@ net play:
  - pause on 20ms delay (convert time to cycles) and no data
 
 input:
- - disable swipe
  - multiple keys at once on screen with one finger
  - paddle (e.g. arkanoid) - dialog for choose
  - zapper
  - accelerometer as controller (shake to jump)
  - pad transparency
+ - use accelerometer at the save's view
 
 cheat:
  - game genie codes
@@ -28,16 +28,20 @@ tests:
  - test against call
 
 misc:
+ - screenshot refresh in ROM gallery on emulation exit
+ - create /home/user/MyDocs/emumaster tree
  - icon to main menu from game:
    1. require screenshot
-   2. give the ability to choose 80x80 area
+   2. give the ability to choose 80x80 area, scale image
    3. apply mask and gloss effects, save icon (not in MyDocs), maybe in emumaster dir
    4. create desktop file
  - show message on first application run howto install roms and donate
+ - for Amiga create readme.txt about rom folders and roms name policy
  - about page - donate button
  - game policy http://library.developer.nokia.com/index.jsp?topic=/MeeGo_1.2_Harmattan_API/html/guide/html/Developer_Library_Best_practices_for_application_development_Using_Resource_Policy_to_enhance_games_a32a.html
  - Meegotouch Control Panel http://www.developer.nokia.com/Community/Wiki/SettingsApplet
  - translations
+ - tree data->share ?
 
 issues:
  - kick master (mapper 4) not working

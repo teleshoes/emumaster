@@ -7,9 +7,11 @@
 #include "nesppumapper.h"
 #include "nesdisk.h"
 #include "nespad.h"
+#include "nesmachine.h"
+#include <QtDeclarative>
 
 NesMachine::NesMachine(QObject *parent) :
-	IMachine(parent),
+	IMachine("nes", parent),
 	m_disk(0),
 	m_mapper(0),
 	m_ppuMapper(0) {
@@ -20,6 +22,9 @@ NesMachine::NesMachine(QObject *parent) :
 	m_pad = new NesPad(this);
 
 	QObject::connect(m_ppu, SIGNAL(vblank_o(bool)), m_cpu, SLOT(nmi_i(bool)));
+
+	qmlRegisterType<NesPpu>();
+	qmlRegisterType<NesApu>();
 }
 
 NesMachine::~NesMachine() {
@@ -32,16 +37,16 @@ void NesMachine::updateSettings() {
 
 void NesMachine::reset() {
 	m_cpu->nes_reset_i(true);
-	// TODO clear reset line
 	m_pad->reset();
 	m_mapper->reset();
 	m_cpuCycleCounter = 0;
 	m_ppuCycleCounter = 0;
 }
 
-bool NesMachine::setDisk(NesDisk *disk) {
+QString NesMachine::setDisk(const QString &path) {
+	NesDisk *disk = new NesDisk(QString("%1.nes").arg(path));
 	if (!disk->isLoaded())
-		return false;
+		return "Could not load ROM file";
 
 	delete m_disk;
 	delete m_mapper;
@@ -50,7 +55,7 @@ bool NesMachine::setDisk(NesDisk *disk) {
 	disk->setParent(this);
 	m_mapper = NesMapper::load(this, disk->mapperType());
 	if (!m_mapper)
-		return false;
+		return QString("Mapper %1 is not supported").arg(disk->mapperType());
 	m_cpu->setMapper(m_mapper->cpuMapper());
 	m_ppuMapper = m_mapper->ppuMapper();
 	m_ppu->setMapper(m_ppuMapper);
@@ -73,7 +78,7 @@ bool NesMachine::setDisk(NesDisk *disk) {
 	}
 	m_apu->updateMachineType();
 	reset();
-	return true;
+	return QString();
 }
 
 void NesMachine::clockCpu(uint cycles) {
@@ -285,3 +290,14 @@ void NesMachine::emulateFrameTile(bool drawEnabled) {
 void NesMachine::processCheatCodes() {
 	// TODO cheat codes
 }
+
+quint32 NesMachine::diskCrc() const
+{ return m_disk->crc(); }
+
+QRectF NesMachine::videoSrcRect() const
+{ return QRectF(8.0f, 1.0f, NesPpu::VisibleScreenWidth, NesPpu::VisibleScreenHeight); }
+
+QRectF NesMachine::videoDstRect() const
+{ return QRectF(171.0f, 0.0f, NesPpu::VisibleScreenWidth*2, NesPpu::VisibleScreenHeight*2); }
+
+Q_EXPORT_PLUGIN2(nes, NesMachine)

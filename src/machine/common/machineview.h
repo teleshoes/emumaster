@@ -15,19 +15,22 @@ class QDeclarativeView;
 class MACHINE_COMMON_EXPORT MachineView : public QWidget {
 	Q_OBJECT
 public:
-	explicit MachineView(QWidget *parent = 0);
+	explicit MachineView(IMachine *machine, const QString &diskName, QWidget *parent = 0);
 	~MachineView();
 
 	IMachine *machine() const;
-	void setMachineAndQmlSettings(IMachine *m, const QString &qmlSettingsPath);
-
-	void setSourceRect(const QRectF &rect);
-	void setDestRect(const QRectF &rect);
 
 	void showError(const QString &text);
+	bool isRunning() const;
+
+	Q_INVOKABLE void saveScreenShot();
 public slots:
 	void pause();
 	void resume();
+signals:
+	void runningChanged();
+private slots:
+	void pauseStage2();
 protected:
 	void closeEvent(QCloseEvent *);
 private:
@@ -41,6 +44,8 @@ private:
 	IMachine *m_machine;
 	bool m_running;
 	int m_backgroundCounter;
+	QString m_diskName;
+	bool m_wantClose;
 
 	friend class HostVideo;
 	friend class MachineThread;
@@ -49,5 +54,8 @@ private:
 
 inline IMachine *MachineView::machine() const
 { return m_machine; }
+
+inline bool MachineView::isRunning() const
+{ return m_running; }
 
 #endif // MACHINEVIEW_H

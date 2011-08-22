@@ -2,6 +2,7 @@ TEMPLATE = lib
 TARGET = machine_common
 DESTDIR = ../../../lib
 QT += declarative multimedia opengl
+LIBS += -lpulse-simple
 
 DEFINES += MACHINE_COMMON_PROJECT
 
@@ -23,23 +24,3 @@ SOURCES += \
     hostvideo.cpp \
     hostinput.cpp \
     machineimageprovider.cpp
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

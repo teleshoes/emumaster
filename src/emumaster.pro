@@ -4,10 +4,12 @@ SUBDIRS += \
 	algorithm \
     component \
 	machine \
-	testnes
+	launcher \
+	gallery
 
 OTHER_FILES += \
 	../todo.txt \
+	../features.txt \
 	../include/numeric.h \
     qtc_packaging/debian_harmattan/rules \
     qtc_packaging/debian_harmattan/README \
@@ -15,3 +17,5 @@ OTHER_FILES += \
     qtc_packaging/debian_harmattan/control \
     qtc_packaging/debian_harmattan/compat \
     qtc_packaging/debian_harmattan/changelog
+
+

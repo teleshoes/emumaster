@@ -44,6 +44,7 @@ protected:
 private:
 	int m_channelNo;
 	bool m_enabled;
+	bool m_enableLatch;
 	bool m_userEnabled;
 
 	int m_masterVolume;

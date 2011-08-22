@@ -2,11 +2,11 @@
 
 NesApuChannel::NesApuChannel(int channelNo) :
 	m_channelNo(channelNo) {
+	m_userEnabled = true;
 }
 
 void NesApuChannel::reset() {
 	m_enabled = false;
-	m_userEnabled = true;
 
 	m_masterVolume = 0;
 	m_volume = 0;
@@ -62,6 +62,7 @@ int NesApuChannel::m_lengthMaxLUT[32] = {
 };
 
 void NesApuChannel::setEnabled(bool on){
+	m_enableLatch = on;
 	on &= m_userEnabled;
 	if (m_enabled == on)
 		return;
@@ -73,8 +74,10 @@ void NesApuChannel::setEnabled(bool on){
 }
 
 void NesApuChannel::setUserEnabled(bool on) {
-	m_userEnabled = on;
-	setEnabled(m_enabled);
+	if (m_userEnabled != on) {
+		m_userEnabled = on;
+		setEnabled(m_enableLatch);
+	}
 }
 
 void NesApuChannel::updateSampleCondition()

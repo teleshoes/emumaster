@@ -10,6 +10,7 @@ class NesMachine;
 
 class NES_EXPORT NesPpu : public QObject {
 	Q_OBJECT
+	Q_PROPERTY(bool spriteClippingEnable READ isSpriteClippingEnabled WRITE setSpriteClippingEnabled NOTIFY spriteClippingEnableChanged)
 public:
 	enum ChipType {
 		PPU2C02 = 0,// NTSC NES
@@ -85,8 +86,12 @@ public:
 
 	quint8 scrollTileYOffset() const;
 	quint16 tilePageOffset() const;
+
+	bool isSpriteClippingEnabled() const;
+	void setSpriteClippingEnabled(bool on);
 signals:
 	void vblank_o(bool on);
+	void spriteClippingEnableChanged();
 private:
 	void drawBackground();
 	void drawBackgroundNoTileNoExtLatch();
@@ -130,6 +135,8 @@ private:
 
 	quint8 m_spriteMemory[NumSprites*4];
 
+	bool m_spriteClippingEnable;
+
 	friend class NesPpuRegisters;
 	friend class NesPpuPalette;
 };
@@ -158,5 +165,8 @@ inline quint8 NesPpu::scrollTileYOffset() const
 { return m_scrollTileYOffset; }
 inline quint16 NesPpu::tilePageOffset() const
 { return m_tilePageOffset; }
+
+inline bool NesPpu::isSpriteClippingEnabled() const
+{ return m_spriteClippingEnable; }
 
 #endif // NESPPU_H

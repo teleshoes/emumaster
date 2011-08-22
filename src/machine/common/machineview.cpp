@@ -10,6 +10,7 @@
 #include <QCloseEvent>
 #include <QApplication>
 #include <QDeclarativeEngine>
+#include <QTimer>
 
 #if defined(MEEGO_EDITION_HARMATTAN)
 #include <QX11Info>
@@ -17,11 +18,14 @@
 #include <X11/Xlib.h>
 #endif
 
-MachineView::MachineView(QWidget *parent) :
+MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *parent) :
 	QWidget(parent),
-	m_machine(0),
+	m_machine(machine),
 	m_running(false),
-	m_backgroundCounter(0) {
+	m_backgroundCounter(0),
+	m_diskName(diskName),
+	m_wantClose(false) {
+	Q_ASSERT(m_machine != 0);
 
 #if defined(MEEGO_EDITION_HARMATTAN)
 	showFullScreen();
@@ -35,7 +39,10 @@ MachineView::MachineView(QWidget *parent) :
 	m_hostAudio = new HostAudio(this);
 	m_hostVideo = new HostVideo(this);
 	m_hostInput = new HostInput(this);
+
 	m_hostVideo->installEventFilter(m_hostInput);
+	m_hostVideo->m_srcRect = m_machine->videoSrcRect();
+	m_hostVideo->m_dstRect = m_machine->videoDstRect();
 
 	m_settingsView = new QDeclarativeView(this);
 	m_settingsView->engine()->addImageProvider("machine", new MachineImageProvider(this));
@@ -44,9 +51,19 @@ MachineView::MachineView(QWidget *parent) :
 	m_settingsView->rootContext()->setContextProperty("video", static_cast<QObject *>(m_hostVideo));
 	m_settingsView->rootContext()->setContextProperty("audio", static_cast<QObject *>(m_hostAudio));
 	m_settingsView->rootContext()->setContextProperty("input", static_cast<QObject *>(m_hostInput));
+	m_settingsView->rootContext()->setContextProperty("machine", static_cast<QObject *>(m_machine));
 	m_settingsView->resize(size());
-	m_settingsView->show();
-	m_hostVideo->hide();
+
+	QString error = m_machine->setDisk(QString("/home/user/MyDocs/emumaster/%1/%2")
+									   .arg(m_machine->name())
+									   .arg(diskName));
+	if (!error.isEmpty())
+		showError(error);
+
+	m_machine->moveToThread(m_thread);
+	m_machine->updateSettings();
+
+	QTimer::singleShot(100, this, SLOT(resume()));
 }
 
 MachineView::~MachineView() {
@@ -79,21 +96,6 @@ void MachineView::setupSwipe(bool on) {
 #endif
 }
 
-void MachineView::setMachineAndQmlSettings(IMachine *m, const QString &qmlSettingsPath) {
-	Q_ASSERT(m_machine == 0 && m != 0);
-	m_machine = m;
-	m_machine->moveToThread(m_thread);
-	m_machine->updateSettings();
-	m_settingsView->rootContext()->setContextProperty("machine", static_cast<QObject *>(m));
-	m_settingsView->setSource(QUrl::fromLocalFile(qmlSettingsPath));
-	resume();
-}
-
-void MachineView::setSourceRect(const QRectF &rect)
-{ m_hostVideo->m_sourceRect = rect; }
-void MachineView::setDestRect(const QRectF &rect)
-{ m_hostVideo->m_destRect = rect; }
-
 void MachineView::showError(const QString &text) {
 	Q_ASSERT(!text.isEmpty());
 	m_hostVideo->m_error = text;
@@ -101,20 +103,32 @@ void MachineView::showError(const QString &text) {
 	m_hostVideo->show();
 }
 
+// two-stage pause preventing deadlocks
 void MachineView::pause() {
 	if (!m_running)
 		return;
 	QObject::disconnect(m_thread, SIGNAL(frameGenerated()),
 						m_hostVideo, SLOT(repaint()));
 	m_thread->pause();
+	QMetaObject::invokeMethod(this, "pauseStage2", Qt::QueuedConnection);
+}
+
+void MachineView::pauseStage2() {
+	if (m_thread->isRunning())
+		QTimer::singleShot(10, this, SLOT(pauseStage2()));
 	m_thread->wait();
 	QString path = QString("image://machine/screenShotGrayscaled%1").arg(m_backgroundCounter++);
 	m_settingsView->rootContext()->setContextProperty("backgroundPath", path);
+	if (m_settingsView->source().isEmpty())
+		m_settingsView->setSource(QUrl::fromLocalFile(QString("../qml/%1/main.qml").arg(m_machine->name())));
 	m_settingsView->show();
 	m_settingsView->setFocus();
 	m_hostVideo->hide();
 	setupSwipe(true);
 	m_running = false;
+	emit runningChanged();
+	if (m_wantClose)
+		close();
 }
 
 void MachineView::resume() {
@@ -133,17 +147,26 @@ void MachineView::resume() {
 	QObject::connect(m_thread, SIGNAL(frameGenerated()),
 					 m_hostVideo, SLOT(repaint()),
 					 Qt::BlockingQueuedConnection);
-	m_thread->resume();
+	if (m_hostVideo->m_error.isEmpty())
+		m_thread->resume();
+	else
+		m_hostVideo->repaint();
 	m_running = true;
+	emit runningChanged();
 }
 
 void MachineView::closeEvent(QCloseEvent *e) {
+	m_wantClose = true;
 	if (m_running) {
-		e->ignore();
-		m_thread->pause();
-		m_running = m_thread->isRunning();
-		QMetaObject::invokeMethod(this, "close", Qt::QueuedConnection);
+		pause();
 	} else {
 		e->accept();
 	}
+}
+
+void MachineView::saveScreenShot() {
+	m_machine->frame().copy(m_machine->videoSrcRect().toRect())
+			.save(QString("../data/%1/%2.jpg")
+				  .arg(m_machine->name())
+				  .arg(m_diskName));
 }

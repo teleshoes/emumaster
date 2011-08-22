@@ -48,6 +48,8 @@ NesPpu::NesPpu(NesMachine *machine) :
 	}
 
 	qMemSet(m_spriteMemory, 0, sizeof(m_spriteMemory));
+
+	m_spriteClippingEnable = false;
 }
 
 NesPpu::~NesPpu() {
@@ -408,7 +410,7 @@ void NesPpu::drawSprites() {
 
 	quint8 spWritten[33];
 	qMemSet(spWritten, 0, sizeof(spWritten));
-	if (m_registers->isSpriteClippingEnabled())
+	if (m_registers->isSpriteClippingEnabled() && m_spriteClippingEnable)
 		spWritten[0] = 0xFF;
 
 	QRgb *currentPens = m_palette->currentPens();
@@ -594,4 +596,11 @@ bool NesPpu::load(QDataStream &s) {
 	if (s.readRawData(reinterpret_cast<char *>(m_spriteMemory), sizeof(m_spriteMemory)) != sizeof(m_spriteMemory))
 		return false;
 	return true;
+}
+
+void NesPpu::setSpriteClippingEnabled(bool on) {
+	if (m_spriteClippingEnable != on) {
+		m_spriteClippingEnable = on;
+		emit spriteClippingEnableChanged();
+	}
 }

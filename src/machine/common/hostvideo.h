@@ -29,8 +29,8 @@ protected:
 	void paintEvent(QPaintEvent *);
 	void mousePressEvent(QMouseEvent *me);
 private:
-	QRectF m_sourceRect;
-	QRectF m_destRect;
+	QRectF m_srcRect;
+	QRectF m_dstRect;
 
 	QString m_error;
 
