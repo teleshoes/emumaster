@@ -55,8 +55,6 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 									   .arg(romDirPath())
 									   .arg(m_machine->name())
 									   .arg(diskName));
-	if (!error.isEmpty())
-		showError(error);
 
 	m_stateListModel = new MachineStateListModel(this);
 	m_settingsView = new QDeclarativeView(this);
@@ -71,6 +69,9 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 	QObject::connect(m_settingsView->engine(), SIGNAL(quit()), SLOT(close()));
 	m_settingsView->resize(size());
 
+	if (!error.isEmpty())
+		showError(error);
+
 	m_gameGenieCodeListModel  = new GameGenieCodeListModel(this);
 	m_gameGenieCodeListModel->load();
 	m_settingsView->rootContext()->setContextProperty("gameGenieCodeListModel", static_cast<QObject *>(m_gameGenieCodeListModel));
@@ -78,24 +79,28 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 	m_machine->moveToThread(m_thread);
 	m_machine->updateSettings();
 
-	m_machine->emulateFrame(false);
-	if (m_autoLoadOnStart)
-		m_stateListModel->loadState(-2);
+	if (error.isEmpty()) {
+		m_machine->emulateFrame(false);
+		if (m_autoLoadOnStart)
+			m_stateListModel->loadState(-2);
+	}
 
 	QTimer::singleShot(100, this, SLOT(resume()));
 }
 
 MachineView::~MachineView() {
-	if (m_thread->isRunning())
-		m_thread->wait();
-	if (m_autoSaveOnExit)
-		m_stateListModel->saveState(-2);
+	if (m_hostVideo->m_error.isEmpty()) {
+		if (m_thread->isRunning())
+			m_thread->wait();
+		if (m_autoSaveOnExit)
+			m_stateListModel->saveState(-2);
 
-	// auto save screenshot
-	if (!QFile::exists(screenShotPath()))
-		saveScreenShot();
+		// auto save screenshot
+		if (!QFile::exists(screenShotPath()))
+			saveScreenShot();
 
-	m_gameGenieCodeListModel->save();
+		m_gameGenieCodeListModel->save();
+	}
 	delete m_machine;
 }
 

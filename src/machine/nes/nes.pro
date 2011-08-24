@@ -45,33 +45,15 @@ SOURCES += \
     nesdisk_patch.cpp \
     nesmappereeprom.cpp
 
-unix:!symbian:!maemo5 {
-    target.path = /opt/nes/lib
-    INSTALLS += target
+unix {
+	qml.path = /opt/emumaster/qml/nes
+	qml.files = \
+		../../../qml/nes/main.qml \
+		../../../qml/nes/MainPage.qml \
+		../../../qml/nes/VideoPage.qml \
+		../../../qml/nes/AudioPage.qml \
+		../../../qml/nes/InputPage.qml \
+		../../../qml/nes/StatePage.qml \
+		../../../qml/nes/CheatPage.qml
+	INSTALLS += qml
 }
-
-OTHER_FILES += \
-    ../../../qml/nes/main.qml \
-    ../../../qml/nes/MainPage.qml \
-    ../../../qml/nes/VideoPage.qml \
-    ../../../qml/nes/AudioPage.qml \
-    ../../../qml/nes/InputPage.qml \
-    ../../../qml/nes/StatePage.qml \
-    ../../../qml/nes/CheatPage.qml
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -7,5 +7,3 @@ HEADERS += \
 
 SOURCES += \
     gamegeniecode.cpp
-
-

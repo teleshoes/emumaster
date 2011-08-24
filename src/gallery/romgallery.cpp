@@ -116,7 +116,7 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 				"[Desktop Entry]\n"
 				"Type=Application\n"
 				"Name=%3\n"
-				"Exec=sh %1/setupenv.sh %1/launcher %2 \"%3\"\n"
+				"Exec=%1/launcher %2 \"%3\"\n"
 				"Icon=\"%4\"\n"
 				"Terminal=false\n"
 				"Categories=Emulator\n")

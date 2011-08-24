@@ -85,18 +85,18 @@ void NesPpuPalette::fill() {
 	/* The 16 colors circle around the YUV color space,      */
 
 	int entry = 0;
-	qreal tint = 0.22;	/* adjust to taste */
-	qreal hue = 287.0;
+	qreal tint = 0.22f;	/* adjust to taste */
+	qreal hue = 287.0f;
 
-	qreal Kr = 0.2989;
-	qreal Kb = 0.1145;
-	qreal Ku = 2.029;
-	qreal Kv = 1.140;
+	qreal Kr = 0.2989f;
+	qreal Kb = 0.1145f;
+	qreal Ku = 2.029f;
+	qreal Kv = 1.140f;
 
 	static const qreal brightness[3][4] = {
-		{ 0.50, 0.75, 1.0, 1.0 },
-		{ 0.29, 0.45, 0.73, 0.9 },
-		{ 0, 0.24, 0.47, 0.77 }
+		{ 0.50f, 0.75f,  1.0f,  1.0f },
+		{ 0.29f, 0.45f, 0.73f,  0.9f },
+		{ 0.0f,  0.24f, 0.47f, 0.77f }
 	};
 	/* Loop through the emphasis modes (8 total) */
 	for (int colorEmphasis = 0; colorEmphasis < 8; colorEmphasis++) {
@@ -110,39 +110,39 @@ void NesPpuPalette::fill() {
 
 				switch (colorNum) {
 				case 0:
-					sat = 0; rad = 0;
+					sat = 0.0f; rad = 0.0f;
 					y = brightness[0][colorIntensity];
 					break;
 				case 13:
-					sat = 0; rad = 0;
+					sat = 0.0f; rad = 0.0f;
 					y = brightness[2][colorIntensity];
 					break;
 				case 14:
 				case 15:
-					sat = 0; rad = 0; y = 0;
+					sat = 0.0f; rad = 0.0f; y = 0.0f;
 					break;
 				default:
 					sat = tint;
-					rad = M_PI * ((colorNum * 30 + hue) / 180.0);
+					rad = M_PI * (qreal(qreal(colorNum) * 30.0f + hue) / 180.0f);
 					y = brightness[1][colorIntensity];
 					break;
 				}
 				u = sat * qCos(rad);
 				v = sat * qSin(rad);
 				/* Transform to RGB */
-				qreal R = (y + Kv * v) * 255.0;
-				qreal G = (y - (Kb * Ku * u + Kr * Kv * v) / (1 - Kb - Kr)) * 255.0;
-				qreal B = (y + Ku * u) * 255.0;
+				qreal R = (y + Kv * v) * 255.0f;
+				qreal G = (y - (Kb * Ku * u + Kr * Kv * v) / (1 - Kb - Kr)) * 255.0f;
+				qreal B = (y + Ku * u) * 255.0f;
 				/* Clipping, in case of saturation */
-				R = qMax(0.0, qMin(R, 255.0));
-				G = qMax(0.0, qMin(G, 255.0));
-				B = qMax(0.0, qMin(B, 255.0));
+				R = qMax(qreal(0.0f), qMin(R, qreal(255.0f)));
+				G = qMax(qreal(0.0f), qMin(G, qreal(255.0f)));
+				B = qMax(qreal(0.0f), qMin(B, qreal(255.0f)));
 				/* emphasis */
-				R = ((colorEmphasis & 1) ? 255.0 : R);
-				G = ((colorEmphasis & 2) ? 255.0 : G);
-				B = ((colorEmphasis & 4) ? 255.0 : B);
+				R = ((colorEmphasis & 1) ? 255.0f : R);
+				G = ((colorEmphasis & 2) ? 255.0f : G);
+				B = ((colorEmphasis & 4) ? 255.0f : B);
 				/* Round, and set the value */
-				m_pens[entry++] = qRgb(qFloor(R + 0.5), qFloor(G + 0.5), qFloor(B + 0.5));
+				m_pens[entry++] = qRgb(qFloor(R + 0.5f), qFloor(G + 0.5f), qFloor(B + 0.5f));
 			}
 		}
 	}

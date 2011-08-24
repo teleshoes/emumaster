@@ -8,8 +8,9 @@ Page {
 		anchors.fill: parent
 		model: gameGenieCodeListModel
 		delegate: MyListDelegate {
-			title: code+"-"+description
-			titleSize: 16
+			title: code
+			subtitle: description
+			subtitleSize: 16
 
 			BorderImage {
 				id: overlay
@@ -56,7 +57,7 @@ Page {
 	Sheet {
 		id: addCheatSheet
 
-		acceptButton.enabled: false
+		// TODO meego version acceptButton.enabled: false
 		acceptButtonText: "Add"
 		rejectButtonText: "Cancel"
 
@@ -71,8 +72,6 @@ Page {
 				width: parent.width
 
 				Label {
-					font: UiConstants.FieldLabelFont
-					color: UiConstants.FieldLabelColor
 					text: "Game Genie Code:"
 				}
 				TextField {
@@ -80,7 +79,7 @@ Page {
 					anchors {left: parent.left; right: parent.right;}
 					errorHighlight: true
 					inputMethodHints: Qt.ImhPreferUppercase | Qt.ImhNoPredictiveText
-					onAccepted: descriptionEdit.focus = true
+					// TODO meego version onAccepted: descriptionEdit.focus = true
 					onTextChanged: {
 						var codeOk = machineView.isGameGenieCodeValid(text)
 						addCheatSheet.acceptButton.enabled = codeOk
@@ -89,14 +88,12 @@ Page {
 				}
 
 				Label {
-					font: UiConstants.FieldLabelFont
-					color: UiConstants.FieldLabelColor
 					text: "Description:"
 				}
 				TextField {
 					id: descriptionEdit
 					anchors {left: parent.left; right: parent.right;}
-					onAccepted: addCheatSheet.accept()
+					// TODO meego version onAccepted: addCheatSheet.accept()
 				}
 			}
 		}

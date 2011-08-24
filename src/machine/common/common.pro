@@ -1,7 +1,11 @@
-include(../machine.pri)
 TARGET = machine_common
-QT += declarative multimedia opengl
+include(../machine.pri)
+QT += declarative opengl
 LIBS += -lpulse-simple -lgamegeniecode
+
+win32 {
+	QT += multimedia
+}
 
 DEFINES += MACHINE_COMMON_PROJECT
 
@@ -28,6 +32,18 @@ SOURCES += \
     machinestatelistmodel.cpp \
     gamegeniecodelistmodel.cpp
 
+unix {
+	qml.path = /opt/emumaster/qml/common
+	qml.files = \
+		../../../qml/common/MySectionScroller.js \
+		../../../qml/common/MySectionScroller.qml \
+		../../../qml/common/constants.js \
+		../../../qml/common/MyListDelegate.qml \
+		../../../qml/common/SectionScrollerLabel.qml \
+		../../../qml/common/CoverFlow.qml \
+		../../../qml/common/CoverFlowDelegate.qml
 
-
-
+	qmlimg.path = /opt/emumaster/qml/img
+	qmlimg.files = ../../../qml/img/*
+	INSTALLS += qml qmlimg
+}

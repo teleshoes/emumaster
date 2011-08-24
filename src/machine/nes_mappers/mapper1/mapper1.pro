@@ -5,8 +5,3 @@ HEADERS += \
 
 SOURCES += \
     mapper1.cpp
-
-unix:!symbian:!maemo5 {
-    target.path = /opt/mapper1/lib
-    INSTALLS += target
-}

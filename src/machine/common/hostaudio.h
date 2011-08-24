@@ -2,9 +2,11 @@
 #define HOSTAUDIO_H
 
 #include <QObject>
-#include <QAudioOutput>
+
 #if defined(Q_OS_LINUX)
 #include <pulse/simple.h>
+#else
+#include <QAudioOutput>
 #endif
 
 class HostAudio : public QObject {

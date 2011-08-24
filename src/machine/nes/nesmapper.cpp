@@ -13,14 +13,16 @@ NesMapper::NesMapper(const QString &name, NesMachine *machine) :
 
 NesMapper *NesMapper::load(NesMachine *machine, quint8 type) {
 #if defined(Q_OS_WIN)
-	QString path = QString("../lib/nes_mappers/mapper%1.dll").arg(type);
+	QString path = QString("../lib/nes_mapper/mapper%1.dll").arg(type);
 #else
-	QString path = QString("../lib/nes_mappers/libmapper%1.so").arg(type);
+	QString path = QString("../lib/nes_mapper/libmapper%1.so").arg(type);
 #endif
 	QPluginLoader loader(path);
 	NesMapperPlugin *plugin = qobject_cast<NesMapperPlugin *>(loader.instance());
-	if (!plugin)
+	if (!plugin) {
+		qDebug(qPrintable(loader.errorString()));
 		return 0;
+	}
 	return plugin->create(machine);
 }
 

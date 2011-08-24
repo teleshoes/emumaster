@@ -49,6 +49,7 @@ Item {
 	property alias pressed: mouseArea.pressed
 
 	property string title: model.title
+	property string subtitle: model.subtitle ? model.subtitle : ""
 
 	property int titleSize: UI.LIST_TILE_SIZE
 	property int titleWeight: Font.Bold
@@ -101,7 +102,7 @@ Item {
 
 			Label {
 				id: subText
-				text: model.subtitle ? model.subtitle : ""
+				text: listItem.subtitle
 				font.family: listItem.subtitleFont
 				font.weight: listItem.subtitleWeight
 				font.pixelSize: listItem.subtitleSize

@@ -14,22 +14,27 @@ HEADERS += \
     romgallery.h \
     romlistmodel.h
 
-OTHER_FILES += \
-    ../../qml/gallery/main.qml \
-    ../../qml/gallery/RomChoosePage.qml \
-    ../../qml/gallery/GalleryPage.qml \
-    ../../qml/gallery/ListPage.qml \
-	../../qml/common/MySectionScroller.js \
-	../../qml/common/MySectionScroller.qml \
-	../../qml/common/constants.js \
-	../../qml/common/MyListDelegate.qml \
-	../../qml/common/SectionScrollerLabel.qml \
-	../../qml/common/CoverFlow.qml \
-	../../qml/common/CoverFlowDelegate.qml
+exists($$QMAKE_INCDIR_QT"/../qmsystem2/qmkeys.h"):!contains(MEEGO_EDITION,harmattan): {
+	MEEGO_VERSION_MAJOR     = 1
+	MEEGO_VERSION_MINOR     = 2
+	MEEGO_VERSION_PATCH     = 0
+	MEEGO_EDITION           = harmattan
+	DEFINES += MEEGO_EDITION_HARMATTAN
+}
 
+unix {
+	QMAKE_LFLAGS += -Wl,--rpath-link,../../lib -Wl,--rpath,/opt/emumaster/lib
+	target.path = /opt/emumaster/bin
+	qml.path = /opt/emumaster/qml/gallery
+	qml.files = \
+		../../qml/gallery/main.qml \
+		../../qml/gallery/RomChoosePage.qml \
+		../../qml/gallery/GalleryPage.qml \
+		../../qml/gallery/ListPage.qml
 
-
-
-
-
-
+	iconfile.path = /opt/emumaster
+	iconfile.files = ../../mainicon.png
+	desktopfile.path = /usr/share/applications
+	desktopfile.files = emumaster.desktop
+	INSTALLS += target qml iconfile desktopfile
+}
