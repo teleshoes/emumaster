@@ -42,6 +42,7 @@ protected:
 	void closeEvent(QCloseEvent *);
 private:
 	void setupSwipe(bool on);
+	QString screenShotPath() const;
 
 	QDeclarativeView *m_settingsView;
 	HostVideo *m_hostVideo;

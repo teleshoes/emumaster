@@ -38,6 +38,7 @@ bool RomGallery::launch(const QString &diskName) {
 }
 
 void RomGallery::onMachineViewDestroyed() {
+	m_machineView = 0;
 	if (m_wantClose) {
 		close();
 	} else {

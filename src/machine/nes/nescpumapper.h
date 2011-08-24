@@ -59,6 +59,7 @@ public:
 	void setIrqSignalOut(bool on);
 
 	void setGameGenieCodeList(const QList<GameGenieCode> &codes);
+	void processGameGenieCodes();
 signals:
 	void request_irq_o(bool on);
 protected:
@@ -72,7 +73,6 @@ protected:
 private:
 	void writeReg(quint16 address, quint8 data);
 	quint8 readReg(quint16 address);
-	void processGameGenieCodes();
 
 	quint8 *m_banks[8]; // 8K banks 0x0000-0xFFFF
 

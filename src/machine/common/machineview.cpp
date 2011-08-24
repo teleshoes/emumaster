@@ -78,10 +78,9 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 	m_machine->moveToThread(m_thread);
 	m_machine->updateSettings();
 
-	if (m_autoLoadOnStart) {
-		m_machine->emulateFrame(false);
+	m_machine->emulateFrame(false);
+	if (m_autoLoadOnStart)
 		m_stateListModel->loadState(-2);
-	}
 
 	QTimer::singleShot(100, this, SLOT(resume()));
 }
@@ -91,6 +90,11 @@ MachineView::~MachineView() {
 		m_thread->wait();
 	if (m_autoSaveOnExit)
 		m_stateListModel->saveState(-2);
+
+	// auto save screenshot
+	if (!QFile::exists(screenShotPath()))
+		saveScreenShot();
+
 	m_gameGenieCodeListModel->save();
 	delete m_machine;
 }
@@ -186,6 +190,7 @@ void MachineView::closeEvent(QCloseEvent *e) {
 	m_wantClose = true;
 	if (m_running) {
 		pause();
+		e->ignore();
 	} else {
 		e->accept();
 	}
@@ -193,10 +198,7 @@ void MachineView::closeEvent(QCloseEvent *e) {
 
 void MachineView::saveScreenShot() {
 	m_machine->frame().copy(m_machine->videoSrcRect().toRect())
-			.save(QString("%1/screenshot/%2%3.jpg")
-				  .arg(userDataDirPath())
-				  .arg(m_machine->name())
-				  .arg(m_diskName));
+			.save(screenShotPath());
 }
 
 QString MachineView::romDirPath()
@@ -224,4 +226,11 @@ void MachineView::buildLocalDirTree() {
 bool MachineView::isGameGenieCodeValid(const QString &s) {
 	GameGenieCode ggc;
 	return ggc.parse(s);
+}
+
+QString MachineView::screenShotPath() const {
+	return QString("%1/screenshot/%2%3.jpg")
+			.arg(userDataDirPath())
+			.arg(m_machine->name())
+			.arg(m_diskName);
 }

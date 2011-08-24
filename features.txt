@@ -2,3 +2,6 @@ rom gallery
 fast scroll
 create icon in home screen
 swipe on/off
+game genie codes
+very fast - full framerate
+save/load gallery

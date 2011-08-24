@@ -32,6 +32,7 @@ void NesMapper::setMappers(NesCpuMapper *cpuMapper, NesPpuMapper *ppuMapper) {
 void NesMapper::reset() {
 	Q_ASSERT(m_cpuMapper != 0 && m_ppuMapper != 0);
 	m_cpuMapper->reset();
+	m_cpuMapper->processGameGenieCodes();
 	m_ppuMapper->reset();
 }
 

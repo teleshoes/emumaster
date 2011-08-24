@@ -1,5 +1,4 @@
 save/load:
- - auto save on exit, auto load on start enable/disable
  - save settings
 
 audio:
@@ -17,17 +16,17 @@ input:
  - pad transparency
  - use accelerometer at the save's view and rom gallery
 
-cheat:
- - game genie codes
-
 roms:
  - load roms from zipped files
  - IPS patcher
+ - on device rom remove
 
 tests:
  - test against call
 
 misc:
+ - info page (rom info)
+ - global settings (auto save/load)
  - setupenv.sh must be different for N9*
  - show message on first application run howto install roms and donate
  - for Amiga create readme.txt about rom folders and roms name policy
