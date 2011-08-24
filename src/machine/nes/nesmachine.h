@@ -27,6 +27,7 @@ class NesPpuMapper;
 class NES_EXPORT NesMachine : public IMachine {
 	Q_OBJECT
 	Q_PROPERTY(NesPpu *ppu READ ppu CONSTANT)
+	Q_PROPERTY(NesCpu *cpu READ cpu CONSTANT)
 	Q_PROPERTY(NesApu *apu READ apu CONSTANT)
 public:
 	enum Type { NTSC, PAL };
@@ -55,6 +56,11 @@ public:
 	void emulateFrame(bool drawEnabled);
 	QRectF videoSrcRect() const;
 	QRectF videoDstRect() const;
+
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+
+	void setGameGenieCodeList(const QList<GameGenieCode> &codes);
 protected:
 	void updateSettings();
 private:

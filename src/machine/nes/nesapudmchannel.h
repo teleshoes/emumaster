@@ -25,6 +25,9 @@ public:
 
 	void clock(int nCycles);
 
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+
 	bool irqGenerated;
 private:
 	bool m_hasSample;

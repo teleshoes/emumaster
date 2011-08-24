@@ -48,6 +48,8 @@ Item {
 	signal clicked
 	property alias pressed: mouseArea.pressed
 
+	property string title: model.title
+
 	property int titleSize: UI.LIST_TILE_SIZE
 	property int titleWeight: Font.Bold
 	property string titleFont: UI.FONT_FAMILY
@@ -90,7 +92,7 @@ Item {
 
 			Label {
 				id: mainText
-				text: model.title
+				text: listItem.title
 				font.family: listItem.titleFont
 				font.weight: listItem.titleWeight
 				font.pixelSize: listItem.titleSize

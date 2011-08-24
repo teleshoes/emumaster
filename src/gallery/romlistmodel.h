@@ -11,7 +11,8 @@ class RomListModel : public QAbstractListModel {
 public:
 	enum RoleType {
 		NameRole = Qt::UserRole+1,
-		AlphabetRole
+		AlphabetRole,
+		ScreenShotUpdate
 	};
     explicit RomListModel(QObject *parent = 0);
 	QString machineName() const;
@@ -19,11 +20,14 @@ public:
 	int rowCount(const QModelIndex &parent) const;
 	int count() const;
 	QVariant data(const QModelIndex &index, int role) const;
+	void updateScreenShot(const QString &name);
 	Q_INVOKABLE QString get(int i) const;
 	Q_INVOKABLE QString getAlphabet(int i) const;
+	Q_INVOKABLE int getScreenShotUpdate(int i) const;
 signals:
 	void machineNameChanged();
 private:
+	int m_screenShotUpdateCounter;
 	QStringList m_list;
 	QString m_machineName;
 };

@@ -4,4 +4,5 @@ SUBDIRS += \
 	cpu \
     video \
     memory \
-    audio
+    audio \
+    misc

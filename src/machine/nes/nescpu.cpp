@@ -3,7 +3,7 @@
 #include "nescpumapper.h"
 #include "nesapu.h"
 #include "nesmapper.h"
-#include <QDebug>
+#include <QDataStream>
 
 NesCpu::NesCpu(NesMachine *machine) :
 	M6502(machine),
@@ -57,9 +57,9 @@ uint NesCpu::clock(uint cycles) {
 			// TODO mapper clock enable
 			m_mapper->clock(instrCycles);
 			executedCycles += instrCycles;
-//			m_apu->clockFrameCounter(instrCycles);
+			m_apu->clockFrameCounter(instrCycles);
 		}
-		m_apu->clockFrameCounter(executedCycles);
+//		m_apu->clockFrameCounter(executedCycles);
 	}
 	return executedCycles;
 }
@@ -86,4 +86,32 @@ void NesCpu::mapper_irq_i(bool on) {
 	bool newIrqState = (m_apuIrq || m_mapperIrq);
 	if (newIrqState != oldIrqState)
 		irq0_i(newIrqState);
+}
+
+bool NesCpu::save(QDataStream &s) {
+	if (!M6502::save(s))
+		return false;
+	if (!m_mapper->save(s))
+		return false;
+	if (!m_apu->save(s))
+		return false;
+	s << m_reset;
+	s << m_dmaCycles;
+	s << m_apuIrq;
+	s << m_mapperIrq;
+	return true;
+}
+
+bool NesCpu::load(QDataStream &s) {
+	if (!M6502::load(s))
+		return false;
+	if (!m_mapper->load(s))
+		return false;
+	if (!m_apu->load(s))
+		return false;
+	s >> m_reset;
+	s >> m_dmaCycles;
+	s >> m_apuIrq;
+	s >> m_mapperIrq;
+	return true;
 }

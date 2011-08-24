@@ -1,8 +1,7 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-	algorithm \
-    component \
+	component \
 	machine \
 	launcher \
 	gallery

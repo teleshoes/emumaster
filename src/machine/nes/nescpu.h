@@ -12,13 +12,17 @@ class NES_EXPORT NesCpu : public M6502 {
 public:
 	explicit NesCpu(NesMachine *machine);
 	~NesCpu();
+
+	NesCpuMapper *mapper() const;
 	void setMapper(NesCpuMapper *mapper);
+
 	NesMachine *machine() const;
 	NesApu *apu() const;
 	uint clock(uint cycles);
 	void dma(uint cycles);
-	//TODO save
-	// TODO load
+
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
 public slots:
 	void nes_reset_i(bool on);
 	void apu_irq_i(bool on);
@@ -37,6 +41,9 @@ private:
 
 	friend class NesApu;
 };
+
+inline NesCpuMapper *NesCpu::mapper() const
+{ return m_mapper; }
 
 inline NesApu *NesCpu::apu() const
 { return m_apu; }

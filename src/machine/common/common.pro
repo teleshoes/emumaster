@@ -1,8 +1,7 @@
-TEMPLATE = lib
+include(../machine.pri)
 TARGET = machine_common
-DESTDIR = ../../../lib
 QT += declarative multimedia opengl
-LIBS += -lpulse-simple
+LIBS += -lpulse-simple -lgamegeniecode
 
 DEFINES += MACHINE_COMMON_PROJECT
 
@@ -14,7 +13,9 @@ HEADERS += \
     hostaudio.h \
     hostvideo.h \
     hostinput.h \
-    machineimageprovider.h
+    machineimageprovider.h \
+    machinestatelistmodel.h \
+    gamegeniecodelistmodel.h
 
 SOURCES += \
     machineview.cpp \
@@ -23,4 +24,10 @@ SOURCES += \
     hostaudio.cpp \
     hostvideo.cpp \
     hostinput.cpp \
-    machineimageprovider.cpp
+    machineimageprovider.cpp \
+    machinestatelistmodel.cpp \
+    gamegeniecodelistmodel.cpp
+
+
+
+

@@ -4,6 +4,10 @@ Item {
 	id: coverFlow
 
 	property int topMargin: 30
+	property alias model: pathView.model
+	property alias currentIndex: pathView.currentIndex
+	property alias delegate: pathView.delegate
+	property alias pathItemCount: pathView.pathItemCount
 
 	Rectangle {
 		y: parent.height / 2
@@ -18,28 +22,11 @@ Item {
 	PathView {
 		id: pathView
 		anchors.fill: parent
-		currentIndex: romChooserPage.currentRomIndex
-		pathItemCount: 7
 
-		model: romListModel
-		delegate: CoverFlowDelegate {}
 		path: coverFlowPath
 
 		preferredHighlightBegin: 0.5
 		preferredHighlightEnd: 0.5
-
-		onCurrentIndexChanged: {
-			if (coverFlowEnabled)
-				romChooserPage.currentRomIndex = currentIndex
-		}
-
-		Connections {
-			target: romChooserPage
-			onCurrentRomIndexChanged: {
-				if (!coverFlowEnabled)
-					pathView.currentIndex = romChooserPage.currentRomIndex
-			}
-		}
 	}
 	Path {
 		id: coverFlowPath

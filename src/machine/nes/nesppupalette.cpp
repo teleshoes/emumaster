@@ -2,7 +2,6 @@
 #include "nesppu.h"
 #include <qmath.h>
 #include <QDataStream>
-#include <QDebug>
 
 NesPpuPalette::NesPpuPalette(NesPpu *ppu) :
 	QObject(ppu) {

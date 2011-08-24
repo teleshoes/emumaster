@@ -6,12 +6,11 @@
 #include "nesppusprite.h"
 #include "nesmachine.h"
 #include <QDataStream>
-#include <QDebug>
 
 NesPpu::NesPpu(NesMachine *machine) :
 	QObject(machine),
 	m_mapper(0),
-	m_frame(8+VisibleScreenWidth+8, VisibleScreenHeight, QImage::Format_ARGB32) {
+	m_frame(8+VisibleScreenWidth+8, VisibleScreenHeight, QImage::Format_RGB32) {
 
 	m_registers = new NesPpuRegisters(this);
 	m_palette = new NesPpuPalette(this);
@@ -538,11 +537,19 @@ bool NesPpu::checkSprite0HitHere() const {
 	return true;
 }
 
+void NesPpu::setSpriteClippingEnabled(bool on) {
+	if (m_spriteClippingEnable != on) {
+		m_spriteClippingEnable = on;
+		emit spriteClippingEnableChanged();
+	}
+}
+
 bool NesPpu::save(QDataStream &s) {
-	s << m_frame;
 	if (!m_registers->save(s))
 		return false;
 	if (!m_palette->save(s))
+		return false;
+	if (!m_mapper->save(s))
 		return false;
 	s << quint8(m_type);
 	s << m_scanlinesPerFrame;
@@ -566,10 +573,11 @@ bool NesPpu::save(QDataStream &s) {
 }
 
 bool NesPpu::load(QDataStream &s) {
-	s >> m_frame;
 	if (!m_registers->load(s))
 		return false;
 	if (!m_palette->load(s))
+		return false;
+	if (!m_mapper->load(s))
 		return false;
 	quint8 type;
 	s >> type;
@@ -596,11 +604,4 @@ bool NesPpu::load(QDataStream &s) {
 	if (s.readRawData(reinterpret_cast<char *>(m_spriteMemory), sizeof(m_spriteMemory)) != sizeof(m_spriteMemory))
 		return false;
 	return true;
-}
-
-void NesPpu::setSpriteClippingEnabled(bool on) {
-	if (m_spriteClippingEnable != on) {
-		m_spriteClippingEnable = on;
-		emit spriteClippingEnableChanged();
-	}
 }

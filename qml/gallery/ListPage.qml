@@ -1,6 +1,7 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
 import com.nokia.extras 1.1
+import "../common"
 
 Page {
 	ListView {
@@ -19,9 +20,7 @@ Page {
 				visible: false
 			}
 
-			onClicked: {
-				romChooserPage.currentRomIndex = index
-			}
+			onClicked: romChooserPage.currentRomIndex = index
 
 			states: [
 				State {

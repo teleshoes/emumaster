@@ -18,6 +18,9 @@ public:
 	void clock(int nCycles);
 
 	int triangleCounter() const;
+
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
 private:
 	bool m_linearCounterControl;
 	int m_linearCounterLoadValue;

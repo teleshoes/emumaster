@@ -30,3 +30,7 @@ IMachine *IMachine::loadMachine(const QString &name) {
 	QPluginLoader loader(path);
 	return qobject_cast<IMachine *>(loader.instance());
 }
+
+void IMachine::setGameGenieCodeList(const QList<GameGenieCode> &codes) {
+	Q_UNUSED(codes)
+}

@@ -1,4 +1,5 @@
 #include "nesapunoisechannel.h"
+#include <QDataStream>
 
 NesApuNoiseChannel::NesApuNoiseChannel(int channelNo) :
 	NesApuChannel(channelNo) {
@@ -29,3 +30,25 @@ int NesApuNoiseChannel::m_noiseWavelengthLUT[16] = {
 	0x0CA, 0x0FE, 0x17C, 0x1FC,
 	0x2FA, 0x3F8, 0x7F2, 0xFE4
 };
+
+bool NesApuNoiseChannel::save(QDataStream &s) {
+	if (!NesApuChannel::save(s))
+		return false;
+	s << m_randomBit;
+	s << m_randomMode;
+	s << m_shiftReg;
+	s << m_accValue;
+	s << m_accCount;
+	return true;
+}
+
+bool NesApuNoiseChannel::load(QDataStream &s) {
+	if (!NesApuChannel::load(s))
+		return false;
+	s >> m_randomBit;
+	s >> m_randomMode;
+	s >> m_shiftReg;
+	s >> m_accValue;
+	s >> m_accCount;
+	return true;
+}

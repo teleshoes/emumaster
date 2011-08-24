@@ -1,4 +1,5 @@
 #include "nesapurectanglechannel.h"
+#include <QDataStream>
 
 NesApuRectangleChannel::NesApuRectangleChannel(int channelNo) :
 	NesApuChannel(channelNo) {
@@ -64,3 +65,31 @@ int NesApuRectangleChannel::m_dutyLUT[32] = {
 	0, 1, 1, 1, 1, 0, 0, 0,
 	1, 0, 0, 1, 1, 1, 1, 1
 };
+
+bool NesApuRectangleChannel::save(QDataStream &s) {
+	if (!NesApuChannel::save(s))
+		return false;
+	s << m_sweepShiftAmount;
+	s << m_sweepDirection;
+	s << m_sweepUpdateRate;
+	s << m_sweepEnable;
+	s << m_sweepCounter;
+	s << m_sweepCarry;
+	s << m_updateSweepPeriod;
+	s << m_rectangleCounter;
+	return true;
+}
+
+bool NesApuRectangleChannel::load(QDataStream &s) {
+	if (!NesApuChannel::load(s))
+		return false;
+	s >> m_sweepShiftAmount;
+	s >> m_sweepDirection;
+	s >> m_sweepUpdateRate;
+	s >> m_sweepEnable;
+	s >> m_sweepCounter;
+	s >> m_sweepCarry;
+	s >> m_updateSweepPeriod;
+	s >> m_rectangleCounter;
+	return true;
+}

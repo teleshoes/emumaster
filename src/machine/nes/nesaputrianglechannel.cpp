@@ -1,4 +1,5 @@
 #include "nesaputrianglechannel.h"
+#include <QDataStream>
 
 NesApuTriangleChannel::NesApuTriangleChannel(int channelNo) :
 	NesApuChannel(channelNo) {
@@ -53,3 +54,23 @@ void NesApuTriangleChannel::clockTriangleGenerator(){
 
 void NesApuTriangleChannel::updateSampleCondition()
 { sampleCondition = (lengthStatus() && progTimerMax > 7 && m_linearCounter > 0); }
+
+bool NesApuTriangleChannel::save(QDataStream &s) {
+	if (!NesApuChannel::save(s))
+		return false;
+	s << m_linearCounterControl;
+	s << m_linearCounterLoadValue;
+	s << m_linearCounter;
+	s << m_triangleCounter;
+	return true;
+}
+
+bool NesApuTriangleChannel::load(QDataStream &s) {
+	if (!NesApuChannel::load(s))
+		return false;
+	s >> m_linearCounterControl;
+	s >> m_linearCounterLoadValue;
+	s >> m_linearCounter;
+	s >> m_triangleCounter;
+	return true;
+}

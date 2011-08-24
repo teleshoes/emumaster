@@ -1,11 +1,12 @@
 #include "romimageprovider.h"
+#include "machineview.h"
 #include <QImage>
 #include <QPainter>
 #include <QFile>
 
 RomImageProvider::RomImageProvider() :
 	QDeclarativeImageProvider(Image),
-	m_noScreenShot(256, 256, QImage::Format_ARGB32) {
+	m_noScreenShot(256, 256, QImage::Format_RGB32) {
 	QPainter painter;
 	painter.begin(&m_noScreenShot);
 	painter.fillRect(QRectF(QPointF(), m_noScreenShot.size()), QColor(qRgb(0x4B, 0x4A, 0x4C)));
@@ -25,7 +26,10 @@ RomImageProvider::RomImageProvider() :
 QImage RomImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize) {
 	Q_UNUSED(size)
 	Q_UNUSED(requestedSize)
-	QString path = QString("../data/%1.jpg").arg(id);
+	QString idGoodPart = id.left(id.indexOf('*'));
+	QString path = QString("%1/screenshot/%2.jpg")
+			.arg(MachineView::userDataDirPath())
+			.arg(idGoodPart);
 	if (!QFile::exists(path))
 		return m_noScreenShot;
 	QImage img;

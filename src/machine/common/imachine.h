@@ -1,6 +1,7 @@
 #ifndef IMACHINE_H
 #define IMACHINE_H
 
+class GameGenieCode;
 #include "machine_common_global.h"
 #include <QObject>
 class QImage;
@@ -44,6 +45,11 @@ public:
 	virtual const QImage &frame() const = 0;
 	virtual const char *grabAudioBuffer(int *size) = 0;
 	virtual void setPadKey(PadKey key, bool state);
+
+	virtual bool save(QDataStream &s) = 0;
+	virtual bool load(QDataStream &s) = 0;
+
+	virtual void setGameGenieCodeList(const QList<GameGenieCode> &codes);
 protected:
 	virtual void updateSettings() = 0;
 	void setFrameRate(qreal rate);

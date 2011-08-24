@@ -1,4 +1,5 @@
 #include "nesapuchannel.h"
+#include <QDataStream>
 
 NesApuChannel::NesApuChannel(int channelNo) :
 	m_channelNo(channelNo) {
@@ -108,4 +109,48 @@ void NesApuChannel::clockEnvelopeDecay() {
 	updateMasterVolume();
 	updateSampleCondition();
 	updateSampleValue();
+}
+
+bool NesApuChannel::save(QDataStream &s) {
+	s << envelopeReset;
+	s << lengthCounterEnable;
+	s << lengthCounter;
+	s << m_channelNo;
+	s << m_enabled;
+	s << m_enableLatch;
+	s << m_userEnabled;
+
+	s << m_masterVolume;
+	s << m_volume;
+
+	s << m_envelopeVolume;
+	s << m_envelopeDecayRate;
+	s << m_envelopeDecayDisable;
+	s << m_envelopeDecayLoopEnable;
+	s << m_envelopeDecayCounter;
+
+	s << m_dutyMode;
+	return true;
+}
+
+bool NesApuChannel::load(QDataStream &s) {
+	s >> envelopeReset;
+	s >> lengthCounterEnable;
+	s >> lengthCounter;
+	s >> m_channelNo;
+	s >> m_enabled;
+	s >> m_enableLatch;
+	s >> m_userEnabled;
+
+	s >> m_masterVolume;
+	s >> m_volume;
+
+	s >> m_envelopeVolume;
+	s >> m_envelopeDecayRate;
+	s >> m_envelopeDecayDisable;
+	s >> m_envelopeDecayLoopEnable;
+	s >> m_envelopeDecayCounter;
+
+	s >> m_dutyMode;
+	return true;
 }

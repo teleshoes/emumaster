@@ -10,6 +10,7 @@ Item {
 	scale: PathView.iconScale
 
 	property real pathAngle: PathView.angle
+	property alias imageSource: dlgImg.source
 
 	Column  {
 		id: delegate
@@ -25,14 +26,6 @@ Item {
 
 			z: reflection.z + 1
 
-			Label {
-				anchors.top: delegateImage.top
-				anchors.topMargin: -30
-				anchors.horizontalCenter: delegateImage.horizontalCenter
-				text: title
-				visible: romChooserPage.currentRomIndex == index
-			}
-
 			Image {
 				id: dlgImg
 
@@ -45,11 +38,8 @@ Item {
 				fillMode: Image.PreserveAspectCrop
 				asynchronous: true
 
-				// The image will be provided by the model
-				source: "image://rom/" + romListModel.machineName + "/" + title
-
 				// Smoothing slows down the scrolling even more. Use it with consideration.
-				smooth: true
+//				smooth: true
 			}
 		}
 
@@ -73,7 +63,7 @@ Item {
 
 				fillMode: Image.PreserveAspectCrop
 				asynchronous: true
-				smooth: true  // Use with consideration.
+//				smooth: true  // Use with consideration.
 
 				transform : Scale {
 					yScale: -1
@@ -118,4 +108,9 @@ Item {
 			}
 		}
 	]
+
+	MouseArea {
+		anchors.fill: parent
+		onClicked: coverFlow.currentIndex = index
+	}
 }

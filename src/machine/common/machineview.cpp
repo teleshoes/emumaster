@@ -1,3 +1,4 @@
+// TODO onWindowStateChanged
 #include "machineview.h"
 #include "imachine.h"
 #include "machinethread.h"
@@ -5,12 +6,16 @@
 #include "hostaudio.h"
 #include "hostinput.h"
 #include "machineimageprovider.h"
+#include "machinestatelistmodel.h"
+#include "gamegeniecodelistmodel.h"
+#include <misc/gamegeniecode.h>
 #include <QDeclarativeView>
 #include <QDeclarativeContext>
 #include <QCloseEvent>
 #include <QApplication>
 #include <QDeclarativeEngine>
 #include <QTimer>
+#include <QDir>
 
 #if defined(MEEGO_EDITION_HARMATTAN)
 #include <QX11Info>
@@ -22,9 +27,11 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 	QWidget(parent),
 	m_machine(machine),
 	m_running(false),
-	m_backgroundCounter(0),
+	m_backgroundCounter(qAbs(qrand())/2),
 	m_diskName(diskName),
-	m_wantClose(false) {
+	m_wantClose(false),
+	m_autoLoadOnStart(true),
+	m_autoSaveOnExit(true) {
 	Q_ASSERT(m_machine != 0);
 
 #if defined(MEEGO_EDITION_HARMATTAN)
@@ -44,24 +51,37 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 	m_hostVideo->m_srcRect = m_machine->videoSrcRect();
 	m_hostVideo->m_dstRect = m_machine->videoDstRect();
 
+	QString error = m_machine->setDisk(QString("%1/%2/%3")
+									   .arg(romDirPath())
+									   .arg(m_machine->name())
+									   .arg(diskName));
+	if (!error.isEmpty())
+		showError(error);
+
+	m_stateListModel = new MachineStateListModel(this);
 	m_settingsView = new QDeclarativeView(this);
-	m_settingsView->engine()->addImageProvider("machine", new MachineImageProvider(this));
+	m_settingsView->engine()->addImageProvider("machine", new MachineImageProvider(this, m_stateListModel));
 	m_settingsView->rootContext()->setContextProperty("backgroundPath", "");
 	m_settingsView->rootContext()->setContextProperty("machineView", static_cast<QObject *>(this));
 	m_settingsView->rootContext()->setContextProperty("video", static_cast<QObject *>(m_hostVideo));
 	m_settingsView->rootContext()->setContextProperty("audio", static_cast<QObject *>(m_hostAudio));
 	m_settingsView->rootContext()->setContextProperty("input", static_cast<QObject *>(m_hostInput));
 	m_settingsView->rootContext()->setContextProperty("machine", static_cast<QObject *>(m_machine));
+	m_settingsView->rootContext()->setContextProperty("stateListModel", static_cast<QObject *>(m_stateListModel));
+	QObject::connect(m_settingsView->engine(), SIGNAL(quit()), SLOT(close()));
 	m_settingsView->resize(size());
 
-	QString error = m_machine->setDisk(QString("/home/user/MyDocs/emumaster/%1/%2")
-									   .arg(m_machine->name())
-									   .arg(diskName));
-	if (!error.isEmpty())
-		showError(error);
+	m_gameGenieCodeListModel  = new GameGenieCodeListModel(this);
+	m_gameGenieCodeListModel->load();
+	m_settingsView->rootContext()->setContextProperty("gameGenieCodeListModel", static_cast<QObject *>(m_gameGenieCodeListModel));
 
 	m_machine->moveToThread(m_thread);
 	m_machine->updateSettings();
+
+	if (m_autoLoadOnStart) {
+		m_machine->emulateFrame(false);
+		m_stateListModel->loadState(-2);
+	}
 
 	QTimer::singleShot(100, this, SLOT(resume()));
 }
@@ -69,6 +89,9 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 MachineView::~MachineView() {
 	if (m_thread->isRunning())
 		m_thread->wait();
+	if (m_autoSaveOnExit)
+		m_stateListModel->saveState(-2);
+	m_gameGenieCodeListModel->save();
 	delete m_machine;
 }
 
@@ -121,8 +144,10 @@ void MachineView::pauseStage2() {
 	m_settingsView->rootContext()->setContextProperty("backgroundPath", path);
 	if (m_settingsView->source().isEmpty())
 		m_settingsView->setSource(QUrl::fromLocalFile(QString("../qml/%1/main.qml").arg(m_machine->name())));
-	m_settingsView->show();
-	m_settingsView->setFocus();
+	if (!m_wantClose) {
+		m_settingsView->show();
+		m_settingsView->setFocus();
+	}
 	m_hostVideo->hide();
 	setupSwipe(true);
 	m_running = false;
@@ -147,10 +172,12 @@ void MachineView::resume() {
 	QObject::connect(m_thread, SIGNAL(frameGenerated()),
 					 m_hostVideo, SLOT(repaint()),
 					 Qt::BlockingQueuedConnection);
-	if (m_hostVideo->m_error.isEmpty())
+	if (m_hostVideo->m_error.isEmpty()) {
+		m_machine->setGameGenieCodeList(m_gameGenieCodeListModel->enabledList());
 		m_thread->resume();
-	else
+	} else {
 		m_hostVideo->repaint();
+	}
 	m_running = true;
 	emit runningChanged();
 }
@@ -166,7 +193,35 @@ void MachineView::closeEvent(QCloseEvent *e) {
 
 void MachineView::saveScreenShot() {
 	m_machine->frame().copy(m_machine->videoSrcRect().toRect())
-			.save(QString("../data/%1/%2.jpg")
+			.save(QString("%1/screenshot/%2%3.jpg")
+				  .arg(userDataDirPath())
 				  .arg(m_machine->name())
 				  .arg(m_diskName));
+}
+
+QString MachineView::romDirPath()
+{ return QString("%1/MyDocs/emumaster").arg(getenv("HOME")); }
+
+QString MachineView::userDataDirPath()
+{ return QString("%1/.emumaster").arg(getenv("HOME")); }
+
+void MachineView::buildLocalDirTree() {
+	QDir dir(getenv("HOME"));
+	dir.mkdir(".emumaster");
+	dir.cd(".emumaster");
+	dir.mkdir("save");
+	dir.mkdir("icon");
+	dir.mkdir("screenshot");
+	dir.mkdir("cheat");
+	dir = QDir(getenv("HOME"));
+	dir.cd("MyDocs");
+	dir.mkdir("emumaster");
+	dir.cd("emumaster");
+	dir.mkdir("nes");
+	// TODO add directory for other consoles
+}
+
+bool MachineView::isGameGenieCodeValid(const QString &s) {
+	GameGenieCode ggc;
+	return ggc.parse(s);
 }

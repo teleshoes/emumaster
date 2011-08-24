@@ -6,6 +6,7 @@
 #include "nesppu.h"
 #include "nesapu.h"
 #include "nespad.h"
+#include <misc/gamegeniecode.h>
 
 NesCpuMapper::NesCpuMapper(NesMapper *mapper) :
 	QObject(mapper) {
@@ -70,7 +71,7 @@ void NesCpuMapper::write(quint16 address, quint8 data) {
 	case 6:	// 0xC000-0xDFFF
 	case 7:	// 0xE000-0xFFFF
 		writeHigh(address, data);
-		// TODO geniecode
+		processGameGenieCodes();
 		break;
 	}
 }
@@ -229,4 +230,33 @@ bool NesCpuMapper::load(QDataStream &s) {
 		return false;
 	s >> m_irqOut;
 	return true;
+}
+
+void NesCpuMapper::setGameGenieCodeList(const QList<GameGenieCode> &codes) {
+	for (int i = 0; i < m_gameGenieCodeList.size(); i++) {
+		const GameGenieCode &code = m_gameGenieCodeList.at(i);
+		uint address = code.address() | 0x8000;
+		if (code.isEightCharWide()) {
+			if (readDirect(address) == code.replaceData())
+				writeDirect(address, code.expectedData());
+		} else {
+			writeDirect(address, code.expectedData());
+		}
+	}
+	m_gameGenieCodeList = codes;
+	processGameGenieCodes();
+}
+
+inline void NesCpuMapper::processGameGenieCodes() {
+	for (int i = 0; i < m_gameGenieCodeList.size(); i++) {
+		GameGenieCode &code = m_gameGenieCodeList[i];
+		uint address = code.address() | 0x8000;
+		if (code.isEightCharWide()) {
+			if (readDirect(address) == code.expectedData())
+				writeDirect(address, code.replaceData());
+		} else {
+			code.setExpectedData(readDirect(address));
+			writeDirect(address, code.replaceData());
+		}
+	}
 }

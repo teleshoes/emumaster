@@ -27,6 +27,7 @@ Page {
 				tab: cheatTab
 			}
 		}
+		ToolIcon { iconId: "toolbar-close"; onClicked: query.open() }
 	}
 
 	TabGroup {
@@ -38,5 +39,17 @@ Page {
 		InputPage { id: inputTab }
 		StatePage { id: stateTab }
 		CheatPage { id: cheatTab }
+
+		onCurrentTabChanged: appWindow.customStyleEnabled = (tabGroup.currentTab !== cheatTab)
+	}
+
+	QueryDialog {
+		id: query
+		icon: "image://theme/icon-m-common-red"
+		titleText: "Really?"
+		message: "Do you want to exit?"
+		acceptButtonText: "Yes"
+		rejectButtonText: "No"
+		onAccepted: Qt.quit()
 	}
 }

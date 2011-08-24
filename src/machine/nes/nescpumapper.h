@@ -8,6 +8,7 @@ class NesPpu;
 class NesPpuRegisters;
 class NesApu;
 class NesPad;
+class GameGenieCode;
 #include "nes_global.h"
 #include <QObject>
 
@@ -56,6 +57,8 @@ public:
 	uint romSize8KB() const;
 
 	void setIrqSignalOut(bool on);
+
+	void setGameGenieCodeList(const QList<GameGenieCode> &codes);
 signals:
 	void request_irq_o(bool on);
 protected:
@@ -69,6 +72,7 @@ protected:
 private:
 	void writeReg(quint16 address, quint8 data);
 	quint8 readReg(quint16 address);
+	void processGameGenieCodes();
 
 	quint8 *m_banks[8]; // 8K banks 0x0000-0xFFFF
 
@@ -83,6 +87,7 @@ private:
 	NesPad *m_pad;
 
 	bool m_irqOut;
+	QList<GameGenieCode> m_gameGenieCodeList;
 };
 
 inline NesDisk *NesCpuMapper::disk() const

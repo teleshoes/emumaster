@@ -47,6 +47,9 @@ public:
 
 	void clockFrameCounter(int nCycles);
 	const char *grabBuffer(int *size);
+
+	virtual bool save(QDataStream &s);
+	virtual bool load(QDataStream &s);
 signals:
 	void request_irq_o(bool on);
 	void channelUserEnableChanged();
@@ -83,10 +86,10 @@ private:
 	int m_masterFrameCounter;
 	int m_derivedFrameCounter;
 	int m_countSequence;
+
 	int m_sampleTimer;
 	int m_frameTime;
 	int m_sampleTimerMax;
-	int m_sampleCount;
 
 	int m_triValue;
 
@@ -105,27 +108,23 @@ private:
 	int m_rectangleLUT[RectangleLUTSize];
 	int m_triangleLUT[TriangleLUTSize];
 
-	int m_sampleValueL;
-	int m_sampleValueR;
 	int m_prevSampleL;
 	int m_prevSampleR;
 	int m_smpAccumL;
 	int m_smpAccumR;
-	int m_smpDiffL;
-	int m_smpDiffR;
 
 	int m_dcValue;
 
-	int m_stereoPosLR1;
-	int m_stereoPosLR2;
-	int m_stereoPosLTR;
-	int m_stereoPosLNS;
-	int m_stereoPosLDM;
-	int m_stereoPosRR1;
-	int m_stereoPosRR2;
-	int m_stereoPosRTR;
-	int m_stereoPosRNS;
-	int m_stereoPosRDM;
+	static const int StereoPosLR1 =  80;
+	static const int StereoPosLR2 = 170;
+	static const int StereoPosLTR = 100;
+	static const int StereoPosLNS = 150;
+	static const int StereoPosLDM = 128;
+	static const int StereoPosRR1 = 256 - StereoPosLR1;
+	static const int StereoPosRR2 = 256 - StereoPosLR2;
+	static const int StereoPosRTR = 256 - StereoPosLTR;
+	static const int StereoPosRNS = 256 - StereoPosLNS;
+	static const int StereoPosRDM = 256 - StereoPosLDM;
 
 	bool m_irqSignal;
 

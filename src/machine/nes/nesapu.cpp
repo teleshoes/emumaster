@@ -1,7 +1,7 @@
 #include "nesapu.h"
 #include "nesmachine.h"
 #include "nescpu.h"
-#include <QDebug>
+#include <QDataStream>
 
 NesApu::NesApu(NesCpu *cpu) :
 	QObject(cpu),
@@ -10,22 +10,10 @@ NesApu::NesApu(NesCpu *cpu) :
 	m_trch(2),
 	m_nsch(3),
 	m_dmch(this, 4),
-        m_sampleRate(-1),
-        m_stereo(true) {
+	m_sampleRate(-1),
+	m_stereo(true) {
 	m_extraCycles = 0;
 	initDACLUTs();
-
-	m_stereoPosLR1 =  80;
-	m_stereoPosLR2 = 170;
-	m_stereoPosLTR = 100;
-	m_stereoPosLNS = 150;
-	m_stereoPosLDM = 128;
-
-	m_stereoPosRR1 = 256 - m_stereoPosLR1;
-	m_stereoPosRR2 = 256 - m_stereoPosLR2;
-	m_stereoPosRTR = 256 - m_stereoPosLTR;
-	m_stereoPosRNS = 256 - m_stereoPosLNS;
-	m_stereoPosRDM = 256 - m_stereoPosLDM;
 }
 
 void NesApu::write(quint16 address, quint8 data) {
@@ -224,23 +212,26 @@ void NesApu::sample() {
 		m_smpDM = m_dmch.sampleValue << 4;
 	}
 	m_smpNS = m_nsch.sample();
+
+	int sampleValueL;
+	int sampleValueR;
 	if (m_stereo) {
 		// left channel:
-		int rectangle = (m_smpR1 * m_stereoPosLR1 + m_smpR2 * m_stereoPosLR2) >> 8;
-		int triangle = (3*m_smpTR * m_stereoPosLTR + (m_smpNS<<1) * m_stereoPosLNS + m_smpDM*m_stereoPosLDM) >> 8;
+		int rectangle = (m_smpR1 * StereoPosLR1 + m_smpR2 * StereoPosLR2) >> 8;
+		int triangle = (3*m_smpTR * StereoPosLTR + (m_smpNS<<1) * StereoPosLNS + m_smpDM*StereoPosLDM) >> 8;
 		if (rectangle >= RectangleLUTSize)
 			rectangle = RectangleLUTSize-1;
 		if (triangle >= TriangleLUTSize)
 			triangle = TriangleLUTSize-1;
-		m_sampleValueL = m_rectangleLUT[rectangle] + m_triangleLUT[triangle] - m_dcValue;
+		sampleValueL = m_rectangleLUT[rectangle] + m_triangleLUT[triangle] - m_dcValue;
 		// right channel:
-		rectangle = (m_smpR1 * m_stereoPosRR1 + m_smpR2 * m_stereoPosRR2) >> 8;
-		triangle = (3*m_smpTR * m_stereoPosRTR + (m_smpNS<<1) * m_stereoPosRNS + m_smpDM*m_stereoPosRDM) >> 8;
+		rectangle = (m_smpR1 * StereoPosRR1 + m_smpR2 * StereoPosRR2) >> 8;
+		triangle = (3*m_smpTR * StereoPosRTR + (m_smpNS<<1) * StereoPosRNS + m_smpDM*StereoPosRDM) >> 8;
 		if (rectangle >= RectangleLUTSize)
 			rectangle = RectangleLUTSize-1;
 		if (triangle >= TriangleLUTSize)
 			triangle = TriangleLUTSize-1;
-		m_sampleValueR = m_rectangleLUT[rectangle] + m_triangleLUT[triangle] - m_dcValue;
+		sampleValueR = m_rectangleLUT[rectangle] + m_triangleLUT[triangle] - m_dcValue;
 	} else {
 		int rectangle = m_smpR1 + m_smpR2;
 		int triangle = 3*m_smpTR + 2*m_smpNS + m_smpDM;
@@ -248,32 +239,32 @@ void NesApu::sample() {
 			rectangle  = RectangleLUTSize-1;
 		if(triangle >= TriangleLUTSize)
 			triangle = TriangleLUTSize-1;
-		m_sampleValueL = 3*(m_rectangleLUT[rectangle] + m_triangleLUT[triangle] - m_dcValue);
-		m_sampleValueL >>= 2;
+		sampleValueL = 3*(m_rectangleLUT[rectangle] + m_triangleLUT[triangle] - m_dcValue);
+		sampleValueL >>= 2;
 	}
 	// remove DC from left channel:
-	m_smpDiffL     = m_sampleValueL - m_prevSampleL;
-	m_prevSampleL += m_smpDiffL;
-	m_smpAccumL   += m_smpDiffL - (m_smpAccumL >> 10);
-	m_sampleValueL = m_smpAccumL;
+	int smpDiffL = sampleValueL - m_prevSampleL;
+	m_prevSampleL += smpDiffL;
+	m_smpAccumL += smpDiffL - (m_smpAccumL >> 10);
+	sampleValueL = m_smpAccumL;
 
 	if (m_stereo) {
 		// remove DC from right channel:
-		m_smpDiffR 	 = m_sampleValueR - m_prevSampleR;
-		m_prevSampleR += m_smpDiffR;
-		m_smpAccumR 	+= m_smpDiffR - (m_smpAccumR >> 10);
-		m_sampleValueR = m_smpAccumR;
+		int smpDiffR = sampleValueR - m_prevSampleR;
+		m_prevSampleR += smpDiffR;
+		m_smpAccumR += smpDiffR - (m_smpAccumR >> 10);
+		sampleValueR = m_smpAccumR;
 
-		if(m_bufferIndex+4 < SampleBufferSize) {
-			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueL   ) & 0xFF;
-			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueL>>8) & 0xFF;
-			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueR   ) & 0xFF;
-			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueR>>8) & 0xFF;
+		if (m_bufferIndex+4 < SampleBufferSize) {
+			m_sampleBuffer[m_bufferIndex++] = (sampleValueL   ) & 0xFF;
+			m_sampleBuffer[m_bufferIndex++] = (sampleValueL>>8) & 0xFF;
+			m_sampleBuffer[m_bufferIndex++] = (sampleValueR   ) & 0xFF;
+			m_sampleBuffer[m_bufferIndex++] = (sampleValueR>>8) & 0xFF;
 		}
 	} else {
 		if (m_bufferIndex+2 < SampleBufferSize) {
-			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueL   ) & 0xFF;
-			m_sampleBuffer[m_bufferIndex++] = (m_sampleValueL>>8) & 0xFF;
+			m_sampleBuffer[m_bufferIndex++] = (sampleValueL   ) & 0xFF;
+			m_sampleBuffer[m_bufferIndex++] = (sampleValueL>>8) & 0xFF;
 		}
 	}
 	// reset sampled values:
@@ -342,7 +333,6 @@ void NesApu::reset() {
 	m_masterFrameCounter = 0;
 	m_derivedFrameCounter = 4;
 	m_countSequence = 0;
-	m_sampleCount = 0;
 
 	m_initCounter = 2048;
 	m_initializingHardware = false;
@@ -362,14 +352,10 @@ void NesApu::reset() {
 	m_smpDM = 0;
 	m_triValue = 0;
 
-	m_sampleValueL = 0;
-	m_sampleValueR = 0;
 	m_prevSampleL = 0;
 	m_prevSampleR = 0;
 	m_smpAccumL = 0;
 	m_smpAccumR = 0;
-	m_smpDiffL = 0;
-	m_smpDiffR = 0;
 }
 
 void NesApu::updateFrameRate() {
@@ -448,3 +434,94 @@ bool NesApu::isDmcEnabled() const
 { return isChannelUserEnabled(4); }
 void NesApu::setDmcEnabled(bool on)
 { setChannelUserEnabled(4, on); }
+
+bool NesApu::save(QDataStream &s) {
+	if (!m_r1ch.save(s))
+		return false;
+	if (!m_r2ch.save(s))
+		return false;
+	if (!m_nsch.save(s))
+		return false;
+	if (!m_trch.save(s))
+		return false;
+	if (!m_dmch.save(s))
+		return false;
+
+	s << m_frameIrqGenerated;
+	s << m_frameIrqEnable;
+	s << m_frameIrqCounterMax;
+
+	s << m_initCounter;
+	s << m_initializingHardware;
+	s << m_masterFrameCounter;
+	s << m_derivedFrameCounter;
+	s << m_countSequence;
+
+	s << m_sampleTimer;
+
+	s << m_triValue;
+
+	s << m_smpR1;
+	s << m_smpR2;
+	s << m_smpTR;
+	s << m_smpNS;
+	s << m_smpDM;
+	s << m_accCount;
+
+	s << m_extraCycles;
+
+	s << m_prevSampleL;
+	s << m_prevSampleR;
+	s << m_smpAccumL;
+	s << m_smpAccumR;
+
+	s << m_irqSignal;
+	return true;
+}
+
+bool NesApu::load(QDataStream &s) {
+	m_sampleTimer = 0;
+	m_bufferIndex = 0;
+
+	if (!m_r1ch.load(s))
+		return false;
+	if (!m_r2ch.load(s))
+		return false;
+	if (!m_nsch.load(s))
+		return false;
+	if (!m_trch.load(s))
+		return false;
+	if (!m_dmch.load(s))
+		return false;
+
+	s >> m_frameIrqGenerated;
+	s >> m_frameIrqEnable;
+	s >> m_frameIrqCounterMax;
+
+	s >> m_sampleTimer;
+
+	s >> m_initCounter;
+	s >> m_initializingHardware;
+	s >> m_masterFrameCounter;
+	s >> m_derivedFrameCounter;
+	s >> m_countSequence;
+
+	s >> m_triValue;
+
+	s >> m_smpR1;
+	s >> m_smpR2;
+	s >> m_smpTR;
+	s >> m_smpNS;
+	s >> m_smpDM;
+	s >> m_accCount;
+
+	s >> m_extraCycles;
+
+	s >> m_prevSampleL;
+	s >> m_prevSampleR;
+	s >> m_smpAccumL;
+	s >> m_smpAccumR;
+
+	s >> m_irqSignal;
+	return true;
+}

@@ -24,6 +24,7 @@ NesMachine::NesMachine(QObject *parent) :
 	QObject::connect(m_ppu, SIGNAL(vblank_o(bool)), m_cpu, SLOT(nmi_i(bool)));
 
 	qmlRegisterType<NesPpu>();
+	qmlRegisterType<NesCpu>();
 	qmlRegisterType<NesApu>();
 }
 
@@ -299,5 +300,28 @@ QRectF NesMachine::videoSrcRect() const
 
 QRectF NesMachine::videoDstRect() const
 { return QRectF(171.0f, 0.0f, NesPpu::VisibleScreenWidth*2, NesPpu::VisibleScreenHeight*2); }
+
+bool NesMachine::save(QDataStream &s) {
+	if (!m_cpu->save(s))
+		return false;
+	if (!m_ppu->save(s))
+		return false;
+	s << m_cpuCycleCounter;
+	s << m_ppuCycleCounter;
+	return true;
+}
+
+bool NesMachine::load(QDataStream &s) {
+	if (!m_cpu->load(s))
+		return false;
+	if (!m_ppu->load(s))
+		return false;
+	s >> m_cpuCycleCounter;
+	s >> m_ppuCycleCounter;
+	return true;
+}
+
+void NesMachine::setGameGenieCodeList(const QList<GameGenieCode> &codes)
+{ m_cpu->mapper()->setGameGenieCodeList(codes); }
 
 Q_EXPORT_PLUGIN2(nes, NesMachine)

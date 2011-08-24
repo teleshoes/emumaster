@@ -6,7 +6,6 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <QDateTime>
-#include <QDebug>
 
 MachineThread::MachineThread(MachineView *parent) :
 	QThread(parent),
@@ -51,39 +50,31 @@ void MachineThread::run() {
 
 	if (hostAudio->isEnabled())
 		hostAudio->open();
-	if (frameSkip < 0) {
-		qreal currentFrameTime = QDateTime::currentMSecsSinceEpoch();
-		while (m_running) {
-			qreal currentTime = QDateTime::currentMSecsSinceEpoch();
-			currentFrameTime += frameTime;
-			if (currentTime < currentFrameTime) {
-				machine->emulateFrame(true);
-				m_inFrameGenerated = true;
-				emit frameGenerated();
-				m_inFrameGenerated = false;
+	qreal currentFrameTime = QDateTime::currentMSecsSinceEpoch();
+	int frameCounter = 0;
+	while (m_running) {
+		qreal currentTime = QDateTime::currentMSecsSinceEpoch();
+		currentFrameTime += frameTime;
+		if (currentTime < currentFrameTime && frameCounter == 0) {
+			machine->emulateFrame(true);
+			m_inFrameGenerated = true;
+			emit frameGenerated();
+			m_inFrameGenerated = false;
+			sendAudioFrame(hostAudio, machine);
+			currentTime = QDateTime::currentMSecsSinceEpoch();
+			if (currentTime < currentFrameTime)
+				sleepMs(currentFrameTime - currentTime);
+		} else {
+			machine->emulateFrame(false);
+			sendAudioFrame(hostAudio, machine);
+			if (frameCounter != 0) {
 				currentTime = QDateTime::currentMSecsSinceEpoch();
 				if (currentTime < currentFrameTime)
 					sleepMs(currentFrameTime - currentTime);
-			} else {
-				machine->emulateFrame(false);
 			}
-			sendAudioFrame(hostAudio, machine);
 		}
-	} else {
-		int frameCounter = 0;
-		while (m_running) {
-			if (frameCounter == 0) {
-				machine->emulateFrame(true);
-				m_inFrameGenerated = true;
-				emit frameGenerated();
-				m_inFrameGenerated = false;
-			} else {
-				machine->emulateFrame(false);
-			}
-			if (++frameCounter > frameSkip)
-				frameCounter = 0;
-			sendAudioFrame(hostAudio, machine);
-		}
+		if (++frameCounter > frameSkip)
+			frameCounter = 0;
 	}
 	if (hostAudio->isEnabled())
 		hostAudio->close();

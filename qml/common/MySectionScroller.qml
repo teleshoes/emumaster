@@ -97,7 +97,7 @@ Item {
 
 			Timer {
 				id: mouseDownTimer
-				interval: 150
+				interval: 100
 
 				onTriggered: {
 					container.dragging = true;

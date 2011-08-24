@@ -19,13 +19,13 @@ OTHER_FILES += \
     ../../qml/gallery/RomChoosePage.qml \
     ../../qml/gallery/GalleryPage.qml \
     ../../qml/gallery/ListPage.qml \
-    ../../qml/gallery/MySectionScroller.js \
-    ../../qml/gallery/MySectionScroller.qml \
-    ../../qml/gallery/constants.js \
-    ../../qml/gallery/MyListDelegate.qml \
-    ../../qml/gallery/SectionScrollerLabel.qml \
-    ../../qml/gallery/CoverFlow.qml \
-    ../../qml/gallery/CoverFlowDelegate.qml
+	../../qml/common/MySectionScroller.js \
+	../../qml/common/MySectionScroller.qml \
+	../../qml/common/constants.js \
+	../../qml/common/MyListDelegate.qml \
+	../../qml/common/SectionScrollerLabel.qml \
+	../../qml/common/CoverFlow.qml \
+	../../qml/common/CoverFlowDelegate.qml
 
 
 

@@ -1,4 +1,5 @@
 #include "m6502.h"
+#include <QDataStream>
 
 // TODO defines to variables
 #if defined(M6502_DECO16)
@@ -11,7 +12,7 @@ static const uint ResetVectorAddress	= 0xFFFC;
 static const uint IrqVectorAddress		= 0xFFFE;
 #endif
 
-// TODO remove
+// TODO remove log
 //#include <QFile>
 //static  QFile cpuLog("cpu.log");
 
@@ -116,3 +117,32 @@ void M6502::reset_i(bool on)
 
 void M6502::setPC(quint16 address)
 { PC = address; }
+
+bool M6502::save(QDataStream &s) {
+	s << QString("M6502");
+	s << int(m_signals);
+	s << A;
+	s << Y << X;
+	s << PC;
+	s << S;
+	s << P;
+	s << m_nmiState;
+	return true;
+}
+
+bool M6502::load(QDataStream &s) {
+	QString header;
+	s >> header;
+	if (header != "M6502")
+		return false;
+	int sigs;
+	s >> sigs;
+	m_signals = static_cast<SignalIn>(sigs);
+	s >> A;
+	s >> Y >> X;
+	s >> PC;
+	s >> S;
+	s >> P;
+	s >> m_nmiState;
+	return true;
+}

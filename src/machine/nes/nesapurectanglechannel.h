@@ -14,6 +14,9 @@ public:
 	void updateSampleValue();
 
 	void clock(int nCycles);
+
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
 private:
 	int m_sweepShiftAmount;
 	bool m_sweepDirection;

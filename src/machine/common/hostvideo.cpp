@@ -22,7 +22,7 @@ HostVideo::HostVideo(MachineView *parent) :
 	m_fpsCounter = 0;
 	m_fpsCounterTime.start();
 
-	m_frameSkip = -1;
+	m_frameSkip = 0;
 
 	m_thread = parent->m_thread;
 }
@@ -101,7 +101,7 @@ QImage HostVideo::screenShotGrayscaled() const {
 	IMachine *machine = machineView->m_machine;
 	if (!machine)
 		return QImage();
-	QImage screenShot(size(), QImage::Format_ARGB32);
+	QImage screenShot(size(), QImage::Format_RGB32);
 	QPainter painter;
 	painter.begin(&screenShot);
 	painter.fillRect(QRectF(QPointF(0.0f, 0.0f), size()), qRgb(0xE0, 0xE1, 0xE2));

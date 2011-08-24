@@ -1,6 +1,6 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
-
+// TODO reset button
 Page {
 	Row {
 		anchors.centerIn: parent
@@ -43,7 +43,7 @@ Page {
 							font.bold: true
 						}
 						Label {
-							text: (fsSlider.value < 0) ? "Auto" : fsSlider.value
+							text: fsSlider.value
 							font.pixelSize: 30
 							font.bold: true
 
@@ -54,7 +54,7 @@ Page {
 			Slider {
 				id: fsSlider
 				width: 320
-				minimumValue: -1
+				minimumValue: 0
 				maximumValue: 5
 				value: video.frameSkip
 				onValueChanged: video.frameSkip = value

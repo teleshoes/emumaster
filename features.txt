@@ -1,3 +1,4 @@
-disable swipe
 rom gallery
 fast scroll
+create icon in home screen
+swipe on/off

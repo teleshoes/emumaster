@@ -26,10 +26,10 @@ void HostAudio::open() {
 #else
 	QAudioFormat fmt;
 	fmt.setByteOrder(QAudioFormat::LittleEndian);
-	fmt.setChannelCount(m_stereo ? 2 : 1);
+	fmt.setChannelCount(m_stereoEnable ? 2 : 1);
 	fmt.setSampleSize(16);
 	fmt.setSampleRate(m_sampleRate);
-	fmt.setCodec(setCodec("audio/pcm"));
+	fmt.setCodec("audio/pcm");
 	fmt.setSampleType(QAudioFormat::SignedInt);
 	m_audio = new QAudioOutput(fmt, this);
 	m_io = m_audio->start();

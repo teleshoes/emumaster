@@ -34,6 +34,9 @@ public:
 
 	int progTimerMax;
 	int progTimerCount;
+
+	virtual bool save(QDataStream &s);
+	virtual bool load(QDataStream &s);
 protected:
 	union {
 		bool envelopeReset;

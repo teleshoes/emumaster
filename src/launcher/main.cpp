@@ -12,6 +12,7 @@ int main(int argc, char *argv[]) {
 	}
 	QApplication app(argc, argv);
 	QDir::setCurrent(app.applicationDirPath());
+
 	QString machineName = argv[1];
 	IMachine *machine = IMachine::loadMachine(machineName);
 	if (!machine) {

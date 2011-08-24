@@ -1,5 +1,6 @@
 #include "nesapudmchannel.h"
 #include "nesapu.h"
+#include <QDataStream>
 
 NesApuDMChannel::NesApuDMChannel(NesApu *apu, int channelNo) :
 	NesApuChannel(channelNo),
@@ -116,3 +117,49 @@ int NesApuDMChannel::m_frequencyLUT[16] = {
 	0x5F0, 0x500, 0x470, 0x400,
 	0x350, 0x2A0, 0x240, 0x1B0
 };
+
+bool NesApuDMChannel::save(QDataStream &s) {
+	if (!NesApuChannel::save(s))
+		return false;
+	s << irqGenerated;
+
+	s << m_hasSample;
+
+	s << int(m_playMode);
+	s << m_dmaFrequency;
+	s << m_dmaCounter;
+	s << m_deltaCounter;
+	s << m_playLength;
+	s << m_shiftCounter;
+	s << m_status;
+	s << m_dacLsb;
+	s << m_shiftReg;
+
+	s << m_playStartAddress;
+	s << m_playAddress;
+	return true;
+}
+
+bool NesApuDMChannel::load(QDataStream &s) {
+	if (!NesApuChannel::load(s))
+		return false;
+	s >> irqGenerated;
+
+	s >> m_hasSample;
+
+	int playMode;
+	s >> playMode;
+	m_playMode = static_cast<Mode>(playMode);
+	s >> m_dmaFrequency;
+	s >> m_dmaCounter;
+	s >> m_deltaCounter;
+	s >> m_playLength;
+	s >> m_shiftCounter;
+	s >> m_status;
+	s >> m_dacLsb;
+	s >> m_shiftReg;
+
+	s >> m_playStartAddress;
+	s >> m_playAddress;
+	return true;
+}

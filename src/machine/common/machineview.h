@@ -7,6 +7,8 @@ class HostVideo;
 class HostAudio;
 class HostInput;
 class MachineImageProvider;
+class MachineStateListModel;
+class GameGenieCodeListModel;
 #include "machine_common_global.h"
 #include <QGLWidget>
 class QThread;
@@ -18,12 +20,17 @@ public:
 	explicit MachineView(IMachine *machine, const QString &diskName, QWidget *parent = 0);
 	~MachineView();
 
+	static QString romDirPath();
+	static QString userDataDirPath();
+	static void buildLocalDirTree();
+
 	IMachine *machine() const;
 
 	void showError(const QString &text);
 	bool isRunning() const;
 
 	Q_INVOKABLE void saveScreenShot();
+	Q_INVOKABLE bool isGameGenieCodeValid(const QString &s);
 public slots:
 	void pause();
 	void resume();
@@ -46,6 +53,12 @@ private:
 	int m_backgroundCounter;
 	QString m_diskName;
 	bool m_wantClose;
+
+	MachineStateListModel *m_stateListModel;
+	bool m_autoLoadOnStart;
+	bool m_autoSaveOnExit;
+
+	GameGenieCodeListModel *m_gameGenieCodeListModel;
 
 	friend class HostVideo;
 	friend class MachineThread;

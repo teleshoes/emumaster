@@ -23,8 +23,7 @@ HEADERS += \
     nesppuregisters.h \
     nesppupalette.h \
     nesdisk_p.h \
-    nesmappereeprom.h \
-    nessettingsview.h
+    nesmappereeprom.h
 
 SOURCES += \
     nesdisk.cpp \
@@ -44,8 +43,7 @@ SOURCES += \
     nesppuregisters.cpp \
     nesppupalette.cpp \
     nesdisk_patch.cpp \
-    nesmappereeprom.cpp \
-    nessettingsview.cpp
+    nesmappereeprom.cpp
 
 unix:!symbian:!maemo5 {
     target.path = /opt/nes/lib
@@ -60,6 +58,8 @@ OTHER_FILES += \
     ../../../qml/nes/InputPage.qml \
     ../../../qml/nes/StatePage.qml \
     ../../../qml/nes/CheatPage.qml
+
+
 
 
 

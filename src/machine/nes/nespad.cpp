@@ -1,5 +1,4 @@
 #include "nespad.h"
-#include <QDebug>
 
 NesPad::NesPad(QObject *parent) :
 	QObject(parent) {

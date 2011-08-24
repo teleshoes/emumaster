@@ -1,5 +1,5 @@
-TEMPLATE = lib
-DESTDIR = ../../../lib
+include(../../component.pri)
+
 DEFINES += CRC32_PROJECT
 
 SOURCES += \

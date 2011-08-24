@@ -13,6 +13,9 @@ public:
 
 	int sample();
 	void clock(int nCycles);
+
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
 private:
 	int m_randomBit;
 	bool m_randomMode;

@@ -42,6 +42,9 @@ public:
 	static const char *instructionName(quint8 instruction);
 	static int instructionSize(quint8 instruction);
 	static AddressingMode addressingMode(quint8 instruction);
+
+	virtual bool save(QDataStream &s);
+	virtual bool load(QDataStream &s);
 public slots:
 	void irq0_i(bool on);
 	void nmi_i(bool on);
@@ -60,7 +63,7 @@ private:
 	void WRITE(quint16 addr, quint8 data);
 	quint8 READ(quint16 addr);
 	void PUSH(quint8 data);
-        quint8 POP();
+	quint8 POP();
 
 	static const int StackBase = 0x100;
 

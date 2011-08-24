@@ -21,7 +21,6 @@ public:
 	enum ControlReg0Bit {
 		//	Indicates whether a NMI should occur upon V-Blank.
 		VBlankEnableCR0Bit = 0x80,
-		//	TODO MasterSlaveCR0Bit = 0x40, ???
 		//	Specifies the size of sprites in pixels 8x8 (0) or 8x16(1).
 		SpriteSizeCR0Bit = 0x20,
 		/* Identifies which pattern table the background is
