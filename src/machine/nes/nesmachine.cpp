@@ -293,7 +293,7 @@ void NesMachine::processCheatCodes() {
 }
 
 quint32 NesMachine::diskCrc() const
-{ return m_disk->crc(); }
+{ return m_disk ? m_disk->crc() : 0; }
 
 QRectF NesMachine::videoSrcRect() const
 { return QRectF(8.0f, 1.0f, NesPpu::VisibleScreenWidth, NesPpu::VisibleScreenHeight); }

@@ -22,7 +22,7 @@ signals:
 protected:
 	void run();
 private:
-	void sendAudioFrame(HostAudio *hostAudio, IMachine *machine, bool send);
+	void sendAudioFrame(HostAudio *hostAudio, IMachine *machine);
 
 	volatile bool m_running;
 	volatile bool m_inFrameGenerated;

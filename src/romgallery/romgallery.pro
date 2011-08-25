@@ -32,9 +32,21 @@ unix {
 		../../qml/gallery/GalleryPage.qml \
 		../../qml/gallery/ListPage.qml
 
-	iconfile.path = /opt/emumaster
-	iconfile.files = ../../mainicon.png
-	desktopfile.path = /usr/share/applications
-	desktopfile.files = emumaster.desktop
-	INSTALLS += target qml iconfile desktopfile
+	datafiles = \
+		../../data/icon_mask.png \
+		../../data/icon_overlay.png
+
+	INSTALLS += target qml datafiles
+}
+
+contains(MEEGO_EDITION,harmattan) {
+    icon.files = romgallery.png
+    icon.path = /usr/share/icons/hicolor/80x80/apps
+    INSTALLS += icon
+}
+
+contains(MEEGO_EDITION,harmattan) {
+    desktopfile.files = $${TARGET}.desktop
+    desktopfile.path = /usr/share/applications
+    INSTALLS += desktopfile
 }

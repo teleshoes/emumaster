@@ -23,7 +23,6 @@ private:
 	RomListModel *m_romListModel;
 	QString m_diskName;
 	MachineView *m_machineView;
-	bool m_wantClose;
 };
 
 #endif // ROMGALLERY_H

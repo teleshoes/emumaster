@@ -42,9 +42,8 @@ void HostVideo::setFrameSkip(int skip) {
 	}
 }
 
-void HostVideo::initializeGL() {
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-}
+void HostVideo::initializeGL()
+{ glClearColor(0.0f, 0.0f, 0.0f, 1.0f); }
 
 void HostVideo::paintEvent(QPaintEvent *) {
 	IMachine *machine = m_machineView->m_machine;
@@ -93,6 +92,9 @@ void HostVideo::mousePressEvent(QMouseEvent *me) {
 	m_machineView->pause();
 }
 
+void HostVideo::closeEvent(QCloseEvent *e)
+{ e->setAccepted(m_machineView->close()); }
+
 QImage HostVideo::screenShotGrayscaled() const {
 	IMachine *machine = m_machineView->m_machine;
 	if (!machine)
@@ -113,7 +115,7 @@ QImage HostVideo::screenShotGrayscaled() const {
 	return screenShot;
 }
 
-void HostVideo::setVisible(bool visible) {
+void HostVideo::setVideoVisible(bool visible) {
 	if (visible) {
 #	if defined(MEEGO_EDITION_HARMATTAN)
 		showFullScreen();

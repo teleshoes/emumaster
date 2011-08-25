@@ -71,6 +71,9 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 	m_machine->moveToThread(m_thread);
 	m_machine->updateSettings();
 
+	m_hostVideo->setAttribute(Qt::WA_QuitOnClose, false);
+	m_settingsView->setAttribute(Qt::WA_QuitOnClose, false);
+
 	if (error.isEmpty()) {
 		m_machine->emulateFrame(false);
 		if (m_autoLoadOnStart)
@@ -94,7 +97,10 @@ MachineView::~MachineView() {
 		m_gameGenieCodeListModel->save();
 	}
 	delete m_machine;
+	delete m_hostVideo;
 	delete m_settingsView;
+	if (!parent())
+		qApp->exit();
 }
 
 void MachineView::setupSwipe(bool on) {
@@ -126,8 +132,8 @@ void MachineView::setupSwipe(bool on) {
 void MachineView::showError(const QString &text) {
 	Q_ASSERT(!text.isEmpty());
 	m_hostVideo->m_error = text;
-	m_settingsView->setVisible(false);
-	m_hostVideo->setVisible(true);
+	setSettingsViewVisible(false);
+	m_hostVideo->setVideoVisible(true);
 }
 
 // two-stage pause preventing deadlocks
@@ -152,12 +158,13 @@ void MachineView::pauseStage2() {
 		setSettingsViewVisible(true);
 		m_settingsView->setFocus();
 	}
-	m_hostVideo->setVisible(false);
+	m_hostVideo->setVideoVisible(false);
 	setupSwipe(true);
 	m_running = false;
-	emit runningChanged();
-// TODO 	if (m_wantClose)
-//		close();
+	if (m_wantClose)
+		close();
+	else
+		emit runningChanged();
 }
 
 void MachineView::resume() {
@@ -168,7 +175,7 @@ void MachineView::resume() {
 	m_machine->m_audioStereoEnable = m_hostAudio->isStereoEnabled();
 	m_machine->updateSettings();
 
-	m_hostVideo->setVisible(true);
+	m_hostVideo->setVideoVisible(true);
 	m_hostVideo->setFocus();
 	setSettingsViewVisible(false);
 	setupSwipe(m_hostInput->isSwipeEnabled());
@@ -186,15 +193,16 @@ void MachineView::resume() {
 	emit runningChanged();
 }
 
-// TODO void MachineView::closeEvent(QCloseEvent *e) {
-//	m_wantClose = true;
-//	if (m_running) {
-//		pause();
-//		e->ignore();
-//	} else {
-//		e->accept();
-//	}
-//}
+bool MachineView::close() {
+	m_wantClose = true;
+	if (m_running) {
+		pause();
+		return false;
+	} else {
+		deleteLater();
+		return true;
+	}
+}
 
 void MachineView::saveScreenShot() {
 	m_machine->frame().copy(m_machine->videoSrcRect().toRect())

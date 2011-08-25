@@ -33,12 +33,11 @@ static void sleepMs(uint msecs) {
 	mutex.unlock();
 }
 
-inline void MachineThread::sendAudioFrame(HostAudio *hostAudio, IMachine *machine, bool send) {
+inline void MachineThread::sendAudioFrame(HostAudio *hostAudio, IMachine *machine) {
 	if (hostAudio->isEnabled()) {
 		int size;
 		const char *data = machine->grabAudioBuffer(&size);
-		if (send)
-			hostAudio->write(data, size);
+		hostAudio->write(data, size);
 	}
 }
 
@@ -64,13 +63,13 @@ void MachineThread::run() {
 			m_inFrameGenerated = true;
 			emit frameGenerated();
 			m_inFrameGenerated = false;
-			sendAudioFrame(hostAudio, machine, true);
+			sendAudioFrame(hostAudio, machine);
 			qreal currentTime = time.elapsed();//QDateTime::currentMSecsSinceEpoch();
 			if (currentTime < currentFrameTime)
 				sleepMs(currentFrameTime - currentTime);
 		} else {
 			machine->emulateFrame(false);
-			sendAudioFrame(hostAudio, machine, false);
+			sendAudioFrame(hostAudio, machine);
 			if (frameCounter != 0) {
 				qreal currentTime = time.elapsed();//QDateTime::currentMSecsSinceEpoch();
 				if (currentTime < currentFrameTime)

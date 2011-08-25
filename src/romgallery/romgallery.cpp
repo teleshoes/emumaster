@@ -13,8 +13,7 @@
 
 RomGallery::RomGallery(QWidget *parent) :
 	QDeclarativeView(parent),
-	m_machineView(0),
-	m_wantClose(false) {
+	m_machineView(0) {
 	m_romListModel = new RomListModel(this);
 	engine()->addImageProvider("rom", new RomImageProvider());
 	rootContext()->setContextProperty("romListModel", m_romListModel);
@@ -33,27 +32,18 @@ bool RomGallery::launch(const QString &diskName) {
 	m_diskName = diskName;
 	m_machineView = new MachineView(machine, diskName, this);
 	QObject::connect(m_machineView, SIGNAL(destroyed()), SLOT(onMachineViewDestroyed()));
-//	TODO m_machineView->setAttribute(Qt::WA_DeleteOnClose);
+	setVisible(false);
 	return true;
 }
 
 void RomGallery::onMachineViewDestroyed() {
 	m_machineView = 0;
-	if (m_wantClose) {
-		close();
-	} else {
-		m_romListModel->updateScreenShot(m_diskName);
-	}
+	m_romListModel->updateScreenShot(m_diskName);
+	setVisible(true);
 }
 
 void RomGallery::closeEvent(QCloseEvent *e) {
-	m_wantClose = true;
-	if (m_machineView && m_machineView->isRunning()) {
-// TODO		m_machineView->close();
-		e->ignore();
-	} else {
-		e->accept();
-	}
+	e->setAccepted(m_machineView == 0);
 }
 
 QImage RomGallery::applyMaskAndOverlay(const QImage &icon) {
@@ -90,10 +80,12 @@ QImage RomGallery::applyMaskAndOverlay(const QImage &icon) {
 }
 
 bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x, int y) {
+	QString escapedDiskName = diskName;
+	escapedDiskName.replace(' ', '_');
 	RomImageProvider imgProvider;
 	QImage imgSrc = imgProvider.requestImage(QString("%1%2*%3")
 											 .arg(m_romListModel->machineName())
-											 .arg(diskName)
+											 .arg(escapedDiskName)
 											 .arg(qrand()), 0, QSize());
 	QImage scaled = imgSrc.scaled(qreal(imgSrc.width())*scale,
 								  qreal(imgSrc.height())*scale,
@@ -108,27 +100,29 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 	QString iconPath = QString("%1/icon/%2%3.png")
 			.arg(MachineView::userDataDirPath())
 			.arg(machineName)
-			.arg(diskName);
+			.arg(escapedDiskName);
 	if (!icon.save(iconPath))
 		return false;
 
 	QString desktopFileContent = QString(
 				"[Desktop Entry]\n"
+				"Encoding=UTF-8\n"
+				"Version=1.0\n"
 				"Type=Application\n"
 				"Name=%3\n"
-				"Exec=%1/launcher %2 \"%3\"\n"
-				"Icon=\"%4\"\n"
+				"Exec=/usr/bin/single-instance %1/launcher %2 \"%3\"\n"
+				"Icon=%4\n"
 				"Terminal=false\n"
-				"Categories=Emulator\n")
+				"Categories=Emulator;\n")
 			.arg(QDir::currentPath())
 			.arg(machineName)
-			.arg(diskName)
+			.arg(escapedDiskName)
 			.arg(iconPath);
 
 	QFile file(QString("%1/.local/share/applications/emumaster_%2_%3.desktop")
 			   .arg(getenv("HOME"))
 			   .arg(machineName)
-			   .arg(diskName));
+			   .arg(escapedDiskName));
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
 		return false;
 	QTextStream out(&file);

@@ -19,6 +19,6 @@ int main(int argc, char *argv[]) {
 		QTextStream(stderr) << qPrintable(QString("Could not load %1 machine").arg(machineName));
 		return -2;
 	}
-	MachineView view(machine, argv[2]);
+	MachineView *view = new MachineView(machine, argv[2]);
 	return app.exec();
 }

@@ -17,7 +17,6 @@ class QDeclarativeView;
 class MACHINE_COMMON_EXPORT MachineView : public QObject {
 	Q_OBJECT
 public:
-	// TODO QWidgte -> QObject
 	explicit MachineView(IMachine *machine, const QString &diskName, QWidget *parent = 0);
 	~MachineView();
 
@@ -39,8 +38,7 @@ signals:
 	void runningChanged();
 private slots:
 	void pauseStage2();
-// TODO protected:
-//	void closeEvent(QCloseEvent *);
+	bool close();
 private:
 	void setupSwipe(bool on);
 	QString screenShotPath() const;

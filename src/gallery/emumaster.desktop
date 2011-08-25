@@ -1,7 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=EmuMaster
-Exec=/opt/emumaster/bin/gallery
-Icon=/opt/emumaster/mainicon.png
-Terminal=false
-Categories=Emulator

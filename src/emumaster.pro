@@ -4,7 +4,7 @@ SUBDIRS += \
 	component \
 	machine \
 	launcher \
-	gallery
+	romgallery
 
 OTHER_FILES += \
 	../todo.txt \
