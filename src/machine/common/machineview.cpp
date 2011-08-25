@@ -24,7 +24,7 @@
 #endif
 
 MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *parent) :
-	QWidget(parent),
+	QObject(parent),
 	m_machine(machine),
 	m_running(false),
 	m_backgroundCounter(qAbs(qrand())/2),
@@ -33,13 +33,6 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 	m_autoLoadOnStart(true),
 	m_autoSaveOnExit(true) {
 	Q_ASSERT(m_machine != 0);
-
-#if defined(MEEGO_EDITION_HARMATTAN)
-	showFullScreen();
-#else
-	resize(854, 480);
-	show();
-#endif
 
 	m_thread = new MachineThread(this);
 
@@ -57,7 +50,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 									   .arg(diskName));
 
 	m_stateListModel = new MachineStateListModel(this);
-	m_settingsView = new QDeclarativeView(this);
+	m_settingsView = new QDeclarativeView();
 	m_settingsView->engine()->addImageProvider("machine", new MachineImageProvider(this, m_stateListModel));
 	m_settingsView->rootContext()->setContextProperty("backgroundPath", "");
 	m_settingsView->rootContext()->setContextProperty("machineView", static_cast<QObject *>(this));
@@ -67,7 +60,6 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 	m_settingsView->rootContext()->setContextProperty("machine", static_cast<QObject *>(m_machine));
 	m_settingsView->rootContext()->setContextProperty("stateListModel", static_cast<QObject *>(m_stateListModel));
 	QObject::connect(m_settingsView->engine(), SIGNAL(quit()), SLOT(close()));
-	m_settingsView->resize(size());
 
 	if (!error.isEmpty())
 		showError(error);
@@ -102,12 +94,15 @@ MachineView::~MachineView() {
 		m_gameGenieCodeListModel->save();
 	}
 	delete m_machine;
+	delete m_settingsView;
 }
 
 void MachineView::setupSwipe(bool on) {
+	// TODO swipe test
+	return;
 #if defined(MEEGO_EDITION_HARMATTAN)
 	Display *dpy = QX11Info::display();
-	Window w = effectiveWinId();
+	Window w = m_hostVideo->effectiveWinId();
 
 	unsigned long val = (on ? 1 : 0);
 	Atom atom = XInternAtom(dpy, "_MEEGOTOUCH_CANNOT_MINIMIZE", false);
@@ -131,8 +126,8 @@ void MachineView::setupSwipe(bool on) {
 void MachineView::showError(const QString &text) {
 	Q_ASSERT(!text.isEmpty());
 	m_hostVideo->m_error = text;
-	m_settingsView->hide();
-	m_hostVideo->show();
+	m_settingsView->setVisible(false);
+	m_hostVideo->setVisible(true);
 }
 
 // two-stage pause preventing deadlocks
@@ -154,15 +149,15 @@ void MachineView::pauseStage2() {
 	if (m_settingsView->source().isEmpty())
 		m_settingsView->setSource(QUrl::fromLocalFile(QString("../qml/%1/main.qml").arg(m_machine->name())));
 	if (!m_wantClose) {
-		m_settingsView->show();
+		setSettingsViewVisible(true);
 		m_settingsView->setFocus();
 	}
-	m_hostVideo->hide();
+	m_hostVideo->setVisible(false);
 	setupSwipe(true);
 	m_running = false;
 	emit runningChanged();
-	if (m_wantClose)
-		close();
+// TODO 	if (m_wantClose)
+//		close();
 }
 
 void MachineView::resume() {
@@ -173,9 +168,9 @@ void MachineView::resume() {
 	m_machine->m_audioStereoEnable = m_hostAudio->isStereoEnabled();
 	m_machine->updateSettings();
 
-	m_hostVideo->show();
+	m_hostVideo->setVisible(true);
 	m_hostVideo->setFocus();
-	m_settingsView->hide();
+	setSettingsViewVisible(false);
 	setupSwipe(m_hostInput->isSwipeEnabled());
 
 	QObject::connect(m_thread, SIGNAL(frameGenerated()),
@@ -191,15 +186,15 @@ void MachineView::resume() {
 	emit runningChanged();
 }
 
-void MachineView::closeEvent(QCloseEvent *e) {
-	m_wantClose = true;
-	if (m_running) {
-		pause();
-		e->ignore();
-	} else {
-		e->accept();
-	}
-}
+// TODO void MachineView::closeEvent(QCloseEvent *e) {
+//	m_wantClose = true;
+//	if (m_running) {
+//		pause();
+//		e->ignore();
+//	} else {
+//		e->accept();
+//	}
+//}
 
 void MachineView::saveScreenShot() {
 	m_machine->frame().copy(m_machine->videoSrcRect().toRect())
@@ -238,4 +233,17 @@ QString MachineView::screenShotPath() const {
 			.arg(userDataDirPath())
 			.arg(m_machine->name())
 			.arg(m_diskName);
+}
+
+void MachineView::setSettingsViewVisible(bool visible) {
+	if (visible) {
+#	if defined(MEEGO_EDITION_HARMATTAN)
+		m_settingsView->showFullScreen();
+#	else
+		m_settingsView->resize(854, 480);
+		m_settingsView->setVisible(true);
+#	endif
+	} else {
+		m_settingsView->setVisible(false);
+	}
 }

@@ -11,7 +11,7 @@ class HostVideo : public QGLWidget {
 	Q_PROPERTY(bool fpsVisible READ isFpsVisible WRITE setFpsVisible NOTIFY fpsVisibleChanged)
 	Q_PROPERTY(int frameSkip READ frameSkip WRITE setFrameSkip NOTIFY frameSkipChanged)
 public:
-	explicit HostVideo(MachineView *parent);
+	explicit HostVideo(MachineView *);
 	~HostVideo();
 
 	bool isFpsVisible() const;
@@ -20,6 +20,7 @@ public:
 	int frameSkip() const;
 	void setFrameSkip(int skip);
 	QImage screenShotGrayscaled() const;
+	void setVisible(bool visible);
 signals:
 	void fpsVisibleChanged();
 	void frameSkipChanged();
@@ -41,6 +42,7 @@ private:
 
 	int m_frameSkip;
 	MachineThread *m_thread;
+	MachineView *m_machineView;
 
 	friend class MachineView;
 };

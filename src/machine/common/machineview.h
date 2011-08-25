@@ -14,9 +14,10 @@ class GameGenieCodeListModel;
 class QThread;
 class QDeclarativeView;
 
-class MACHINE_COMMON_EXPORT MachineView : public QWidget {
+class MACHINE_COMMON_EXPORT MachineView : public QObject {
 	Q_OBJECT
 public:
+	// TODO QWidgte -> QObject
 	explicit MachineView(IMachine *machine, const QString &diskName, QWidget *parent = 0);
 	~MachineView();
 
@@ -38,11 +39,12 @@ signals:
 	void runningChanged();
 private slots:
 	void pauseStage2();
-protected:
-	void closeEvent(QCloseEvent *);
+// TODO protected:
+//	void closeEvent(QCloseEvent *);
 private:
 	void setupSwipe(bool on);
 	QString screenShotPath() const;
+	void setSettingsViewVisible(bool visible);
 
 	QDeclarativeView *m_settingsView;
 	HostVideo *m_hostVideo;

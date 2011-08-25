@@ -5,8 +5,8 @@
 #include <QPainter>
 #include <QKeyEvent>
 
-HostVideo::HostVideo(MachineView *parent) :
-	QGLWidget(parent) {
+HostVideo::HostVideo(MachineView *machineView) :
+	m_machineView(machineView) {
 
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_AcceptTouchEvents);
@@ -15,16 +15,14 @@ HostVideo::HostVideo(MachineView *parent) :
 	grabGesture(Qt::PinchGesture);
 	grabGesture(Qt::SwipeGesture);
 
-	resize(parent->size());
-
-	m_fpsVisble = false;
+	m_fpsVisble = true;
 	m_fpsCount = 0;
 	m_fpsCounter = 0;
 	m_fpsCounterTime.start();
 
 	m_frameSkip = 0;
 
-	m_thread = parent->m_thread;
+	m_thread = machineView->m_thread;
 }
 
 HostVideo::~HostVideo() {
@@ -49,8 +47,7 @@ void HostVideo::initializeGL() {
 }
 
 void HostVideo::paintEvent(QPaintEvent *) {
-	MachineView *machineView = static_cast<MachineView *>(parent());
-	IMachine *machine = machineView->m_machine;
+	IMachine *machine = m_machineView->m_machine;
 	Q_ASSERT(machine != 0);
 
 	QPainter painter;
@@ -67,7 +64,7 @@ void HostVideo::paintEvent(QPaintEvent *) {
 		painter.setFont(font);
 		painter.setPen(Qt::red);
 		painter.drawText(rect(), Qt::AlignCenter, m_error);
-	} else if (machine != 0) {
+	} else {
 		if (!m_thread->m_inFrameGenerated)
 			return;
 		painter.drawImage(m_dstRect, machine->frame(), m_srcRect);
@@ -93,12 +90,11 @@ void HostVideo::paintEvent(QPaintEvent *) {
 
 void HostVideo::mousePressEvent(QMouseEvent *me) {
 	Q_UNUSED(me)
-	static_cast<MachineView *>(parent())->pause();
+	m_machineView->pause();
 }
 
 QImage HostVideo::screenShotGrayscaled() const {
-	MachineView *machineView = static_cast<MachineView *>(parent());
-	IMachine *machine = machineView->m_machine;
+	IMachine *machine = m_machineView->m_machine;
 	if (!machine)
 		return QImage();
 	QImage screenShot(size(), QImage::Format_RGB32);
@@ -115,4 +111,17 @@ QImage HostVideo::screenShotGrayscaled() const {
 		data[i] = qRgb(val, val, val);
 	}
 	return screenShot;
+}
+
+void HostVideo::setVisible(bool visible) {
+	if (visible) {
+#	if defined(MEEGO_EDITION_HARMATTAN)
+		showFullScreen();
+#	else
+		resize(854, 480);
+		QGLWidget::setVisible(true);
+#	endif
+	} else {
+		QGLWidget::setVisible(false);
+	}
 }

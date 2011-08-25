@@ -11,6 +11,8 @@ NesMapper::NesMapper(const QString &name, NesMachine *machine) :
         m_name(name) {
 }
 
+#include <QFileInfo>
+
 NesMapper *NesMapper::load(NesMachine *machine, quint8 type) {
 #if defined(Q_OS_WIN)
 	QString path = QString("../lib/nes_mapper/mapper%1.dll").arg(type);

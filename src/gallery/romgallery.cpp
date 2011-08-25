@@ -33,7 +33,7 @@ bool RomGallery::launch(const QString &diskName) {
 	m_diskName = diskName;
 	m_machineView = new MachineView(machine, diskName, this);
 	QObject::connect(m_machineView, SIGNAL(destroyed()), SLOT(onMachineViewDestroyed()));
-	m_machineView->setAttribute(Qt::WA_DeleteOnClose);
+//	TODO m_machineView->setAttribute(Qt::WA_DeleteOnClose);
 	return true;
 }
 
@@ -49,7 +49,7 @@ void RomGallery::onMachineViewDestroyed() {
 void RomGallery::closeEvent(QCloseEvent *e) {
 	m_wantClose = true;
 	if (m_machineView && m_machineView->isRunning()) {
-		m_machineView->close();
+// TODO		m_machineView->close();
 		e->ignore();
 	} else {
 		e->accept();

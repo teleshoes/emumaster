@@ -33,11 +33,12 @@ static void sleepMs(uint msecs) {
 	mutex.unlock();
 }
 
-inline void MachineThread::sendAudioFrame(HostAudio *hostAudio, IMachine *machine) {
+inline void MachineThread::sendAudioFrame(HostAudio *hostAudio, IMachine *machine, bool send) {
 	if (hostAudio->isEnabled()) {
 		int size;
 		const char *data = machine->grabAudioBuffer(&size);
-		hostAudio->write(data, size);
+		if (send)
+			hostAudio->write(data, size);
 	}
 }
 
@@ -50,27 +51,33 @@ void MachineThread::run() {
 
 	if (hostAudio->isEnabled())
 		hostAudio->open();
-	qreal currentFrameTime = QDateTime::currentMSecsSinceEpoch();
+	QTime time;
+	time.start();
+	qreal currentFrameTime = 500;//QDateTime::currentMSecsSinceEpoch();
 	int frameCounter = 0;
 	while (m_running) {
-		qreal currentTime = QDateTime::currentMSecsSinceEpoch();
+		qreal currentTime = time.elapsed();//QDateTime::currentMSecsSinceEpoch();
 		currentFrameTime += frameTime;
+//		qDebug(qPrintable(QString("%1 %2").arg(currentTime).arg(currentFrameTime)));
 		if (currentTime < currentFrameTime && frameCounter == 0) {
 			machine->emulateFrame(true);
 			m_inFrameGenerated = true;
 			emit frameGenerated();
 			m_inFrameGenerated = false;
-			sendAudioFrame(hostAudio, machine);
-			currentTime = QDateTime::currentMSecsSinceEpoch();
+			sendAudioFrame(hostAudio, machine, true);
+			qreal currentTime = time.elapsed();//QDateTime::currentMSecsSinceEpoch();
 			if (currentTime < currentFrameTime)
 				sleepMs(currentFrameTime - currentTime);
 		} else {
 			machine->emulateFrame(false);
-			sendAudioFrame(hostAudio, machine);
+			sendAudioFrame(hostAudio, machine, false);
 			if (frameCounter != 0) {
-				currentTime = QDateTime::currentMSecsSinceEpoch();
+				qreal currentTime = time.elapsed();//QDateTime::currentMSecsSinceEpoch();
 				if (currentTime < currentFrameTime)
 					sleepMs(currentFrameTime - currentTime);
+			} else {
+				currentFrameTime = 0;
+				time.restart();
 			}
 		}
 		if (++frameCounter > frameSkip)

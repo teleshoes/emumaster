@@ -247,7 +247,7 @@ void NesCpuMapper::setGameGenieCodeList(const QList<GameGenieCode> &codes) {
 	processGameGenieCodes();
 }
 
-inline void NesCpuMapper::processGameGenieCodes() {
+void NesCpuMapper::processGameGenieCodes() {
 	for (int i = 0; i < m_gameGenieCodeList.size(); i++) {
 		GameGenieCode &code = m_gameGenieCodeList[i];
 		uint address = code.address() | 0x8000;

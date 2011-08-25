@@ -13,7 +13,7 @@ exists($$QMAKE_INCDIR_QT"/../qmsystem2/qmkeys.h"):!contains(MEEGO_EDITION,harmat
 }
 
 unix {
-	QMAKE_LFLAGS += -Wl,--rpath,/opt/emumaster/lib
-	target.path = /opt/emumaster/lib
+	QMAKE_LFLAGS += -Wl,--rpath,/opt/emumaster/lib/nes_mapper:/opt/emumaster/lib
+	target.path = /opt/emumaster/lib/nes_mapper
 	INSTALLS += target
 }
