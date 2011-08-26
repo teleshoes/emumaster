@@ -5,6 +5,12 @@
 #include <QPainter>
 #include <QKeyEvent>
 
+#if defined(MEEGO_EDITION_HARMATTAN)
+#include <QX11Info>
+#include <X11/Xatom.h>
+#include <X11/Xlib.h>
+#endif
+
 HostVideo::HostVideo(MachineView *machineView) :
 	m_machineView(machineView) {
 
@@ -15,12 +21,12 @@ HostVideo::HostVideo(MachineView *machineView) :
 	grabGesture(Qt::PinchGesture);
 	grabGesture(Qt::SwipeGesture);
 
-	m_fpsVisble = true;
+	m_fpsVisble = false;
 	m_fpsCount = 0;
 	m_fpsCounter = 0;
 	m_fpsCounterTime.start();
 
-	m_frameSkip = 0;
+	m_frameSkip = 1;
 
 	m_thread = machineView->m_thread;
 }
@@ -115,7 +121,31 @@ QImage HostVideo::screenShotGrayscaled() const {
 	return screenShot;
 }
 
-void HostVideo::setVideoVisible(bool visible) {
+void HostVideo::setupSwipe(bool on) {
+#if defined(MEEGO_EDITION_HARMATTAN)
+	Display *dpy = QX11Info::display();
+	Window w = effectiveWinId();
+
+	unsigned long val = (on ? 0 : 1);
+	Atom atom = XInternAtom(dpy, "_MEEGOTOUCH_CANNOT_MINIMIZE", false);
+	if (!atom) {
+		qWarning("Unable to obtain _MEEGOTOUCH_CANNOT_MINIMIZE.");
+		return;
+	}
+	XChangeProperty(dpy,
+					w,
+					atom,
+					XA_CARDINAL,
+					32,
+					PropModeReplace,
+					reinterpret_cast<unsigned char *>(&val),
+					1);
+#else
+	Q_UNUSED(on)
+#endif
+}
+
+void HostVideo::setMyVisible(bool visible) {
 	if (visible) {
 #	if defined(MEEGO_EDITION_HARMATTAN)
 		showFullScreen();
@@ -123,7 +153,14 @@ void HostVideo::setVideoVisible(bool visible) {
 		resize(854, 480);
 		QGLWidget::setVisible(true);
 #	endif
+		setFocus();
 	} else {
 		QGLWidget::setVisible(false);
 	}
+}
+
+void HostVideo::changeEvent(QEvent *e) {
+	if (e->type() == QEvent::WindowStateChange && windowState().testFlag(Qt::WindowMinimized))
+		m_machineView->pause();
+	QGLWidget::changeEvent(e);
 }

@@ -26,6 +26,7 @@ NesMachine::NesMachine(QObject *parent) :
 	qmlRegisterType<NesPpu>();
 	qmlRegisterType<NesCpu>();
 	qmlRegisterType<NesApu>();
+	qmlRegisterType<NesDisk>();
 }
 
 NesMachine::~NesMachine() {

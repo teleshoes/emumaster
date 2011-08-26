@@ -54,6 +54,7 @@ void MachineThread::run() {
 	time.start();
 	qreal currentFrameTime = 500;//QDateTime::currentMSecsSinceEpoch();
 	int frameCounter = 0;
+	// TODO do this better
 	while (m_running) {
 		qreal currentTime = time.elapsed();//QDateTime::currentMSecsSinceEpoch();
 		currentFrameTime += frameTime;

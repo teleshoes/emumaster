@@ -19,7 +19,10 @@ Page {
 				tab: listTab
 			}
 		}
-		// TODO about
+		ToolIcon {
+			iconId: "toolbar-contact"
+			onClicked: aboutSheet.open()
+		}
 		ToolIcon {
 			iconId: "toolbar-home"
 			visible: currentRomIndex >= 0
@@ -137,9 +140,21 @@ Page {
 		rejectButtonText: ""
 	}
 
+	QueryDialog {
+		id: howToInstallRomDialog
+
+		acceptButtonText: ""
+		rejectButtonText: "Close"
+
+		titleText: "Help"
+		message: "ROMs not found. To install ROM you need to attach phone to the PC and copy your files to \"emumaster/" + romListModel.machineName + "\" directory. Remember to detach phone from the PC. Consider a small donation if you find this software useful"
+	}
 	Component.onCompleted: {
 		romListModel.machineName = "nes"
 		if (romListModel.count > 0)
 			currentRomIndex = 0
+		else
+			howToInstallRomDialog.open()
 	}
+	AboutSheet { id: aboutSheet }
 }

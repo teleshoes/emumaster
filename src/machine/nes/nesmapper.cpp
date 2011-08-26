@@ -7,8 +7,8 @@
 NesMapper::NesMapper(const QString &name, NesMachine *machine) :
 	QObject(machine),
 	m_cpuMapper(0),
-        m_ppuMapper(0),
-        m_name(name) {
+	m_ppuMapper(0),
+	m_name(name) {
 }
 
 #include <QFileInfo>

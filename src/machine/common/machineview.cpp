@@ -1,10 +1,10 @@
-// TODO onWindowStateChanged
 #include "machineview.h"
 #include "imachine.h"
 #include "machinethread.h"
 #include "hostvideo.h"
 #include "hostaudio.h"
 #include "hostinput.h"
+#include "settingsview.h"
 #include "machineimageprovider.h"
 #include "machinestatelistmodel.h"
 #include "gamegeniecodelistmodel.h"
@@ -16,12 +16,6 @@
 #include <QDeclarativeEngine>
 #include <QTimer>
 #include <QDir>
-
-#if defined(MEEGO_EDITION_HARMATTAN)
-#include <QX11Info>
-#include <X11/Xatom.h>
-#include <X11/Xlib.h>
-#endif
 
 MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *parent) :
 	QObject(parent),
@@ -50,9 +44,10 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 									   .arg(diskName));
 
 	m_stateListModel = new MachineStateListModel(this);
-	m_settingsView = new QDeclarativeView();
+	m_settingsView = new SettingsView(this);
 	m_settingsView->engine()->addImageProvider("machine", new MachineImageProvider(this, m_stateListModel));
 	m_settingsView->rootContext()->setContextProperty("backgroundPath", "");
+	m_settingsView->rootContext()->setContextProperty("settingsView", static_cast<QObject *>(m_settingsView));
 	m_settingsView->rootContext()->setContextProperty("machineView", static_cast<QObject *>(this));
 	m_settingsView->rootContext()->setContextProperty("video", static_cast<QObject *>(m_hostVideo));
 	m_settingsView->rootContext()->setContextProperty("audio", static_cast<QObject *>(m_hostAudio));
@@ -64,7 +59,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 	if (!error.isEmpty())
 		showError(error);
 
-	m_gameGenieCodeListModel  = new GameGenieCodeListModel(this);
+	m_gameGenieCodeListModel = new GameGenieCodeListModel(this);
 	m_gameGenieCodeListModel->load();
 	m_settingsView->rootContext()->setContextProperty("gameGenieCodeListModel", static_cast<QObject *>(m_gameGenieCodeListModel));
 
@@ -103,37 +98,11 @@ MachineView::~MachineView() {
 		qApp->exit();
 }
 
-void MachineView::setupSwipe(bool on) {
-	// TODO swipe test
-	return;
-#if defined(MEEGO_EDITION_HARMATTAN)
-	Display *dpy = QX11Info::display();
-	Window w = m_hostVideo->effectiveWinId();
-
-	unsigned long val = (on ? 1 : 0);
-	Atom atom = XInternAtom(dpy, "_MEEGOTOUCH_CANNOT_MINIMIZE", false);
-	if (!atom) {
-		qWarning("Unable to obtain _MEEGOTOUCH_CANNOT_MINIMIZE.");
-		return;
-	}
-	XChangeProperty(dpy,
-					w,
-					atom,
-					XA_CARDINAL,
-					32,
-					PropModeReplace,
-					reinterpret_cast<unsigned char *>(&val),
-					1);
-#else
-	Q_UNUSED(on)
-#endif
-}
-
 void MachineView::showError(const QString &text) {
 	Q_ASSERT(!text.isEmpty());
 	m_hostVideo->m_error = text;
-	setSettingsViewVisible(false);
-	m_hostVideo->setVideoVisible(true);
+	m_hostVideo->setMyVisible(true);
+	m_settingsView->setMyVisible(false);
 }
 
 // two-stage pause preventing deadlocks
@@ -150,21 +119,17 @@ void MachineView::pauseStage2() {
 	if (m_thread->isRunning())
 		QTimer::singleShot(10, this, SLOT(pauseStage2()));
 	m_thread->wait();
-	QString path = QString("image://machine/screenShotGrayscaled%1").arg(m_backgroundCounter++);
-	m_settingsView->rootContext()->setContextProperty("backgroundPath", path);
-	if (m_settingsView->source().isEmpty())
-		m_settingsView->setSource(QUrl::fromLocalFile(QString("../qml/%1/main.qml").arg(m_machine->name())));
-	if (!m_wantClose) {
-		setSettingsViewVisible(true);
-		m_settingsView->setFocus();
-	}
-	m_hostVideo->setVideoVisible(false);
-	setupSwipe(true);
 	m_running = false;
-	if (m_wantClose)
+	if (!m_wantClose) {
+		QString path = QString("image://machine/screenShotGrayscaled%1").arg(m_backgroundCounter++);
+		m_settingsView->rootContext()->setContextProperty("backgroundPath", path);
+		if (m_settingsView->source().isEmpty())
+			m_settingsView->setSource(QUrl::fromLocalFile(QString("../qml/%1/main.qml").arg(m_machine->name())));
+		m_settingsView->setMyVisible(true);
+		m_hostVideo->setMyVisible(false);
+	} else {
 		close();
-	else
-		emit runningChanged();
+	}
 }
 
 void MachineView::resume() {
@@ -175,10 +140,8 @@ void MachineView::resume() {
 	m_machine->m_audioStereoEnable = m_hostAudio->isStereoEnabled();
 	m_machine->updateSettings();
 
-	m_hostVideo->setVideoVisible(true);
-	m_hostVideo->setFocus();
-	setSettingsViewVisible(false);
-	setupSwipe(m_hostInput->isSwipeEnabled());
+	m_hostVideo->setMyVisible(true);
+	m_settingsView->setMyVisible(false);
 
 	QObject::connect(m_thread, SIGNAL(frameGenerated()),
 					 m_hostVideo, SLOT(repaint()),
@@ -186,11 +149,11 @@ void MachineView::resume() {
 	if (m_hostVideo->m_error.isEmpty()) {
 		m_machine->setGameGenieCodeList(m_gameGenieCodeListModel->enabledList());
 		m_thread->resume();
+		m_hostVideo->setupSwipe(m_hostInput->isSwipeEnabled());
 	} else {
 		m_hostVideo->repaint();
 	}
 	m_running = true;
-	emit runningChanged();
 }
 
 bool MachineView::close() {
@@ -241,17 +204,4 @@ QString MachineView::screenShotPath() const {
 			.arg(userDataDirPath())
 			.arg(m_machine->name())
 			.arg(m_diskName);
-}
-
-void MachineView::setSettingsViewVisible(bool visible) {
-	if (visible) {
-#	if defined(MEEGO_EDITION_HARMATTAN)
-		m_settingsView->showFullScreen();
-#	else
-		m_settingsView->resize(854, 480);
-		m_settingsView->setVisible(true);
-#	endif
-	} else {
-		m_settingsView->setVisible(false);
-	}
 }

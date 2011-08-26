@@ -11,6 +11,14 @@ class NesDiskHeader;
 
 class NES_EXPORT NesDisk : public QObject {
 	Q_OBJECT
+	Q_PROPERTY(int romSize READ romSize CONSTANT)
+	Q_PROPERTY(int vromSize READ vromSize CONSTANT)
+	Q_PROPERTY(int ramSize READ ramSize CONSTANT)
+	Q_PROPERTY(bool hasBatteryBackedRam READ hasBatteryBackedRam CONSTANT)
+	Q_PROPERTY(bool hasTrainer READ hasTrainer CONSTANT)
+	Q_PROPERTY(bool isVSSystem READ isVSSystem CONSTANT)
+	Q_PROPERTY(quint32 crc READ crc CONSTANT)
+	Q_PROPERTY(quint8 mapperType READ mapperType CONSTANT)
 public:
 	explicit NesDisk(const QString &fileName, QObject *parent = 0);
 	~NesDisk();

@@ -6,6 +6,7 @@ class MachineThread;
 class HostVideo;
 class HostAudio;
 class HostInput;
+class SettingsView;
 class MachineImageProvider;
 class MachineStateListModel;
 class GameGenieCodeListModel;
@@ -34,17 +35,13 @@ public:
 public slots:
 	void pause();
 	void resume();
-signals:
-	void runningChanged();
+	bool close();
 private slots:
 	void pauseStage2();
-	bool close();
 private:
-	void setupSwipe(bool on);
 	QString screenShotPath() const;
-	void setSettingsViewVisible(bool visible);
 
-	QDeclarativeView *m_settingsView;
+	SettingsView *m_settingsView;
 	HostVideo *m_hostVideo;
 	HostAudio *m_hostAudio;
 	HostInput *m_hostInput;

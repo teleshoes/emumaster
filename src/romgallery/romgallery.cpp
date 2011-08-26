@@ -10,6 +10,7 @@
 #include <QDir>
 #include <QFile>
 #include <QTextStream>
+#include <QProcess>
 
 RomGallery::RomGallery(QWidget *parent) :
 	QDeclarativeView(parent),
@@ -85,7 +86,7 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 	RomImageProvider imgProvider;
 	QImage imgSrc = imgProvider.requestImage(QString("%1%2*%3")
 											 .arg(m_romListModel->machineName())
-											 .arg(escapedDiskName)
+											 .arg(diskName)
 											 .arg(qrand()), 0, QSize());
 	QImage scaled = imgSrc.scaled(qreal(imgSrc.width())*scale,
 								  qreal(imgSrc.height())*scale,
@@ -116,7 +117,7 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 				"Categories=Emulator;\n")
 			.arg(QDir::currentPath())
 			.arg(machineName)
-			.arg(escapedDiskName)
+			.arg(diskName)
 			.arg(iconPath);
 
 	QFile file(QString("%1/.local/share/applications/emumaster_%2_%3.desktop")
@@ -129,4 +130,10 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 	out << desktopFileContent;
 	file.close();
 	return true;
+}
+
+void RomGallery::donate() {
+	QStringList args;
+	args << "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=WUG37X8GMW9PQ&lc=US&item_number=emumaster&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted";
+	QProcess::execute("grob", args);
 }

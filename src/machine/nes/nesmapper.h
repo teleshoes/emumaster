@@ -10,6 +10,7 @@ class NesCpuMapper;
 
 class NES_EXPORT NesMapper : public QObject {
 	Q_OBJECT
+	Q_PROPERTY(QString name READ name CONSTANT)
 public:
 	static NesMapper *load(NesMachine *machine, quint8 type);
 

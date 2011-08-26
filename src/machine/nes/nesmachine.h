@@ -29,12 +29,13 @@ class NES_EXPORT NesMachine : public IMachine {
 	Q_PROPERTY(NesPpu *ppu READ ppu CONSTANT)
 	Q_PROPERTY(NesCpu *cpu READ cpu CONSTANT)
 	Q_PROPERTY(NesApu *apu READ apu CONSTANT)
+	Q_PROPERTY(NesDisk *disk READ disk CONSTANT)
 public:
 	enum Type { NTSC, PAL };
 
 	explicit NesMachine(QObject *parent = 0);
 	~NesMachine();
-	void reset();
+	Q_INVOKABLE void reset();
 
 	Type type() const;
 

@@ -36,7 +36,7 @@ Item {
 
 				// Don't stretch the image, and use asynchronous loading.
 				fillMode: Image.PreserveAspectCrop
-				asynchronous: true
+//TODO causes qmutex::lock on exit failure				asynchronous: true
 
 				// Smoothing slows down the scrolling even more. Use it with consideration.
 //				smooth: true
@@ -62,7 +62,7 @@ Item {
 				opacity: 0.3
 
 				fillMode: Image.PreserveAspectCrop
-				asynchronous: true
+//TODO				asynchronous: true
 //				smooth: true  // Use with consideration.
 
 				transform : Scale {

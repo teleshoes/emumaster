@@ -29,7 +29,8 @@ PageStackWindow {
 	MainPage {
 		id: mainPage
 	}
-	Component.onCompleted: {
-		 screen.allowedOrientations = Screen.Landscape;
+	Connections {
+		target: settingsView
+		onUpdateOrientations: screen.allowedOrientations = Screen.Landscape
 	}
 }

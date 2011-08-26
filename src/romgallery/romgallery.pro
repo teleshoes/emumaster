@@ -30,9 +30,11 @@ unix {
 		../../qml/gallery/main.qml \
 		../../qml/gallery/RomChoosePage.qml \
 		../../qml/gallery/GalleryPage.qml \
-		../../qml/gallery/ListPage.qml
+		../../qml/gallery/ListPage.qml \
+		../../qml/gallery/AboutSheet.qml
 
-	datafiles = \
+	datafiles.path = /opt/emumaster/data
+	datafiles.files = \
 		../../data/icon_mask.png \
 		../../data/icon_overlay.png
 
@@ -50,3 +52,7 @@ contains(MEEGO_EDITION,harmattan) {
     desktopfile.path = /usr/share/applications
     INSTALLS += desktopfile
 }
+
+OTHER_FILES += \
+    ../../qml/gallery/AboutSheet.qml
+

@@ -1,39 +1,38 @@
 save/load:
- - save settings
+ s save settings
+ s auto save/load config
+
+input:
+ o multiple keys at once on screen with one finger
+ o pad view,transparency settings
+ s paddle (e.g. arkanoid) - dialog for choose
+ s zapper
+ s accelerometer as a controller
+ s use accelerometer at the save's view and rom gallery
+
+roms:
+ s load roms from zipped files
+ - IPS patcher
+ s on device rom remove
+
+misc:
+ xs make icons in home screen removable
+ o info page (rom info)
+ o report bug link
+ - for Amiga create readme.txt about rom folders and roms name policy
+ s game policy http://library.developer.nokia.com/index.jsp?topic=/MeeGo_1.2_Harmattan_API/html/guide/html/Developer_Library_Best_practices_for_application_development_Using_Resource_Policy_to_enhance_games_a32a.html
+ - Meegotouch Control Panel http://www.developer.nokia.com/Community/Wiki/SettingsApplet
+ - translations
+ s more consoles: GB, SNES, ...
+
+issues:
+ o 11-in-1 save dont work
+ o addams family save dont work
+ - kick master (mapper 4) not working
 
 audio:
- - nesapu performance
+ s nesapu performance
 
 net play:
  - full sync
  - pause on 20ms delay (convert time to cycles) and no data
-
-input:
- - multiple keys at once on screen with one finger
- - paddle (e.g. arkanoid) - dialog for choose
- - zapper
- - accelerometer as controller (shake to jump)
- - pad transparency
- - use accelerometer at the save's view and rom gallery
-
-roms:
- - load roms from zipped files
- - IPS patcher
- - on device rom remove
-
-tests:
- - test against call
-
-misc:
- - info page (rom info)
- - global settings (auto save/load)
- - setupenv.sh must be different for N9*
- - show message on first application run howto install roms and donate
- - for Amiga create readme.txt about rom folders and roms name policy
- - about page - donate button
- - game policy http://library.developer.nokia.com/index.jsp?topic=/MeeGo_1.2_Harmattan_API/html/guide/html/Developer_Library_Best_practices_for_application_development_Using_Resource_Policy_to_enhance_games_a32a.html
- - Meegotouch Control Panel http://www.developer.nokia.com/Community/Wiki/SettingsApplet
- - translations
-
-issues:
- - kick master (mapper 4) not working

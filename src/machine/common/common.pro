@@ -19,7 +19,8 @@ HEADERS += \
     hostinput.h \
     machineimageprovider.h \
     machinestatelistmodel.h \
-    gamegeniecodelistmodel.h
+    gamegeniecodelistmodel.h \
+    settingsview.h
 
 SOURCES += \
     machineview.cpp \
@@ -30,7 +31,8 @@ SOURCES += \
     hostinput.cpp \
     machineimageprovider.cpp \
     machinestatelistmodel.cpp \
-    gamegeniecodelistmodel.cpp
+    gamegeniecodelistmodel.cpp \
+    settingsview.cpp
 
 unix {
 	qml.path = /opt/emumaster/qml/common
@@ -41,9 +43,12 @@ unix {
 		../../../qml/common/MyListDelegate.qml \
 		../../../qml/common/SectionScrollerLabel.qml \
 		../../../qml/common/CoverFlow.qml \
-		../../../qml/common/CoverFlowDelegate.qml
+		../../../qml/common/CoverFlowDelegate.qml \
+		../../../qml/common/utils.js
 
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = ../../../qml/img/*
 	INSTALLS += qml qmlimg
 }
+
+

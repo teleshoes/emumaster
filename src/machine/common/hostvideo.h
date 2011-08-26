@@ -20,7 +20,8 @@ public:
 	int frameSkip() const;
 	void setFrameSkip(int skip);
 	QImage screenShotGrayscaled() const;
-	void setVideoVisible(bool visible);
+	void setMyVisible(bool visible);
+	void setupSwipe(bool on);
 signals:
 	void fpsVisibleChanged();
 	void frameSkipChanged();
@@ -30,6 +31,7 @@ protected:
 	void paintEvent(QPaintEvent *);
 	void mousePressEvent(QMouseEvent *me);
 	void closeEvent(QCloseEvent *e);
+	void changeEvent(QEvent *e);
 private:
 	QRectF m_srcRect;
 	QRectF m_dstRect;
