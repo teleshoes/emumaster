@@ -30,6 +30,7 @@ class NES_EXPORT NesMachine : public IMachine {
 	Q_PROPERTY(NesCpu *cpu READ cpu CONSTANT)
 	Q_PROPERTY(NesApu *apu READ apu CONSTANT)
 	Q_PROPERTY(NesDisk *disk READ disk CONSTANT)
+	Q_PROPERTY(NesMapper *mapper READ mapper CONSTANT)
 public:
 	enum Type { NTSC, PAL };
 

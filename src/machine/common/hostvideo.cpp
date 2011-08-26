@@ -2,6 +2,7 @@
 #include "imachine.h"
 #include "machineview.h"
 #include "machinethread.h"
+#include "hostinput.h"
 #include <QPainter>
 #include <QKeyEvent>
 
@@ -13,13 +14,12 @@
 
 HostVideo::HostVideo(MachineView *machineView) :
 	m_machineView(machineView) {
+	m_hostInput = m_machineView->m_hostInput;
+	Q_ASSERT(m_hostInput != 0);
 
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_AcceptTouchEvents);
 	setAutoFillBackground(false);
-
-	grabGesture(Qt::PinchGesture);
-	grabGesture(Qt::SwipeGesture);
 
 	m_fpsVisble = false;
 	m_fpsCount = 0;
@@ -29,6 +29,9 @@ HostVideo::HostVideo(MachineView *machineView) :
 	m_frameSkip = 1;
 
 	m_thread = machineView->m_thread;
+
+	m_padArrowsImage.load("../data/pad_arrows.png");
+	m_padButtonsImage.load("../data/pad_buttons.png");
 }
 
 HostVideo::~HostVideo() {
@@ -89,13 +92,12 @@ void HostVideo::paintEvent(QPaintEvent *) {
 							 Qt::AlignCenter,
 							 QString("%1 FPS").arg(m_fpsCount));
 		}
+		if (m_hostInput->isPadVisible()) {
+			painter.drawImage(QPoint(0, 480-200), m_padArrowsImage);
+			painter.drawImage(QPoint(854-200, 480-200), m_padButtonsImage);
+		}
 	}
 	painter.end();
-}
-
-void HostVideo::mousePressEvent(QMouseEvent *me) {
-	Q_UNUSED(me)
-	m_machineView->pause();
 }
 
 void HostVideo::closeEvent(QCloseEvent *e)

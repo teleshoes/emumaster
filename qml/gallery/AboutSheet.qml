@@ -11,25 +11,42 @@ Sheet {
 		anchors.centerIn: parent
 		text: "About"
 	}
-// TODO homepage
-// TODO bug report
 	content: Item {
 		anchors.fill: parent
-		Label {
+		Column {
 			width: parent.width
-			text: "Author: Marcin Kaźmierczak\nIf you find this software useful please donate\n"
-			wrapMode: Text.WordWrap
-			horizontalAlignment: Text.AlignHCenter
-		}
-		Image {
-			id: img
-			anchors.centerIn: parent
-			source: "../img/btn_donateCC_LG.png"
-			scale: 2
+			spacing: 50
 
-			MouseArea {
-				anchors.fill: parent
-				onClicked: romGallery.donate()
+			Label {
+				width: parent.width
+				text: "Author: Marcin Kaźmierczak\nWant new features? Found bug? Go to homepage"
+				wrapMode: Text.WordWrap
+				horizontalAlignment: Text.AlignHCenter
+			}
+			Image {
+				source: "image://theme/icon-l-browser"
+				anchors.horizontalCenter: parent.horizontalCenter
+
+				MouseArea {
+					anchors.fill: parent
+					onClicked: romGallery.homepage()
+				}
+			}
+			Label {
+				width: parent.width
+				text: "If you find this software useful please donate"
+				wrapMode: Text.WordWrap
+				horizontalAlignment: Text.AlignHCenter
+			}
+			Image {
+				source: "../img/btn_donateCC_LG.png"
+				scale: 2
+				anchors.horizontalCenter: parent.horizontalCenter
+
+				MouseArea {
+					anchors.fill: parent
+					onClicked: romGallery.donate()
+				}
 			}
 		}
 	}

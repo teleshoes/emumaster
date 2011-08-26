@@ -14,6 +14,7 @@ public:
 	Q_INVOKABLE bool launch(const QString &diskName);
 	Q_INVOKABLE bool addIconToHomeScreen(const QString &diskName, qreal scale, int x, int y);
 	Q_INVOKABLE void donate();
+	Q_INVOKABLE void homepage();
 protected:
 	void closeEvent(QCloseEvent *e);
 private slots:

@@ -109,6 +109,7 @@ Page {
 		anchors.rightMargin: 10
 		anchors.bottom: parent.bottom
 		anchors.bottomMargin: 10
+		width: 50
 		iconSource: "image://theme/icon-s-music-video-description"
 		onClicked: infoSheet.open()
 	}
@@ -148,13 +149,13 @@ Page {
 				}
 				Label {
 					width: parent.width
-					text: "Disk CRC: " + EmuMasterUtils.byteCountToText(machine.disk.crc)
+					text: "Disk CRC: " + EmuMasterUtils.hexToString(machine.disk.crc)
 					wrapMode: Text.WordWrap
 					horizontalAlignment: Text.AlignHCenter
 				}
 				Label {
 					width: parent.width
-					text: "Mapper: " + machine.mapper.name + " (" + machine.disk.machineType + ")"
+					text: "Mapper: " + machine.mapper.name + " (" + machine.disk.mapperType + ")"
 					wrapMode: Text.WordWrap
 					horizontalAlignment: Text.AlignHCenter
 				}

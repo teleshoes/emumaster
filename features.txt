@@ -1,7 +1,8 @@
+written entirely in Qt and QML (even cpu,ppu, etc. is written in Qt)
 rom gallery
 fast scroll
 create icon in home screen
 swipe on/off
 game genie codes
-very fast - full framerate
+very fast - full framerate without sound (60fps)
 save/load gallery

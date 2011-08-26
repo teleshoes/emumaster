@@ -137,3 +137,10 @@ void RomGallery::donate() {
 	args << "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=WUG37X8GMW9PQ&lc=US&item_number=emumaster&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted";
 	QProcess::execute("grob", args);
 }
+
+void RomGallery::homepage() {
+	QStringList args;
+	// TODO homepage
+	args << "http:";
+	QProcess::execute("grob", args);
+}

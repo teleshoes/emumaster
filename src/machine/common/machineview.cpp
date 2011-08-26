@@ -30,9 +30,9 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 
 	m_thread = new MachineThread(this);
 
+	m_hostInput = new HostInput(this);
 	m_hostAudio = new HostAudio(this);
 	m_hostVideo = new HostVideo(this);
-	m_hostInput = new HostInput(this);
 
 	m_hostVideo->installEventFilter(m_hostInput);
 	m_hostVideo->m_srcRect = m_machine->videoSrcRect();

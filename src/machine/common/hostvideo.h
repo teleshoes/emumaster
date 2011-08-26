@@ -3,6 +3,7 @@
 
 class MachineView;
 class MachineThread;
+class HostInput;
 #include <QGLWidget>
 #include <QTime>
 
@@ -29,7 +30,6 @@ protected:
 	void initializeGL();
 
 	void paintEvent(QPaintEvent *);
-	void mousePressEvent(QMouseEvent *me);
 	void closeEvent(QCloseEvent *e);
 	void changeEvent(QEvent *e);
 private:
@@ -46,6 +46,9 @@ private:
 	int m_frameSkip;
 	MachineThread *m_thread;
 	MachineView *m_machineView;
+	HostInput *m_hostInput;
+	QImage m_padArrowsImage;
+	QImage m_padButtonsImage;
 
 	friend class MachineView;
 };
