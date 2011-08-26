@@ -8,8 +8,6 @@ syntax: regexp
 syntax: regexp
 \.pdb$
 syntax: regexp
-^data$
-syntax: regexp
 ^debug$
 syntax: regexp
 ^release$
