@@ -4,5 +4,6 @@ fast scroll
 create icon in home screen
 swipe on/off
 game genie codes
-very fast - full framerate without sound (60fps)
+quite fast NES emulation - full framerate without sound (60fps)
 save/load gallery
+you can push two buttons on the pad with one finger (e.g. A and B)

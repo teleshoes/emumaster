@@ -39,6 +39,9 @@ public slots:
 private slots:
 	void pauseStage2();
 private:
+	void saveSettings();
+	void loadSettings();
+
 	QString screenShotPath() const;
 
 	SettingsView *m_settingsView;

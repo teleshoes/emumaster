@@ -27,16 +27,13 @@ Page {
 					PropertyChanges { target: overlay; visible: true }
 				}
 			]
-			Row {
+			Switch {
 				anchors.verticalCenter: parent.verticalCenter
 				anchors.right: parent.right
 				anchors.rightMargin: 20
-
-				Switch {
-					checked: isEnabled
-					platformStyle: SwitchStyle { inverted: true }
-					onCheckedChanged: gameGenieCodeListModel.setEnabled(index, checked)
-				}
+				checked: isEnabled
+				platformStyle: SwitchStyle { inverted: true }
+				onCheckedChanged: gameGenieCodeListModel.setEnabled(index, checked)
 			}
 		}
 		ButtonRow {
@@ -75,6 +72,7 @@ Page {
 					text: "Game Genie Code:"
 				}
 				TextField {
+					// TODO error highlight not updated
 					id: codeEdit
 					anchors {left: parent.left; right: parent.right;}
 					errorHighlight: true

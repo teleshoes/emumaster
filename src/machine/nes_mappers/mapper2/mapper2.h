@@ -10,7 +10,7 @@ class CpuMapper2 : public NesCpuMapper {
 public:
 	explicit CpuMapper2(NesMapper *mapper);
 	void reset();
-	void write(quint16 address, quint8 data);
+	void writeLow(quint16 address, quint8 data);
 	void writeHigh(quint16 address, quint8 data);
 private:
 	quint8 patch;

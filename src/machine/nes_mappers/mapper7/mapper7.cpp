@@ -10,6 +10,7 @@ void CpuMapper7::reset() {
 	patch = 0;
 	setRom32KBank(0);
 	mapper()->ppuMapper()->setMirroring(NesPpuMapper::SingleLow);
+
 	quint32 crc = disk()->crc();
 	if( crc == 0x3c9fe649 ) {	// WWF Wrestlemania Challenge(U)
 		mapper()->ppuMapper()->setMirroring(NesPpuMapper::Vertical);

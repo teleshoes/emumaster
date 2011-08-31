@@ -15,6 +15,7 @@ public:
 signals:
 	void sizeChanged();
 private:
+	// TODO replace with plane array
 	QVector<quint8> m_data;
 };
 

@@ -4,11 +4,13 @@
 #include <QDataStream>
 
 CpuMapper1::CpuMapper1(NesMapper *mapper) :
-	NesCpuMapper(mapper) {
+	NesCpuMapper(mapper),
+	ppuMapper(0) {
 }
 
 void CpuMapper1::reset() {
 	ppuMapper = mapper()->ppuMapper();
+
 	reg[0] = 0x0C; // D3=1,D2=1
 	reg[1] = reg[2] = reg[3] = 0;
 	shift = regbuf = 0;
@@ -41,8 +43,6 @@ void CpuMapper1::reset() {
 		ppu()->setRenderMethod(NesPpu::TileRender);
 		patch = 2;
 	}
-	if (crc == 0x11469ce3) {	// Viva! Las Vegas(J)
-	}
 	if (crc == 0xd878ebf5) {	// Ninja Ryukenden(J)
 		ppu()->setRenderMethod(NesPpu::PostAllRender);
 	}
@@ -53,11 +53,9 @@ void CpuMapper1::reset() {
 		ppu()->setRenderMethod(NesPpu::TileRender);
 		wram_patch = 2;
 	}
-
 	if (crc == 0x717e1169) {	// Cosmic Wars(J)
 		ppu()->setRenderMethod(NesPpu::PreAllRender);
 	}
-
 	if (crc == 0xC05D2034) {	// Snake's Revenge(U)
 		ppu()->setRenderMethod(NesPpu::PreAllRender);
 	}
@@ -211,7 +209,7 @@ NesPpuMapper::Mirroring CpuMapper1::mirroringFromRegs() const {
 bool CpuMapper1::save(QDataStream &s) {
 	if (!NesCpuMapper::save(s))
 		return false;
-        for (uint i = 0; i < sizeof(reg); i++)
+	for (uint i = 0; i < sizeof(reg); i++)
 		s << reg[i];
 	s << shift << regbuf;
 	s << wram_bank << wram_count;
@@ -222,7 +220,7 @@ bool CpuMapper1::save(QDataStream &s) {
 bool CpuMapper1::load(QDataStream &s) {
 	if (!NesCpuMapper::load(s))
 		return false;
-        for (uint i = 0; i < sizeof(reg); i++)
+	for (uint i = 0; i < sizeof(reg); i++)
 		s >> reg[i];
 	s >> shift >> regbuf;
 	s >> wram_bank >> wram_count;

@@ -9,6 +9,7 @@
 #include "nespad.h"
 #include "nesmachine.h"
 #include <QtDeclarative>
+#include <QSettings>
 
 NesMachine::NesMachine(QObject *parent) :
 	IMachine("nes", parent),
@@ -39,9 +40,10 @@ void NesMachine::updateSettings() {
 }
 
 void NesMachine::reset() {
-	m_cpu->nes_reset_i(true);
-	m_pad->reset();
 	m_mapper->reset();
+	m_cpu->nes_reset_i(true);
+	// TODO maybe 2 reset frames
+	m_pad->reset();
 	m_cpuCycleCounter = 0;
 	m_ppuCycleCounter = 0;
 }
@@ -104,12 +106,11 @@ void NesMachine::setPadKey(IMachine::PadKey key, bool state) {
 	case Right_PadKey:		m_pad->setButtonState(0, NesPad::Right, state); break;
 	case Up_PadKey:			m_pad->setButtonState(0, NesPad::Up, state); break;
 	case Down_PadKey:		m_pad->setButtonState(0, NesPad::Down, state); break;
-	case A_PadKey:			m_pad->setButtonState(0, NesPad::B, state); break;
-	case B_PadKey:			m_pad->setButtonState(0, NesPad::A, state); break;
-//	TODO case X_PadKey:		m_pad->setButtonState(0, NesPad::Left, state); break;
-//	TODO case Y_PadKey:		m_pad->setButtonState(0, NesPad::Left, state); break;
+	case A_PadKey:			m_pad->setButtonState(0, NesPad::A, state); break;
+	case B_PadKey:			m_pad->setButtonState(0, NesPad::B, state); break;
 	case Start_PadKey:		m_pad->setButtonState(0, NesPad::Start, state); break;
 	case Select_PadKey:		m_pad->setButtonState(0, NesPad::Select, state); break;
+	case AllKeys:			m_pad->clearButtons(0); break;
 	default: break;
 	}
 }
@@ -321,6 +322,14 @@ bool NesMachine::load(QDataStream &s) {
 	s >> m_cpuCycleCounter;
 	s >> m_ppuCycleCounter;
 	return true;
+}
+
+void NesMachine::saveSettings(QSettings &s) {
+	IMachine::saveSettings(s);
+}
+
+void NesMachine::loadSettings(QSettings &s) {
+	IMachine::loadSettings(s);
 }
 
 void NesMachine::setGameGenieCodeList(const QList<GameGenieCode> &codes)

@@ -9,6 +9,8 @@ class CpuMapper242 : public NesCpuMapper {
 	Q_OBJECT
 public:
 	explicit CpuMapper242(NesMapper *mapper);
+	void reset();
+
 	void writeHigh(quint16 address, quint8 data);
 };
 
@@ -16,7 +18,7 @@ public:
 
 class NesMapper242Plugin : public NesMapperPlugin {
 	Q_OBJECT
-public: \
+public:
 	NesMapper *create(NesMachine *machine);
 };
 

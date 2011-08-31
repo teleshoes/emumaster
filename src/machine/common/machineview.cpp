@@ -16,6 +16,7 @@
 #include <QDeclarativeEngine>
 #include <QTimer>
 #include <QDir>
+#include <QSettings>
 
 MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *parent) :
 	QObject(parent),
@@ -37,6 +38,8 @@ MachineView::MachineView(IMachine *machine, const QString &diskName, QWidget *pa
 	m_hostVideo->installEventFilter(m_hostInput);
 	m_hostVideo->m_srcRect = m_machine->videoSrcRect();
 	m_hostVideo->m_dstRect = m_machine->videoDstRect();
+
+	loadSettings();
 
 	QString error = m_machine->setDisk(QString("%1/%2/%3")
 									   .arg(romDirPath())
@@ -82,6 +85,8 @@ MachineView::~MachineView() {
 	if (m_hostVideo->m_error.isEmpty()) {
 		if (m_thread->isRunning())
 			m_thread->wait();
+
+		saveSettings();
 		if (m_autoSaveOnExit)
 			m_stateListModel->saveState(-2);
 
@@ -204,4 +209,20 @@ QString MachineView::screenShotPath() const {
 			.arg(userDataDirPath())
 			.arg(m_machine->name())
 			.arg(m_diskName);
+}
+
+void MachineView::saveSettings() {
+	QSettings settings("elemental", "emumaster");
+	settings.setValue("swipeEnable", m_hostInput->isSwipeEnabled());
+	settings.beginGroup(m_machine->name());
+	m_machine->saveSettings(settings);
+	settings.endGroup();
+}
+
+void MachineView::loadSettings() {
+	QSettings settings("elemental", "emumaster");
+	m_hostInput->setSwipeEnabled(settings.value("swipeEnable", false).toBool());
+	settings.beginGroup(m_machine->name());
+	m_machine->loadSettings(settings);
+	settings.endGroup();
 }

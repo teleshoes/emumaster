@@ -13,6 +13,12 @@ void NesPad::setButtonState(int player, Button button, bool on) {
 		pad &= ~button;
 }
 
+void NesPad::clearButtons(int player) {
+	Q_ASSERT(player == 0 || player == 1);
+	Buttons &pad = ((player == 0) ? m_padA : m_padB);
+	pad = Buttons();
+}
+
 void NesPad::reset() {
 	m_padAReg = 0;
 	m_padBReg = 0;

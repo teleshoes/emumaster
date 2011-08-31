@@ -1,39 +1,53 @@
 #include "mapper227.h"
+#include "nesppu.h"
+#include "nesdisk.h"
+#include <QDataStream>
 
 CpuMapper227::CpuMapper227(NesMapper *mapper) :
-	NesCpuMapper(mapper) {
+	NesCpuMapper(mapper),
+	ppuMapper(0) {
 }
 
 void CpuMapper227::reset() {
-	setRom16KBank(4, 0);
-	setRom16KBank(6, 0);
+	ppuMapper = mapper()->ppuMapper();
+
+	setRom8KBanks(0, 1, 0, 1);
 }
 
 void CpuMapper227::writeHigh(quint16 address, quint8 data) {
 	Q_UNUSED(data)
-	uint bank = (address >> 4) & 0x10;
-	bank |= (address >> 3) & 0xF;
-	if (address & 1) {
+
+	quint8 bank = ((address&0x0100)>>4) | ((address&0x0078)>>3);
+
+	if (address & 0x0001) {
 		setRom32KBank(bank);
 	} else {
-		if (address & 4) {
-			setRom16KBank(4, bank * 2 + 1);
-			setRom16KBank(6, bank * 2 + 1);
+		if (address & 0x0004) {
+			setRom8KBank(4, bank*4+2);
+			setRom8KBank(5, bank*4+3);
+			setRom8KBank(6, bank*4+2);
+			setRom8KBank(7, bank*4+3);
 		} else {
-			setRom16KBank(4, bank * 2);
-			setRom16KBank(6, bank * 2);
+			setRom8KBank(4, bank*4+0);
+			setRom8KBank(5, bank*4+1);
+			setRom8KBank(6, bank*4+0);
+			setRom8KBank(7, bank*4+1);
 		}
 	}
+
 	if (!(address & 0x0080)) {
-		if (address & 0x0200)
-			setRom16KBank(6, (bank & 0x1C) * 2 + 7);
-		else
-			setRom16KBank(6, (bank & 0x1C) * 2 + 0);
+		if (address & 0x0200) {
+			setRom8KBank(6, (bank&0x1C)*4+14);
+			setRom8KBank(7, (bank&0x1C)*4+15);
+		} else {
+			setRom8KBank(6, (bank&0x1C)*4+0);
+			setRom8KBank(7, (bank&0x1C)*4+1);
+		}
 	}
-	if (address & 2)
-		mapper()->ppuMapper()->setMirroring(NesPpuMapper::Horizontal);
+	if (address & 0x0002)
+		ppuMapper->setMirroring(NesPpuMapper::Horizontal);
 	else
-		mapper()->ppuMapper()->setMirroring(NesPpuMapper::Vertical);
+		ppuMapper->setMirroring(NesPpuMapper::Vertical);
 }
 
 NES_MAPPER_PLUGIN_EXPORT(227, "1200-in-1")

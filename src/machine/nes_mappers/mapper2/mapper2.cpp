@@ -16,18 +16,17 @@ void CpuMapper2::reset() {
 	 || crc == 0x538218b2 ) {	// Ikari Warriors(E)
 		patch = 1;
 	}
-
 	if( crc == 0xb20c1030 ) {	// Shanghai(J)(original)
 		patch = 2;
 	}
 }
 
-void CpuMapper2::write(quint16 address, quint8 data) {
+void CpuMapper2::writeLow(quint16 address, quint8 data) {
 	if (!hasBattery) {
 		if (address >= 0x5000 && patch == 1)
 			setRom16KBank(0, data);
 	} else {
-		NesCpuMapper::write(address, data);
+		NesCpuMapper::writeLow(address, data);
 	}
 }
 

@@ -10,7 +10,7 @@ TEMPLATE = subdirs
 # mapper63
 
 SUBDIRS += \
-	mapper0
+        mapper0
 
 #	mapper1 \
 #	mapper2 \
@@ -63,4 +63,29 @@ SUBDIRS += \
 #	mapper68 \
 #	mapper69 \
 #	mapper70 \
-#	mapper71
+#	mapper71 \
+#    mapper255 \
+#    mapper254 \
+#    mapper252 \
+#    mapper251 \
+#    mapper246 \
+#    mapper244 \
+#    mapper243 \
+#    mapper242 \
+#    mapper241 \
+#    mapper240 \
+#    mapper236 \
+#    mapper235 \
+#    mapper233 \
+#    mapper232 \
+#    mapper231 \
+#    mapper230 \
+#    mapper229 \
+#    mapper228 \
+#    mapper227 \
+#    mapper226 \
+#    mapper225 \
+#    mapper222 \
+#    mapper202 \
+#    mapper201 \
+#    mapper200

@@ -43,7 +43,7 @@ unix {
 
 contains(MEEGO_EDITION,harmattan) {
     icon.files = romgallery.png
-    icon.path = /usr/share/icons/hicolor/80x80/apps
+	icon.path = /opt/emumaster/data
     INSTALLS += icon
 }
 

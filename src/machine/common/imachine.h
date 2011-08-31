@@ -6,6 +6,7 @@ class GameGenieCode;
 #include <QObject>
 class QImage;
 class QRectF;
+class QSettings;
 
 class MACHINE_COMMON_EXPORT IMachine : public QObject {
     Q_OBJECT
@@ -17,12 +18,11 @@ public:
 		Down_PadKey,
 		A_PadKey,
 		B_PadKey,
-		C_PadKey,
 		X_PadKey,
 		Y_PadKey,
-		Z_PadKey,
 		Start_PadKey,
-		Select_PadKey
+		Select_PadKey,
+		AllKeys
 	};
 	static IMachine *loadMachine(const QString &name);
 
@@ -48,6 +48,9 @@ public:
 
 	virtual bool save(QDataStream &s) = 0;
 	virtual bool load(QDataStream &s) = 0;
+
+	virtual void saveSettings(QSettings &s);
+	virtual void loadSettings(QSettings &s);
 
 	virtual void setGameGenieCodeList(const QList<GameGenieCode> &codes);
 protected:

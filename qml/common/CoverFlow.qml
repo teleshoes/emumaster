@@ -14,7 +14,7 @@ Item {
 		height: parent.height / 2
 		width: parent.width
 		gradient: Gradient {
-			GradientStop { position: 0.0; color: "#e0e1e2" }
+			GradientStop { position: 0.0; color: "transparent" }
 			GradientStop { position: 1.0; color: "black" }
 		}
 	}

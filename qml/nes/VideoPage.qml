@@ -1,71 +1,137 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
-// TODO reset button
+
 Page {
-	Row {
-		anchors.centerIn: parent
-		spacing: 100
+	Flickable {
+		id: flickable
+		x: 15
+		width: parent.width - 30
+		height: parent.height
+		contentWidth: width
+		contentHeight: col.height
+		flickableDirection: Flickable.VerticalFlick
 
 		Column {
-			spacing: 10
-
-			Button {
-				text: qsTr("Save Screenshot")
-				onClicked: machineView.saveScreenShot()
-			}
-			Button {
-				text: qsTr("Show FPS")
-				checkable: true
-				checked: video.fpsVisible
-				onClicked: video.fpsVisible = !video.fpsVisible
-			}
-		}
-		Column {
-			spacing: 10
+			id: col
+			width: parent.width
+			spacing: 15
 
 			Item {
-				width: 300
-				height: 20
+				id: screenShotItem
+				width: parent.width
 
-				Rectangle {
-					width: childrenRect.width
-					height: childrenRect.height
-					radius: 10
-					color: "#e0e1e2"
-
-					Row {
-						x: 10
-						spacing: 20
-
-						Label {
-							text: qsTr("Frameskip")
-							font.pixelSize: 30
-							font.bold: true
-						}
-						Label {
-							text: fsSlider.value
-							font.pixelSize: 30
-							font.bold: true
-
-						}
-					}
+				Label {
+					id: screenShotLabel
+					anchors.verticalCenter: parent.verticalCenter
+					text: qsTr("Overwirte Image in ROM Gallery")
+					font.bold: true
 				}
+				Button {
+					id: screenShotButton
+					anchors.right: parent.right
+					text: qsTr("Take Screenshot")
+					onClicked: machineView.saveScreenShot()
+				}
+				Component.onCompleted: screenShotItem.height = Math.max(screenShotLabel.height, screenShotButton.height)
 			}
-			Slider {
-				id: fsSlider
-				width: 320
-				minimumValue: 0
-				maximumValue: 5
-				value: video.frameSkip
-				onValueChanged: video.frameSkip = value
-				stepSize: 1
+			Item {
+				id: showFpsItem
+				width: parent.width
+				Label {
+					id: showFpsLabel
+					anchors.verticalCenter: parent.verticalCenter
+					text: qsTr("Show FPS")
+					font.bold: true
+				}
+				Switch {
+					id: showFpsSwitch
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.right: parent.right
+					checked: video.fpsVisible
+					onCheckedChanged: video.fpsVisible = checked
+					platformStyle: SwitchStyle { inverted: true }
+				}
+				Component.onCompleted: showFpsItem.height = Math.max(showFpsLabel.height, showFpsSwitch.height)
 			}
-			Button {
-				text: qsTr("Sprite Clipping")
-				checkable: true
-				checked: machine.ppu.spriteClippingEnable
-				onClicked: machine.ppu.spriteClippingEnable = !machine.ppu.spriteClippingEnable
+			Item {
+				id: frameSkipItem
+				width: parent.width
+				Label {
+					id: frameSkipLabel
+					anchors.verticalCenter: parent.verticalCenter
+					text: qsTr("Frameskip ")
+					font.bold: true
+				}
+				Slider {
+					id: frameSkipSlider
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.right: parent.right
+					minimumValue: 0
+					maximumValue: 5
+					value: video.frameSkip
+					onValueChanged: video.frameSkip = value
+					stepSize: 1
+					valueIndicatorVisible: true
+				}
+				Label {
+					anchors.right: frameSkipSlider.left
+					anchors.rightMargin: 10
+					anchors.verticalCenter: parent.verticalCenter
+					text: frameSkipSlider.value
+					font.bold: true
+				}
+				Component.onCompleted: frameSkipItem.height = Math.max(frameSkipLabel.height, frameSkipSlider.height)
+			}
+			Item {
+				id: renderMethodItem
+				width: parent.width
+				Label {
+					id: renderMethodLabel
+					anchors.verticalCenter: parent.verticalCenter
+					text: qsTr("PPU Render Method")
+					font.bold: true
+				}
+				Button {
+					id: renderMethodSwitch
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.right: parent.right
+					text: renderMethodModel.get(machine.ppu.renderMethod)["name"]
+					onClicked: renderMethodDialog.open()
+				}
+				Component.onCompleted: renderMethodItem.height = Math.max(renderMethodLabel.height, renderMethodSwitch.height)
+			}
+			Item {
+				id: spriteClippingItem
+				width: parent.width
+				Label {
+					id: spriteClippingLabel
+					anchors.verticalCenter: parent.verticalCenter
+					text: qsTr("PPU Sprite Clipping")
+					font.bold: true
+				}
+				Switch {
+					id: spriteClippingSwitch
+					anchors.verticalCenter: parent.verticalCenter
+					anchors.right: parent.right
+					checked: machine.ppu.spriteClippingEnable
+					onCheckedChanged: machine.ppu.spriteClippingEnable = checked
+				}
+				Component.onCompleted: spriteClippingItem.height = Math.max(spriteClippingLabel.height, spriteClippingSwitch.height)
 			}
 		}
+	}
+	ListModel {
+		id: renderMethodModel
+		ListElement { name: "Post All Render" }
+		ListElement { name: "Pre All Render" }
+		ListElement { name: "Post Render" }
+		ListElement { name: "Pre Render" }
+		ListElement { name: "Tile Render" }
+	}
+	SelectionDialog {
+		id: renderMethodDialog
+		titleText: "Select Render Method"
+		model: renderMethodModel
+		onAccepted: machine.ppu.renderMethod = selectedIndex
 	}
 }

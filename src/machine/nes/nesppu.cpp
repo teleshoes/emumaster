@@ -48,7 +48,7 @@ NesPpu::NesPpu(NesMachine *machine) :
 
 	qMemSet(m_spriteMemory, 0, sizeof(m_spriteMemory));
 
-	m_spriteClippingEnable = false;
+	m_spriteClippingEnable = true;
 }
 
 NesPpu::~NesPpu() {
@@ -69,8 +69,12 @@ void NesPpu::setChipType(ChipType newType) {
 	m_registers->updateType();
 }
 
-void NesPpu::setRenderMethod(NesPpu::RenderMethod method)
-{ m_renderMethod = method; }
+void NesPpu::setRenderMethod(NesPpu::RenderMethod method) {
+	if (m_renderMethod != method) {
+		m_renderMethod = method;
+		emit renderMethodChanged();
+	}
+}
 
 void NesPpu::setScanline(int line) {
 	m_scanline = line;
@@ -565,6 +569,7 @@ bool NesPpu::save(QDataStream &s) {
 	s << m_tilePageOffset;
 	s << m_spritePageOffset;
 	s << m_loopyShift;
+
 	s << m_vBlankOut;
 
 	if (s.writeRawData(reinterpret_cast<const char *>(m_spriteMemory), sizeof(m_spriteMemory)) != sizeof(m_spriteMemory))
@@ -599,6 +604,7 @@ bool NesPpu::load(QDataStream &s) {
 	s >> m_tilePageOffset;
 	s >> m_spritePageOffset;
 	s >> m_loopyShift;
+
 	s >> m_vBlankOut;
 
 	if (s.readRawData(reinterpret_cast<char *>(m_spriteMemory), sizeof(m_spriteMemory)) != sizeof(m_spriteMemory))

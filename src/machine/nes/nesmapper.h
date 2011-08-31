@@ -21,9 +21,6 @@ public:
 	NesCpuMapper *cpuMapper() const;
 	NesPpuMapper *ppuMapper() const;
 	void setMappers(NesCpuMapper *cpuMapper, NesPpuMapper *ppuMapper);
-
-	void saveState(QDataStream &s);
-	bool loadState(QDataStream &s);
 private:
 	NesCpuMapper *m_cpuMapper;
 	NesPpuMapper *m_ppuMapper;

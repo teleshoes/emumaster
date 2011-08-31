@@ -457,7 +457,7 @@ bool NesApu::save(QDataStream &s) {
 	s << m_derivedFrameCounter;
 	s << m_countSequence;
 
-	s << m_sampleTimer;
+//	s << m_sampleTimer;
 
 	s << m_triValue;
 
@@ -498,7 +498,7 @@ bool NesApu::load(QDataStream &s) {
 	s >> m_frameIrqEnable;
 	s >> m_frameIrqCounterMax;
 
-	s >> m_sampleTimer;
+//	s >> m_sampleTimer;
 
 	s >> m_initCounter;
 	s >> m_initializingHardware;

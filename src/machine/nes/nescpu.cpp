@@ -59,7 +59,7 @@ uint NesCpu::clock(uint cycles) {
 			executedCycles += instrCycles;
 			m_apu->clockFrameCounter(instrCycles);
 		}
-//		m_apu->clockFrameCounter(executedCycles);
+//		TODO m_apu->clockFrameCounter(executedCycles);
 	}
 	return executedCycles;
 }

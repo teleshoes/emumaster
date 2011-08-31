@@ -77,7 +77,7 @@ void CpuMapper5::reset() {
 	d->graphic_mode = 0;
 	d->nametable_mode = 0;
 
-	for (int i = 0; i < sizeof(d->nametable_type); i++)
+	for (uint i = 0; i < sizeof(d->nametable_type); i++)
 		d->nametable_type[i] = 0;
 
 	d->fill_chr = d->fill_pal = 0;

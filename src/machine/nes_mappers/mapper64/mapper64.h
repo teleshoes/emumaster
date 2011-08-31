@@ -24,8 +24,8 @@ private:
 	quint8 reg[3];
 	quint8 irq_enable;
 	quint8 irq_mode;
-	quint32 irq_counter;
-	quint32 irq_counter2;
+	qint32 irq_counter;
+	qint32 irq_counter2;
 	quint8 irq_latch;
 	quint8 irq_reset;
 

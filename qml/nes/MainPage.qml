@@ -39,8 +39,6 @@ Page {
 		InputPage { id: inputTab }
 		StatePage { id: stateTab }
 		CheatPage { id: cheatTab }
-
-		onCurrentTabChanged: appWindow.customStyleEnabled = (tabGroup.currentTab !== cheatTab)
 	}
 
 	QueryDialog {

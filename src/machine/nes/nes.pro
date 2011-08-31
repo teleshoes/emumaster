@@ -54,6 +54,7 @@ unix {
 		../../../qml/nes/AudioPage.qml \
 		../../../qml/nes/InputPage.qml \
 		../../../qml/nes/StatePage.qml \
-		../../../qml/nes/CheatPage.qml
+                ../../../qml/nes/CheatPage.qml \
+                ../../../qml/nes/MachineInfoSheet.qml
 	INSTALLS += qml
 }

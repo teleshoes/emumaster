@@ -49,6 +49,9 @@ private:
 	HostInput *m_hostInput;
 	QImage m_padArrowsImage;
 	QImage m_padButtonsImage;
+	QImage m_selectButtonImage;
+	QImage m_startButtonImage;
+	QImage m_pauseButtonImage;
 
 	friend class MachineView;
 };

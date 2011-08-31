@@ -1,6 +1,9 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-	common \
+    common \
     nes \
 	nes_mappers
+
+#gb
+

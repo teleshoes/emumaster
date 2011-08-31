@@ -19,6 +19,7 @@ class NES_EXPORT NesDisk : public QObject {
 	Q_PROPERTY(bool isVSSystem READ isVSSystem CONSTANT)
 	Q_PROPERTY(quint32 crc READ crc CONSTANT)
 	Q_PROPERTY(quint8 mapperType READ mapperType CONSTANT)
+	Q_PROPERTY(bool isPAL READ isPAL CONSTANT)
 public:
 	explicit NesDisk(const QString &fileName, QObject *parent = 0);
 	~NesDisk();
@@ -38,6 +39,8 @@ public:
 	bool hasBatteryBackedRam() const;
 	bool hasTrainer() const;
 	bool isVSSystem() const;
+
+	bool isPAL() const;
 
 	quint32 crc() const;
 private:
@@ -61,5 +64,7 @@ inline quint32 NesDisk::crc() const
 { return m_crc; }
 inline quint8 NesDisk::mapperType() const
 { return m_mapperType; }
+inline bool NesDisk::isPAL() const
+{ return machineType() == NesMachine::PAL; }
 
 #endif // NESDISK_H

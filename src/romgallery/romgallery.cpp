@@ -107,7 +107,6 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 
 	QString desktopFileContent = QString(
 				"[Desktop Entry]\n"
-				"Encoding=UTF-8\n"
 				"Version=1.0\n"
 				"Type=Application\n"
 				"Name=%3\n"

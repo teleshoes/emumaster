@@ -66,11 +66,11 @@ bool NesPpuMapper::save(QDataStream &s) {
 	for (int i = 0; i < 16; i++) {
 		s << quint8(m_banksType[i]);
 		if (m_banksType[i] == VromBank)
-			s << quint16(m_banks[i] - m_vrom);
+			s << uint(m_banks[i] - m_vrom);
 		else if (m_banksType[i] == CramBank)
-			s << quint16(m_banks[i] - m_cram);
+			s << uint(m_banks[i] - m_cram);
 		else if (m_banksType[i] == VramBank)
-			s << quint16(m_banks[i] - m_vram);
+			s << uint(m_banks[i] - m_vram);
 	}
 	return true;
 }
@@ -85,7 +85,7 @@ bool NesPpuMapper::load(QDataStream &s) {
 		s >> bType;
 		m_banksType[i] = static_cast<BankType>(bType);
 
-		quint16 offset;
+		uint offset;
 		s >> offset;
 		if (m_banksType[i] == VromBank)
 			m_banks[i] = m_vrom + offset;

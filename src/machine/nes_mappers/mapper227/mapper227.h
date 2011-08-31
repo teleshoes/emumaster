@@ -10,7 +10,10 @@ class CpuMapper227 : public NesCpuMapper {
 public:
 	explicit CpuMapper227(NesMapper *mapper);
 	void reset();
+
 	void writeHigh(quint16 address, quint8 data);
+private:
+	NesPpuMapper *ppuMapper;
 };
 
 #define PpuMapper227 NesPpuMapper

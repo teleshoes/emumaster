@@ -28,7 +28,7 @@ void RomListModel::setMachineName(const QString &name) {
 	m_list.removeOne("..");
 	for (int i = 0; i < m_list.size(); i++) {
 		QFileInfo fileInfo(m_list.at(i));
-		m_list[i] = fileInfo.baseName();
+		m_list[i] = fileInfo.completeBaseName();
 	}
 	if (!m_list.isEmpty()) {
 		beginInsertRows(QModelIndex(), 0, m_list.size()-1);

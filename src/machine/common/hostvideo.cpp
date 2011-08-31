@@ -32,6 +32,10 @@ HostVideo::HostVideo(MachineView *machineView) :
 
 	m_padArrowsImage.load("../data/pad_arrows.png");
 	m_padButtonsImage.load("../data/pad_buttons.png");
+
+	m_selectButtonImage.load("../data/pad_select.png");
+	m_startButtonImage.load("../data/pad_start.png");
+	m_pauseButtonImage.load("../data/pause.png");
 }
 
 HostVideo::~HostVideo() {
@@ -95,6 +99,9 @@ void HostVideo::paintEvent(QPaintEvent *) {
 		if (m_hostInput->isPadVisible()) {
 			painter.drawImage(QPoint(0, 480-200), m_padArrowsImage);
 			painter.drawImage(QPoint(854-200, 480-200), m_padButtonsImage);
+			painter.drawImage(QPoint(0, 100), m_selectButtonImage);
+			painter.drawImage(QPoint(854-75, 100), m_startButtonImage);
+			painter.drawImage(QPoint(854-32-20, 20), m_pauseButtonImage);
 		}
 	}
 	painter.end();
@@ -117,7 +124,11 @@ QImage HostVideo::screenShotGrayscaled() const {
 	int pixelCount = screenShot.width() * screenShot.height();
 	QRgb *data = (QRgb *)screenShot.bits();
 	for (int i = 0; i < pixelCount; ++i) {
-		uint val = qGray(data[i]);
+		QRgb val = data[i];
+		uint r = qMin(qRed(val)+0xA0, 0xE0);
+		uint g = qMin(qGreen(val)+0xA0, 0xE1);
+		uint b = qMin(qBlue(val)+0xA0, 0xE2);
+		val = qRgb(r, g, b);
 		data[i] = qRgb(val, val, val);
 	}
 	return screenShot;

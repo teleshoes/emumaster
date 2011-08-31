@@ -34,7 +34,7 @@ Page {
 					saveIconSheet.imgScale = 1.0
 					saveIconSheet.iconX = 0
 					saveIconSheet.iconY = 0
-					saveIconSheet.imgSource = "image://rom/" + romListModel.machineName + romListModel.get(currentRomIndex) + "*"
+					saveIconSheet.imgSource = "image://rom/" + romListModel.machineName + romListModel.get(currentRomIndex) + "*" + romListModel.getScreenShotUpdate(currentRomIndex)
 					saveIconSheet.open()
 				}
 			}

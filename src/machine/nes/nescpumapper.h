@@ -78,7 +78,6 @@ private:
 
 	uint m_romSize;
 
-
 	NesDisk *m_disk;
 	NesCpu *m_cpu;
 	NesPpu *m_ppu;

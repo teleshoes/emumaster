@@ -1,32 +1,40 @@
-save/load:
- s save settings
- s auto save/load config
+video:
+ - fix orientations: sometimes screen policy comes to rom gallery, sometimes policy miss settings view
 
 input:
- o multiple keys at once on screen with one finger
- o start,select,pause icons
- o pad view config
+ s pad view config
  s on-screen paddle controller (e.g. arkanoid)
  s on-screen zapper controller (e.g. duck hunts)
  s accelerometer as a controller
  s use accelerometer at the save's view and rom gallery
 
 roms:
+ o copy info about roms
  s load roms from zipped files
  - IPS patcher
  s on device rom remove
 
 misc:
+ s change scheme
+ o bug in steering: when swiping pad don't work
+ - give users ability to choose their own images in ROM gallery
+ - currently when you click play new windows and machine is created, it takes time (especially when you click pause first time)
+   in order to minimize this time I will reimplement this mechanism so only disk will be reloaded (it should be done this way from beginning)
+ - mappers 72-255
+ - sometimes crash on pause
+ - should detect if USB cable is connected
  xs make icons in home screen removable
  - for Amiga create readme.txt about rom folders and roms name policy
  s game policy http://library.developer.nokia.com/index.jsp?topic=/MeeGo_1.2_Harmattan_API/html/guide/html/Developer_Library_Best_practices_for_application_development_Using_Resource_Policy_to_enhance_games_a32a.html
  - Meegotouch Control Panel http://www.developer.nokia.com/Community/Wiki/SettingsApplet
  - translations
  s more consoles: GB, SNES, C64, Amiga, ...
+ o bug testing
+ - support for debugging
+ - test PAL for NES
+ - catch load/save errors
 
 issues:
- o 11-in-1 save dont work
- o addams family save dont work
  - kick master (mapper 4) not working
 
 audio:

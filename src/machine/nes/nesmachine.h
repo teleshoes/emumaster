@@ -36,7 +36,7 @@ public:
 
 	explicit NesMachine(QObject *parent = 0);
 	~NesMachine();
-	Q_INVOKABLE void reset();
+	Q_INVOKABLE void reset(); // TODO virtual in IMachine
 
 	Type type() const;
 
@@ -61,6 +61,9 @@ public:
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
+
+	void saveSettings(QSettings &s);
+	void loadSettings(QSettings &s);
 
 	void setGameGenieCodeList(const QList<GameGenieCode> &codes);
 protected:

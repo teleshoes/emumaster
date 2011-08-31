@@ -25,6 +25,7 @@ protected:
 	bool eventFilter(QObject *o, QEvent *e);
 private:
 	void processKey(Qt::Key key, bool state);
+	void processTouch(QEvent *e);
 
 	bool m_swipeEnabled;
 	bool m_padVisible;

@@ -1,5 +1,6 @@
 #include "imachine.h"
 #include <QPluginLoader>
+#include <QSettings>
 
 IMachine::IMachine(const QString &name, QObject *parent) :
 	QObject(parent),
@@ -33,4 +34,18 @@ IMachine *IMachine::loadMachine(const QString &name) {
 
 void IMachine::setGameGenieCodeList(const QList<GameGenieCode> &codes) {
 	Q_UNUSED(codes)
+}
+
+void IMachine::saveSettings(QSettings &s) {
+	s.setValue("frameRate", m_frameRate);
+	s.setValue("audioEnable", m_audioEnable);
+	s.setValue("audioStereoEnable", m_audioStereoEnable);
+	s.setValue("audioSampleRate", m_audioSampleRate);
+}
+
+void IMachine::loadSettings(QSettings &s) {
+	m_frameRate = s.value("frameRate", 1).toInt();
+	m_audioEnable = s.value("audioEnable", true).toBool();
+	m_audioStereoEnable = s.value("audioStereoEnable", true).toBool();
+	m_audioSampleRate = s.value("audioSampleRate", 22050).toInt();
 }

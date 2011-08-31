@@ -176,7 +176,7 @@ bool NesCpuMapper::save(QDataStream &s) {
 	for (int i = 0; i < 8; i++) {
 		quint8 *bank = m_banks[i];
 		quint8 type;
-		quint16 offset;
+		uint offset;
 		if (bank >= m_rom && bank < (m_rom + m_romSize)) {
 			type = 0;
 			offset = bank - m_rom;
@@ -208,7 +208,7 @@ bool NesCpuMapper::save(QDataStream &s) {
 bool NesCpuMapper::load(QDataStream &s) {
 	for (int i = 0; i < 8; i++) {
 		quint8 type;
-		quint16 offset;
+		uint offset;
 		s >> type;
 		s >> offset;
 		if (type == 0)

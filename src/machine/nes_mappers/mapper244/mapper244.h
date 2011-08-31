@@ -9,7 +9,11 @@ class CpuMapper244 : public NesCpuMapper {
 	Q_OBJECT
 public:
 	explicit CpuMapper244(NesMapper *mapper);
+	void reset();
+
 	void writeHigh(quint16 address, quint8 data);
+private:
+	NesPpuMapper *ppuMapper;
 };
 
 #define PpuMapper244 NesPpuMapper

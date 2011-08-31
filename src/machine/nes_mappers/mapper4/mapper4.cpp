@@ -420,7 +420,7 @@ void PpuMapper4::updateBanks() {
 bool CpuMapper4::save(QDataStream &s) {
 	if (!NesCpuMapper::save(s))
 		return false;
-        for (uint i = 0; i < sizeof(d->reg); i++)
+	for (uint i = 0; i < sizeof(d->reg); i++)
 		s << d->reg[i];
 	s << d->prg0 << d->prg1;
 	s << d->chr01 << d->chr23 << d->chr4 << d->chr5 << d->chr6 << d->chr7;
@@ -436,7 +436,7 @@ bool CpuMapper4::save(QDataStream &s) {
 bool CpuMapper4::load(QDataStream &s) {
 	if (!NesCpuMapper::load(s))
 		return false;
-        for (uint i = 0; i < sizeof(d->reg); i++)
+	for (uint i = 0; i < sizeof(d->reg); i++)
 		s >> d->reg[i];
 	s >> d->prg0 >> d->prg1;
 	s >> d->chr01 >> d->chr23 >> d->chr4 >> d->chr5 >> d->chr6 >> d->chr7;

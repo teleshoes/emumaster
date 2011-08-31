@@ -22,7 +22,7 @@ NesMapper *NesMapper::load(NesMachine *machine, quint8 type) {
 	QPluginLoader loader(path);
 	NesMapperPlugin *plugin = qobject_cast<NesMapperPlugin *>(loader.instance());
 	if (!plugin) {
-		qDebug(qPrintable(loader.errorString()));
+		qDebug("%s", qPrintable(loader.errorString()));
 		return 0;
 	}
 	return plugin->create(machine);
@@ -38,17 +38,4 @@ void NesMapper::reset() {
 	m_cpuMapper->reset();
 	m_cpuMapper->processGameGenieCodes();
 	m_ppuMapper->reset();
-}
-
-void NesMapper::saveState(QDataStream &s) {
-	m_cpuMapper->save(s);
-	m_ppuMapper->save(s);
-}
-
-bool NesMapper::loadState(QDataStream &s) {
-	if (!m_cpuMapper->load(s))
-		return false;
-	if (!m_ppuMapper->load(s))
-		return false;
-	return true;
 }

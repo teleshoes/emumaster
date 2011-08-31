@@ -1,9 +1,8 @@
 [Desktop Entry]
-Encoding=UTF-8
 Version=1.0
 Type=Application
 Terminal=false
 Name=EmuMaster
 Exec=/usr/bin/single-instance /opt/emumaster/bin/romgallery
-Icon=romgallery
+Icon=/opt/emumaster/data/romgallery.png
 Categories=Emulator;

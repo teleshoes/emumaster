@@ -46,9 +46,17 @@ unix {
 		../../../qml/common/CoverFlowDelegate.qml \
 		../../../qml/common/utils.js
 
+	pad.path = /opt/emumaster/data
+	pad.files = \
+		../../../data/pad_arrows.png \
+		../../../data/pad_buttons.png \
+		../../../data/pad_select.png \
+		../../../data/pad_start.png \
+		../../../data/pause.png
+
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = ../../../qml/img/*
-	INSTALLS += qml qmlimg
+	INSTALLS += qml qmlimg pad
 }
 
 

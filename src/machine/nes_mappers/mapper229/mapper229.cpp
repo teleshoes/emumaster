@@ -1,23 +1,40 @@
 #include "mapper229.h"
+#include "nesppu.h"
+#include "nesdisk.h"
+#include <QDataStream>
 
 CpuMapper229::CpuMapper229(NesMapper *mapper) :
-	NesCpuMapper(mapper) {
+	NesCpuMapper(mapper),
+	ppuMapper(0) {
+}
+
+void CpuMapper229::reset() {
+	ppuMapper = mapper()->ppuMapper();
+
+	setRom32KBank(0);
+	ppuMapper->setVrom8KBank(0);
 }
 
 void CpuMapper229::writeHigh(quint16 address, quint8 data) {
 	Q_UNUSED(data)
-	if (address & 0x1E) {
-		setRom16KBank(0, address & 0x1F);
-		setRom16KBank(1, address & 0x1F);
-		mapper()->ppuMemory()->setRomBank(address & 0x0FFF);
+
+	if (address & 0x001E) {
+		quint8 prg = address & 0x001F;
+
+		setRom8KBank(4, prg*2+0);
+		setRom8KBank(5, prg*2+1);
+		setRom8KBank(6, prg*2+0);
+		setRom8KBank(7, prg*2+1);
+
+		ppuMapper->setVrom8KBank(address & 0x0FFF);
 	} else {
-		setRomBank(0);
-		mapper()->ppuMemory()->setRomBank(0);
+		setRom32KBank(0);
+		ppuMapper->setVrom8KBank(0);
 	}
 	if (address & 0x0020)
-		mapper()->ppuMemory()->setMirroring(NesPpuMapper::Horizontal);
+		ppuMapper->setMirroring(NesPpuMapper::Horizontal);
 	else
-		mapper()->ppuMemory()->setMirroring(NesPpuMapper::Vertical);
+		ppuMapper->setMirroring(NesPpuMapper::Vertical);
 }
 
 NES_MAPPER_PLUGIN_EXPORT(229, "31-in-1")

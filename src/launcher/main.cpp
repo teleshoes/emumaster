@@ -20,5 +20,6 @@ int main(int argc, char *argv[]) {
 		return -2;
 	}
 	MachineView *view = new MachineView(machine, argv[2]);
+	Q_UNUSED(view)
 	return app.exec();
 }

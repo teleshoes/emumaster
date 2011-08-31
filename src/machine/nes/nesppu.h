@@ -10,6 +10,8 @@ class NesMachine;
 
 class NES_EXPORT NesPpu : public QObject {
 	Q_OBJECT
+	Q_ENUMS(RenderMethod)
+	Q_PROPERTY(RenderMethod renderMethod READ renderMethod WRITE setRenderMethod NOTIFY renderMethodChanged)
 	Q_PROPERTY(bool spriteClippingEnable READ isSpriteClippingEnabled WRITE setSpriteClippingEnabled NOTIFY spriteClippingEnableChanged)
 public:
 	enum ChipType {
@@ -91,6 +93,7 @@ public:
 	void setSpriteClippingEnabled(bool on);
 signals:
 	void vblank_o(bool on);
+	void renderMethodChanged();
 	void spriteClippingEnableChanged();
 private:
 	void drawBackground();

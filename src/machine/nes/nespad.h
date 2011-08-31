@@ -24,6 +24,7 @@ public:
 	bool isZapperMode() const;
 
 	void setButtonState(int player, Button button, bool on);
+	void clearButtons(int player);
 	void write(quint16 address, quint8 data);
 	quint8 read(quint16 address);
 private:
