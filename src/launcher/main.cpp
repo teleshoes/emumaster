@@ -5,6 +5,10 @@
 #include <QTextStream>
 #include <stdio.h>
 
+#include <QTimer>
+#include "widget.h"
+#include "thread.h"
+
 int main(int argc, char *argv[]) {
 	if (argc != 3) {
 		QTextStream(stderr) << "use: launcher machine-name disk-name";
@@ -19,7 +23,16 @@ int main(int argc, char *argv[]) {
 		QTextStream(stderr) << qPrintable(QString("Could not load %1 machine").arg(machineName));
 		return -2;
 	}
-	MachineView *view = new MachineView(machine, argv[2]);
-	Q_UNUSED(view)
+//	MachineView *view = new MachineView(machine, argv[2]);
+//	Q_UNUSED(view)
+
+	Widget *w = new Widget();
+	w->showFullScreen();
+	w->setMachine(machine);
+	Thread *t = new Thread(machine);
+	machine->connect(t, SIGNAL(frameGen()), w, SLOT(repaint()), Qt::BlockingQueuedConnection);
+	QTimer::singleShot(5, t, SLOT(start()));
+
+
 	return app.exec();
 }

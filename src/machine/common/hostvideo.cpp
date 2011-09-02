@@ -101,9 +101,9 @@ void HostVideo::paintEvent(QPaintEvent *) {
 			painter.drawImage(QPoint(854-200, 480-200), m_padButtonsImage);
 			painter.drawImage(QPoint(0, 100), m_selectButtonImage);
 			painter.drawImage(QPoint(854-75, 100), m_startButtonImage);
-			painter.drawImage(QPoint(854-32-20, 20), m_pauseButtonImage);
 		}
 	}
+	painter.drawImage(QPoint(854-32-20, 20), m_pauseButtonImage);
 	painter.end();
 }
 

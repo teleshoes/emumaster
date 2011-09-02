@@ -43,6 +43,7 @@ public:
 	virtual QRectF videoDstRect() const = 0;
 	virtual void emulateFrame(bool drawEnabled) = 0;
 	virtual const QImage &frame() const = 0;
+	// TODO pass buffer in not out
 	virtual const char *grabAudioBuffer(int *size) = 0;
 	virtual void setPadKey(PadKey key, bool state);
 
@@ -52,8 +53,10 @@ public:
 	virtual void saveSettings(QSettings &s);
 	virtual void loadSettings(QSettings &s);
 
+	// TODO move to nes
 	virtual void setGameGenieCodeList(const QList<GameGenieCode> &codes);
 protected:
+	// TODO part this function
 	virtual void updateSettings() = 0;
 	void setFrameRate(qreal rate);
 private:

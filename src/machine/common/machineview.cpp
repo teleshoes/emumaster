@@ -196,6 +196,7 @@ void MachineView::buildLocalDirTree() {
 	dir.mkdir("emumaster");
 	dir.cd("emumaster");
 	dir.mkdir("nes");
+	dir.mkdir("gba");
 	// TODO add directory for other consoles
 }
 

@@ -10,7 +10,8 @@ TEMPLATE = subdirs
 # mapper63
 
 SUBDIRS += \
-        mapper0
+	mapper0 \
+	mapper2
 
 #	mapper1 \
 #	mapper2 \

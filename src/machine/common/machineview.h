@@ -21,6 +21,7 @@ public:
 	explicit MachineView(IMachine *machine, const QString &diskName, QWidget *parent = 0);
 	~MachineView();
 
+	// TODO move to IMachine
 	static QString romDirPath();
 	static QString userDataDirPath();
 	static void buildLocalDirTree();

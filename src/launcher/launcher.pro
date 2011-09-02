@@ -2,9 +2,12 @@ DESTDIR = ../../bin
 INCLUDEPATH += ../../include
 LIBS += -L../../lib -lmachine_common
 QT += opengl
+CONFIG += console
 
 SOURCES += \
-	main.cpp
+	main.cpp \
+    widget.cpp \
+    thread.cpp
 
 exists($$QMAKE_INCDIR_QT"/../qmsystem2/qmkeys.h"):!contains(MEEGO_EDITION,harmattan): {
 	MEEGO_VERSION_MAJOR     = 1
@@ -19,3 +22,9 @@ unix {
 	target.path = /opt/emumaster/bin
     INSTALLS += target
 }
+
+HEADERS += \
+    widget.h \
+    thread.h
+
+

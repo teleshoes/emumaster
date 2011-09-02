@@ -15,7 +15,8 @@ roms:
  s on device rom remove
 
 misc:
- s change scheme
+ o change game_config.txt path
+ s qml need a skeleton - too much code is copy pasted
  o bug in steering: when swiping pad don't work
  - give users ability to choose their own images in ROM gallery
  - currently when you click play new windows and machine is created, it takes time (especially when you click pause first time)
