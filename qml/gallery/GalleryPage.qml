@@ -1,6 +1,6 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
-import "../common"
+import "../base"
 
 Page {
 	CoverFlow {
@@ -8,7 +8,7 @@ Page {
 		anchors.fill: parent
 		model: romListModel
 		delegate: CoverFlowDelegate {
-			imageSource: "image://rom/" + romListModel.machineName + title + "*" + screenShotUpdate
+			imageSource: "image://rom/" + romListModel.machineName + "_" + title + "*" + screenShotUpdate
 
 			Label {
 				anchors.top: parent.top

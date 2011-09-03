@@ -34,7 +34,7 @@ Page {
 					saveIconSheet.imgScale = 1.0
 					saveIconSheet.iconX = 0
 					saveIconSheet.iconY = 0
-					saveIconSheet.imgSource = "image://rom/" + romListModel.machineName + romListModel.get(currentRomIndex) + "*" + romListModel.getScreenShotUpdate(currentRomIndex)
+					saveIconSheet.imgSource = "image://rom/" + romListModel.machineName + "_" + romListModel.get(currentRomIndex) + "*" + romListModel.getScreenShotUpdate(currentRomIndex)
 					saveIconSheet.open()
 				}
 			}
@@ -69,6 +69,8 @@ Page {
 		property int iconX: 0
 		property int iconY: 0
 
+		// TODO waiting for new version of qt-components acceptButton.enabled when
+		// icon selected -> rect.visible
 		acceptButtonText: "Save"
 		rejectButtonText: "Cancel"
 
@@ -103,10 +105,10 @@ Page {
 			}
 
 			MouseArea {
-				x: img.x - (img.scale-1)*img.width/2
-				y: img.y - (img.scale-1)*img.height/2
-				width: img.width*img.scale
-				height: img.height*img.scale
+				x: img.x - (img.scale-1)*img.width/2 + 40
+				y: img.y - (img.scale-1)*img.height/2 + 40
+				width: img.width*img.scale - 80
+				height: img.height*img.scale - 80
 				onClicked: {
 					saveIconSheet.iconX = mouse.x - 40
 					saveIconSheet.iconY = mouse.y - 40

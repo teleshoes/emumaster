@@ -1,5 +1,5 @@
 #include "romimageprovider.h"
-#include "machineview.h"
+#include "imachine.h"
 #include <QImage>
 #include <QPainter>
 #include <QFile>
@@ -28,7 +28,7 @@ QImage RomImageProvider::requestImage(const QString &id, QSize *size, const QSiz
 	Q_UNUSED(requestedSize)
 	QString idGoodPart = id.left(id.indexOf('*'));
 	QString path = QString("%1/screenshot/%2.jpg")
-			.arg(MachineView::userDataDirPath())
+			.arg(IMachine::userDataDirPath())
 			.arg(idGoodPart);
 	if (!QFile::exists(path))
 		return m_noScreenShot;

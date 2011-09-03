@@ -1,8 +1,9 @@
 emumaster (0.0.2) unstable; urgency=low
 
+  * fixed crash on pause button
   * start button of the pad placed in the right position
   * fixed ram amount in the disk info
-  * render method for PPU can now be selected
+  * render method for PPU (NES) can now be selected
   * settings look refreshed
   * mappers:
      added: 200,201,202,222,225,226,227,228,229,230,231,232,233,235,236,240,241,242,243,244,246,251,252,254,255

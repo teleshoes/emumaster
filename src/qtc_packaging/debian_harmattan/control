@@ -9,7 +9,7 @@ Homepage: <http://elemental-mk.blogspot.com>
 Package: emumaster
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Emulator of popular consoles (NES currently)
+Description: Emulator of popular consoles
  The main goal of the EmuMaster project is to create
  emulator of popular consoles with the great and easy
  ui so anyone can use it. Fantastic ROM gallery, use of

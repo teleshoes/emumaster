@@ -52,7 +52,3 @@ contains(MEEGO_EDITION,harmattan) {
     desktopfile.path = /usr/share/applications
     INSTALLS += desktopfile
 }
-
-OTHER_FILES += \
-    ../../qml/gallery/AboutSheet.qml
-

@@ -21,6 +21,7 @@ public:
 	int count() const;
 	QVariant data(const QModelIndex &index, int role) const;
 	void updateScreenShot(const QString &name);
+
 	Q_INVOKABLE QString get(int i) const;
 	Q_INVOKABLE QString getAlphabet(int i) const;
 	Q_INVOKABLE int getScreenShotUpdate(int i) const;

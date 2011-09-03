@@ -2,7 +2,6 @@
 #define ROMGALLERY_H
 
 class RomListModel;
-class MachineView;
 #include <QDeclarativeView>
 
 class RomGallery : public QDeclarativeView {
@@ -15,16 +14,12 @@ public:
 	Q_INVOKABLE bool addIconToHomeScreen(const QString &diskName, qreal scale, int x, int y);
 	Q_INVOKABLE void donate();
 	Q_INVOKABLE void homepage();
-protected:
-	void closeEvent(QCloseEvent *e);
 private slots:
-	void onMachineViewDestroyed();
+	void onProcessFinished();
 private:
 	QImage applyMaskAndOverlay(const QImage &icon);
 
 	RomListModel *m_romListModel;
-	QString m_diskName;
-	MachineView *m_machineView;
 };
 
 #endif // ROMGALLERY_H

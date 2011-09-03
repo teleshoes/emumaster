@@ -1,5 +1,5 @@
 #include "romlistmodel.h"
-#include "machineview.h"
+#include "imachine.h"
 #include <QDir>
 #include <QFileInfo>
 
@@ -20,12 +20,8 @@ void RomListModel::setMachineName(const QString &name) {
 	}
 	m_machineName = name;
 	emit machineNameChanged();
-	QDir dir = QDir(QString("%1/%2")
-					.arg(MachineView::romDirPath())
-					.arg(name));
-	m_list = dir.entryList(QDir::NoFilter, QDir::Name);
-	m_list.removeOne(".");
-	m_list.removeOne("..");
+	QDir dir = QDir(IMachine::diskDirPath(m_machineName));
+	m_list = dir.entryList(QDir::NoDotAndDotDot, QDir::Name);
 	for (int i = 0; i < m_list.size(); i++) {
 		QFileInfo fileInfo(m_list.at(i));
 		m_list[i] = fileInfo.completeBaseName();
@@ -70,8 +66,8 @@ void RomListModel::updateScreenShot(const QString &name) {
 }
 
 int RomListModel::getScreenShotUpdate(int i) const {
-	QString path = QString("%1/screenshot/%2%3.jpg")
-			.arg(MachineView::userDataDirPath())
+	QString path = QString("%1/screenshot/%2_%3.jpg")
+			.arg(IMachine::userDataDirPath())
 			.arg(m_machineName)
 			.arg(m_list.at(i));
 	if (QFile::exists(path))

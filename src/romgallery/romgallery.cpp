@@ -2,56 +2,56 @@
 #include "romimageprovider.h"
 #include "romlistmodel.h"
 #include "imachine.h"
-#include "machineview.h"
 #include <QDeclarativeEngine>
 #include <QDeclarativeContext>
-#include <QTimer>
-#include <QCloseEvent>
-#include <QDir>
 #include <QFile>
 #include <QTextStream>
 #include <QProcess>
 
 RomGallery::RomGallery(QWidget *parent) :
-	QDeclarativeView(parent),
-	m_machineView(0) {
+	QDeclarativeView(parent) {
 	m_romListModel = new RomListModel(this);
 	engine()->addImageProvider("rom", new RomImageProvider());
 	rootContext()->setContextProperty("romListModel", m_romListModel);
 	rootContext()->setContextProperty("romGallery", this);
-	setSource(QUrl::fromLocalFile("../qml/gallery/main.qml"));
+	QString qmlPath = QString("%1/qml/gallery/main.qml")
+			.arg(IMachine::installationDirPath());
+	setSource(QUrl::fromLocalFile(qmlPath));
 }
 
 RomGallery::~RomGallery() {
 }
 
-bool RomGallery::launch(const QString &diskName) {
+void RomGallery::launch(const QString &diskName) {
+	QProcess *process = new QProcess();
+	process->setProperty("disk_name", diskName);
+	QObject::connect(process, SIGNAL(started()), SLOT(showMinimized()));
+	QObject::connect(process, SIGNAL(finished(int)), SLOT(onProcessFinished()));
+	QObject::connect(process, SIGNAL(error(QProcess::ProcessError)), SLOT(onProcessFinished()));
 	QString machineName = m_romListModel->machineName();
-	IMachine *machine = IMachine::loadMachine(machineName);
-	if (!machine)
-		return false;
-	m_diskName = diskName;
-	m_machineView = new MachineView(machine, diskName, this);
-	QObject::connect(m_machineView, SIGNAL(destroyed()), SLOT(onMachineViewDestroyed()));
-	setVisible(false);
-	return true;
+	QStringList args;
+	args << QString("%1/%2").arg(IMachine::installationDirPath()).arg(machineName);
+	args << diskName;
+	process->startDetached("/usr/bin/single-instance", args);
 }
 
-void RomGallery::onMachineViewDestroyed() {
-	m_machineView = 0;
-	m_romListModel->updateScreenShot(m_diskName);
-	setVisible(true);
-}
-
-void RomGallery::closeEvent(QCloseEvent *e) {
-	e->setAccepted(m_machineView == 0);
+void RomGallery::onProcessFinished() {
+	QProcess *process = static_cast<QProcess *>(QObject::sender());
+	QString diskName = process->property("disk_name").toString();
+	m_romListModel->updateScreenShot(diskName);
+	showFullScreen();
 }
 
 QImage RomGallery::applyMaskAndOverlay(const QImage &icon) {
+	QString iconMaskPath = QString("%1/data/icon_mask.png")
+			.arg(IMachine::installationDirPath());
+	QString iconOverlayPath = QString("%1/data/icon_overlay.png")
+			.arg(IMachine::installationDirPath());
+
 	QImage iconConverted = icon.convertToFormat(QImage::Format_ARGB32);
 	QImage result(80, 80, QImage::Format_ARGB32);
 	QImage mask;
-	mask.load("../data/icon_mask.png");
+	mask.load(iconMaskPath);
 	mask = mask.convertToFormat(QImage::Format_ARGB32);
 	int pixelCount = mask.width() * mask.height();
 	QRgb *data = (QRgb *)mask.bits();
@@ -64,7 +64,7 @@ QImage RomGallery::applyMaskAndOverlay(const QImage &icon) {
 	}
 
 	QImage overlay;
-	overlay.load("../data/icon_overlay.png");
+	overlay.load(iconOverlayPath);
 	overlay = overlay.convertToFormat(QImage::Format_ARGB32);
 
 	QPainter painter;
@@ -81,10 +81,11 @@ QImage RomGallery::applyMaskAndOverlay(const QImage &icon) {
 }
 
 bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x, int y) {
+	QString machineName = m_romListModel->machineName();
 	QString escapedDiskName = diskName;
 	escapedDiskName.replace(' ', '_');
 	RomImageProvider imgProvider;
-	QImage imgSrc = imgProvider.requestImage(QString("%1%2*%3")
+	QImage imgSrc = imgProvider.requestImage(QString("%1_%2*%3")
 											 .arg(m_romListModel->machineName())
 											 .arg(diskName)
 											 .arg(qrand()), 0, QSize());
@@ -97,8 +98,7 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 		return false;
 	icon = applyMaskAndOverlay(icon);
 
-	QString machineName = m_romListModel->machineName();
-	QString iconPath = QString("%1/icon/%2%3.png")
+	QString iconPath = QString("%1/icon/%2_%3.png")
 			.arg(MachineView::userDataDirPath())
 			.arg(machineName)
 			.arg(escapedDiskName);
@@ -110,11 +110,11 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 				"Version=1.0\n"
 				"Type=Application\n"
 				"Name=%3\n"
-				"Exec=/usr/bin/single-instance %1/launcher %2 \"%3\"\n"
+				"Exec=/usr/bin/single-instance %1/%2 \"%3\"\n"
 				"Icon=%4\n"
 				"Terminal=false\n"
 				"Categories=Emulator;\n")
-			.arg(QDir::currentPath())
+			.arg(IMachine::installationDirPath())
 			.arg(machineName)
 			.arg(diskName)
 			.arg(iconPath);
@@ -139,7 +139,6 @@ void RomGallery::donate() {
 
 void RomGallery::homepage() {
 	QStringList args;
-	// TODO homepage
-	args << "http:";
+	args << "http://elemental-mk.blogspot.com";
 	QProcess::execute("grob", args);
 }

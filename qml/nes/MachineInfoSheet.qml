@@ -1,6 +1,6 @@
 import QtQuick 1.0
 import com.nokia.meego 1.0
-import "../common/utils.js" as EmuMasterUtils
+import "../base/utils.js" as EmuMasterUtils
 
 Sheet {
 	id: infoSheet
