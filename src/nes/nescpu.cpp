@@ -3,6 +3,7 @@
 #include "nescpumapper.h"
 #include "nesapu.h"
 #include "nesmapper.h"
+#include <imachine.h>
 #include <QDataStream>
 
 NesCpu::NesCpu(NesMachine *machine) :
@@ -88,30 +89,16 @@ void NesCpu::mapper_irq_i(bool on) {
 		irq0_i(newIrqState);
 }
 
-bool NesCpu::save(QDataStream &s) {
-	if (!M6502::save(s))
-		return false;
-	if (!m_mapper->save(s))
-		return false;
-	if (!m_apu->save(s))
-		return false;
-	s << m_reset;
-	s << m_dmaCycles;
-	s << m_apuIrq;
-	s << m_mapperIrq;
-	return true;
-}
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(NesCpu) \
+	STATE_SERIALIZE_PARENT_##sl(M6502) \
+	STATE_SERIALIZE_SUBCALL_PTR_##sl(m_mapper) \
+	STATE_SERIALIZE_SUBCALL_PTR_##sl(m_apu) \
+	STATE_SERIALIZE_VAR_##sl(m_reset) \
+	STATE_SERIALIZE_VAR_##sl(m_dmaCycles) \
+	STATE_SERIALIZE_VAR_##sl(m_apuIrq) \
+	STATE_SERIALIZE_VAR_##sl(m_mapperIrq) \
+	STATE_SERIALIZE_END(NesCpu)
 
-bool NesCpu::load(QDataStream &s) {
-	if (!M6502::load(s))
-		return false;
-	if (!m_mapper->load(s))
-		return false;
-	if (!m_apu->load(s))
-		return false;
-	s >> m_reset;
-	s >> m_dmaCycles;
-	s >> m_apuIrq;
-	s >> m_mapperIrq;
-	return true;
-}
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

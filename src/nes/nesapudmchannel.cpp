@@ -1,5 +1,6 @@
 #include "nesapudmchannel.h"
 #include "nesapu.h"
+#include <imachine.h>
 #include <QDataStream>
 
 NesApuDMChannel::NesApuDMChannel(NesApu *apu, int channelNo) :
@@ -39,8 +40,7 @@ void NesApuDMChannel::write0x4010(quint8 data) {
 void NesApuDMChannel::write0x4011(quint8 data) {
 	m_deltaCounter = (data >> 1) & 0x3F;
 	m_dacLsb = data & 1;
-	if (isUserEnabled())
-		sampleValue = ((m_deltaCounter << 1) + m_dacLsb);
+	sampleValue = ((m_deltaCounter << 1) + m_dacLsb);
 }
 
 void NesApuDMChannel::write0x4012(quint8 data) {
@@ -118,48 +118,23 @@ int NesApuDMChannel::m_frequencyLUT[16] = {
 	0x350, 0x2A0, 0x240, 0x1B0
 };
 
-bool NesApuDMChannel::save(QDataStream &s) {
-	if (!NesApuChannel::save(s))
-		return false;
-	s << irqGenerated;
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(NesApuDMChannel) \
+	STATE_SERIALIZE_PARENT_##sl(NesApuChannel) \
+	STATE_SERIALIZE_VAR_##sl(irqGenerated) \
+	STATE_SERIALIZE_VAR_##sl(m_hasSample) \
+	STATE_SERIALIZE_VAR_##sl((int&)m_playMode) \
+	STATE_SERIALIZE_VAR_##sl(m_dmaFrequency) \
+	STATE_SERIALIZE_VAR_##sl(m_dmaCounter) \
+	STATE_SERIALIZE_VAR_##sl(m_deltaCounter) \
+	STATE_SERIALIZE_VAR_##sl(m_playLength) \
+	STATE_SERIALIZE_VAR_##sl(m_shiftCounter) \
+	STATE_SERIALIZE_VAR_##sl(m_status) \
+	STATE_SERIALIZE_VAR_##sl(m_dacLsb) \
+	STATE_SERIALIZE_VAR_##sl(m_shiftReg) \
+	STATE_SERIALIZE_VAR_##sl(m_playStartAddress) \
+	STATE_SERIALIZE_VAR_##sl(m_playAddress) \
+	STATE_SERIALIZE_END(NesApuDMChannel)
 
-	s << m_hasSample;
-
-	s << int(m_playMode);
-	s << m_dmaFrequency;
-	s << m_dmaCounter;
-	s << m_deltaCounter;
-	s << m_playLength;
-	s << m_shiftCounter;
-	s << m_status;
-	s << m_dacLsb;
-	s << m_shiftReg;
-
-	s << m_playStartAddress;
-	s << m_playAddress;
-	return true;
-}
-
-bool NesApuDMChannel::load(QDataStream &s) {
-	if (!NesApuChannel::load(s))
-		return false;
-	s >> irqGenerated;
-
-	s >> m_hasSample;
-
-	int playMode;
-	s >> playMode;
-	m_playMode = static_cast<Mode>(playMode);
-	s >> m_dmaFrequency;
-	s >> m_dmaCounter;
-	s >> m_deltaCounter;
-	s >> m_playLength;
-	s >> m_shiftCounter;
-	s >> m_status;
-	s >> m_dacLsb;
-	s >> m_shiftReg;
-
-	s >> m_playStartAddress;
-	s >> m_playAddress;
-	return true;
-}
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

@@ -11,7 +11,7 @@ linux-g++-maemo {
 }
 
 unix {
-	QMAKE_LFLAGS += -Wl,--rpath,/opt/emumaster/bin
+	QMAKE_LFLAGS += -Wl,--rpath,/opt/emumaster/bin -Wl,--rpath,/opt/emumaster/lib
 	target.path = /opt/emumaster/bin
 	INSTALLS += target
 }

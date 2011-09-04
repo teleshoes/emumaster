@@ -10,8 +10,4 @@ PageStackWindow {
 	RomChoosePage {
 		id: mainPage
 	}
-
-// TODO to choose console	MainPage {
-//		id: mainPage
-//	}
 }

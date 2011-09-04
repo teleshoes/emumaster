@@ -34,8 +34,6 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 	m_thread = new MachineThread(m_machine);
 
 	m_hostInput = new HostInput(m_machine);
-	QObject::connect(m_hostInput, SIGNAL(pauseClicked()), SLOT(pause()));
-
 	m_hostAudio = new HostAudio(m_machine);
 
 	m_hostVideo = new HostVideo(m_machine, m_thread);
@@ -70,6 +68,9 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 		m_machine->emulateFrame(false);
 		if (m_autoLoadOnStart)
 			m_stateListModel->loadState(-2);
+		QObject::connect(m_hostInput, SIGNAL(pauseClicked()), SLOT(pause()));
+	} else {
+		QObject::connect(m_hostInput, SIGNAL(pauseClicked()), SLOT(close()));
 	}
 	QMetaObject::invokeMethod(this, "resume", Qt::QueuedConnection);
 }
@@ -147,16 +148,16 @@ void MachineView::resume() {
 	m_settingsView->setMyVisible(false);
 
 	if (m_hostVideo->m_error.isEmpty()) {
-		m_thread->resume();
-	} else {
 		QObject::connect(m_thread, SIGNAL(frameGenerated(bool)),
 						 this, SLOT(onFrameGenerated(bool)),
 						 Qt::BlockingQueuedConnection);
 		if (m_audioEnable)
 			m_hostAudio->open(m_audioSampleRate);
+		m_thread->resume();
+		m_running = true;
+	} else {
 		m_hostVideo->repaint();
 	}
-	m_running = true;
 }
 
 bool MachineView::close() {
@@ -194,6 +195,8 @@ void MachineView::loadSettings() {
 
 	m_audioEnable = s.value("audioEnable", true).toBool();
 	m_audioSampleRate = s.value("audioSampleRate", 22050).toInt();
+	m_machine->setAudioEnabled(m_audioEnable);
+	m_machine->setAudioSampleRate(m_audioSampleRate);
 
 	s.beginGroup(m_machine->name());
 	m_thread->setFrameSkip(s.value("frameSkip", 1).toInt());

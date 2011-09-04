@@ -7,16 +7,8 @@ Page {
 		ButtonRow {
 			platformStyle: TabButtonStyle { }
 			TabButton {
-				iconSource: "image://theme/icon-m-toolbar-gallery"
-				tab: videoTab
-			}
-			TabButton {
-				iconSource: "image://theme/icon-m-toolbar-content-audio"
-				tab: audioTab
-			}
-			TabButton {
-				iconSource: "../img/icon-m-toolbar-input.png"
-				tab: inputTab
+				iconSource: "image://theme/icon-m-toolbar-settings"
+				tab: settingsTab
 			}
 			TabButton {
 				iconSource: "../img/icon-m-toolbar-diskette.png"
@@ -32,11 +24,9 @@ Page {
 
 	TabGroup {
 		id: tabGroup
-		currentTab: videoTab
+		currentTab: settingsTab
 
-		VideoPage { id: videoTab }
-		AudioPage { id: audioTab }
-		InputPage { id: inputTab }
+		SettingsPage { id: settingsTab }
 		StatePage { id: stateTab }
 		CheatPage { id: cheatTab }
 	}

@@ -1,6 +1,5 @@
 include(../machine.pri)
-LIBS += -lm6502 -lcrc32
-DEFINES += NES_PROJECT
+LIBS += -lbase -lm6502 -lcrc32
 QT += opengl declarative
 
 HEADERS += \
@@ -23,10 +22,12 @@ HEADERS += \
     nesppuregisters.h \
     nesppupalette.h \
     nesdisk_p.h \
-    nesmappereeprom.h
+    nesmappereeprom.h \
+    gamegeniecodelistmodel.h \
+    gamegeniecode.h
 
 SOURCES += \
-    nesdisk.cpp \
+	nesdisk.cpp \
     nespad.cpp \
     nesmachine.cpp \
 	nescpumapper.cpp \
@@ -43,18 +44,25 @@ SOURCES += \
     nesppuregisters.cpp \
     nesppupalette.cpp \
     nesdisk_patch.cpp \
-    nesmappereeprom.cpp
+    nesmappereeprom.cpp \
+    gamegeniecodelistmodel.cpp \
+    gamegeniecode.cpp
 
 unix {
 	qml.path = /opt/emumaster/qml/nes
 	qml.files = \
 		../../qml/nes/main.qml \
 		../../qml/nes/MainPage.qml \
-		../../qml/nes/VideoPage.qml \
-		../../qml/nes/AudioPage.qml \
-		../../qml/nes/InputPage.qml \
+		../../qml/nes/SettingsPage.qml \
 		../../qml/nes/StatePage.qml \
 		../../qml/nes/CheatPage.qml \
-		../../qml/nes/MachineInfoSheet.qml
+		../../qml/nes/MachineInfoSheet.qml \
+		../../qml/nes/EMButtonOption.qml \
+		../../qml/nes/EMSwitchOption.qml
 	INSTALLS += qml
 }
+
+
+
+
+

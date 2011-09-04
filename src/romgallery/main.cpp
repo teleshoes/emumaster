@@ -1,13 +1,10 @@
 #include "romgallery.h"
-#include "machineview.h"
+#include "imachine.h"
 #include <QApplication>
-#include <QDir>
 
 int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
-	QDir::setCurrent(app.applicationDirPath());
-
-	MachineView::buildLocalDirTree();
+	IMachine::buildLocalDirTree();
 
 	RomGallery view;
 #if defined(MEEGO_EDITION_HARMATTAN)

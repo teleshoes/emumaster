@@ -1,8 +1,8 @@
 #ifndef GAMEGENIECODELISTMODEL_H
 #define GAMEGENIECODELISTMODEL_H
 
-class MachineView;
 class GameGenieCode;
+class NesMachine;
 #include <QAbstractListModel>
 #include <QStringList>
 
@@ -14,7 +14,7 @@ public:
 		DescriptionRole,
 		EnableRole
 	};
-	explicit GameGenieCodeListModel(MachineView *machineView);
+	explicit GameGenieCodeListModel(NesMachine *machine);
 	~GameGenieCodeListModel();
 	int rowCount(const QModelIndex &parent) const;
 	QVariant data(const QModelIndex &index, int role) const;
@@ -27,6 +27,8 @@ public:
 	Q_INVOKABLE void removeAt(int i);
 private:
 	QString filePath();
+
+	NesMachine *m_machine;
 
 	QStringList m_codes;
 	QStringList m_descriptions;

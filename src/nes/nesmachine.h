@@ -9,6 +9,8 @@ class NesDisk;
 class NesMapper;
 class NesCpuMapper;
 class NesPpuMapper;
+class GameGenieCode;
+class GameGenieCodeListModel;
 #include "nes_global.h"
 #include <imachine.h>
 
@@ -31,6 +33,7 @@ class NES_EXPORT NesMachine : public IMachine {
 	Q_PROPERTY(NesApu *apu READ apu CONSTANT)
 	Q_PROPERTY(NesDisk *disk READ disk CONSTANT)
 	Q_PROPERTY(NesMapper *mapper READ mapper CONSTANT)
+	// TODO Q_PROPERTY(GameGenieCodeListModel *gameGenie READ gameGenie CONSTANT)
 public:
 	enum Type { NTSC, PAL };
 
@@ -49,15 +52,11 @@ public:
 	NesPad *pad() const;
 	NesMapper *mapper() const;
 
-	quint32 diskCrc() const;
-
 	void clockCpu(uint cycles);
-	const char *grabAudioBuffer(int *size);
-	void setPadKey(PadKey key, bool state);
 	const QImage &frame() const;
 	void emulateFrame(bool drawEnabled);
-	QRectF videoSrcRect() const;
-	QRectF videoDstRect() const;
+	int fillAudioBuffer(char *stream, int streamSize);
+	void setPadKey(PadKey key, bool state);
 
 	void setGameGenieCodeList(const QList<GameGenieCode> &codes);
 	Q_INVOKABLE bool isGameGenieCodeValid(const QString &s);
@@ -68,7 +67,7 @@ public:
 	void saveSettings(QSettings &s);
 	void loadSettings(QSettings &s);
 protected:
-	void updateSettings();
+	void setAudioSampleRate(int sampleRate);
 private:
 	void emulateFrameNoTile(bool drawEnabled);
 	void emulateVisibleScanlineNoTile(int scanline);
@@ -98,6 +97,8 @@ private:
 
 	bool bZapper; // TODO zapper
 	int ZapperY;
+
+	GameGenieCodeListModel *m_gameGenieCodeListModel;
 };
 
 inline NesMachine::Type NesMachine::type() const

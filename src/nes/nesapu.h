@@ -11,11 +11,6 @@ class NesCpu;
 
 class NesApu : public QObject {
     Q_OBJECT
-	Q_PROPERTY(bool rectangle1Enable READ isRectangle1Enabled WRITE setRectangle1Enabled NOTIFY channelUserEnableChanged)
-	Q_PROPERTY(bool rectangle2Enable READ isRectangle2Enabled WRITE setRectangle2Enabled NOTIFY channelUserEnableChanged)
-	Q_PROPERTY(bool triangleEnable READ isTriangleEnabled WRITE setTriangleEnabled NOTIFY channelUserEnableChanged)
-	Q_PROPERTY(bool noiseEnable READ isNoiseEnabled WRITE setNoiseEnabled NOTIFY channelUserEnableChanged)
-	Q_PROPERTY(bool dmcEnable READ isDmcEnabled WRITE setDmcEnabled NOTIFY channelUserEnableChanged)
 public:
 	explicit NesApu(NesCpu *cpu);
 	void updateMachineType();
@@ -24,35 +19,15 @@ public:
 	void write(quint16 address, quint8 data);
 	quint8 read(quint16 address);
 
-	bool isChannelUserEnabled(int channelNo) const;
-	void setChannelUserEnabled(int channelNo, bool on);
-
-	bool isRectangle1Enabled() const;
-	void setRectangle1Enabled(bool on);
-
-	bool isRectangle2Enabled() const;
-	void setRectangle2Enabled(bool on);
-
-	bool isTriangleEnabled() const;
-	void setTriangleEnabled(bool on);
-
-	bool isNoiseEnabled() const;
-	void setNoiseEnabled(bool on);
-
-	bool isDmcEnabled() const;
-	void setDmcEnabled(bool on);
-
 	void setSampleRate(int rate);
-	void setStereoEnabled(bool on);
 
 	void clockFrameCounter(int nCycles);
-	const char *grabBuffer(int *size);
+	int fillBuffer(char *stream, int size);
 
 	virtual bool save(QDataStream &s);
 	virtual bool load(QDataStream &s);
 signals:
 	void request_irq_o(bool on);
-	void channelUserEnableChanged();
 private:
 	NesMachine *machine() const;
 	NesCpu *cpu() const;
@@ -81,7 +56,6 @@ private:
 
 	int m_bufferIndex;
 	int m_sampleRate;
-	bool m_stereo;
 
 	int m_masterFrameCounter;
 	int m_derivedFrameCounter;
@@ -115,6 +89,8 @@ private:
 
 	int m_dcValue;
 
+	bool m_irqSignal;
+
 	static const int StereoPosLR1 =  80;
 	static const int StereoPosLR2 = 170;
 	static const int StereoPosLTR = 100;
@@ -126,15 +102,14 @@ private:
 	static const int StereoPosRNS = 256 - StereoPosLNS;
 	static const int StereoPosRDM = 256 - StereoPosLDM;
 
-	bool m_irqSignal;
-
 	friend class NesApuDMChannel;
 };
 
-inline const char *NesApu::grabBuffer(int *size) {
-	*size = m_bufferIndex;
+inline int NesApu::fillBuffer(char *stream, int size) {
 	m_bufferIndex = 0;
-	return m_sampleBuffer;
+	int n = qMin(size, m_bufferIndex);
+	memcpy(stream, m_sampleBuffer, n);
+	return n;
 }
 
 #endif // NESAPU_H

@@ -17,6 +17,7 @@ RomGallery::RomGallery(QWidget *parent) :
 	QString qmlPath = QString("%1/qml/gallery/main.qml")
 			.arg(IMachine::installationDirPath());
 	setSource(QUrl::fromLocalFile(qmlPath));
+	QMetaObject::invokeMethod(this, "emitRomUpdate", Qt::QueuedConnection);
 }
 
 RomGallery::~RomGallery() {
@@ -30,7 +31,7 @@ void RomGallery::launch(const QString &diskName) {
 	QObject::connect(process, SIGNAL(error(QProcess::ProcessError)), SLOT(onProcessFinished()));
 	QString machineName = m_romListModel->machineName();
 	QStringList args;
-	args << QString("%1/%2").arg(IMachine::installationDirPath()).arg(machineName);
+	args << QString("%1/bin/%2").arg(IMachine::installationDirPath()).arg(machineName);
 	args << diskName;
 	process->startDetached("/usr/bin/single-instance", args);
 }
@@ -38,6 +39,7 @@ void RomGallery::launch(const QString &diskName) {
 void RomGallery::onProcessFinished() {
 	QProcess *process = static_cast<QProcess *>(QObject::sender());
 	QString diskName = process->property("disk_name").toString();
+	delete process;
 	m_romListModel->updateScreenShot(diskName);
 	showFullScreen();
 }
@@ -99,7 +101,7 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 	icon = applyMaskAndOverlay(icon);
 
 	QString iconPath = QString("%1/icon/%2_%3.png")
-			.arg(MachineView::userDataDirPath())
+			.arg(IMachine::userDataDirPath())
 			.arg(machineName)
 			.arg(escapedDiskName);
 	if (!icon.save(iconPath))
@@ -110,7 +112,7 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 				"Version=1.0\n"
 				"Type=Application\n"
 				"Name=%3\n"
-				"Exec=/usr/bin/single-instance %1/%2 \"%3\"\n"
+				"Exec=/usr/bin/single-instance %1/bin/%2 \"%3\"\n"
 				"Icon=%4\n"
 				"Terminal=false\n"
 				"Categories=Emulator;\n")
@@ -142,3 +144,6 @@ void RomGallery::homepage() {
 	args << "http://elemental-mk.blogspot.com";
 	QProcess::execute("grob", args);
 }
+
+void RomGallery::emitRomUpdate()
+{ emit romUpdate(); }

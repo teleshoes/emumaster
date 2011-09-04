@@ -1,6 +1,6 @@
 #include "nesdisk.h"
 #include "nesdisk_p.h"
-#include <misc/crc32.h>
+#include <crc32.h>
 #include <QAbstractFileEngine>
 
 // TODO some performance hacking

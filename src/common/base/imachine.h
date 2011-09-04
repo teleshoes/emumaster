@@ -55,8 +55,8 @@ protected:
 	void setFrameRate(qreal rate);
 	void setVideoSrcRect(const QRectF &rect);
 
-	virtual void setAudioEnabled(bool on) = 0;
-	virtual void setAudioSampleRate(int sampleRate) = 0;
+	virtual void setAudioEnabled(bool on);
+	virtual void setAudioSampleRate(int sampleRate);
 private:
 	QString m_name;
 	qreal m_frameRate;
@@ -73,5 +73,19 @@ inline qreal IMachine::frameRate() const
 { return m_frameRate; }
 inline QRectF IMachine::videoSrcRect() const
 { return m_videoSrcRect; }
+
+#define STATE_SERIALIZE_BEGIN_SAVE(t) bool t::save(QDataStream &s) {
+#define STATE_SERIALIZE_BEGIN_LOAD(t) bool t::load(QDataStream &s) {
+#define STATE_SERIALIZE_END(t) return true; }
+
+#define STATE_SERIALIZE_PARENT_SAVE(t) if (!t::save(s)) return false;
+#define STATE_SERIALIZE_PARENT_LOAD(t) if (!t::load(s)) return false;
+
+#define STATE_SERIALIZE_VAR_SAVE(v) s << (v);
+#define STATE_SERIALIZE_VAR_LOAD(v) s >> (v);
+#define STATE_SERIALIZE_SUBCALL_SAVE(v) if (!(v).save(s)) return false;
+#define STATE_SERIALIZE_SUBCALL_LOAD(v) if (!(v).load(s)) return false;
+#define STATE_SERIALIZE_SUBCALL_PTR_SAVE(v) if (!(v)->save(s)) return false;
+#define STATE_SERIALIZE_SUBCALL_PTR_LOAD(v) if (!(v)->load(s)) return false;
 
 #endif // IMACHINE_H

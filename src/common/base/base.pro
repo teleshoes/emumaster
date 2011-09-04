@@ -1,11 +1,6 @@
-TARGET = machine_common
 include(../common.pri)
 QT += declarative opengl
 LIBS += -lpulse-simple
-
-win32 {
-	QT += multimedia
-}
 
 DEFINES += BASE_PROJECT
 

@@ -3,8 +3,9 @@ TEMPLATE = subdirs
 SUBDIRS += \
 	common \
 	romgallery \
-	nes \
-	gba
+	nes
+
+#	gba
 
 OTHER_FILES += \
 	../todo.txt \

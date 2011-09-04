@@ -1,9 +1,9 @@
 #include "nesapuchannel.h"
+#include <imachine.h>
 #include <QDataStream>
 
 NesApuChannel::NesApuChannel(int channelNo) :
 	m_channelNo(channelNo) {
-	m_userEnabled = true;
 }
 
 void NesApuChannel::reset() {
@@ -63,8 +63,6 @@ int NesApuChannel::m_lengthMaxLUT[32] = {
 };
 
 void NesApuChannel::setEnabled(bool on){
-	m_enableLatch = on;
-	on &= m_userEnabled;
 	if (m_enabled == on)
 		return;
 	m_enabled = on;
@@ -72,13 +70,6 @@ void NesApuChannel::setEnabled(bool on){
 		lengthCounter = 0;
 	updateSampleCondition();
 	updateSampleValue();
-}
-
-void NesApuChannel::setUserEnabled(bool on) {
-	if (m_userEnabled != on) {
-		m_userEnabled = on;
-		setEnabled(m_enableLatch);
-	}
 }
 
 void NesApuChannel::updateSampleCondition()
@@ -111,46 +102,22 @@ void NesApuChannel::clockEnvelopeDecay() {
 	updateSampleValue();
 }
 
-bool NesApuChannel::save(QDataStream &s) {
-	s << envelopeReset;
-	s << lengthCounterEnable;
-	s << lengthCounter;
-	s << m_channelNo;
-	s << m_enabled;
-	s << m_enableLatch;
-	s << m_userEnabled;
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(NesApuChannel) \
+	STATE_SERIALIZE_VAR_##sl(envelopeReset) \
+	STATE_SERIALIZE_VAR_##sl(lengthCounterEnable) \
+	STATE_SERIALIZE_VAR_##sl(lengthCounter) \
+	STATE_SERIALIZE_VAR_##sl(m_channelNo) \
+	STATE_SERIALIZE_VAR_##sl(m_enabled) \
+	STATE_SERIALIZE_VAR_##sl(m_masterVolume) \
+	STATE_SERIALIZE_VAR_##sl(m_volume) \
+	STATE_SERIALIZE_VAR_##sl(m_envelopeVolume) \
+	STATE_SERIALIZE_VAR_##sl(m_envelopeDecayRate) \
+	STATE_SERIALIZE_VAR_##sl(m_envelopeDecayDisable) \
+	STATE_SERIALIZE_VAR_##sl(m_envelopeDecayLoopEnable) \
+	STATE_SERIALIZE_VAR_##sl(m_envelopeDecayCounter) \
+	STATE_SERIALIZE_VAR_##sl(m_dutyMode) \
+	STATE_SERIALIZE_END(NesApuChannel)
 
-	s << m_masterVolume;
-	s << m_volume;
-
-	s << m_envelopeVolume;
-	s << m_envelopeDecayRate;
-	s << m_envelopeDecayDisable;
-	s << m_envelopeDecayLoopEnable;
-	s << m_envelopeDecayCounter;
-
-	s << m_dutyMode;
-	return true;
-}
-
-bool NesApuChannel::load(QDataStream &s) {
-	s >> envelopeReset;
-	s >> lengthCounterEnable;
-	s >> lengthCounter;
-	s >> m_channelNo;
-	s >> m_enabled;
-	s >> m_enableLatch;
-	s >> m_userEnabled;
-
-	s >> m_masterVolume;
-	s >> m_volume;
-
-	s >> m_envelopeVolume;
-	s >> m_envelopeDecayRate;
-	s >> m_envelopeDecayDisable;
-	s >> m_envelopeDecayLoopEnable;
-	s >> m_envelopeDecayCounter;
-
-	s >> m_dutyMode;
-	return true;
-}
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

@@ -1,4 +1,5 @@
 #include "nesapurectanglechannel.h"
+#include <imachine.h>
 #include <QDataStream>
 
 NesApuRectangleChannel::NesApuRectangleChannel(int channelNo) :
@@ -66,30 +67,18 @@ int NesApuRectangleChannel::m_dutyLUT[32] = {
 	1, 0, 0, 1, 1, 1, 1, 1
 };
 
-bool NesApuRectangleChannel::save(QDataStream &s) {
-	if (!NesApuChannel::save(s))
-		return false;
-	s << m_sweepShiftAmount;
-	s << m_sweepDirection;
-	s << m_sweepUpdateRate;
-	s << m_sweepEnable;
-	s << m_sweepCounter;
-	s << m_sweepCarry;
-	s << m_updateSweepPeriod;
-	s << m_rectangleCounter;
-	return true;
-}
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(NesApuRectangleChannel) \
+	STATE_SERIALIZE_PARENT_##sl(NesApuChannel) \
+	STATE_SERIALIZE_VAR_##sl(m_sweepShiftAmount) \
+	STATE_SERIALIZE_VAR_##sl(m_sweepDirection) \
+	STATE_SERIALIZE_VAR_##sl(m_sweepUpdateRate) \
+	STATE_SERIALIZE_VAR_##sl(m_sweepEnable) \
+	STATE_SERIALIZE_VAR_##sl(m_sweepCounter) \
+	STATE_SERIALIZE_VAR_##sl(m_sweepCarry) \
+	STATE_SERIALIZE_VAR_##sl(m_updateSweepPeriod) \
+	STATE_SERIALIZE_VAR_##sl(m_rectangleCounter) \
+	STATE_SERIALIZE_END(NesApuRectangleChannel)
 
-bool NesApuRectangleChannel::load(QDataStream &s) {
-	if (!NesApuChannel::load(s))
-		return false;
-	s >> m_sweepShiftAmount;
-	s >> m_sweepDirection;
-	s >> m_sweepUpdateRate;
-	s >> m_sweepEnable;
-	s >> m_sweepCounter;
-	s >> m_sweepCarry;
-	s >> m_updateSweepPeriod;
-	s >> m_rectangleCounter;
-	return true;
-}
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

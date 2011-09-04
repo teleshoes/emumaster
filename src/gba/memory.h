@@ -179,7 +179,6 @@ u32 load_gamepak(const char *name);
 void init_memory();
 void init_gamepak_buffer();
 void bios_region_read_allow();
-void bios_region_read_protect();
 u8 *load_gamepak_page(u32 physical_index);
 void memory_write_mem_savestate(file_tag_type savestate_file);
 void memory_read_savestate(file_tag_type savestate_file);

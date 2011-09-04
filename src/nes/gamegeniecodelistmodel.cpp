@@ -1,19 +1,23 @@
 #include "gamegeniecodelistmodel.h"
-#include "machineview.h"
-#include "imachine.h"
-#include <misc/gamegeniecode.h>
+#include "nesmachine.h"
+#include "nesdisk.h"
+#include "gamegeniecode.h"
 #include <QFile>
 
-GameGenieCodeListModel::GameGenieCodeListModel(MachineView *machineView) :
-	QAbstractListModel(machineView) {
+GameGenieCodeListModel::GameGenieCodeListModel(NesMachine *machine) :
+	QAbstractListModel(machine),
+	m_machine(machine) {
 	QHash<int, QByteArray> roles;
 	roles.insert(CodeRole, "code");
 	roles.insert(DescriptionRole, "description");
 	roles.insert(EnableRole, "isEnabled");
 	setRoleNames(roles);
+
+	load();
 }
 
 GameGenieCodeListModel::~GameGenieCodeListModel() {
+	save();
 }
 
 void GameGenieCodeListModel::save() {
@@ -41,11 +45,10 @@ void GameGenieCodeListModel::load() {
 }
 
 QString GameGenieCodeListModel::filePath() {
-	MachineView *machineView = static_cast<MachineView *>(QObject::parent());
-	return QString("%1/cheat/%2%3")
-			.arg(MachineView::userDataDirPath())
-			.arg(machineView->machine()->name())
-			.arg(machineView->machine()->diskCrc());
+	return QString("%1/cheat/%2_%3")
+			.arg(IMachine::userDataDirPath())
+			.arg(m_machine->name())
+			.arg(m_machine->disk()->crc());
 }
 
 QList<GameGenieCode> GameGenieCodeListModel::enabledList() const {

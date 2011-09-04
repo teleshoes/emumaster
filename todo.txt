@@ -15,8 +15,8 @@ roms:
  s on device rom remove
 
 misc:
+ o qml need a skeleton - too much code is copy pasted
  o change game_config.txt path
- s qml need a skeleton - too much code is copy pasted
  o bug in steering: when swiping pad don't work
  - give users ability to choose their own images in ROM gallery
  - mappers 72-255
@@ -39,6 +39,13 @@ misc:
  - catch load/save errors
  - Meegotouch Control Panel http://www.developer.nokia.com/Community/Wiki/SettingsApplet
  - remove the hack in .pri files needed for harmattan when sdk will support this
+ - make better documentation:
+   - input - pressing 2 keys at the time
+   - howto make icon in the homescreen
+   - howto pause, save, load, change settings
+   - howto update screen shot in the rom gallery
+   - howto change image in the rom gallery to your own file
+   - howto donate
 
 issues:
  - kick master (mapper 4) not working

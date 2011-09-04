@@ -7,9 +7,6 @@ PageStackWindow {
 	platformStyle: customStyle
 
 	PageStackWindowStyle {
-		id: defaultStyle
-	}
-	PageStackWindowStyle {
 		id: customStyle
 		backgroundFillMode: Image.PreserveAspectCrop
 		background: backgroundPath
@@ -17,11 +14,5 @@ PageStackWindow {
 
 	initialPage: mainPage
 
-	MainPage {
-		id: mainPage
-	}
-	Connections {
-		target: settingsView
-		onUpdateOrientations: screen.allowedOrientations = Screen.Landscape
-	}
+	MainPage { id: mainPage }
 }

@@ -3,13 +3,7 @@
 
 #include <QObject>
 
-#if defined(GAMEGENIECODE_PROJECT)
-# define GAMEGENIECODE_EXPORT Q_DECL_EXPORT
-#else
-# define GAMEGENIECODE_EXPORT Q_DECL_IMPORT
-#endif
-
-class GAMEGENIECODE_EXPORT GameGenieCode {
+class GameGenieCode {
 public:
 	bool parse(const QString &s);
 	uint address() const;

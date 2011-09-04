@@ -10,8 +10,7 @@ NesApu::NesApu(NesCpu *cpu) :
 	m_trch(2),
 	m_nsch(3),
 	m_dmch(this, 4),
-	m_sampleRate(-1),
-	m_stereo(true) {
+	m_sampleRate(22050) {
 	m_extraCycles = 0;
 	initDACLUTs();
 }
@@ -112,7 +111,7 @@ void NesApu::clockFrameCounter(int nCycles) {
 	} else {
 		m_extraCycles = 0;
 	}
-	// TODO why ??? GALAGA
+	// TODO why ??? GALAGA check it
 	if (nCycles <= 0)
 		return;
 	m_dmch.clock(nCycles);
@@ -215,57 +214,42 @@ void NesApu::sample() {
 
 	int sampleValueL;
 	int sampleValueR;
-	if (m_stereo) {
-		// left channel:
-		int rectangle = (m_smpR1 * StereoPosLR1 + m_smpR2 * StereoPosLR2) >> 8;
-		int triangle = (3*m_smpTR * StereoPosLTR + (m_smpNS<<1) * StereoPosLNS + m_smpDM*StereoPosLDM) >> 8;
-		if (rectangle >= RectangleLUTSize)
-			rectangle = RectangleLUTSize-1;
-		if (triangle >= TriangleLUTSize)
-			triangle = TriangleLUTSize-1;
-		sampleValueL = m_rectangleLUT[rectangle] + m_triangleLUT[triangle] - m_dcValue;
-		// right channel:
-		rectangle = (m_smpR1 * StereoPosRR1 + m_smpR2 * StereoPosRR2) >> 8;
-		triangle = (3*m_smpTR * StereoPosRTR + (m_smpNS<<1) * StereoPosRNS + m_smpDM*StereoPosRDM) >> 8;
-		if (rectangle >= RectangleLUTSize)
-			rectangle = RectangleLUTSize-1;
-		if (triangle >= TriangleLUTSize)
-			triangle = TriangleLUTSize-1;
-		sampleValueR = m_rectangleLUT[rectangle] + m_triangleLUT[triangle] - m_dcValue;
-	} else {
-		int rectangle = m_smpR1 + m_smpR2;
-		int triangle = 3*m_smpTR + 2*m_smpNS + m_smpDM;
-		if (rectangle >= RectangleLUTSize)
-			rectangle  = RectangleLUTSize-1;
-		if(triangle >= TriangleLUTSize)
-			triangle = TriangleLUTSize-1;
-		sampleValueL = 3*(m_rectangleLUT[rectangle] + m_triangleLUT[triangle] - m_dcValue);
-		sampleValueL >>= 2;
-	}
+
+	// left channel:
+	int rectangle = (m_smpR1 * StereoPosLR1 + m_smpR2 * StereoPosLR2) >> 8;
+	int triangle = (3*m_smpTR * StereoPosLTR + (m_smpNS<<1) * StereoPosLNS + m_smpDM*StereoPosLDM) >> 8;
+	if (rectangle >= RectangleLUTSize)
+		rectangle = RectangleLUTSize-1;
+	if (triangle >= TriangleLUTSize)
+		triangle = TriangleLUTSize-1;
+	sampleValueL = m_rectangleLUT[rectangle] + m_triangleLUT[triangle] - m_dcValue;
+
+	// right channel:
+	rectangle = (m_smpR1 * StereoPosRR1 + m_smpR2 * StereoPosRR2) >> 8;
+	triangle = (3*m_smpTR * StereoPosRTR + (m_smpNS<<1) * StereoPosRNS + m_smpDM*StereoPosRDM) >> 8;
+	if (rectangle >= RectangleLUTSize)
+		rectangle = RectangleLUTSize-1;
+	if (triangle >= TriangleLUTSize)
+		triangle = TriangleLUTSize-1;
+	sampleValueR = m_rectangleLUT[rectangle] + m_triangleLUT[triangle] - m_dcValue;
+
 	// remove DC from left channel:
 	int smpDiffL = sampleValueL - m_prevSampleL;
 	m_prevSampleL += smpDiffL;
 	m_smpAccumL += smpDiffL - (m_smpAccumL >> 10);
 	sampleValueL = m_smpAccumL;
 
-	if (m_stereo) {
-		// remove DC from right channel:
-		int smpDiffR = sampleValueR - m_prevSampleR;
-		m_prevSampleR += smpDiffR;
-		m_smpAccumR += smpDiffR - (m_smpAccumR >> 10);
-		sampleValueR = m_smpAccumR;
+	// remove DC from right channel:
+	int smpDiffR = sampleValueR - m_prevSampleR;
+	m_prevSampleR += smpDiffR;
+	m_smpAccumR += smpDiffR - (m_smpAccumR >> 10);
+	sampleValueR = m_smpAccumR;
 
-		if (m_bufferIndex+4 < SampleBufferSize) {
-			m_sampleBuffer[m_bufferIndex++] = (sampleValueL   ) & 0xFF;
-			m_sampleBuffer[m_bufferIndex++] = (sampleValueL>>8) & 0xFF;
-			m_sampleBuffer[m_bufferIndex++] = (sampleValueR   ) & 0xFF;
-			m_sampleBuffer[m_bufferIndex++] = (sampleValueR>>8) & 0xFF;
-		}
-	} else {
-		if (m_bufferIndex+2 < SampleBufferSize) {
-			m_sampleBuffer[m_bufferIndex++] = (sampleValueL   ) & 0xFF;
-			m_sampleBuffer[m_bufferIndex++] = (sampleValueL>>8) & 0xFF;
-		}
+	if (m_bufferIndex+4 < SampleBufferSize) {
+		m_sampleBuffer[m_bufferIndex++] = (sampleValueL   ) & 0xFF;
+		m_sampleBuffer[m_bufferIndex++] = (sampleValueL>>8) & 0xFF;
+		m_sampleBuffer[m_bufferIndex++] = (sampleValueR   ) & 0xFF;
+		m_sampleBuffer[m_bufferIndex++] = (sampleValueR>>8) & 0xFF;
 	}
 	// reset sampled values:
 	m_smpR1 = 0;
@@ -279,14 +263,6 @@ void NesApu::setSampleRate(int rate) {
 		return;
 	m_sampleRate = rate;
 	updateFrameRate();
-}
-
-void NesApu::setStereoEnabled(bool on) {
-	if (m_stereo == on)
-		return;
-	m_stereo = on;
-	m_sampleTimer = 0;
-	m_bufferIndex = 0;
 }
 
 void NesApu::initDACLUTs() {
@@ -318,12 +294,6 @@ void NesApu::updateIrqSignal() {
 }
 
 void NesApu::reset() {
-	m_r1ch.setEnabled(false);
-	m_r2ch.setEnabled(false);
-	m_trch.setEnabled(false);
-	m_nsch.setEnabled(false);
-	m_dmch.setEnabled(false);
-
 	m_r1ch.reset();
 	m_r2ch.reset();
 	m_trch.reset();
@@ -385,143 +355,37 @@ NesMachine *NesApu::machine() const
 void NesApu::updateMachineType()
 { updateFrameRate(); }
 
-void NesApu::setChannelUserEnabled(int channelNo, bool on) {
-	if (isChannelUserEnabled(channelNo) == on)
-		return;
-	switch (channelNo) {
-	case 0: m_r1ch.setUserEnabled(on); break;
-	case 1: m_r2ch.setUserEnabled(on); break;
-	case 2: m_trch.setUserEnabled(on); break;
-	case 3: m_nsch.setUserEnabled(on); break;
-	case 4: m_dmch.setUserEnabled(on); break;
-	default: Q_ASSERT(false); break;
-	}
-	emit channelUserEnableChanged();
-}
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(NesApu) \
+	STATE_SERIALIZE_SUBCALL_##sl(m_r1ch) \
+	STATE_SERIALIZE_SUBCALL_##sl(m_r2ch) \
+	STATE_SERIALIZE_SUBCALL_##sl(m_nsch) \
+	STATE_SERIALIZE_SUBCALL_##sl(m_trch) \
+	STATE_SERIALIZE_SUBCALL_##sl(m_dmch) \
+	STATE_SERIALIZE_VAR_##sl(m_frameIrqGenerated) \
+	STATE_SERIALIZE_VAR_##sl(m_frameIrqEnable) \
+	STATE_SERIALIZE_VAR_##sl(m_frameIrqCounterMax) \
+	STATE_SERIALIZE_VAR_##sl(m_initCounter) \
+	STATE_SERIALIZE_VAR_##sl(m_initializingHardware) \
+	STATE_SERIALIZE_VAR_##sl(m_masterFrameCounter) \
+	STATE_SERIALIZE_VAR_##sl(m_derivedFrameCounter) \
+	STATE_SERIALIZE_VAR_##sl(m_countSequence) \
+	STATE_SERIALIZE_VAR_##sl(m_triValue) \
+	STATE_SERIALIZE_VAR_##sl(m_smpR1) \
+	STATE_SERIALIZE_VAR_##sl(m_smpR2) \
+	STATE_SERIALIZE_VAR_##sl(m_smpTR) \
+	STATE_SERIALIZE_VAR_##sl(m_smpNS) \
+	STATE_SERIALIZE_VAR_##sl(m_smpDM) \
+	STATE_SERIALIZE_VAR_##sl(m_accCount) \
+	STATE_SERIALIZE_VAR_##sl(m_extraCycles) \
+	STATE_SERIALIZE_VAR_##sl(m_prevSampleL) \
+	STATE_SERIALIZE_VAR_##sl(m_prevSampleR) \
+	STATE_SERIALIZE_VAR_##sl(m_smpAccumL) \
+	STATE_SERIALIZE_VAR_##sl(m_smpAccumR) \
+	STATE_SERIALIZE_VAR_##sl(m_irqSignal) \
+	m_sampleTimer = 0; \
+	m_bufferIndex = 0; \
+	STATE_SERIALIZE_END(NesApu)
 
-bool NesApu::isChannelUserEnabled(int channelNo) const {
-	switch (channelNo) {
-	case 0: return m_r1ch.isUserEnabled(); break;
-	case 1: return m_r2ch.isUserEnabled(); break;
-	case 2: return m_trch.isUserEnabled(); break;
-	case 3: return m_nsch.isUserEnabled(); break;
-	case 4: return m_dmch.isUserEnabled(); break;
-	default: Q_ASSERT(false); return false; break;
-	}
-}
-
-bool NesApu::isRectangle1Enabled() const
-{ return isChannelUserEnabled(0); }
-void NesApu::setRectangle1Enabled(bool on)
-{ setChannelUserEnabled(0, on); }
-
-bool NesApu::isRectangle2Enabled() const
-{ return isChannelUserEnabled(1); }
-void NesApu::setRectangle2Enabled(bool on)
-{ setChannelUserEnabled(1, on); }
-
-bool NesApu::isTriangleEnabled() const
-{ return isChannelUserEnabled(2); }
-void NesApu::setTriangleEnabled(bool on)
-{ setChannelUserEnabled(2, on); }
-
-bool NesApu::isNoiseEnabled() const
-{ return isChannelUserEnabled(3); }
-void NesApu::setNoiseEnabled(bool on)
-{ setChannelUserEnabled(3, on); }
-
-bool NesApu::isDmcEnabled() const
-{ return isChannelUserEnabled(4); }
-void NesApu::setDmcEnabled(bool on)
-{ setChannelUserEnabled(4, on); }
-
-bool NesApu::save(QDataStream &s) {
-	if (!m_r1ch.save(s))
-		return false;
-	if (!m_r2ch.save(s))
-		return false;
-	if (!m_nsch.save(s))
-		return false;
-	if (!m_trch.save(s))
-		return false;
-	if (!m_dmch.save(s))
-		return false;
-
-	s << m_frameIrqGenerated;
-	s << m_frameIrqEnable;
-	s << m_frameIrqCounterMax;
-
-	s << m_initCounter;
-	s << m_initializingHardware;
-	s << m_masterFrameCounter;
-	s << m_derivedFrameCounter;
-	s << m_countSequence;
-
-//	s << m_sampleTimer;
-
-	s << m_triValue;
-
-	s << m_smpR1;
-	s << m_smpR2;
-	s << m_smpTR;
-	s << m_smpNS;
-	s << m_smpDM;
-	s << m_accCount;
-
-	s << m_extraCycles;
-
-	s << m_prevSampleL;
-	s << m_prevSampleR;
-	s << m_smpAccumL;
-	s << m_smpAccumR;
-
-	s << m_irqSignal;
-	return true;
-}
-
-bool NesApu::load(QDataStream &s) {
-	m_sampleTimer = 0;
-	m_bufferIndex = 0;
-
-	if (!m_r1ch.load(s))
-		return false;
-	if (!m_r2ch.load(s))
-		return false;
-	if (!m_nsch.load(s))
-		return false;
-	if (!m_trch.load(s))
-		return false;
-	if (!m_dmch.load(s))
-		return false;
-
-	s >> m_frameIrqGenerated;
-	s >> m_frameIrqEnable;
-	s >> m_frameIrqCounterMax;
-
-//	s >> m_sampleTimer;
-
-	s >> m_initCounter;
-	s >> m_initializingHardware;
-	s >> m_masterFrameCounter;
-	s >> m_derivedFrameCounter;
-	s >> m_countSequence;
-
-	s >> m_triValue;
-
-	s >> m_smpR1;
-	s >> m_smpR2;
-	s >> m_smpTR;
-	s >> m_smpNS;
-	s >> m_smpDM;
-	s >> m_accCount;
-
-	s >> m_extraCycles;
-
-	s >> m_prevSampleL;
-	s >> m_prevSampleR;
-	s >> m_smpAccumL;
-	s >> m_smpAccumR;
-
-	s >> m_irqSignal;
-	return true;
-}
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

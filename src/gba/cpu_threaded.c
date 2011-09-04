@@ -2754,15 +2754,11 @@ u8 function_cc *block_lookup_address_##type(u32 pc)                           \
     case 0x2:                                                                 \
       location = (u16 *)(ewram + (pc & 0x7FFF) + ((pc & 0x38000) * 2));       \
       block_lookup_translate(type, ram, 1);                                   \
-      if(translation_recursion_level == 0)                                    \
-        bios_region_read_protect();                                           \
       break;                                                                  \
                                                                               \
     case 0x3:                                                                 \
       location = (u16 *)(iwram + (pc & 0x7FFF));                              \
       block_lookup_translate(type, ram, 1);                                   \
-      if(translation_recursion_level == 0)                                    \
-        bios_region_read_protect();                                           \
       break;                                                                  \
                                                                               \
     case 0x8 ... 0xD:                                                         \
@@ -2813,8 +2809,6 @@ u8 function_cc *block_lookup_address_##type(u32 pc)                           \
         if(translation_recursion_level == 0)                                  \
           translate_invalidate_dcache();                                      \
       }                                                                       \
-      if(translation_recursion_level == 0)                                    \
-        bios_region_read_protect();                                           \
       break;                                                                  \
     }                                                                         \
                                                                               \
@@ -3397,11 +3391,9 @@ void flush_translation_cache_ram()
    flush_ram_count, reg[REG_PC], iwram_code_min, iwram_code_max,
    ewram_code_min, ewram_code_max); */
 
-  // TODO ???
-#ifndef PC_BUILD
   invalidate_icache_region(ram_translation_cache,
    (ram_translation_ptr - ram_translation_cache) + 0x100);
-#endif
+
   ram_translation_ptr = ram_translation_cache;
   last_ram_translation_ptr = ram_translation_cache;
   ram_block_tag_top = 0x0101;
@@ -3453,12 +3445,8 @@ void flush_translation_cache_ram()
 
 void flush_translation_cache_rom()
 {
-	// TODO ???
-#ifndef PC_BUILD
   invalidate_icache_region(rom_translation_cache,
    rom_translation_ptr - rom_translation_cache + 0x100);
-#endif
-
   rom_translation_ptr = rom_translation_cache;
   last_rom_translation_ptr = rom_translation_cache;
   memset(rom_branch_hash, 0, sizeof(rom_branch_hash));
@@ -3466,11 +3454,8 @@ void flush_translation_cache_rom()
 
 void flush_translation_cache_bios()
 {
-	// TODO ???
-#ifndef PC_BUILD
   invalidate_icache_region(bios_translation_cache,
    bios_translation_ptr - bios_translation_cache + 0x100);
-#endif
 
   bios_block_tag_top = 0x0101;
   bios_translation_ptr = bios_translation_cache;
@@ -3478,25 +3463,19 @@ void flush_translation_cache_bios()
   memset(bios_rom + 0x4000, 0, 0x4000);
 }
 
-#ifdef GP2X_BUILD
-  #define cache_dump_prefix "/mnt/nand/"
-#else
-  #define cache_dump_prefix ""
-#endif
-
 void dump_translation_cache()
 {
-  file_open(ram_cache, cache_dump_prefix "/home/user/MyDocs/ram_cache.bin", write);
+  file_open(ram_cache, "/home/user/MyDocs/ram_cache.bin", write);
   file_write(ram_cache, ram_translation_cache,
    ram_translation_ptr - ram_translation_cache);
   fclose(ram_cache);
 
-  file_open(rom_cache, cache_dump_prefix "/home/user/MyDocs/rom_cache.bin", write);
+  file_open(rom_cache, "/home/user/MyDocs/rom_cache.bin", write);
   file_write(rom_cache, rom_translation_cache,
    rom_translation_ptr - rom_translation_cache);
   fclose(rom_cache);
 
-  file_open(bios_cache, cache_dump_prefix "/home/user/MyDocs/bios_cache.bin", write);
+  file_open(bios_cache, "/home/user/MyDocs/bios_cache.bin", write);
   file_write(bios_cache, bios_translation_cache,
    bios_translation_ptr - bios_translation_cache);
   fclose(bios_cache);

@@ -6,7 +6,7 @@
 #include "nesppu.h"
 #include "nesapu.h"
 #include "nespad.h"
-#include <misc/gamegeniecode.h>
+#include "gamegeniecode.h"
 
 NesCpuMapper::NesCpuMapper(NesMapper *mapper) :
 	QObject(mapper) {
@@ -172,6 +172,35 @@ void NesCpuMapper::setIrqSignalOut(bool on) {
 	}
 }
 
+void NesCpuMapper::setGameGenieCodeList(const QList<GameGenieCode> &codes) {
+	for (int i = 0; i < m_gameGenieCodeList.size(); i++) {
+		const GameGenieCode &code = m_gameGenieCodeList.at(i);
+		uint address = code.address() | 0x8000;
+		if (code.isEightCharWide()) {
+			if (readDirect(address) == code.replaceData())
+				writeDirect(address, code.expectedData());
+		} else {
+			writeDirect(address, code.expectedData());
+		}
+	}
+	m_gameGenieCodeList = codes;
+	processGameGenieCodes();
+}
+
+void NesCpuMapper::processGameGenieCodes() {
+	for (int i = 0; i < m_gameGenieCodeList.size(); i++) {
+		GameGenieCode &code = m_gameGenieCodeList[i];
+		uint address = code.address() | 0x8000;
+		if (code.isEightCharWide()) {
+			if (readDirect(address) == code.expectedData())
+				writeDirect(address, code.replaceData());
+		} else {
+			code.setExpectedData(readDirect(address));
+			writeDirect(address, code.replaceData());
+		}
+	}
+}
+
 bool NesCpuMapper::save(QDataStream &s) {
 	for (int i = 0; i < 8; i++) {
 		quint8 *bank = m_banks[i];
@@ -230,33 +259,4 @@ bool NesCpuMapper::load(QDataStream &s) {
 		return false;
 	s >> m_irqOut;
 	return true;
-}
-
-void NesCpuMapper::setGameGenieCodeList(const QList<GameGenieCode> &codes) {
-	for (int i = 0; i < m_gameGenieCodeList.size(); i++) {
-		const GameGenieCode &code = m_gameGenieCodeList.at(i);
-		uint address = code.address() | 0x8000;
-		if (code.isEightCharWide()) {
-			if (readDirect(address) == code.replaceData())
-				writeDirect(address, code.expectedData());
-		} else {
-			writeDirect(address, code.expectedData());
-		}
-	}
-	m_gameGenieCodeList = codes;
-	processGameGenieCodes();
-}
-
-void NesCpuMapper::processGameGenieCodes() {
-	for (int i = 0; i < m_gameGenieCodeList.size(); i++) {
-		GameGenieCode &code = m_gameGenieCodeList[i];
-		uint address = code.address() | 0x8000;
-		if (code.isEightCharWide()) {
-			if (readDirect(address) == code.expectedData())
-				writeDirect(address, code.replaceData());
-		} else {
-			code.setExpectedData(readDirect(address));
-			writeDirect(address, code.replaceData());
-		}
-	}
 }

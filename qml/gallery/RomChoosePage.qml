@@ -42,12 +42,7 @@ Page {
 		ToolIcon {
 			iconId: "toolbar-mediacontrol-play"
 			visible: currentRomIndex >= 0
-			onClicked: {
-				if (!romGallery.launch(romListModel.get(currentRomIndex))) {
-					errorDialog.message = "Could not load machine plugin!"
-					errorDialog.open()
-				}
-			}
+			onClicked: romGallery.launch(romListModel.get(currentRomIndex))
 		}
 	}
 
@@ -138,25 +133,31 @@ Page {
 		id: errorDialog
 		icon: "image://theme/icon-m-common-red"
 		message: ""
-		acceptButtonText: "Close"
-		rejectButtonText: ""
+		rejectButtonText: "Close"
 	}
 
 	QueryDialog {
 		id: howToInstallRomDialog
 
-		acceptButtonText: ""
 		rejectButtonText: "Close"
 
 		titleText: "Help"
-		message: "ROMs not found. To install ROM you need to attach phone to the PC and copy your files to \"emumaster/" + romListModel.machineName + "\" directory. Remember to detach phone from the PC. Consider a small donation if you find this software useful"
+		message: "ROMs not found. To install ROM you need to attach phone to the PC and copy your files to \"emumaster/" +
+				 romListModel.machineName + "\" directory. Remember to detach phone from the PC. " +
+				 "Consider a small donation if you find this software useful"
 	}
-	Component.onCompleted: {
-		romListModel.machineName = "nes"
-		if (romListModel.count > 0)
-			currentRomIndex = 0
-		else
-			howToInstallRomDialog.open()
+
+	Connections {
+		target: romGallery
+		onRomUpdate: {
+			romListModel.machineName = "nes"
+			if (romListModel.count > 0) {
+				currentRomIndex = 0
+			} else {
+				howToInstallRomDialog.open()
+			}
+			listTab.update()
+		}
 	}
 	AboutSheet { id: aboutSheet }
 }

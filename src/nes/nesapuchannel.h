@@ -16,8 +16,6 @@ public:
 	void setLength(quint8 data);
 	void setEnabled(bool on);
 	bool isEnabled() const;
-	void setUserEnabled(bool on);
-	bool isUserEnabled() const;
 
 	bool lengthStatus() const;
 	int dutyMode() const;
@@ -47,8 +45,6 @@ protected:
 private:
 	int m_channelNo;
 	bool m_enabled;
-	bool m_enableLatch;
-	bool m_userEnabled;
 
 	int m_masterVolume;
 	int m_volume;
@@ -70,8 +66,6 @@ inline int NesApuChannel::masterVolume() const
 { return m_masterVolume; }
 inline bool NesApuChannel::isEnabled() const
 { return m_enabled; }
-inline bool NesApuChannel::isUserEnabled() const
-{ return m_userEnabled; }
 inline bool NesApuChannel::lengthStatus() const
 { return lengthCounter != 0 && m_enabled; }
 inline int NesApuChannel::dutyMode() const

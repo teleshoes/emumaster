@@ -4,6 +4,10 @@ import com.nokia.meego 1.0
 import "../base"
 
 Page {
+	function update() {
+		listView.model = romListModel
+	}
+
 	ListView {
 		id: listView
 		anchors.fill: parent
@@ -60,8 +64,5 @@ Page {
 	}
 	ScrollDecorator {
 		flickableItem: listView
-	}
-	Component.onCompleted: {
-		listView.model = romListModel
 	}
 }

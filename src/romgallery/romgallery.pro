@@ -1,6 +1,6 @@
 DESTDIR = ../../bin
 INCLUDEPATH += ../../include
-LIBS += -L../../lib -lmachine_common
+LIBS += -L../../lib -lbase
 QT += opengl declarative
 
 SOURCES += \
@@ -14,7 +14,7 @@ HEADERS += \
     romgallery.h \
     romlistmodel.h
 
-exists($$QMAKE_INCDIR_QT"/../qmsystem2/qmkeys.h"):!contains(MEEGO_EDITION,harmattan): {
+linux-g++-maemo {
 	MEEGO_VERSION_MAJOR     = 1
 	MEEGO_VERSION_MINOR     = 2
 	MEEGO_VERSION_PATCH     = 0

@@ -1,4 +1,5 @@
 #include "nesaputrianglechannel.h"
+#include <imachine.h>
 #include <QDataStream>
 
 NesApuTriangleChannel::NesApuTriangleChannel(int channelNo) :
@@ -55,22 +56,14 @@ void NesApuTriangleChannel::clockTriangleGenerator(){
 void NesApuTriangleChannel::updateSampleCondition()
 { sampleCondition = (lengthStatus() && progTimerMax > 7 && m_linearCounter > 0); }
 
-bool NesApuTriangleChannel::save(QDataStream &s) {
-	if (!NesApuChannel::save(s))
-		return false;
-	s << m_linearCounterControl;
-	s << m_linearCounterLoadValue;
-	s << m_linearCounter;
-	s << m_triangleCounter;
-	return true;
-}
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(NesApuTriangleChannel) \
+	STATE_SERIALIZE_PARENT_##sl(NesApuChannel) \
+	STATE_SERIALIZE_VAR_##sl(m_linearCounterControl) \
+	STATE_SERIALIZE_VAR_##sl(m_linearCounterLoadValue) \
+	STATE_SERIALIZE_VAR_##sl(m_linearCounter) \
+	STATE_SERIALIZE_VAR_##sl(m_triangleCounter) \
+	STATE_SERIALIZE_END(NesApuTriangleChannel)
 
-bool NesApuTriangleChannel::load(QDataStream &s) {
-	if (!NesApuChannel::load(s))
-		return false;
-	s >> m_linearCounterControl;
-	s >> m_linearCounterLoadValue;
-	s >> m_linearCounter;
-	s >> m_triangleCounter;
-	return true;
-}
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

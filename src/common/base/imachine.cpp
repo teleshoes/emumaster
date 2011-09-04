@@ -6,8 +6,8 @@
 
 IMachine::IMachine(const QString &name, QObject *parent) :
 	QObject(parent),
-	m_frameRate(1),
-	m_name(name) {
+	m_name(name),
+	m_frameRate(1) {
 }
 
 IMachine::~IMachine() {
@@ -54,3 +54,8 @@ QString IMachine::screenShotPath(const QString &diskName) const {
 			.arg(m_name)
 			.arg(diskName);
 }
+
+void IMachine::setAudioEnabled(bool on)
+{ Q_UNUSED(on) }
+void IMachine::setAudioSampleRate(int sampleRate)
+{ Q_UNUSED(sampleRate) }

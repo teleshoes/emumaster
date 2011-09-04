@@ -6,6 +6,7 @@
 RomListModel::RomListModel(QObject *parent) :
 	QAbstractListModel(parent),
 	m_screenShotUpdateCounter(0) {
+
 	QHash<int, QByteArray> roles;
 	roles.insert(NameRole, "title");
 	roles.insert(AlphabetRole, "alphabet");
@@ -21,7 +22,8 @@ void RomListModel::setMachineName(const QString &name) {
 	m_machineName = name;
 	emit machineNameChanged();
 	QDir dir = QDir(IMachine::diskDirPath(m_machineName));
-	m_list = dir.entryList(QDir::NoDotAndDotDot, QDir::Name);
+
+	m_list = dir.entryList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot, QDir::Name);
 	for (int i = 0; i < m_list.size(); i++) {
 		QFileInfo fileInfo(m_list.at(i));
 		m_list[i] = fileInfo.completeBaseName();

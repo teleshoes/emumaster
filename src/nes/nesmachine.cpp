@@ -8,20 +8,25 @@
 #include "nesdisk.h"
 #include "nespad.h"
 #include "nesmachine.h"
-#include <QtDeclarative>
+#include "gamegeniecode.h"
+#include "gamegeniecodelistmodel.h"
+#include "machineview.h"
 #include <QSettings>
+#include <QApplication>
+#include <QtDeclarative>
 
 // TODO machineView
-m_gameGenieCodeListModel = new GameGenieCodeListModel(this);
-m_gameGenieCodeListModel->load();
-m_settingsView->rootContext()->setContextProperty("gameGenieCodeListModel", static_cast<QObject *>(m_gameGenieCodeListModel));
+/*
 m_machine->setGameGenieCodeList(m_gameGenieCodeListModel->enabledList());
+*/
 
 NesMachine::NesMachine(QObject *parent) :
 	IMachine("nes", parent),
 	m_disk(0),
 	m_mapper(0),
 	m_ppuMapper(0) {
+
+	setVideoSrcRect(QRectF(8.0f, 1.0f, NesPpu::VisibleScreenWidth, NesPpu::VisibleScreenHeight));
 
 	m_cpu = new NesCpu(this);
 	m_ppu = new NesPpu(this);
@@ -30,19 +35,16 @@ NesMachine::NesMachine(QObject *parent) :
 
 	QObject::connect(m_ppu, SIGNAL(vblank_o(bool)), m_cpu, SLOT(nmi_i(bool)));
 
+	// TODOm_gameGenieCodeListModel = new GameGenieCodeListModel(this);
+	// m_gameGenieCodeListModel->load();
+
 	qmlRegisterType<NesPpu>();
 	qmlRegisterType<NesCpu>();
-	qmlRegisterType<NesApu>();
 	qmlRegisterType<NesDisk>();
 	qmlRegisterType<NesMapper>();
 }
 
 NesMachine::~NesMachine() {
-}
-
-void NesMachine::updateSettings() {
-	m_apu->setSampleRate(audioSampleRate());
-	m_apu->setStereoEnabled(isAudioStereo());
 }
 
 void NesMachine::reset() {
@@ -102,9 +104,6 @@ void NesMachine::clockCpu(uint cycles) {
 	if (realCycles > 0)
 		m_cpuCycleCounter += m_cpu->clock(realCycles);
 }
-
-const char *NesMachine::grabAudioBuffer(int *size)
-{ return m_apu->grabBuffer(size); }
 
 void NesMachine::setPadKey(IMachine::PadKey key, bool state) {
 	switch (key) {
@@ -301,15 +300,6 @@ void NesMachine::processCheatCodes() {
 	// TODO cheat codes
 }
 
-quint32 NesMachine::diskCrc() const
-{ return m_disk ? m_disk->crc() : 0; }
-
-QRectF NesMachine::videoSrcRect() const
-{ return QRectF(8.0f, 1.0f, NesPpu::VisibleScreenWidth, NesPpu::VisibleScreenHeight); }
-
-QRectF NesMachine::videoDstRect() const
-{ return QRectF(171.0f, 0.0f, NesPpu::VisibleScreenWidth*2, NesPpu::VisibleScreenHeight*2); }
-
 bool NesMachine::save(QDataStream &s) {
 	if (!m_cpu->save(s))
 		return false;
@@ -332,13 +322,27 @@ bool NesMachine::load(QDataStream &s) {
 
 void NesMachine::saveSettings(QSettings &s) {
 	IMachine::saveSettings(s);
+	// TODO save rendering type
 }
 
 void NesMachine::loadSettings(QSettings &s) {
 	IMachine::loadSettings(s);
 }
 
-void NesMachine::setGameGenieCodeList(const QList<GameGenieCode> &codes)
-{ m_cpu->mapper()->setGameGenieCodeList(codes); }
+int NesMachine::fillAudioBuffer(char *stream, int streamSize)
+{ return m_apu->fillBuffer(stream, streamSize); }
+void NesMachine::setAudioSampleRate(int sampleRate)
+{ m_apu->setSampleRate(sampleRate); }
 
-Q_EXPORT_PLUGIN2(nes, NesMachine)
+bool NesMachine::isGameGenieCodeValid(const QString &s) {
+	GameGenieCode code;
+	return code.parse(s);
+}
+
+int main(int argc, char *argv[]) {
+	if (argc < 2)
+		return -1;
+	QApplication app(argc, argv);
+	MachineView view(new NesMachine(), argv[1]);
+	return app.exec();
+}

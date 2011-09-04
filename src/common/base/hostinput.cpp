@@ -89,7 +89,7 @@ void HostInput::processTouch(QEvent *e) {
 				if (x >= 854-70 && y >= 100 && y < 135)
 					keys |= IMachine::Start_PadKey;
 				if (x >= 854-70 && y < 70)
-					emit pause();
+					emit pauseClicked();
 			}
 		}
 	}

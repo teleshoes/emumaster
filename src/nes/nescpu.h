@@ -5,15 +5,11 @@ class NesMachine;
 class NesCpuMapper;
 class NesApu;
 #include "nes_global.h"
-#include <cpu/m6502.h>
+#include <m6502.h>
 
 class NES_EXPORT NesCpu : public M6502 {
 	Q_OBJECT
 public:
-	static const int NmiVectorAddress		= 0xFFFA;
-	static const int ResetVectorAddress		= 0xFFFC;
-	static const int IrqVectorAddress		= 0xFFFE;
-
 	explicit NesCpu(NesMachine *machine);
 	~NesCpu();
 

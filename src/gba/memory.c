@@ -2969,14 +2969,6 @@ void bios_region_read_allow()
   memory_map_read[0] = bios_rom;
 }
 
-void bios_region_read_protect()
-{
-#ifdef GP2X_BUILD
-  memory_map_read[0] = NULL;
-#endif
-}
-
-
 #define savestate_block(type)                                                 \
   cpu_##type##_savestate(savestate_file);                                     \
   main_##type##_savestate(savestate_file);                                    \

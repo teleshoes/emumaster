@@ -7,6 +7,10 @@
 class M6502_EXPORT M6502 : public QObject {
 	Q_OBJECT
 public:
+	static const int NmiVectorAddress		= 0xFFFA;
+	static const int ResetVectorAddress		= 0xFFFC;
+	static const int IrqVectorAddress		= 0xFFFE;
+
 	enum StatusFlag {
 		N = 0x80, // Negative
 		V = 0x40, // Overflow
