@@ -1,6 +1,7 @@
 emumaster (0.0.2) unstable; urgency=low
 
   * added page to select the console
+  * redesigned architecture to speed up things
   * button to remove rom
   * optional button to exit in top left corner
   * fixed crash on pause

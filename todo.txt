@@ -1,3 +1,5 @@
+ s L,R buttons
+ s if gba exclude "gba_bios.bin" from rom gallery
  s add "more" icon in rom gallery, hide trash,homescreen and "play" in machine selection view
  s fix screenshot
  x make icons in home screen removable

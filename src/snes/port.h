@@ -154,7 +154,7 @@ EXTERN_C void S9xGenerateSound ();
 //#define EXECUTE_SUPERFX_PER_LINE
 //#define SPC700_C
 
-//#ifdef CPU_ASM
+#define CPU_ASM
 #define ASM_SPC700
 /*
 #else

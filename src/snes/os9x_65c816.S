@@ -431,7 +431,7 @@ reg_cpu_var .req R14
 
 .endm						
 .macro		BranchCheck0	
-		/*in rsctach : OpAddress
+		/*in rsctach : OpAddress*/
 		/*destroy rscratch2*/
 		LDRB	rscratch2,[reg_cpu_var,#BranchSkip_ofs]
 		MOVS	rscratch2,rscratch2	
@@ -445,7 +445,7 @@ reg_cpu_var .req R14
 1110:		
 .endm									
 .macro		BranchCheck1		
-		/*in rsctach : OpAddress
+		/*in rsctach : OpAddress*/
 		/*destroy rscratch2*/
 		LDRB	rscratch2,[reg_cpu_var,#BranchSkip_ofs]
 		MOVS	rscratch2,rscratch2	
@@ -459,7 +459,7 @@ reg_cpu_var .req R14
 1110:
 .endm												
 .macro		BranchCheck2
-		/*in rsctach : OpAddress
+		/*in rsctach : OpAddress*/
 		/*destroy rscratch2*/
 		LDRB	rscratch2,[reg_cpu_var,#BranchSkip_ofs]
 		MOVS	rscratch2,rscratch2	
@@ -2415,6 +2415,7 @@ SW_not_aligned4:
 		S9xGetWordRegNS	rscratch2
 		MOV		rscratch3,#0
 		ADDS		rscratch2, rscratch2, #0x00010000
+
 		STR		rscratch3,[reg_cpu_var,#WaitAddress_ofs]
 		UPDATE_ZN		
 		S9xSetWord 	rscratch2
@@ -4472,13 +4473,13 @@ Ecrans:
 
 
 [GNV] : utilisation de la lard (laccdate) pour afficher les openings.
-   +nécessité d'avoir des valeurs dans l'opening pour date tréso=date compta=laccdate
+   +nÃ©cessitÃ© d'avoir des valeurs dans l'opening pour date trÃ©so=date compta=laccdate
 	
-[Accounting rec] : si laccdate pas bonne (pas = BD-1) -> message warning et pas de donnée
+[Accounting rec] : si laccdate pas bonne (pas = BD-1) -> message warning et pas de donnÃ©e
 sinon : 
-  +données nécessaires : opening date tréso=date compta=laccdate=BD-1
-  +données nécessaires : opening date tréso=date compta=laccdate-1
-  +données nécessaires : opening date tréso=laccdate-1 et date compta=laccdate
+  +donnÃ©es nÃ©cessaires : opening date trÃ©so=date compta=laccdate=BD-1
+  +donnÃ©es nÃ©cessaires : opening date trÃ©so=date compta=laccdate-1
+  +donnÃ©es nÃ©cessaires : opening date trÃ©so=laccdate-1 et date compta=laccdate
    */
 
 

@@ -10,12 +10,18 @@ unix {
 	INSTALLS += qml game_config
 }
 
-OTHER_FILES += \
-    os9x_65c816.S \
-    spc_decode.S \
-    spc700a.S \
-    m3d_func.S \
-    generatePPUasm/ppuasmfunc16.S
+ASM_SOURCES = \
+	os9x_65c816.S \
+	spc_decode.S \
+	spc700a.S \
+	m3d_func.S \
+	generatePPUasm/ppuasmfunc16.S
+
+SOURCES += $$ASM_SOURCES \
+    dsp1.cpp \
+    snesmachine.cpp \
+    cheats2.cpp \
+    cheats.cpp
 
 HEADERS += \
     sdd1emu.h \
@@ -38,7 +44,10 @@ HEADERS += \
     c4.h \
     apumem.h \
     apu.h \
-    sdd1.h
+    sdd1.h \
+    dsp1.h \
+    snesmachine.h \
+    cheats.h
 
 SOURCES += \
     sdd1emu.cpp \
@@ -67,6 +76,16 @@ SOURCES += \
     c4.cpp \
     apu.cpp \
     sdd1.cpp
+
+
+
+
+
+
+
+
+
+
 
 
 
