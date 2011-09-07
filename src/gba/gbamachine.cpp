@@ -1,7 +1,9 @@
 #include "gbamachine.h"
 #include "gbapad.h"
+#include "machineview.h"
 #include <QFile>
-#include <QtPlugin>
+#include <QApplication>
+#include <QThread>
 
 extern "C" quint32 global_enable_audio;
 extern "C" quint32 sound_frequency;
@@ -15,22 +17,42 @@ extern "C" quint32 init_machine();
 extern "C" quint16 *screen_pixels_ptr;
 extern "C" void init_gamepak_buffer();
 
-GBAMachine::GBAMachine(QObject *parent) :
+static GbaMachine *gbaMachine = 0;
+
+static bool first = true;
+
+extern "C" void synchronize_machine() {
+	if (first)
+		first = false;
+	else
+		gbaMachine->m_consSem.release();
+	if (gbaMachine->m_quit) {
+		gbaMachine->m_quit = false;
+		QThread::currentThread()->terminate();
+	}
+	gbaMachine->m_prodSem.acquire();
+}
+
+GbaMachine::GbaMachine(QObject *parent) :
 	IMachine("gba", parent),
 	m_frame(240, 160, QImage::Format_RGB16) {
 	setFrameRate(60);
-	m_pad = new GBAPad(this);
+	setVideoSrcRect(QRectF(0.0f, 0.0f, 240.0f, 160.f));
+	m_pad = new GbaPad(this);
 
 	screen_pixels_ptr = (quint16 *)m_frame.bits();
 	loadBios();
+	gbaMachine = this;
+	m_quit = false;
 }
 
-// TODO remove
-extern "C" void qDebugC(const char *s, int a, int b) {
-	qDebug(s, a, b);
+GbaMachine::~GbaMachine() {
+	m_quit = true;
+	while (m_quit)
+		emulateFrame(false);
 }
 
-void GBAMachine::loadBios() {
+void GbaMachine::loadBios() {
 	// TODO bios filename
 	QString path = "/home/user/MyDocs/emumaster/gba/gba_bios.bin";
 	QFile biosFile(path);
@@ -61,17 +83,17 @@ void GBAMachine::loadBios() {
 	}
 }
 
-bool GBAMachine::save(QDataStream &s) {
+bool GbaMachine::save(QDataStream &s) {
 	// TODO implement
 	return true;
 }
 
-bool GBAMachine::load(QDataStream &s) {
+bool GbaMachine::load(QDataStream &s) {
 	// TODO implement
 	return true;
 }
 
-QString GBAMachine::setDisk(const QString &path) {
+QString GbaMachine::setDisk(const QString &path) {
 	if (!m_biosError.isEmpty())
 		return m_biosError;
 	// TODO call once
@@ -79,61 +101,60 @@ QString GBAMachine::setDisk(const QString &path) {
 	if (load_gamepak((path+".gba").toAscii().constData()) == -1)
 		return "Could not load ROM";
 	reset_machine();
-	skip_next_frame = 0;
-	m_cycles = init_machine();
+	skip_next_frame = 1;
+
+	GbaThread *t = new GbaThread();
+	t->setParent(this);
+	t->start();
 	return QString();
 }
 
-quint32 GBAMachine::diskCrc() const {
-	// TODO implement
-	return 1;
-}
-
-const QImage & GBAMachine::frame() const
+const QImage &GbaMachine::frame() const
 { return m_frame; }
 
-QRectF GBAMachine::videoSrcRect() const
-{ return QRectF(0.0f, 0.0f, 240.0f, 160.f); }
-
-// TODO scale preserve aspect alike function
-QRectF GBAMachine::videoDstRect() const
-{ return QRectF(67.0f, 0.0f, 240.0f*3.0f, 160.0f*3.0f); }
-
-void GBAMachine::updateSettings() {
-	sound_frequency = audioSampleRate();
-	global_enable_audio = isAudioEnabled();
-}
-
-const char *GBAMachine::grabAudioBuffer(int *size) {
-	*size = sound_callback(m_soundBuffer, 16384);
-	return m_soundBuffer;
-}
-
-void GBAMachine::emulateFrame(bool drawEnabled) {
-	skip_next_frame = drawEnabled;
+void GbaMachine::emulateFrame(bool drawEnabled) {
+	skip_next_frame = !drawEnabled;
 	screen_pixels_ptr = (quint16 *)m_frame.bits();
-	m_cycles = execute_arm(m_cycles);
+	m_prodSem.release();
+	m_consSem.acquire();
 }
 
-void GBAMachine::setPadKey(PadKey key, bool state) {
+void GbaMachine::setPadKey(PadKey key, bool state) {
 	switch (key) {
-	case Left_PadKey:	m_pad->setKey(GBAPad::Left_PadKey, state); break;
-	case Right_PadKey:	m_pad->setKey(GBAPad::Right_PadKey, state); break;
-	case Up_PadKey:		m_pad->setKey(GBAPad::Up_PadKey, state); break;
-	case Down_PadKey:	m_pad->setKey(GBAPad::Down_PadKey, state); break;
-	case A_PadKey:		m_pad->setKey(GBAPad::A_PadKey, state); break;
-	case B_PadKey:		m_pad->setKey(GBAPad::B_PadKey, state); break;
-	case X_PadKey:		m_pad->setKey(GBAPad::R_PadKey, state); break;
-	case Y_PadKey:		m_pad->setKey(GBAPad::L_PadKey, state); break;
-	case Start_PadKey:	m_pad->setKey(GBAPad::Start_PadKey, state); break;
-	case Select_PadKey:	m_pad->setKey(GBAPad::Select_PadKey, state); break;
-	case AllKeys:		m_pad->setKey(GBAPad::All_PadKeys, state); break;
+	case Left_PadKey:	m_pad->setKey(GbaPad::Left_PadKey, state); break;
+	case Right_PadKey:	m_pad->setKey(GbaPad::Right_PadKey, state); break;
+	case Up_PadKey:		m_pad->setKey(GbaPad::Up_PadKey, state); break;
+	case Down_PadKey:	m_pad->setKey(GbaPad::Down_PadKey, state); break;
+	case A_PadKey:		m_pad->setKey(GbaPad::A_PadKey, state); break;
+	case B_PadKey:		m_pad->setKey(GbaPad::B_PadKey, state); break;
+	case X_PadKey:		m_pad->setKey(GbaPad::R_PadKey, state); break;
+	case Y_PadKey:		m_pad->setKey(GbaPad::L_PadKey, state); break;
+	case Start_PadKey:	m_pad->setKey(GbaPad::Start_PadKey, state); break;
+	case Select_PadKey:	m_pad->setKey(GbaPad::Select_PadKey, state); break;
+	case AllKeys:		m_pad->setKey(GbaPad::All_PadKeys, state); break;
 	default: break;
 	}
 }
 
-Q_EXPORT_PLUGIN2(gba, GBAMachine)
+int GbaMachine::fillAudioBuffer(char *stream, int streamSize)
+// TODO fix sound callback
+{ return sound_callback(stream, sound_frequency/60*2*2); }
 
-void GBAMachine::invalidateFrame() {
-	screen_pixels_ptr = (quint16 *)m_frame.bits();
+void GbaMachine::setAudioEnabled(bool on)
+{ global_enable_audio = on; }
+
+void GbaMachine::setAudioSampleRate(int sampleRate)
+{ sound_frequency = sampleRate; }
+
+int main(int argc, char *argv[]) {
+	if (argc < 2)
+		return -1;
+	QApplication app(argc, argv);
+	MachineView view(new GbaMachine(), argv[1]);
+	return app.exec();
+}
+
+void GbaThread::run() {
+	uint cycles = init_machine();
+	execute_arm(cycles);
 }

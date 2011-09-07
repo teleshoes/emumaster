@@ -22,7 +22,7 @@
 
 // TODO set this in settings
 u32 global_enable_audio = 1;
-u32 sound_frequency = 22050;
+u32 sound_frequency = 44100;
 
 direct_sound_struct direct_sound_channel[2];
 gbc_sound_struct gbc_sound_channel[4];

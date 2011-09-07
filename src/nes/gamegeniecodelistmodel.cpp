@@ -5,7 +5,6 @@
 #include <QFile>
 
 GameGenieCodeListModel::GameGenieCodeListModel(NesMachine *machine) :
-	QAbstractListModel(machine),
 	m_machine(machine) {
 	QHash<int, QByteArray> roles;
 	roles.insert(CodeRole, "code");
@@ -13,6 +12,7 @@ GameGenieCodeListModel::GameGenieCodeListModel(NesMachine *machine) :
 	roles.insert(EnableRole, "isEnabled");
 	setRoleNames(roles);
 
+	m_file.setFileName(filePath());
 	load();
 }
 
@@ -21,27 +21,29 @@ GameGenieCodeListModel::~GameGenieCodeListModel() {
 }
 
 void GameGenieCodeListModel::save() {
-	QFile file(filePath());
 	if (m_codes.isEmpty()) {
-		file.remove();
+		m_file.remove();
 		return;
 	}
-	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+	if (!m_file.open(QIODevice::WriteOnly | QIODevice::Truncate))
 		return;
-	QDataStream s(&file);
+	QDataStream s(&m_file);
 	s << m_codes;
 	s << m_descriptions;
 	s << m_enable;
+	m_file.close();
 }
 
 void GameGenieCodeListModel::load() {
-	QFile file(filePath());
-	if (!file.open(QIODevice::ReadOnly))
+	if (!m_file.open(QIODevice::ReadOnly))
 		return;
-	QDataStream s(&file);
+	QDataStream s(&m_file);
 	s >> m_codes;
 	s >> m_descriptions;
 	s >> m_enable;
+	m_file.close();
+
+	m_machine->mapper()->setGameGenieCodeList(enabledList());
 }
 
 QString GameGenieCodeListModel::filePath() {
@@ -67,6 +69,7 @@ void GameGenieCodeListModel::setEnabled(int i, bool on) {
 	if (i >= 0 && i < m_enable.size() && m_enable.at(i) != on) {
 		m_enable[i] = on;
 		emit dataChanged(index(i), index(i));
+		m_machine->mapper()->setGameGenieCodeList(enabledList());
 	}
 }
 
@@ -96,6 +99,7 @@ void GameGenieCodeListModel::addNew(const QString &code, const QString &descript
 	m_descriptions.append(description);
 	m_enable.append(false);
 	endInsertRows();
+	m_machine->mapper()->setGameGenieCodeList(enabledList());
 }
 
 void GameGenieCodeListModel::removeAt(int i) {
@@ -106,4 +110,10 @@ void GameGenieCodeListModel::removeAt(int i) {
 	m_descriptions.removeAt(i);
 	m_enable.removeAt(i);
 	endRemoveRows();
+	m_machine->mapper()->setGameGenieCodeList(enabledList());
+}
+
+bool GameGenieCodeListModel::isCodeValid(const QString &s) {
+	GameGenieCode code;
+	return code.parse(s);
 }

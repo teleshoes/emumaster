@@ -5,6 +5,7 @@ class GameGenieCode;
 class NesMachine;
 #include <QAbstractListModel>
 #include <QStringList>
+#include <QFile>
 
 class GameGenieCodeListModel : public QAbstractListModel {
     Q_OBJECT
@@ -25,6 +26,8 @@ public:
 	Q_INVOKABLE void setEnabled(int i, bool on);
 	Q_INVOKABLE void addNew(const QString &code, const QString &description);
 	Q_INVOKABLE void removeAt(int i);
+
+	Q_INVOKABLE bool isCodeValid(const QString &s);
 private:
 	QString filePath();
 
@@ -33,6 +36,7 @@ private:
 	QStringList m_codes;
 	QStringList m_descriptions;
 	QList<bool> m_enable;
+	QFile m_file;
 };
 
 #endif // GAMEGENIECODELISTMODEL_H

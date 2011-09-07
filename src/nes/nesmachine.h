@@ -7,11 +7,8 @@ class NesApu;
 class NesPad;
 class NesDisk;
 class NesMapper;
-class NesCpuMapper;
-class NesPpuMapper;
 class GameGenieCode;
 class GameGenieCodeListModel;
-#include "nes_global.h"
 #include <imachine.h>
 
 #define NES_PPU_NTSC_CLK	21477270.0
@@ -26,20 +23,19 @@ class GameGenieCodeListModel;
 #define NES_NTSC_SCANLINE_CLOCKS	1364
 #define NES_PAL_SCANLINE_CLOCKS		1598
 
-class NES_EXPORT NesMachine : public IMachine {
+class NesMachine : public IMachine {
 	Q_OBJECT
 	Q_PROPERTY(NesPpu *ppu READ ppu CONSTANT)
 	Q_PROPERTY(NesCpu *cpu READ cpu CONSTANT)
 	Q_PROPERTY(NesApu *apu READ apu CONSTANT)
 	Q_PROPERTY(NesDisk *disk READ disk CONSTANT)
 	Q_PROPERTY(NesMapper *mapper READ mapper CONSTANT)
-	// TODO Q_PROPERTY(GameGenieCodeListModel *gameGenie READ gameGenie CONSTANT)
 public:
 	enum Type { NTSC, PAL };
 
 	explicit NesMachine(QObject *parent = 0);
 	~NesMachine();
-	Q_INVOKABLE void reset(); // TODO virtual in IMachine
+	void reset();
 
 	Type type() const;
 
@@ -57,15 +53,8 @@ public:
 	void emulateFrame(bool drawEnabled);
 	int fillAudioBuffer(char *stream, int streamSize);
 	void setPadKey(PadKey key, bool state);
-
-	void setGameGenieCodeList(const QList<GameGenieCode> &codes);
-	Q_INVOKABLE bool isGameGenieCodeValid(const QString &s);
-
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
-
-	void saveSettings(QSettings &s);
-	void loadSettings(QSettings &s);
 protected:
 	void setAudioSampleRate(int sampleRate);
 private:
@@ -85,7 +74,6 @@ private:
 	NesPad *m_pad;
 	NesDisk *m_disk;
 	NesMapper *m_mapper;
-	NesPpuMapper *m_ppuMapper;
 
 	uint m_scanlineCycles;
 	uint m_scanlineEndCycles;
@@ -97,8 +85,6 @@ private:
 
 	bool bZapper; // TODO zapper
 	int ZapperY;
-
-	GameGenieCodeListModel *m_gameGenieCodeListModel;
 };
 
 inline NesMachine::Type NesMachine::type() const

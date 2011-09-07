@@ -4300,10 +4300,6 @@ void raise_interrupt(irq_type irq_raised)
 
 u32 execute_arm(u32 cycles)
 {
-
-
-	qDebugC("execute arm",0,0);
-
   u32 pc = reg[REG_PC];
   u32 opcode;
   u32 condition;

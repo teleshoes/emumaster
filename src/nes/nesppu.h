@@ -1,14 +1,14 @@
 #ifndef NESPPU_H
 #define NESPPU_H
 
-class NesPpuMapper;
-class NesCpuMapper;
+class NesMapper;
+class NesMapper;
 class NesMachine;
 #include "nesppuregisters.h"
 #include "nesppupalette.h"
 #include <QImage>
 
-class NES_EXPORT NesPpu : public QObject {
+class NesPpu : public QObject {
 	Q_OBJECT
 	Q_ENUMS(RenderMethod)
 	Q_PROPERTY(RenderMethod renderMethod READ renderMethod WRITE setRenderMethod NOTIFY renderMethodChanged)
@@ -51,7 +51,7 @@ public:
 
 	NesMachine *machine() const;
 
-	void setMapper(NesPpuMapper *mapper);
+	void setMapper(NesMapper *mapper);
 
 	NesPpuRegisters *registers() const;
 	NesPpuPalette *palette() const;
@@ -71,7 +71,7 @@ public:
 	void setExternalLatchEnabled(bool on);
 
 	void setVBlank(bool on);
-	void dma(NesCpuMapper *cpuMapper, quint8 page);
+	void dma(quint8 page);
 
 	void processFrameStart();
 	void processFrameEnd();
@@ -110,7 +110,7 @@ private:
 	NesPpuRegisters *m_registers;
 	NesPpuPalette *m_palette;
 
-	NesPpuMapper *m_mapper;
+	NesMapper *m_mapper;
 
 	ChipType m_type;
 	RenderMethod m_renderMethod;

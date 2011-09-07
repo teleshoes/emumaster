@@ -4,12 +4,12 @@
 
 extern "C" quint16 io_registers[1024 * 16];
 
-GBAPad::GBAPad(QObject *parent) :
+GbaPad::GbaPad(QObject *parent) :
 	QObject(parent),
 	m_keys(0) {
 }
 
-void GBAPad::setKey(PadKey key, bool on) {
+void GbaPad::setKey(PadKey key, bool on) {
 	if (on)
 		m_keys |= key;
 	else

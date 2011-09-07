@@ -121,9 +121,10 @@ int NesApuDMChannel::m_frequencyLUT[16] = {
 #define STATE_SERIALIZE_BUILDER(sl) \
 	STATE_SERIALIZE_BEGIN_##sl(NesApuDMChannel) \
 	STATE_SERIALIZE_PARENT_##sl(NesApuChannel) \
+	int playMode_ = m_playMode; \
 	STATE_SERIALIZE_VAR_##sl(irqGenerated) \
 	STATE_SERIALIZE_VAR_##sl(m_hasSample) \
-	STATE_SERIALIZE_VAR_##sl((int&)m_playMode) \
+	STATE_SERIALIZE_VAR_##sl(playMode_) \
 	STATE_SERIALIZE_VAR_##sl(m_dmaFrequency) \
 	STATE_SERIALIZE_VAR_##sl(m_dmaCounter) \
 	STATE_SERIALIZE_VAR_##sl(m_deltaCounter) \
@@ -134,6 +135,7 @@ int NesApuDMChannel::m_frequencyLUT[16] = {
 	STATE_SERIALIZE_VAR_##sl(m_shiftReg) \
 	STATE_SERIALIZE_VAR_##sl(m_playStartAddress) \
 	STATE_SERIALIZE_VAR_##sl(m_playAddress) \
+	m_playMode = static_cast<Mode>(playMode_); \
 	STATE_SERIALIZE_END(NesApuDMChannel)
 
 STATE_SERIALIZE_BUILDER(SAVE)

@@ -134,12 +134,9 @@ void init_main()
 
 u32 init_machine()
 {
-  qDebugC("execute arm translate",0,0);
   execute_arm_translate(execute_cycles);
   return execute_arm(execute_cycles);
 }
-
-u32 no_alpha = 0;
 
 u32 update_gba()
 {
@@ -182,8 +179,6 @@ u32 update_gba()
 		  if(oam_update)
 			oam_update_count++;
 
-		  if(no_alpha)
-			io_registers[REG_BLDCNT] = 0;
 		  update_scanline();
 
 		  // If in visible area also fire HDMA

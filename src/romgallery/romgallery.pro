@@ -1,7 +1,7 @@
 DESTDIR = ../../bin
 INCLUDEPATH += ../../include
 LIBS += -L../../lib -lbase
-QT += opengl declarative
+QT += opengl declarative network
 
 SOURCES += \
     main.cpp \
@@ -31,14 +31,24 @@ unix {
 		../../qml/gallery/RomChoosePage.qml \
 		../../qml/gallery/GalleryPage.qml \
 		../../qml/gallery/ListPage.qml \
-		../../qml/gallery/AboutSheet.qml
+		../../qml/gallery/AboutSheet.qml \
+		../../qml/gallery/HomeScreenIconSheet.qml \
+		../../qml/gallery/MachineTypePage.qml \
+		../../qml/gallery/MachineTypeButton.qml
+
+	qmlimg.path = /opt/emumaster/qml/img
+	qmlimg.files = \
+		../../qml/img/machine-gba.png \
+		../../qml/img/machine-nes.png \
+		../../qml/img/machine-snes.png \
+		../../qml/img/machine-psx.png \
 
 	datafiles.path = /opt/emumaster/data
 	datafiles.files = \
 		../../data/icon_mask.png \
 		../../data/icon_overlay.png
 
-	INSTALLS += target qml datafiles
+	INSTALLS += target qml datafiles qmlimg
 }
 
 contains(MEEGO_EDITION,harmattan) {

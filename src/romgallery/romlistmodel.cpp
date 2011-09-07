@@ -1,7 +1,7 @@
 #include "romlistmodel.h"
 #include "imachine.h"
-#include <QDir>
 #include <QFileInfo>
+#include <QSettings>
 
 RomListModel::RomListModel(QObject *parent) :
 	QAbstractListModel(parent),
@@ -12,6 +12,21 @@ RomListModel::RomListModel(QObject *parent) :
 	roles.insert(AlphabetRole, "alphabet");
 	roles.insert(ScreenShotUpdate, "screenShotUpdate");
 	setRoleNames(roles);
+
+	QSettings s("elemental", "emumaster");
+	s.beginGroup("romgallery");
+	m_machineNameLastUsed = s.value("machineNameLastUsed", "nes").toString();
+	s.endGroup();
+
+	m_sock.bind(QHostAddress::LocalHost, 5798);
+	QObject::connect(&m_sock, SIGNAL(readyRead()), SLOT(receiveDatagram()));
+}
+
+RomListModel::~RomListModel() {
+	QSettings s("elemental", "emumaster");
+	s.beginGroup("romgallery");
+	s.setValue("machineNameLastUsed", m_machineName);
+	s.endGroup();
 }
 
 void RomListModel::setMachineName(const QString &name) {
@@ -21,9 +36,9 @@ void RomListModel::setMachineName(const QString &name) {
 	}
 	m_machineName = name;
 	emit machineNameChanged();
-	QDir dir = QDir(IMachine::diskDirPath(m_machineName));
+	m_dir = QDir(IMachine::diskDirPath(m_machineName));
 
-	m_list = dir.entryList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot, QDir::Name);
+	m_list = m_dir.entryList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot, QDir::Name);
 	for (int i = 0; i < m_list.size(); i++) {
 		QFileInfo fileInfo(m_list.at(i));
 		m_list[i] = fileInfo.completeBaseName();
@@ -53,11 +68,17 @@ int RomListModel::rowCount(const QModelIndex &parent) const {
 int RomListModel::count() const
 { return m_list.size(); }
 
-QString RomListModel::getAlphabet(int i) const
-{ return m_list.at(i).at(0).toUpper(); }
+QString RomListModel::getAlphabet(int i) const {
+	if (i < 0 || i >= m_list.size())
+		return QString();
+	return m_list.at(i).at(0).toUpper();
+}
 
-QString RomListModel::get(int i) const
-{ return m_list.at(i); }
+QString RomListModel::get(int i) const {
+	if (i < 0 || i >= m_list.size())
+		return QString();
+	return m_list.at(i);
+}
 
 void RomListModel::updateScreenShot(const QString &name) {
 	int i = m_list.indexOf(name);
@@ -76,4 +97,35 @@ int RomListModel::getScreenShotUpdate(int i) const {
 		return m_screenShotUpdateCounter;
 	else
 		return -1;
+}
+
+void RomListModel::trash(int i) {
+	QStringList nf;
+	nf << m_list.at(i);
+	QFileInfoList list = m_dir.entryInfoList(nf, QDir::Dirs);
+	if (!list.isEmpty()) {
+		QString fn = list.at(0).fileName();
+		m_dir.cd(fn);
+		nf = QStringList() << "*";
+		list = m_dir.entryInfoList(nf);
+		foreach (QFileInfo info, list)
+			m_dir.remove(info.fileName());
+		m_dir.cdUp();
+		m_dir.rmdir(fn);
+	} else {
+		nf = QStringList() << (m_list.at(i) + ".*");
+		list = m_dir.entryInfoList(nf);
+		foreach (QFileInfo info, list)
+			m_dir.remove(info.fileName());
+	}
+	setMachineName(m_machineName);
+}
+
+void RomListModel::receiveDatagram() {
+	QByteArray ba(m_sock.pendingDatagramSize(), Qt::Uninitialized);
+	m_sock.readDatagram(ba.data(), ba.size());
+	QDataStream s(&ba, QIODevice::ReadOnly);
+	QString name;
+	s >> name;
+	updateScreenShot(name);
 }

@@ -2,19 +2,19 @@
 #define NESCPU_H
 
 class NesMachine;
-class NesCpuMapper;
+class NesMapper;
 class NesApu;
-#include "nes_global.h"
-#include <m6502.h>
+#include "gamegeniecode.h"
+#include "m6502.h"
 
-class NES_EXPORT NesCpu : public M6502 {
+class NesCpu : public M6502 {
 	Q_OBJECT
 public:
 	explicit NesCpu(NesMachine *machine);
 	~NesCpu();
 
-	NesCpuMapper *mapper() const;
-	void setMapper(NesCpuMapper *mapper);
+	NesMapper *mapper() const;
+	void setMapper(NesMapper *mapper);
 
 	NesMachine *machine() const;
 	NesApu *apu() const;
@@ -31,7 +31,7 @@ protected:
 	void write(quint16 address, quint8 data);
 	quint8 read(quint16 address);
 private:
-	NesCpuMapper *m_mapper;
+	NesMapper *m_mapper;
 	NesApu *m_apu;
 	bool m_reset;
 	uint m_dmaCycles;
@@ -42,7 +42,7 @@ private:
 	friend class NesApu;
 };
 
-inline NesCpuMapper *NesCpu::mapper() const
+inline NesMapper *NesCpu::mapper() const
 { return m_mapper; }
 
 inline NesApu *NesCpu::apu() const

@@ -1,18 +1,24 @@
 emumaster (0.0.2) unstable; urgency=low
 
+  * added page to select the console
+  * button to remove rom
+  * optional button to exit in top left corner
+  * fixed crash on pause
+  * fixed bug in pad: when you touch on edge pad didn't work
   * fixed crash on pause button
   * start button of the pad placed in the right position
   * fixed ram amount in the disk info
-  * render method for PPU (0.0.2) can now be selected
+  * render method for nes ppu can now be selected
+  * nes game genie codes enable/disable fix
   * settings look refreshed
-  * mappers:
+  * nes mappers:
      added: 200,201,202,222,225,226,227,228,229,230,231,232,233,235,236,240,241,242,243,244,246,251,252,254,255
      fixed: 2
   * settings are saved now
 
  -- elemental <mar.kazmierczak@gmail.com>  Wed, 01 Sep 2011 10:02:09 +0200
 
-emumaster (0.0.2) unstable; urgency=low
+emumaster (0.0.1) unstable; urgency=low
 
   * Initial Release.
 

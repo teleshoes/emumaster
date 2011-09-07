@@ -50,13 +50,13 @@ quint8 *NesDisk::rom() const
 quint8 *NesDisk::vrom() const
 { return m_vrom; }
 
-NesPpuMapper::Mirroring NesDisk::mirroring() const {
+NesMapper::Mirroring NesDisk::mirroring() const {
 	if (m_header->m_flagsA & NesDiskHeader::FourScreenFlagA)
-		return NesPpuMapper::FourScreen;
+		return NesMapper::FourScreen;
 	else if (m_header->m_flagsA & NesDiskHeader::VerticalFlagA)
-		return NesPpuMapper::Vertical;
+		return NesMapper::Vertical;
 	else
-		return NesPpuMapper::Horizontal;
+		return NesMapper::Horizontal;
 }
 int NesDisk::romSize() const
 { return m_header->m_num16KBRomBanks * 0x4000; }

@@ -1,11 +1,10 @@
 #ifndef NESMAPPEREEPROM_H
 #define NESMAPPEREEPROM_H
 
-#include "nes_global.h"
 #include <QObject>
 // TODO make as component
 
-class NES_EXPORT X24C01 : public QObject {
+class X24C01 : public QObject {
 	Q_OBJECT
 public:
 	explicit X24C01(QObject *parent = 0);
@@ -38,7 +37,7 @@ private:
 	quint8 *m_eedata;
 };
 
-class NES_EXPORT X24C02 : public QObject {
+class X24C02 : public QObject {
 	Q_OBJECT
 public:
 	explicit X24C02(QObject *parent = 0);

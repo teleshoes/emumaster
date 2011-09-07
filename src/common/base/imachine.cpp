@@ -13,6 +13,9 @@ IMachine::IMachine(const QString &name, QObject *parent) :
 IMachine::~IMachine() {
 }
 
+void IMachine::reset()
+{}
+
 void IMachine::setFrameRate(qreal rate)
 { m_frameRate = rate; }
 void IMachine::setVideoSrcRect(const QRectF &rect)
@@ -45,6 +48,8 @@ void IMachine::buildLocalDirTree() {
 	dir.cd("emumaster");
 	dir.mkdir("nes");
 	dir.mkdir("gba");
+	dir.mkdir("snes");
+	dir.mkdir("psx");
 	// TODO add directory for other consoles
 }
 

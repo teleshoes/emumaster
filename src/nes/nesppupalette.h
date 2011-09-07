@@ -1,13 +1,12 @@
 #ifndef NESPALETTE_H
 #define NESPALETTE_H
 
-#include "nes_global.h"
 #include <QObject>
 #include <QVector>
 #include <QRgb>
 class NesPpu;
 
-class NES_EXPORT NesPpuPalette : public QObject {
+class NesPpuPalette : public QObject {
 	Q_OBJECT
 public:
 	explicit NesPpuPalette(NesPpu *ppu = 0);

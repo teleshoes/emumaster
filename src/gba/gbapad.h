@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-class GBAPad : public QObject {
+class GbaPad : public QObject {
 	Q_OBJECT
 public:
 	enum PadKey {
@@ -19,7 +19,7 @@ public:
 		A_PadKey		=  0x01,
 		All_PadKeys		= 0x3FF
 	};
-	explicit GBAPad(QObject *parent = 0);
+	explicit GbaPad(QObject *parent = 0);
 	void setKey(PadKey key, bool on);
 private:
 	int m_keys;

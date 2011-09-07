@@ -14,6 +14,7 @@ RomGallery::RomGallery(QWidget *parent) :
 	engine()->addImageProvider("rom", new RomImageProvider());
 	rootContext()->setContextProperty("romListModel", m_romListModel);
 	rootContext()->setContextProperty("romGallery", this);
+	QObject::connect(engine(), SIGNAL(quit()), SLOT(close()));
 	QString qmlPath = QString("%1/qml/gallery/main.qml")
 			.arg(IMachine::installationDirPath());
 	setSource(QUrl::fromLocalFile(qmlPath));
@@ -24,24 +25,12 @@ RomGallery::~RomGallery() {
 }
 
 void RomGallery::launch(const QString &diskName) {
-	QProcess *process = new QProcess();
-	process->setProperty("disk_name", diskName);
-	QObject::connect(process, SIGNAL(started()), SLOT(showMinimized()));
-	QObject::connect(process, SIGNAL(finished(int)), SLOT(onProcessFinished()));
-	QObject::connect(process, SIGNAL(error(QProcess::ProcessError)), SLOT(onProcessFinished()));
+	QProcess process;
 	QString machineName = m_romListModel->machineName();
 	QStringList args;
 	args << QString("%1/bin/%2").arg(IMachine::installationDirPath()).arg(machineName);
 	args << diskName;
-	process->startDetached("/usr/bin/single-instance", args);
-}
-
-void RomGallery::onProcessFinished() {
-	QProcess *process = static_cast<QProcess *>(QObject::sender());
-	QString diskName = process->property("disk_name").toString();
-	delete process;
-	m_romListModel->updateScreenShot(diskName);
-	showFullScreen();
+	process.startDetached("/usr/bin/single-instance", args);
 }
 
 QImage RomGallery::applyMaskAndOverlay(const QImage &icon) {
@@ -145,5 +134,10 @@ void RomGallery::homepage() {
 	QProcess::execute("grob", args);
 }
 
-void RomGallery::emitRomUpdate()
-{ emit romUpdate(); }
+void RomGallery::emitRomUpdate() {
+	if (!QFile::exists(IMachine::diskDirPath("nes"))) {
+		emit detachUsb();
+		return;
+	}
+	emit romUpdate();
+}

@@ -16,8 +16,8 @@ public:
 	Q_INVOKABLE void homepage();
 signals:
 	void romUpdate();
+	void detachUsb();
 private slots:
-	void onProcessFinished();
 	void emitRomUpdate();
 private:
 	QImage applyMaskAndOverlay(const QImage &icon);

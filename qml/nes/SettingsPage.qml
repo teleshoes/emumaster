@@ -1,5 +1,6 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "../base"
 
 Page {
 	Flickable {
@@ -16,56 +17,8 @@ Page {
 			width: parent.width
 			spacing: 15
 
-			EMSwitchOption {
-				text: qsTr("Swipe Enabled")
-				checked: machineView.swipeEnable; onCheckedChanged: machineView.swipeEnable = checked
-			}
-			Item {
-				id: frameSkipItem
+			DefaultSettings {
 				width: parent.width
-				Label {
-					id: frameSkipLabel
-					anchors.verticalCenter: parent.verticalCenter
-					text: qsTr("Frameskip ")
-					font.bold: true
-				}
-				Slider {
-					id: frameSkipSlider
-					anchors.verticalCenter: parent.verticalCenter
-					anchors.right: parent.right
-					minimumValue: 0
-					maximumValue: 5
-					value: machineView.frameSkip
-					onValueChanged: machineView.frameSkip = value
-					stepSize: 1
-					valueIndicatorVisible: true
-				}
-				Label {
-					anchors.right: frameSkipSlider.left
-					anchors.rightMargin: 10
-					anchors.verticalCenter: parent.verticalCenter
-					text: frameSkipSlider.value
-					font.bold: true
-				}
-				Component.onCompleted: frameSkipItem.height = Math.max(frameSkipLabel.height, frameSkipSlider.height)
-			}
-			EMSwitchOption {
-				text: qsTr("Show FPS")
-				checked: machineView.fpsVisible; onCheckedChanged: machineView.fpsVisible = checked
-			}
-			EMSwitchOption {
-				text: qsTr("Audio Enabled")
-				checked: audio.enable; onCheckedChanged: machineView.enable = checked
-			}
-			EMButtonOption {
-				labelText: qsTr("Audio Sample Rate")
-				buttonText: machineView.sampleRate
-				onClicked: sampleRateDialog.open()
-			}
-			EMButtonOption {
-				labelText: qsTr("Overwirte Image in Gallery")
-				buttonText: qsTr("Take Screenshot")
-				onClicked: machineView.saveScreenShot()
 			}
 			EMButtonOption {
 				labelText: qsTr("PPU Render Method")
@@ -77,15 +30,6 @@ Page {
 				checked: machine.ppu.spriteClippingEnable; onCheckedChanged: machine.ppu.spriteClippingEnable = checked
 			}
 		}
-	}
-	SelectionDialog {
-		id: sampleRateDialog
-		titleText: "Select Sample Rate"
-		model: ListModel {
-			ListElement { name: "22050" }
-			ListElement { name: "44100" }
-		}
-		onAccepted: machineView.sampleRate = model.get(selectedIndex).name
 	}
 	ListModel {
 		id: renderMethodModel

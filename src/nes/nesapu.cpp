@@ -10,7 +10,7 @@ NesApu::NesApu(NesCpu *cpu) :
 	m_trch(2),
 	m_nsch(3),
 	m_dmch(this, 4),
-	m_sampleRate(22050) {
+	m_sampleRate(44100) {
 	m_extraCycles = 0;
 	initDACLUTs();
 }

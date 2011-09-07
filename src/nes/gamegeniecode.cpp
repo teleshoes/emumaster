@@ -9,7 +9,7 @@ bool GameGenieCode::parse(const QString &s) {
 
 	if (s.size() != 6 && s.size() != 8)
 		return false;
-	bool m_eightChars = (s.size() == 8);
+	m_eightChars = (s.size() == 8);
 
 	for (int i = 0; i < s.size(); i++) {
 		switch (s.at(i).toLatin1()) {

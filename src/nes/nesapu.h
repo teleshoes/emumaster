@@ -106,9 +106,9 @@ private:
 };
 
 inline int NesApu::fillBuffer(char *stream, int size) {
-	m_bufferIndex = 0;
 	int n = qMin(size, m_bufferIndex);
 	memcpy(stream, m_sampleBuffer, n);
+	m_bufferIndex = 0;
 	return n;
 }
 

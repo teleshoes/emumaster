@@ -1,43 +1,46 @@
 #ifndef GBAMACHINE_H
 #define GBAMACHINE_H
 
-class GBAPad;
+class GbaPad;
+class GbaMachine;
 #include "imachine.h"
 #include <QImage>
+#include <QThread>
+#include <QSemaphore>
 
-class GBAMachine : public IMachine {
+class GbaThread : public QThread {
+	Q_OBJECT
+protected:
+	void run();
+};
+
+class GbaMachine : public IMachine {
 	Q_OBJECT
 public:
-	explicit GBAMachine(QObject *parent = 0);
+	explicit GbaMachine(QObject *parent = 0);
+	~GbaMachine();
 
 	QString setDisk(const QString &path);
-	quint32 diskCrc() const;
-	QRectF videoSrcRect() const;
-	QRectF videoDstRect() const;
 	void emulateFrame(bool drawEnabled);
 	const QImage &frame() const;
-	const char *grabAudioBuffer(int *size);
+	int fillAudioBuffer(char *stream, int streamSize);
 	void setPadKey(PadKey key, bool state);
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 
-public slots:
-	void invalidateFrame();
-
-
+	volatile bool m_quit;
+	QSemaphore m_prodSem;
+	QSemaphore m_consSem;
 protected:
-	void updateSettings();
+	void setAudioEnabled(bool on);
+	void setAudioSampleRate(int sampleRate);
 private:
 	void loadBios();
 
 	QString m_biosError;
-	GBAPad *m_pad;
+	GbaPad *m_pad;
 	QImage m_frame;
-
-	// TODO manage to remove
-	char m_soundBuffer[16384];
-	quint32 m_cycles;
 };
 
 #endif // GBAMACHINE_H

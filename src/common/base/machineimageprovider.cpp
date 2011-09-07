@@ -30,10 +30,11 @@ QImage MachineImageProvider::screenShotGrayscaled() const {
 	QRectF srcRect, dstRect;
 	srcRect = m_machine->videoSrcRect();
 	qreal scale = qMin(854.0f/srcRect.width(), 480.0f/srcRect.height());
-	dstRect.setWidth(srcRect.width()*scale);
-	dstRect.setHeight(srcRect.height()*scale);
-	dstRect.setX(854.0f/2.0f-dstRect.width()/2.0f);
-	dstRect.setY(480.0f/2.0f-dstRect.height()/2.0f);
+	qreal w = srcRect.width() * scale;
+	qreal h = srcRect.height() * scale;
+	qreal x = 854.0f/2.0f-w/2.0f;
+	qreal y = 480.0f/2.0f-h/2.0f;
+	dstRect = QRectF(x, y, w, h);
 
 	QImage screenShot(rect.size(), QImage::Format_RGB32);
 	QPainter painter;

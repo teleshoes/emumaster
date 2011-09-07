@@ -17,10 +17,11 @@ HostVideo::HostVideo(IMachine *machine, MachineThread *thread) :
 	m_srcRect = m_machine->videoSrcRect();
 	Q_ASSERT_X(m_srcRect.width() != 0.0f && m_srcRect.height() != 0.0f, "HostVideo", "define source rect!");
 	qreal scale = qMin(854.0f/m_srcRect.width(), 480.0f/m_srcRect.height());
-	m_dstRect.setWidth(m_srcRect.width()*scale);
-	m_dstRect.setHeight(m_srcRect.height()*scale);
-	m_dstRect.setX(854.0f/2.0f-m_dstRect.width()/2.0f);
-	m_dstRect.setY(480.0f/2.0f-m_dstRect.height()/2.0f);
+	qreal w = m_srcRect.width() * scale;
+	qreal h = m_srcRect.height() * scale;
+	qreal x = 854.0f/2.0f-w/2.0f;
+	qreal y = 480.0f/2.0f-h/2.0f;
+	m_dstRect = QRectF(x, y, w, h);
 
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_AcceptTouchEvents);
@@ -41,8 +42,10 @@ HostVideo::HostVideo(IMachine *machine, MachineThread *thread) :
 	m_selectButtonImage.load(dirPath + "/pad_select.png");
 	m_startButtonImage.load(dirPath + "/pad_start.png");
 	m_pauseButtonImage.load(dirPath + "/pause.png");
+	m_quitButtonImage.load(dirPath + "/quit.png");
 
 	m_swipeEnabled = true;
+	m_quickQuitVisible = false;
 }
 
 HostVideo::~HostVideo() {
@@ -93,6 +96,8 @@ void HostVideo::paintEvent(QPaintEvent *) {
 		}
 	}
 	painter.drawImage(QPoint(854-32-20, 20), m_pauseButtonImage);
+	if (m_quickQuitVisible)
+		painter.drawImage(QPoint(20, 20), m_quitButtonImage);
 	painter.end();
 }
 
@@ -100,6 +105,8 @@ void HostVideo::setFpsVisible(bool on)
 { m_fpsVisible = on; }
 void HostVideo::setPadVisible(bool on)
 { m_padVisible = on; }
+void HostVideo::setQuickQuitVisible(bool on)
+{ m_quickQuitVisible = on; }
 
 void HostVideo::setSwipeEnabled(bool on) {
 #if defined(MEEGO_EDITION_HARMATTAN)
@@ -123,6 +130,8 @@ void HostVideo::setSwipeEnabled(bool on) {
 					1);*/
 	if (m_swipeEnabled == on)
 		return;
+	m_swipeEnabled = on;
+
 	Window w = effectiveWinId();
 	Display *dpy = QX11Info::display();
 	Atom atom;

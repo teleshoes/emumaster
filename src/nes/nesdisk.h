@@ -1,15 +1,14 @@
 #ifndef NESDISK_H
 #define NESDISK_H
 
-#include "nes_global.h"
 #include "nesmachine.h"
-#include "nesppumapper.h"
+#include "nesmapper.h"
 #include <QObject>
 #include <QFile>
 
 class NesDiskHeader;
 
-class NES_EXPORT NesDisk : public QObject {
+class NesDisk : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(int romSize READ romSize CONSTANT)
 	Q_PROPERTY(int vromSize READ vromSize CONSTANT)
@@ -35,7 +34,7 @@ public:
 	int ramSize() const;
 
 	NesMachine::Type machineType() const;
-	NesPpuMapper::Mirroring mirroring() const;
+	NesMapper::Mirroring mirroring() const;
 	bool hasBatteryBackedRam() const;
 	bool hasTrainer() const;
 	bool isVSSystem() const;

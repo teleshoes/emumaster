@@ -1,9 +1,9 @@
 #ifndef NESSPRITE_H
 #define NESSPRITE_H
 
-#include "nes_global.h"
+#include <QtGlobal>
 
-class NES_EXPORT NesPpuSprite {
+class NesPpuSprite {
 public:
 	enum AttributeBit {
 		FlipVertically		= 0x80,

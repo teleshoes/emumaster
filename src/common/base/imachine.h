@@ -32,6 +32,7 @@ public:
 
 	explicit IMachine(const QString &name, QObject *parent = 0);
 	~IMachine();
+	Q_INVOKABLE virtual void reset();
 
 	QString name() const;
 	QString diskDirPath() const;
@@ -87,5 +88,12 @@ inline QRectF IMachine::videoSrcRect() const
 #define STATE_SERIALIZE_SUBCALL_LOAD(v) if (!(v).load(s)) return false;
 #define STATE_SERIALIZE_SUBCALL_PTR_SAVE(v) if (!(v)->save(s)) return false;
 #define STATE_SERIALIZE_SUBCALL_PTR_LOAD(v) if (!(v)->load(s)) return false;
+
+#define STATE_SERIALIZE_ARRAY_SAVE(array,size) \
+	if (s.writeRawData(reinterpret_cast<const char *>(array), (size)) != (size)) \
+		return false;
+#define STATE_SERIALIZE_ARRAY_LOAD(array,size) \
+	if (s.readRawData(reinterpret_cast<char *>(array), (size)) != (size)) \
+		return false;
 
 #endif // IMACHINE_H

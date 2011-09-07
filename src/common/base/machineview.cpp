@@ -15,6 +15,7 @@
 #include <QTimer>
 #include <QDir>
 #include <QSettings>
+#include <QUdpSocket>
 
 MachineView::MachineView(IMachine *machine, const QString &diskName) :
 	m_machine(machine),
@@ -27,7 +28,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 	m_autoLoadOnStart(true),
 	m_autoSaveOnExit(true),
 	m_audioEnable(true),
-	m_audioSampleRate(22050) {
+	m_audioSampleRate(44100) {
 
 	Q_ASSERT(m_machine != 0);
 
@@ -70,8 +71,10 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 			m_stateListModel->loadState(-2);
 		QObject::connect(m_hostInput, SIGNAL(pauseClicked()), SLOT(pause()));
 	} else {
-		QObject::connect(m_hostInput, SIGNAL(pauseClicked()), SLOT(close()));
+		m_hostVideo->setQuickQuitVisible(true);
+		m_hostInput->setQuickQuitEnabled(true);
 	}
+	QObject::connect(m_hostInput, SIGNAL(wantClose()), SLOT(close()));
 	QMetaObject::invokeMethod(this, "resume", Qt::QueuedConnection);
 }
 
@@ -153,8 +156,9 @@ void MachineView::resume() {
 						 Qt::BlockingQueuedConnection);
 		if (m_audioEnable)
 			m_hostAudio->open(m_audioSampleRate);
-		m_thread->resume();
 		m_running = true;
+		// use delay to wait for animation end
+		QTimer::singleShot(500, m_thread, SLOT(resume()));
 	} else {
 		m_hostVideo->repaint();
 	}
@@ -166,14 +170,20 @@ bool MachineView::close() {
 		pause();
 		return false;
 	} else {
-		deleteLater();
+		qApp->quit();
 		return true;
 	}
 }
 
 void MachineView::saveScreenShot() {
-	m_machine->frame().copy(m_machine->videoSrcRect().toRect())
-			.save(m_machine->screenShotPath(m_diskName));
+	QImage img = m_machine->frame().copy(m_machine->videoSrcRect().toRect());
+	img = img.convertToFormat(QImage::Format_ARGB32);
+	img.save(m_machine->screenShotPath(m_diskName));
+	QByteArray ba;
+	QDataStream s(&ba, QIODevice::WriteOnly);
+	s << m_diskName;
+	QUdpSocket sock;
+	sock.writeDatagram(ba, QHostAddress::LocalHost, 5798);
 }
 
 void MachineView::saveSettings() {
@@ -181,7 +191,11 @@ void MachineView::saveSettings() {
 	s.setValue("swipeEnable", m_hostVideo->isSwipeEnabled());
 
 	s.setValue("audioEnable", m_audioEnable);
-	s.setValue("audioSampleRate", m_audioSampleRate);
+//	s.setValue("audioSampleRate", m_audioSampleRate);
+
+	s.setValue("fpsVisible", m_hostVideo->isFpsVisible());
+
+	s.setValue("quickQuit", m_hostVideo->isQuickQuitVisible());
 
 	s.beginGroup(m_machine->name());
 	s.setValue("frameSkip", m_thread->frameSkip());
@@ -194,9 +208,15 @@ void MachineView::loadSettings() {
 	m_hostVideo->setSwipeEnabled(s.value("swipeEnable", false).toBool());
 
 	m_audioEnable = s.value("audioEnable", true).toBool();
-	m_audioSampleRate = s.value("audioSampleRate", 22050).toInt();
+//	m_audioSampleRate = s.value("audioSampleRate", 22050).toInt();
 	m_machine->setAudioEnabled(m_audioEnable);
 	m_machine->setAudioSampleRate(m_audioSampleRate);
+
+	m_hostVideo->setFpsVisible(s.value("fpsVisible", false).toBool());
+
+	bool quickQuit = s.value("quickQuit", true).toBool();
+	m_hostVideo->setQuickQuitVisible(quickQuit);
+	m_hostInput->setQuickQuitEnabled(quickQuit);
 
 	s.beginGroup(m_machine->name());
 	m_thread->setFrameSkip(s.value("frameSkip", 1).toInt());
@@ -223,6 +243,8 @@ bool MachineView::isSwipeEnabled() const
 { return m_hostVideo->isSwipeEnabled(); }
 bool MachineView::isPadVisible() const
 { return m_hostVideo->isPadVisible(); }
+bool MachineView::isQuickQuitEnabled() const
+{ return m_hostVideo->isQuickQuitVisible(); }
 
 void MachineView::setFpsVisible(bool on) {
 	if (m_hostVideo->isFpsVisible() != on) {
@@ -267,3 +289,14 @@ void MachineView::setPadVisible(bool visible) {
 		emit padVisibleChanged();
 	}
 }
+
+void MachineView::setQuickQuitEnabled(bool on) {
+	if (m_hostVideo->isQuickQuitVisible() != on) {
+		m_hostVideo->setQuickQuitVisible(on);
+		m_hostInput->setQuickQuitEnabled(on);
+		emit quickQuitEnableChanged();
+	}
+}
+
+QDeclarativeView *MachineView::settingsView() const
+{ return m_settingsView; }

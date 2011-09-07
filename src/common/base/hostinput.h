@@ -9,8 +9,11 @@ class HostInput : public QObject {
 public:
 	explicit HostInput(IMachine *machine);
 	~HostInput();
+
+	void setQuickQuitEnabled(bool on);
 signals:
 	void pauseClicked();
+	void wantClose();
 protected:
 	bool eventFilter(QObject *o, QEvent *e);
 private:
@@ -18,6 +21,7 @@ private:
 	void processTouch(QEvent *e);
 
 	IMachine *m_machine;
+	bool m_quickQuitEnabled;
 };
 
 #endif // HOSTINPUT_H

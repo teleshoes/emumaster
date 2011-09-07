@@ -1,4 +1,5 @@
 #include "nesmappereeprom.h"
+#include <imachine.h>
 #include <QDataStream>
 
 X24C01::X24C01(QObject *parent) :
@@ -115,29 +116,20 @@ void X24C01::write(bool scl_in, bool sda_in) {
 bool X24C01::read() const
 { return m_sda; }
 
-bool X24C01::save(QDataStream &s) {
-	s << m_nowState;
-	s << m_nextState;
-	s << m_bitCounter;
-	s << m_address;
-	s << m_data;
-	s << m_sda;
-	s << m_sclOld;
-	s << m_sdaOld;
-	return true;
-}
+#define X24C01_STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(X24C01) \
+	STATE_SERIALIZE_VAR_##sl(m_nowState) \
+	STATE_SERIALIZE_VAR_##sl(m_nextState) \
+	STATE_SERIALIZE_VAR_##sl(m_bitCounter) \
+	STATE_SERIALIZE_VAR_##sl(m_address) \
+	STATE_SERIALIZE_VAR_##sl(m_data) \
+	STATE_SERIALIZE_VAR_##sl(m_sda) \
+	STATE_SERIALIZE_VAR_##sl(m_sclOld) \
+	STATE_SERIALIZE_VAR_##sl(m_sdaOld) \
+	STATE_SERIALIZE_END(X24C01)
 
-bool X24C01::load(QDataStream &s) {
-	s >> m_nowState;
-	s >> m_nextState;
-	s >> m_bitCounter;
-	s >> m_address;
-	s >> m_data;
-	s >> m_sda;
-	s >> m_sclOld;
-	s >> m_sdaOld;
-	return true;
-}
+X24C01_STATE_SERIALIZE_BUILDER(SAVE)
+X24C01_STATE_SERIALIZE_BUILDER(LOAD)
 
 X24C02::X24C02(QObject *parent) :
 	QObject(parent),
@@ -291,28 +283,18 @@ void X24C02::write(bool scl_in, bool sda_in) {
 bool X24C02::read() const
 { return m_sda; }
 
-bool X24C02::save(QDataStream &s) {
-	s << m_nowState;
-	s << m_nextState;
-	s << m_bitCounter;
-	s << m_address;
-	s << m_data;
-	s << m_rw;
-	s << m_sda;
-	s << m_sclOld;
-	s << m_sdaOld;
-	return true;
-}
+#define X24C02_STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(X24C02) \
+	STATE_SERIALIZE_VAR_##sl(m_nowState) \
+	STATE_SERIALIZE_VAR_##sl(m_nextState) \
+	STATE_SERIALIZE_VAR_##sl(m_bitCounter) \
+	STATE_SERIALIZE_VAR_##sl(m_address) \
+	STATE_SERIALIZE_VAR_##sl(m_data) \
+	STATE_SERIALIZE_VAR_##sl(m_rw) \
+	STATE_SERIALIZE_VAR_##sl(m_sda) \
+	STATE_SERIALIZE_VAR_##sl(m_sclOld) \
+	STATE_SERIALIZE_VAR_##sl(m_sdaOld) \
+	STATE_SERIALIZE_END(X24C02)
 
-bool X24C02::load(QDataStream &s) {
-	s >> m_nowState;
-	s >> m_nextState;
-	s >> m_bitCounter;
-	s >> m_address;
-	s >> m_data;
-	s >> m_rw;
-	s >> m_sda;
-	s >> m_sclOld;
-	s >> m_sdaOld;
-	return true;
-}
+X24C02_STATE_SERIALIZE_BUILDER(SAVE)
+X24C02_STATE_SERIALIZE_BUILDER(LOAD)

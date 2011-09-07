@@ -21,6 +21,9 @@ public:
 	bool isSwipeEnabled() const;
 	void setSwipeEnabled(bool on);
 
+	bool isQuickQuitVisible() const;
+	void setQuickQuitVisible(bool on);
+
 	void setMyVisible(bool visible);
 signals:
 	void wantClose();
@@ -51,8 +54,10 @@ private:
 	QImage m_selectButtonImage;
 	QImage m_startButtonImage;
 	QImage m_pauseButtonImage;
+	QImage m_quitButtonImage;
 
 	bool m_swipeEnabled;
+	bool m_quickQuitVisible;
 
 	friend class MachineView;
 };
@@ -63,5 +68,7 @@ inline bool HostVideo::isPadVisible() const
 { return m_padVisible; }
 inline bool HostVideo::isSwipeEnabled() const
 { return m_swipeEnabled; }
+inline bool HostVideo::isQuickQuitVisible() const
+{ return m_quickQuitVisible; }
 
 #endif // MACHINEGLWINDOW_H

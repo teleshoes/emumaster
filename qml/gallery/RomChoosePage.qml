@@ -7,9 +7,12 @@ Page {
 	property bool coverFlowEnabled: true
 
 	tools: ToolBarLayout {
-//	TODO console choose	ToolIcon { iconId: "toolbar-back"; onClicked:  }
 		ButtonRow {
 			platformStyle: TabButtonStyle { }
+			TabButton {
+				iconSource: "image://theme/icon-m-toolbar-dialer"
+				tab: machineTypeTab
+			}
 			TabButton {
 				iconSource: "image://theme/icon-m-toolbar-gallery"
 				tab: galleryTab
@@ -22,6 +25,11 @@ Page {
 		ToolIcon {
 			iconId: "toolbar-contact"
 			onClicked: aboutSheet.open()
+		}
+		ToolIcon {
+			iconId: "toolbar-delete"
+			visible: currentRomIndex >= 0
+			onClicked: removeRomDialog.open()
 		}
 		ToolIcon {
 			iconId: "toolbar-home"
@@ -48,86 +56,16 @@ Page {
 
 	TabGroup {
 		id: tabGroup
-		currentTab: galleryTab
+		currentTab: machineTypeTab
 
+		MachineTypePage { id: machineTypeTab }
 		GalleryPage { id: galleryTab }
 		ListPage { id: listTab }
 
 		onCurrentTabChanged: coverFlowEnabled = (currentTab === galleryTab)
 	}
 
-	Sheet {
-		id: saveIconSheet
-		property alias imgSource: img.source
-		property alias imgScale: imageScaler.value
-
-		property int iconX: 0
-		property int iconY: 0
-
-		// TODO waiting for new version of qt-components acceptButton.enabled when
-		// icon selected -> rect.visible
-		acceptButtonText: "Save"
-		rejectButtonText: "Cancel"
-
-		title: Label {
-			anchors.centerIn: parent
-			text: "Select Icon"
-		}
-
-		content: Item {
-			anchors.fill: parent
-			Label {
-				width: parent.width
-				text: "info: dialog creates icon in the home screen."
-				wrapMode: Text.WordWrap
-				horizontalAlignment: Text.AlignHCenter
-			}
-			Image {
-				id: img
-				anchors.centerIn: parent
-				scale: imageScaler.value
-			}
-			Rectangle {
-				id: rect
-				x: img.x - (img.scale-1)*img.width/2 + saveIconSheet.iconX
-				y: img.y - (img.scale-1)*img.height/2 + saveIconSheet.iconY
-				width: 80
-				height: 80
-				color: Qt.rgba(1, 1, 1, 0.3)
-				border.color: "white"
-				border.width: 2
-				visible: false
-			}
-
-			MouseArea {
-				x: img.x - (img.scale-1)*img.width/2 + 40
-				y: img.y - (img.scale-1)*img.height/2 + 40
-				width: img.width*img.scale - 80
-				height: img.height*img.scale - 80
-				onClicked: {
-					saveIconSheet.iconX = mouse.x - 40
-					saveIconSheet.iconY = mouse.y - 40
-					rect.visible = true
-				}
-			}
-			Slider {
-				id: imageScaler;
-				anchors.right: parent.right
-				height: parent.height
-				orientation: Qt.Vertical
-				minimumValue: 0.5; maximumValue: 4.0
-				valueIndicatorVisible: true
-				onValueChanged: rect.visible = false
-			}
-		}
-
-		onAccepted: {
-			if (!romGallery.addIconToHomeScreen(romListModel.get(currentRomIndex), imageScaler.value, iconX, iconY)) {
-				errorDialog.message = "Could not save icon!"
-				errorDialog.open()
-			}
-		}
-	}
+	HomeScreenIconSheet { id: saveIconSheet }
 
 	QueryDialog {
 		id: errorDialog
@@ -147,17 +85,40 @@ Page {
 				 "Consider a small donation if you find this software useful"
 	}
 
+	QueryDialog {
+		id: removeRomDialog
+
+		acceptButtonText: "Yes"
+		rejectButtonText: "No"
+
+		titleText: "Remove"
+		message: "Do you really want to remove \"" + romListModel.get(currentRomIndex) + "\" ?"
+
+		onAccepted: romListModel.trash(currentRomIndex)
+	}
+
+	QueryDialog {
+		id: detachUsbDialog
+		icon: "image://theme/icon-m-common-red"
+		message: "\"emumaster\" folder not found! Detach USB cable if connected and restart application."
+		rejectButtonText: "Close"
+		onRejected: Qt.quit()
+	}
+
 	Connections {
 		target: romGallery
-		onRomUpdate: {
-			romListModel.machineName = "nes"
-			if (romListModel.count > 0) {
-				currentRomIndex = 0
-			} else {
-				howToInstallRomDialog.open()
-			}
-			listTab.update()
-		}
+		onRomUpdate: setMachineName(romListModel.machineNameLastUsed)
+		onDetachUsb: detachUsbDialog.open()
 	}
 	AboutSheet { id: aboutSheet }
+
+	function setMachineName(name) {
+		romListModel.machineName = name
+		if (romListModel.count > 0) {
+			currentRomIndex = 0
+		} else {
+			howToInstallRomDialog.open()
+		}
+		listTab.update()
+	}
 }

@@ -1,10 +1,9 @@
 #ifndef NESPAD_H
 #define NESPAD_H
 
-#include "nes_global.h"
 #include <QObject>
 
-class NES_EXPORT NesPad : public QObject {
+class NesPad : public QObject {
 	Q_OBJECT
 public:
 	enum Button {

@@ -1,5 +1,6 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "../base"
 
 Page {
 	tools: ToolBarLayout {
@@ -27,7 +28,20 @@ Page {
 		currentTab: settingsTab
 
 		SettingsPage { id: settingsTab }
-		StatePage { id: stateTab }
+		StatePage {
+			id: stateTab
+
+			Button {
+				anchors.right: parent.right
+				anchors.rightMargin: 10
+				anchors.bottom: parent.bottom
+				anchors.bottomMargin: 10
+				width: 50
+				iconSource: "image://theme/icon-s-music-video-description"
+				onClicked: infoSheet.open()
+			}
+			MachineInfoSheet { id: infoSheet }
+		}
 		CheatPage { id: cheatTab }
 	}
 

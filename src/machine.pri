@@ -1,6 +1,7 @@
 DESTDIR = ../../bin
-LIBS += -L../../lib
+LIBS += -L../../lib -lbase
 INCLUDEPATH += ../../include
+QT += opengl
 
 linux-g++-maemo {
 	MEEGO_VERSION_MAJOR     = 1

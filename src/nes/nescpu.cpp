@@ -1,8 +1,8 @@
 #include "nescpu.h"
 #include "nesmachine.h"
-#include "nescpumapper.h"
-#include "nesapu.h"
 #include "nesmapper.h"
+#include "nesapu.h"
+
 #include <imachine.h>
 #include <QDataStream>
 
@@ -17,7 +17,7 @@ NesCpu::NesCpu(NesMachine *machine) :
 NesCpu::~NesCpu() {
 }
 
-void NesCpu::setMapper(NesCpuMapper *mapper) {
+void NesCpu::setMapper(NesMapper *mapper) {
 	m_mapper = mapper;
 	QObject::connect(mapper, SIGNAL(request_irq_o(bool)), SLOT(mapper_irq_i(bool)));
 }

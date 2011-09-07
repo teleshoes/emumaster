@@ -20,9 +20,6 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-// TODO remove
-extern void qDebugC(const char *s, int a, int b);
-
 #define ror(dest, value, shift)                                               \
   dest = ((value) >> shift) | ((value) << (32 - shift))                       \
 

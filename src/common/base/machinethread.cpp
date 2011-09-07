@@ -34,29 +34,26 @@ static void sleepMs(uint msecs) {
 
 void MachineThread::run() {
 	qreal frameTime = 1000.0 / m_machine->frameRate();
-
 	QTime time;
 	time.start();
-	qreal currentFrameTime = 500;//QDateTime::currentMSecsSinceEpoch();
+	qreal currentFrameTime = 0;
 	int frameCounter = 0;
-	// TODO do this better
 	while (m_running) {
-		qreal currentTime = time.elapsed();//QDateTime::currentMSecsSinceEpoch();
+		qreal currentTime = time.elapsed();
 		currentFrameTime += frameTime;
-//		qDebug(qPrintable(QString("%1 %2").arg(currentTime).arg(currentFrameTime)));
 		if (currentTime < currentFrameTime && frameCounter == 0) {
 			m_machine->emulateFrame(true);
 			m_inFrameGenerated = true;
 			emit frameGenerated(true);
 			m_inFrameGenerated = false;
-			qreal currentTime = time.elapsed();//QDateTime::currentMSecsSinceEpoch();
+			qreal currentTime = time.elapsed();
 			if (currentTime < currentFrameTime)
 				sleepMs(currentFrameTime - currentTime);
 		} else {
 			m_machine->emulateFrame(false);
 			emit frameGenerated(false);
 			if (frameCounter != 0) {
-				qreal currentTime = time.elapsed();//QDateTime::currentMSecsSinceEpoch();
+				qreal currentTime = time.elapsed();
 				if (currentTime < currentFrameTime)
 					sleepMs(currentFrameTime - currentTime);
 			} else {

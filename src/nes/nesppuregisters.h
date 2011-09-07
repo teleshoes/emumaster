@@ -2,10 +2,9 @@
 #define NESPPUREGISTERS_H
 
 class NesPpu;
-#include "nes_global.h"
 #include <QObject>
 
-class NES_EXPORT NesPpuRegisters : public QObject {
+class NesPpuRegisters : public QObject {
 	Q_OBJECT
 public:
 	enum Register {

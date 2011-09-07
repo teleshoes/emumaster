@@ -6,7 +6,7 @@ Page {
 	ListView {
 		id: listView
 		anchors.fill: parent
-		model: gameGenieCodeListModel
+		model: gameGenie
 		delegate: MyListDelegate {
 			title: code
 			subtitle: description
@@ -33,7 +33,7 @@ Page {
 				anchors.rightMargin: 20
 				checked: isEnabled
 				platformStyle: SwitchStyle { inverted: true }
-				onCheckedChanged: gameGenieCodeListModel.setEnabled(index, checked)
+				onCheckedChanged: gameGenie.setEnabled(index, checked)
 			}
 		}
 		ButtonRow {
@@ -47,7 +47,7 @@ Page {
 			}
 			Button {
 				text: "Remove"
-				onClicked: gameGenieCodeListModel.removeAt(listView.currentIndex)
+				onClicked: gameGenie.removeAt(listView.currentIndex)
 			}
 		}
 	}
@@ -77,10 +77,10 @@ Page {
 					anchors {left: parent.left; right: parent.right;}
 					errorHighlight: true
 					inputMethodHints: Qt.ImhPreferUppercase | Qt.ImhNoPredictiveText
-					// TODO meego version onAccepted: descriptionEdit.focus = true
+					// TODO new components version onAccepted: descriptionEdit.focus = true
 					onTextChanged: {
-						var codeOk = machineView.isGameGenieCodeValid(text)
-						addCheatSheet.acceptButton.enabled = codeOk
+						var codeOk = gameGenie.isCodeValid(text)
+						// TODO new components version addCheatSheet.acceptButton.enabled = codeOk
 						errorHighlight = !codeOk
 					}
 				}
@@ -96,6 +96,6 @@ Page {
 			}
 		}
 
-		onAccepted: gameGenieCodeListModel.addNew(codeEdit.text, descriptionEdit.text)
+		onAccepted: gameGenie.addNew(codeEdit.text, descriptionEdit.text)
 	}
 }

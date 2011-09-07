@@ -1,8 +1,7 @@
 #include "nesppu.h"
 #include "nesppupalette.h"
 #include "nesppuregisters.h"
-#include "nescpumapper.h"
-#include "nesppumapper.h"
+#include "nesmapper.h"
 #include "nesppusprite.h"
 #include "nesmachine.h"
 #include <QDataStream>
@@ -57,7 +56,7 @@ NesPpu::~NesPpu() {
 NesMachine *NesPpu::machine() const
 { return static_cast<NesMachine *>(parent()); }
 
-void NesPpu::setMapper(NesPpuMapper *mapper)
+void NesPpu::setMapper(NesMapper *mapper)
 { m_mapper = mapper; }
 
 void NesPpu::setChipType(ChipType newType) {
@@ -90,10 +89,10 @@ void NesPpu::updateVBlankOut() {
 	}
 }
 
-void NesPpu::dma(NesCpuMapper *cpuMapper, quint8 page) {
+void NesPpu::dma(quint8 page) {
 	quint16 address = page << 8;
 	for (int i = 0; i < 256; i++)
-		m_registers->write(NesPpuRegisters::SpriteRAMIO, cpuMapper->read(address + i));
+		m_registers->write(NesPpuRegisters::SpriteRAMIO, m_mapper->read(address + i));
 }
 
 void NesPpu::setCharacterLatchEnabled(bool on)
@@ -181,7 +180,7 @@ void NesPpu::drawBackgroundNoTileNoExtLatch() {
 	int attributeAddress = AttributeTableOffset | ((nameTableAddress&0x0380)>>4);
 	int nameTableX = nameTableAddress & 0x001F;
 	int attributeShift = (nameTableAddress & 0x0040) >> 4;
-	quint8 *nameTable = m_mapper->bank1KData(nameTableAddress >> 10);
+	quint8 *nameTable = m_mapper->ppuBank1KData(nameTableAddress >> 10);
 
 	int cacheTile = 0xFFFF0000;
 	quint8 cacheAttribute = 0xFF;
@@ -205,8 +204,8 @@ void NesPpu::drawBackgroundNoTileNoExtLatch() {
 		} else {
 			cacheTile = tileAddress;
 			cacheAttribute = attribute;
-			quint8 plane1 = m_mapper->read(tileAddress + 0);
-			quint8 plane2 = m_mapper->read(tileAddress + 8);
+			quint8 plane1 = m_mapper->ppuRead(tileAddress + 0);
+			quint8 plane2 = m_mapper->ppuRead(tileAddress + 8);
 			*bgWritten = plane1 | plane2;
 
 			QRgb *pens = currentPens + attribute;
@@ -232,7 +231,7 @@ void NesPpu::drawBackgroundNoTileNoExtLatch() {
 			nameTableX = 0;
 			nameTableAddress ^= 0x41F;
 			attributeAddress = AttributeTableOffset | ((nameTableAddress&0x0380)>>4);
-			nameTable = m_mapper->bank1KData(nameTableAddress >> 10);
+			nameTable = m_mapper->ppuBank1KData(nameTableAddress >> 10);
 		} else {
 			nameTableAddress++;
 		}
@@ -246,7 +245,7 @@ void NesPpu::drawBackgroundTileNoExtLatch() {
 	int attributeAddress = AttributeTableOffset | ((nameTableAddress&0x0380)>>4);
 	int nameTableX = nameTableAddress & 0x001F;
 	int attributeShift = (nameTableAddress & 0x0040) >> 4;
-	quint8 *nameTable = m_mapper->bank1KData(nameTableAddress >> 10);
+	quint8 *nameTable = m_mapper->ppuBank1KData(nameTableAddress >> 10);
 
 	int cacheTile = 0xFFFF0000;
 	quint8 cacheAttribute = 0xFF;
@@ -270,8 +269,8 @@ void NesPpu::drawBackgroundTileNoExtLatch() {
 		} else {
 			cacheTile = tileAddress;
 			cacheAttribute = attribute;
-			quint8 plane1 = m_mapper->read(tileAddress + 0);
-			quint8 plane2 = m_mapper->read(tileAddress + 8);
+			quint8 plane1 = m_mapper->ppuRead(tileAddress + 0);
+			quint8 plane2 = m_mapper->ppuRead(tileAddress + 8);
 			*bgWritten = plane1 | plane2;
 
 			QRgb *pens = currentPens + attribute;
@@ -297,7 +296,7 @@ void NesPpu::drawBackgroundTileNoExtLatch() {
 			nameTableX = 0;
 			nameTableAddress ^= 0x41F;
 			attributeAddress = AttributeTableOffset | ((nameTableAddress&0x0380)>>4);
-			nameTable = m_mapper->bank1KData(nameTableAddress >> 10);
+			nameTable = m_mapper->ppuBank1KData(nameTableAddress >> 10);
 		} else {
 			nameTableAddress++;
 		}
@@ -445,8 +444,8 @@ void NesPpu::drawSprites() {
 			index1 |= m_spritePageOffset;
 		quint16 spriteAddress = index1 | spriteLine;
 		/* read character pattern */
-		quint8 plane1 = m_mapper->read(spriteAddress + 0);
-		quint8 plane2 = m_mapper->read(spriteAddress + 8);
+		quint8 plane1 = m_mapper->ppuRead(spriteAddress + 0);
+		quint8 plane2 = m_mapper->ppuRead(spriteAddress + 8);
 		/* character latch (for MMC2/MMC4) */
 		if (m_characterLatchEnabled)
 			m_mapper->characterLatch(spriteAddress);
@@ -507,9 +506,9 @@ void NesPpu::fillScanline(int color, int count) {
 }
 
 void NesPpu::processDummyScanline() {
-	m_registers->setSpriteMax(false);
 	if (m_scanline >= VisibleScreenHeight || !m_registers->isSpriteVisible())
 		return;
+	m_registers->setSpriteMax(false);
 	int count = 0;
 	int spriteSize = m_registers->spriteSize();
 	NesPpuSprite *sprite = reinterpret_cast<NesPpuSprite *>(m_spriteMemory);
@@ -548,66 +547,30 @@ void NesPpu::setSpriteClippingEnabled(bool on) {
 	}
 }
 
-bool NesPpu::save(QDataStream &s) {
-	if (!m_registers->save(s))
-		return false;
-	if (!m_palette->save(s))
-		return false;
-	if (!m_mapper->save(s))
-		return false;
-	s << quint8(m_type);
-	s << m_scanlinesPerFrame;
-	s << quint8(m_renderMethod);
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(NesPpu) \
+	quint8 type_ = m_type; \
+	quint8 renderMethod_ = m_renderMethod; \
+	STATE_SERIALIZE_SUBCALL_PTR_##sl(m_registers) \
+	STATE_SERIALIZE_SUBCALL_PTR_##sl(m_palette) \
+	STATE_SERIALIZE_SUBCALL_PTR_##sl(m_mapper) \
+	STATE_SERIALIZE_VAR_##sl(type_) \
+	STATE_SERIALIZE_VAR_##sl(m_scanlinesPerFrame) \
+	STATE_SERIALIZE_VAR_##sl(renderMethod_) \
+	STATE_SERIALIZE_VAR_##sl(m_characterLatchEnabled) \
+	STATE_SERIALIZE_VAR_##sl(m_externalLatchEnabled) \
+	STATE_SERIALIZE_VAR_##sl(m_vramAddress) \
+	STATE_SERIALIZE_VAR_##sl(m_refreshLatch) \
+	STATE_SERIALIZE_VAR_##sl(m_scrollTileXOffset) \
+	STATE_SERIALIZE_VAR_##sl(m_scrollTileYOffset) \
+	STATE_SERIALIZE_VAR_##sl(m_tilePageOffset) \
+	STATE_SERIALIZE_VAR_##sl(m_spritePageOffset) \
+	STATE_SERIALIZE_VAR_##sl(m_loopyShift) \
+	STATE_SERIALIZE_VAR_##sl(m_vBlankOut) \
+	STATE_SERIALIZE_ARRAY_##sl(m_spriteMemory, sizeof(m_spriteMemory)) \
+	m_type = static_cast<ChipType>(type_); \
+	m_renderMethod = static_cast<RenderMethod>(renderMethod_); \
+	STATE_SERIALIZE_END(NesPpu)
 
-	s << m_characterLatchEnabled;
-	s << m_externalLatchEnabled;
-
-	s << m_vramAddress;
-	s << m_refreshLatch;
-	s << m_scrollTileXOffset;
-	s << m_scrollTileYOffset;
-	s << m_tilePageOffset;
-	s << m_spritePageOffset;
-	s << m_loopyShift;
-
-	s << m_vBlankOut;
-
-	if (s.writeRawData(reinterpret_cast<const char *>(m_spriteMemory), sizeof(m_spriteMemory)) != sizeof(m_spriteMemory))
-		return false;
-	return true;
-}
-
-bool NesPpu::load(QDataStream &s) {
-	if (!m_registers->load(s))
-		return false;
-	if (!m_palette->load(s))
-		return false;
-	if (!m_mapper->load(s))
-		return false;
-	quint8 type;
-	s >> type;
-	m_type = static_cast<ChipType>(m_type);
-
-	s >> m_scanlinesPerFrame;
-
-	quint8 rMethod;
-	s >> rMethod;
-	m_renderMethod = static_cast<RenderMethod>(rMethod);
-
-	s >> m_characterLatchEnabled;
-	s >> m_externalLatchEnabled;
-
-	s >> m_vramAddress;
-	s >> m_refreshLatch;
-	s >> m_scrollTileXOffset;
-	s >> m_scrollTileYOffset;
-	s >> m_tilePageOffset;
-	s >> m_spritePageOffset;
-	s >> m_loopyShift;
-
-	s >> m_vBlankOut;
-
-	if (s.readRawData(reinterpret_cast<char *>(m_spriteMemory), sizeof(m_spriteMemory)) != sizeof(m_spriteMemory))
-		return false;
-	return true;
-}
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

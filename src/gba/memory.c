@@ -93,15 +93,7 @@ gamepak_swap_entry_type *gamepak_memory_map;
 // This is global so that it can be kept open for large ROMs to swap
 // pages from, so there's no slowdown with opening and closing the file
 // a lot.
-#ifdef PSP_BUILD
-
-file_tag_type gamepak_file_large = -1;
-
-#else
-
 file_tag_type gamepak_file_large = NULL;
-
-#endif
 
 u32 direct_map_vram = 0;
 
@@ -1894,7 +1886,7 @@ s32 load_game_config(u8 *gamepak_title, u8 *gamepak_code, u8 *gamepak_maker)
   flash_device_id = FLASH_DEVICE_MACRONIX_64KB;
 
   // TODO config path and some debug info
-  const char *config_path = "/home/user/MyDocs/emumaster/gba/game_config.txt";
+  const char *config_path = "/opt/emumaster/data/game_config.txt";
 
   config_file = fopen(config_path, "rb");
 
@@ -2015,12 +2007,7 @@ s32 load_gamepak_raw(char *name)
       file_read(gamepak_file, gamepak_rom, file_size);
 
 	  fclose(gamepak_file);
-
-#ifdef PSP_BUILD
-      gamepak_file_large = -1;
-#else
       gamepak_file_large = NULL;
-#endif
     }
     else
     {

@@ -3,9 +3,7 @@ include(../machine.pri)
 DEFINES += USE_ASM_VIDEO_EXPAND
 
 OTHER_FILES += \
-    game_config.txt \
-    x86/x86_stub.S \
-	x86/Makefile
+	x86/x86_stub.S
 
 contains(MEEGO_EDITION,harmattan): {
 	SOURCES += \
@@ -36,25 +34,21 @@ SOURCES += \
     sound.c \
     memory.c \
     main.c \
-    input.c \
     gbamachine.cpp \
     gbapad.cpp
+
 
 unix {
 	qml.path = /opt/emumaster/qml/gba
 	qml.files = \
-		../../../qml/gba/main.qml \
-		../../../qml/gba/MainPage.qml \
-		../../../qml/gba/VideoPage.qml \
-		../../../qml/gba/AudioPage.qml \
-		../../../qml/gba/InputPage.qml \
-		../../../qml/gba/StatePage.qml \
-		../../../qml/gba/CheatPage.qml \
-		../../../qml/gba/MachineInfoSheet.qml
+		../../qml/gba/main.qml \
+		../../qml/gba/MainPage.qml \
+		../../qml/gba/SettingsPage.qml
 
-	game_config.path = /home/user/MyDocs/emumaster/gba
+	game_config.path = /opt/emumaster/data
 	game_config.files = game_config.txt
 
-	INSTALLS += qml
+	INSTALLS += qml game_config
 }
+
 

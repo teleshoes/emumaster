@@ -1,7 +1,8 @@
 #include "nesppuregisters.h"
 #include "nesppu.h"
 #include "nesppupalette.h"
-#include "nesppumapper.h"
+#include "nesmapper.h"
+#include <imachine.h>
 #include <QDataStream>
 
 #define PPU() NesPpu *ppu = static_cast<NesPpu *>(parent())
@@ -88,8 +89,8 @@ void NesPpuRegisters::write(quint16 address, quint8 data) {
 		quint16 vramAddress = ppu->m_vramAddress & 0x3FFF;
 		if (vramAddress >= NesPpu::PalettesAddress)
 			ppu->m_palette->write(vramAddress & 0x1F, data);
-		else if (ppu->m_mapper->bank1KType(vramAddress >> 10) != NesPpuMapper::VromBank)
-			ppu->m_mapper->write(vramAddress, data);
+		else if (ppu->m_mapper->ppuBank1KType(vramAddress >> 10) != NesMapper::VromBank)
+			ppu->m_mapper->ppuWrite(vramAddress, data);
 		ppu->m_vramAddress += m_add;
 		break;
 	}
@@ -132,7 +133,7 @@ quint8 NesPpuRegisters::read(quint16 address) {
 			return ppu->m_palette->read(vramAddress & 0x1F);
 		else
 			m_dataLatch = m_bufferedData;
-		m_bufferedData = ppu->m_mapper->read(vramAddress);
+		m_bufferedData = ppu->m_mapper->ppuRead(vramAddress);
 		break;
 	}
 	default:
@@ -150,24 +151,15 @@ void NesPpuRegisters::setVBlank(bool on) {
 	ppu->updateVBlankOut();
 }
 
-bool NesPpuRegisters::save(QDataStream &s) {
-	for (int i = 0; i < 4; i++)
-		s << m_regs[i];
-	s << m_toggle;
-	s << m_dataLatch;
-	s << m_add;
-	s << m_bufferedData;
-	s << m_securityValue;
-	return true;
-}
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(NesPpuRegisters) \
+	STATE_SERIALIZE_ARRAY_##sl(m_regs, 4) \
+	STATE_SERIALIZE_VAR_##sl(m_toggle) \
+	STATE_SERIALIZE_VAR_##sl(m_dataLatch) \
+	STATE_SERIALIZE_VAR_##sl(m_add) \
+	STATE_SERIALIZE_VAR_##sl(m_bufferedData) \
+	STATE_SERIALIZE_VAR_##sl(m_securityValue) \
+	STATE_SERIALIZE_END(NesPpuRegisters)
 
-bool NesPpuRegisters::load(QDataStream &s) {
-	for (int i = 0; i < 4; i++)
-		s >> m_regs[i];
-	s >> m_toggle;
-	s >> m_dataLatch;
-	s >> m_add;
-	s >> m_bufferedData;
-	s >> m_securityValue;
-	return true;
-}
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

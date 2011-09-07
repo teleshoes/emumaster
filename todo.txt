@@ -1,44 +1,27 @@
-video:
- - fix orientations: sometimes screen policy comes to rom gallery, sometimes policy miss settings view
-
-input:
- s pad view config, colors, xor
- s on-screen paddle controller (e.g. arkanoid)
- s on-screen zapper controller (e.g. duck hunts)
- s accelerometer as a controller
- s use accelerometer at the save's view and rom gallery
-
-roms:
- o copy info about roms
- s load roms from zipped files
- - IPS patcher
- s on device rom remove
-
-misc:
- o qml need a skeleton - too much code is copy pasted
- o change game_config.txt path
- o bug in steering: when swiping pad don't work
- - give users ability to choose their own images in ROM gallery
- - mappers 72-255
- - sometimes crash on pause
- - should detect if USB cable is connected
- xs make icons in home screen removable
- - for Amiga create readme.txt about rom folders and roms name policy
- s game policy http://library.developer.nokia.com/index.jsp?topic=/MeeGo_1.2_Harmattan_API/html/guide/html/Developer_Library_Best_practices_for_application_development_Using_Resource_Policy_to_enhance_games_a32a.html
- - translations
- s GBA
- s SNES
+ s add "more" icon in rom gallery, hide trash,homescreen and "play" in machine selection view
+ s fix screenshot
+ x make icons in home screen removable
+ s fix async pulseaudio
+ s give users ability to choose their own images in ROM gallery
+ s volume buttons sets volume
  s PSX
+ - for Amiga,PSX create readme.txt about rom folders and roms name policy
  s N64
  s ScummVM
  s Amiga
  s C64
- o bug testing
- - support for debugging
+ s ZX Spectrum
+ s load roms from zipped files
+ s copy legal info
+ s pad view config, colors, xor
+ s accelerometer as a controller
+ s on-screen paddle controller (e.g. arkanoid)
+ s on-screen zapper controller (e.g. duck hunts)
+ s nesapu performance
+ s 6502 in assembly
+ - mappers 72-255
  - test PAL for NES
  - catch load/save errors
- - Meegotouch Control Panel http://www.developer.nokia.com/Community/Wiki/SettingsApplet
- - remove the hack in .pri files needed for harmattan when sdk will support this
  - make better documentation:
    - input - pressing 2 keys at the time
    - howto make icon in the homescreen
@@ -46,13 +29,11 @@ misc:
    - howto update screen shot in the rom gallery
    - howto change image in the rom gallery to your own file
    - howto donate
+ - netplay
+ - remove the hack in .pri files needed for harmattan when sdk will support this
+ - Meegotouch Control Panel http://www.developer.nokia.com/Community/Wiki/SettingsApplet
+ - support for debugging
+ - translations
 
 issues:
  - kick master (mapper 4) not working
-
-audio:
- s nesapu performance
-
-net play:
- - full sync
- - pause on 20ms delay (convert time to cycles) and no data

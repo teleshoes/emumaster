@@ -22,6 +22,7 @@ class BASE_EXPORT MachineView : public QObject {
 	Q_PROPERTY(int audioSampleRate READ audioSampleRate WRITE setAudioSampleRate NOTIFY audioSampleRateChanged)
 	Q_PROPERTY(bool swipeEnable READ isSwipeEnabled WRITE setSwipeEnabled NOTIFY swipeEnableChanged)
 	Q_PROPERTY(bool padVisible READ isPadVisible WRITE setPadVisible NOTIFY padVisibleChanged)
+	Q_PROPERTY(bool quickQuitEnable READ isQuickQuitEnabled WRITE setQuickQuitEnabled NOTIFY quickQuitEnableChanged)
 public:
 	explicit MachineView(IMachine *machine, const QString &diskName);
 	~MachineView();
@@ -43,8 +44,12 @@ public:
 	void setSwipeEnabled(bool on);
 	bool isPadVisible() const;
 	void setPadVisible(bool visible);
+	bool isQuickQuitEnabled() const;
+	void setQuickQuitEnabled(bool on);
 
 	Q_INVOKABLE void saveScreenShot();
+
+	QDeclarativeView *settingsView() const;
 public slots:
 	void pause();
 	void resume();
@@ -56,6 +61,7 @@ signals:
 	void audioSampleRateChanged();
 	void swipeEnableChanged();
 	void padVisibleChanged();
+	void quickQuitEnableChanged();
 private slots:
 	void pauseStage2();
 	void onFrameGenerated(bool videoOn);

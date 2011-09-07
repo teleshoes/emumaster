@@ -5,6 +5,7 @@
 
 HostInput::HostInput(IMachine *machine) :
 	m_machine(machine) {
+	m_quickQuitEnabled = true;
 }
 
 HostInput::~HostInput() {
@@ -45,7 +46,6 @@ void HostInput::processKey(Qt::Key key, bool state) {
 
 void HostInput::processTouch(QEvent *e) {
 	m_machine->setPadKey(IMachine::AllKeys, false);
-	uint keys = 0;
 	QTouchEvent *touchEvent = static_cast<QTouchEvent *>(e);
 	QList<QTouchEvent::TouchPoint> points = touchEvent->touchPoints();
 	for (int i = 0; i < points.size(); i++) {
@@ -59,17 +59,21 @@ void HostInput::processTouch(QEvent *e) {
 				if (x < 200) {
 					y -= 480-200;
 					if (x < 70 && y >= 30 && y < 200-30)
-						keys |= IMachine::Left_PadKey;
+						m_machine->setPadKey(IMachine::Left_PadKey, true);
 					if (x >= 200-70 && y >= 30 && y < 200-30)
-						keys |= IMachine::Right_PadKey;
+						m_machine->setPadKey(IMachine::Right_PadKey, true);
 					if (y < 70 && x >= 30 && x < 200-30)
-						keys |= IMachine::Up_PadKey;
+						m_machine->setPadKey(IMachine::Up_PadKey, true);
 					if (y >= 200-70 && x >= 30 && x < 200-30)
-						keys |= IMachine::Down_PadKey;
+						m_machine->setPadKey(IMachine::Down_PadKey, true);
 				}
 			} else {
 				if (x < 70 && y >= 100 && y < 135)
-					keys |= IMachine::Select_PadKey;
+					m_machine->setPadKey(IMachine::Select_PadKey, true);
+				if (x < 60 && y < 60) {
+					if (m_quickQuitEnabled)
+						emit wantClose();
+				}
 			}
 		} else {
 			if (y >= 480-200) {
@@ -77,22 +81,23 @@ void HostInput::processTouch(QEvent *e) {
 					x -= 854-200;
 					y -= 480-200;
 					if (x < 70 && y >= 30 && y < 200-30)
-						keys |= IMachine::Y_PadKey;
+						m_machine->setPadKey(IMachine::Y_PadKey, true);
 					if (x >= 200-70 && y >= 30 && y < 200-30)
-						keys |= IMachine::A_PadKey;
+						m_machine->setPadKey(IMachine::A_PadKey, true);
 					if (y < 70 && x >= 30 && x < 200-30)
-						keys |= IMachine::X_PadKey;
+						m_machine->setPadKey(IMachine::X_PadKey, true);
 					if (y >= 200-70 && x >= 30 && x < 200-30)
-						keys |= IMachine::B_PadKey;
+						m_machine->setPadKey(IMachine::B_PadKey, true);
 				}
 			} else {
 				if (x >= 854-70 && y >= 100 && y < 135)
-					keys |= IMachine::Start_PadKey;
-				if (x >= 854-70 && y < 70)
+					m_machine->setPadKey(IMachine::Start_PadKey, true);
+				if (x >= 854-60 && y < 60)
 					emit pauseClicked();
 			}
 		}
 	}
-	if (keys)
-		m_machine->setPadKey(static_cast<IMachine::PadKey>(keys), true);
 }
+
+void HostInput::setQuickQuitEnabled(bool on)
+{ m_quickQuitEnabled = on; }

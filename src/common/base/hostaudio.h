@@ -3,7 +3,7 @@
 
 class IMachine;
 #include <QObject>
-#include <pulse/simple.h>
+#include <pulse/pulseaudio.h>
 
 class HostAudio : public QObject {
     Q_OBJECT
@@ -15,11 +15,20 @@ public:
 	void close();
 
 	void sendFrame();
+
+	pa_threaded_mainloop *mainloop() const;
 private:
-	pa_simple *m_io;
-	char buffer[16384];
+	void waitForStreamReady();
+
+	pa_threaded_mainloop *m_mainloop;
+	pa_context *m_context;
+	pa_mainloop_api *m_api;
+	pa_stream *m_stream;
 
 	IMachine *m_machine;
 };
+
+inline pa_threaded_mainloop *HostAudio::mainloop() const
+{ return m_mainloop; }
 
 #endif // HOSTAUDIO_H
