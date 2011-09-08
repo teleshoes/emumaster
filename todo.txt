@@ -6,7 +6,6 @@
  s fix async pulseaudio
  s give users ability to choose their own images in ROM gallery
  s volume buttons sets volume
- s PSX
  - for Amiga,PSX create readme.txt about rom folders and roms name policy
  s N64
  s ScummVM
@@ -21,6 +20,7 @@
  s on-screen zapper controller (e.g. duck hunts)
  s nesapu performance
  s 6502 in assembly
+ s bluetooth gamepad
  - mappers 72-255
  - test PAL for NES
  - catch load/save errors
