@@ -4,7 +4,9 @@ import com.nokia.meego 1.0
 import "../base"
 
 Page {
+	ListModel { id: nullModel }
 	function update() {
+		listView.model = nullModel
 		listView.model = romListModel
 	}
 
@@ -60,6 +62,7 @@ Page {
 		}
 	}
 	MySectionScroller {
+		id: sectionScroller
 		listView: listView
 	}
 	ScrollDecorator {

@@ -34,18 +34,19 @@ void RomListModel::setMachineName(const QString &name) {
 		beginRemoveRows(QModelIndex(), 0, m_list.size()-1);
 		endRemoveRows();
 	}
+	m_list.clear();
 	m_machineName = name;
 	emit machineNameChanged();
 	m_dir = QDir(IMachine::diskDirPath(m_machineName));
 
-	QFileInfoList infoList = m_dir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot, QDir::Name);
+	QFileInfoList infoList = m_dir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot, QDir::Name|QDir::IgnoreCase);
 
 	QStringList excluded;
 	if (name == "gba") {
 		excluded << "gba_bios.bin";
 	}
 	for (int i = 0; i < infoList.size(); i++) {
-		if (!excluded.contains(infoList.at(i)))
+		if (!excluded.contains(infoList.at(i).fileName()))
 			m_list.append(infoList.at(i).completeBaseName());
 	}
 	if (!m_list.isEmpty()) {
