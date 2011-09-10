@@ -1,17 +1,18 @@
 emumaster (0.0.2) unstable; urgency=low
 
+  * added gba emulation
   * added page to select the console
-  * redesigned architecture to speed up things
+  * settings look refreshed
   * button to remove rom
+  * asynchronous audio
+  * redesigned architecture to speed up things
   * optional button to exit in top left corner
-  * fixed crash on pause
   * fixed bug in pad: when you touch on edge pad didn't work
   * fixed crash on pause button
-  * start button of the pad placed in the right position
-  * fixed ram amount in the disk info
+  * fix: start button of the pad placed in the right position
+  * fixed ram amount in the nes disk info
   * render method for nes ppu can now be selected
   * nes game genie codes enable/disable fix
-  * settings look refreshed
   * nes mappers:
      added: 200,201,202,222,225,226,227,228,229,230,231,232,233,235,236,240,241,242,243,244,246,251,252,254,255
      fixed: 2

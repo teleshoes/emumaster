@@ -57,10 +57,7 @@ void HostVideo::initializeGL()
 void HostVideo::paintEvent(QPaintEvent *) {
 	QPainter painter;
 	painter.begin(this);
-
-	painter.beginNativePainting();
-	glClear(GL_COLOR_BUFFER_BIT);
-	painter.endNativePainting();
+	painter.fillRect(rect(), Qt::black);
 
 	if (!m_error.isEmpty()) {
 		QFont font = painter.font();

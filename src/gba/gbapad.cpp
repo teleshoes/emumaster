@@ -1,8 +1,6 @@
 #include "gbapad.h"
-
-#define REG_P1 0x098
-
-extern "C" quint16 io_registers[1024 * 16];
+#include "gbacommon.h"
+#include "gbamemory.h"
 
 GbaPad::GbaPad(QObject *parent) :
 	QObject(parent),

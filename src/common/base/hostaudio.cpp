@@ -147,14 +147,14 @@ void HostAudio::sendFrame() {
 	if (!m_stream)
 		return;
 	pa_threaded_mainloop_lock(m_mainloop);
+	size_t size = -1;
 	void *data;
-	// TODO pending audio size
-	size_t size = 3000;
 	pa_stream_begin_write(m_stream, &data, &size);
-	pa_threaded_mainloop_unlock(m_mainloop);
 	size = m_machine->fillAudioBuffer(reinterpret_cast<char *>(data), size);
-	pa_threaded_mainloop_lock(m_mainloop);
-	pa_stream_write(m_stream, data, size, 0, 0LL, PA_SEEK_RELATIVE);
+	if (size)
+		pa_stream_write(m_stream, data, size, 0, 0, PA_SEEK_RELATIVE);
+	else
+		pa_stream_cancel_write(m_stream);
 	pa_threaded_mainloop_unlock(m_mainloop);
 }
 

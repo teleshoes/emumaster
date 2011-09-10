@@ -1,21 +1,19 @@
  s L,R buttons
- s if gba exclude "gba_bios.bin" from rom gallery
+ s when you switch console type then the fast scroll in the list of roms do not work
  s add "more" icon in rom gallery, hide trash,homescreen and "play" in machine selection view
- s fix screenshot
  x make icons in home screen removable
- s fix async pulseaudio
+ s accelerometer as a controller
  s give users ability to choose their own images in ROM gallery
  s volume buttons sets volume
  - for Amiga,PSX create readme.txt about rom folders and roms name policy
+ s Amiga
  s N64
  s ScummVM
- s Amiga
  s C64
  s ZX Spectrum
  s load roms from zipped files
  s copy legal info
  s pad view config, colors, xor
- s accelerometer as a controller
  s on-screen paddle controller (e.g. arkanoid)
  s on-screen zapper controller (e.g. duck hunts)
  s nesapu performance

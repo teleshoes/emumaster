@@ -26,23 +26,6 @@
 
 static inline void sys_cacheflush(void *start, void *end) {
 	__builtin___clear_cache(start, end);
-//	int num = __ARM_NR_cacheflush;
-//	__asm__ __volatile ("mov  r0, %0 ;"
-//		"mov  r1, %1 ;"
-//		"mov  r2, #0 ;"
-//		"mov  r7, %2 ;"
-//		"swi  0" : : "r" (start), "r" (end), "r" (num)
-//			: "r0", "r1", "r2", "r3", "r7");
-//	__asm __volatile (
-//		"mov	 r0, %0\n"
-//		"mov	 r1, %1\n"
-//		"mov	 r7, %2\n"
-//		"mov     r2, #0x0\n"
-//		"svc     0x00000000\n"
-//		:
-//		:	"r" (start), "r" (end), "r" (num)
-//				:	"r0","r2", "r1", "r7"
-//		);
 }
 
 static inline void sys_cacheflush_size(void *start, int size) {
@@ -260,7 +243,6 @@ u32 arm_disect_imm_32bit(u32 imm, u32 *stores, u32 *rotations)
 {
   u32 store_count = 0;
   u32 left_shift = 0;
-  u32 i;
 
   // Otherwise it'll return 0 things to store because it'll never
   // find anything.
@@ -303,7 +285,6 @@ u32 arm_disect_imm_32bit(u32 imm, u32 *stores, u32 *rotations)
       {
         // Then we can throw out the last bit and tack it on
         // to the first bit.
-        u32 initial_bits = rotations[0];
         stores[0] =
          (stores[0] << ((top_bits + (32 - rotations[0])) & 0x1F)) |
          ((imm >> left_shift) & 0xFF);
@@ -408,7 +389,7 @@ u32 arm_disect_imm_32bit(u32 imm, u32 *stores, u32 *rotations)
 
 #define generate_branch_filler(condition_code, writeback_location)            \
   (writeback_location) = translation_ptr;                                     \
-  ARM_B_COND(0, condition_code, 0xFFFFFF)// TODO gpsphone                                            \
+  ARM_B_COND(0, condition_code, 0)											  \
 
 #define generate_update_pc(new_pc)                                            \
   generate_load_pc(reg_a0, new_pc)                                            \
@@ -672,7 +653,7 @@ u8 *last_rom_translation_ptr = rom_translation_cache;
 u8 *last_ram_translation_ptr = ram_translation_cache;
 u8 *last_bios_translation_ptr = bios_translation_cache;
 
-/*#define translate_invalidate_dcache_one(which)                                \
+#define translate_invalidate_dcache_one(which)                                \
   if (which##_translation_ptr > last_##which##_translation_ptr)               \
   {                                                                           \
 	sys_cacheflush_size(last_##which##_translation_ptr,          \
@@ -686,16 +667,6 @@ u8 *last_bios_translation_ptr = bios_translation_cache;
   translate_invalidate_dcache_one(rom)                                        \
   translate_invalidate_dcache_one(ram)                                        \
   translate_invalidate_dcache_one(bios)                                       \
-}*/
-
-#define translate_invalidate_dcache()                                           		\
-{												\
-  sys_cacheflush_size(rom_translation_cache,							\
-   (ROM_TRANSLATION_CACHE_SIZE));								\
-  sys_cacheflush_size(ram_translation_cache,							\
-   (RAM_TRANSLATION_CACHE_SIZE));								\
-  sys_cacheflush_size(bios_translation_cache,							\
-   (BIOS_TRANSLATION_CACHE_SIZE));								\
 }
 
 #define invalidate_icache_region(addr, size)                                  \
@@ -703,7 +674,6 @@ u8 *last_bios_translation_ptr = bios_translation_cache;
 
 
 #define block_prologue_size 0
-
 
 // It should be okay to still generate result flags, spsr will overwrite them.
 // This is pretty infrequent (returning from interrupt handlers, et al) so
@@ -1970,6 +1940,8 @@ void execute_swi_hle_div_thumb();
 
 void execute_swi_hle_div_c()
 {
+  if (reg[1] == 0)
+	return; // real BIOS supposedly locks up, but game can recover on interrupt
   s32 result = (s32)reg[0] / (s32)reg[1];
   reg[1] = (s32)reg[0] % (s32)reg[1];
   reg[0] = result;

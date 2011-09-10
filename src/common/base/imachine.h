@@ -20,6 +20,8 @@ public:
 		B_PadKey,
 		X_PadKey,
 		Y_PadKey,
+		L_PadKey,
+		R_PadKey,
 		Start_PadKey,
 		Select_PadKey,
 		AllKeys

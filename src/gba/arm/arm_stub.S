@@ -100,6 +100,14 @@
 
 #define MODE_SUPERVISOR   3
 
+#ifdef __ARM_ARCH_7A__
+  #define extract_u16(rd, rs) \
+	uxth rd, rs
+#else
+  #define extract_u16(rd, rs) \
+	bic  rd, rs, #0xff000000 ;\
+	bic  rd, rd, #0x00ff0000
+#endif
 
 @ Will load the register set from memory into the appropriate cached registers.
 @ See arm_emit.h for listing explanation.
@@ -168,13 +176,20 @@
 #define restore_flags()                                                      ;\
   msr cpsr_f, reg_flags                                                      ;\
 
+#ifdef __ARM_EABI__
+  @ must align stack
+  #define call_c_saved_regs r2, r3, r12, lr
+#else
+  #define call_c_saved_regs r3, r12, lr
+#endif
+
 @ Calls a C function - all caller save registers which are important to the
 @ dynarec and to returning from this function are saved.
 
 #define call_c_function(function)                                            ;\
-  stmdb sp!, { r3, r12, lr }                                                 ;\
+  stmdb sp!, { call_c_saved_regs }                                           ;\
   bl function                                                                ;\
-  ldmia sp!, { r3, r12, lr }                                                 ;\
+  ldmia sp!, { call_c_saved_regs }                                           ;\
 
 
 @ Update the GBA hardware (video, sound, input, etc)
@@ -527,9 +542,11 @@ execute_arm_translate:
 
 
 #define store_align_8()                                                      ;\
+  and r1, r1, #0xff                                                          ;\
 
 #define store_align_16()                                                     ;\
   bic r0, r0, #0x01                                                          ;\
+  extract_u16(r1, r1)                                                        ;\
 
 #define store_align_32()                                                     ;\
   bic r0, r0, #0x03                                                          ;\

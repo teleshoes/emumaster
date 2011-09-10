@@ -1,9 +1,7 @@
 include(../machine.pri)
 
 DEFINES += USE_ASM_VIDEO_EXPAND
-
-OTHER_FILES += \
-	x86/x86_stub.S
+QMAKE_CFLAGS += -std=c99
 
 contains(MEEGO_EDITION,harmattan): {
 	SOURCES += \
@@ -12,31 +10,29 @@ contains(MEEGO_EDITION,harmattan): {
 }
 
 HEADERS += \
-    cpu.h \
-    common.h \
-    cheats.h \
-    video.h \
-    sound.h \
-    memory.h \
-    main.h \
-    x86/x86_emit.h \
     arm/arm_emit.h \
     arm/arm_dpimacros.h \
     arm/arm_codegen.h \
     gbamachine.h \
-    gbapad.h
+    gbapad.h \
+    gbasound.h \
+    gbamemory.h \
+    gbavideo.h \
+    gbacpu.h \
+    gbacommon.h \
+    gbacheats.h
 
 SOURCES += \
-    cpu_threaded.c \
-    cpu.c \
-    cheats.c \
-    video.c \
-    sound.c \
-    memory.c \
-    main.c \
     gbamachine.cpp \
-    gbapad.cpp
+    gbapad.cpp \
+    gbavideo.cpp \
+    gbamemory.cpp \
+    gbasound.cpp \
+    gbacpu_threaded.c \
+    gbacpu.cpp \
+    gbacheats.cpp
 
+QMAKE_CFLAGS += -std=c99
 
 unix {
 	qml.path = /opt/emumaster/qml/gba
@@ -46,9 +42,57 @@ unix {
 		../../qml/gba/SettingsPage.qml
 
 	game_config.path = /opt/emumaster/data
-	game_config.files = game_config.txt
+	game_config.files = gba_game_config.txt
 
 	INSTALLS += qml game_config
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

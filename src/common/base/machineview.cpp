@@ -66,7 +66,8 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 	m_machine->moveToThread(m_thread);
 
 	if (error.isEmpty()) {
-		m_machine->emulateFrame(false);
+		for (int i = 0; i < 10; i++)
+			m_machine->emulateFrame(false);
 		if (m_autoLoadOnStart)
 			m_stateListModel->loadState(-2);
 		QObject::connect(m_hostInput, SIGNAL(pauseClicked()), SLOT(pause()));
