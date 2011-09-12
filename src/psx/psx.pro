@@ -17,39 +17,33 @@ ASM_SOURCES += \
 	new_dynarec/linkage_arm.S
 
 SOURCES += $$ASM_SOURCES \
-    gpuAPI/newGPU/inner.cpp \
-    gpuAPI/newGPU/fixed.cpp \
-    gpuAPI/newGPU/core_Misc.cpp \
-    gpuAPI/newGPU/core_Draw.cpp \
-    gpuAPI/newGPU/core_Dma.cpp \
-    gpuAPI/newGPU/core_Command.cpp \
-    gpuAPI/newGPU/raster_Sprite.cpp \
-    gpuAPI/newGPU/raster_Poly.cpp \
-    gpuAPI/newGPU/raster_Line.cpp \
-    gpuAPI/newGPU/raster_Image.cpp \
-	gpuAPI/newGPU/newGPU.cpp \
-	gpuAPI/newGPU/ARM_asm.S \
-    gpuAPI/gpuAPI.cpp \
+	gpu/inner.cpp \
+	gpu/fixed.cpp \
+	gpu/core_Misc.cpp \
+	gpu/core_Draw.cpp \
+	gpu/core_Dma.cpp \
+	gpu/core_Command.cpp \
+	gpu/raster_Sprite.cpp \
+	gpu/raster_Poly.cpp \
+	gpu/raster_Line.cpp \
+	gpu/raster_Image.cpp \
+	gpu/newGPU.cpp \
+	gpu/ARM_asm.S \
+	gpu/gpuAPI.cpp \
     sound/xa.c \
     sound/spu.c \
     sound/reverb.c \
     sound/registers.c \
-    sound/pulseaudio.c \
     sound/nullsnd.c \
     sound/freeze.c \
     sound/dma.c \
-    sound/cfg.c \
-    sound/adsr.c \
-    android/minimal.c \
-	android/emulator.cpp \
-	android/video_blit.S
+	sound/adsr.c
 
 HEADERS += \
     psemu_plugin_defs.h \
     ppf.h \
     plugins.h \
     misc.h \
-    minimal.h \
     mdec.h \
     gte_neon.h \
     gte_divider.h \
@@ -79,19 +73,17 @@ HEADERS += \
     new_dynarec/fpu.h \
     new_dynarec/emu_if.h \
     new_dynarec/assem_arm.h \
-    gpuAPI/newGPU/inner_Blit.h \
-    gpuAPI/newGPU/inner_Blit (copy).h \
-    gpuAPI/newGPU/fixed.h \
-    gpuAPI/newGPU/raster.h \
-    gpuAPI/newGPU/profiller.h \
-    gpuAPI/newGPU/op_Texture.h \
-    gpuAPI/newGPU/op_Light.h \
-    gpuAPI/newGPU/op_Blend.h \
-    gpuAPI/newGPU/newGPU.h \
-    gpuAPI/newGPU/inner_Sprite.h \
-    gpuAPI/newGPU/inner_Poly.h \
-    gpuAPI/newGPU/inner_Pixel.h \
-    gpuAPI/gpuAPI.h \
+	gpu/fixed.h \
+	gpu/raster.h \
+	gpu/profiller.h \
+	gpu/op_Texture.h \
+	gpu/op_Light.h \
+	gpu/op_Blend.h \
+	gpu/newGPU.h \
+	gpu/inner_Sprite.h \
+	gpu/inner_Poly.h \
+	gpu/inner_Pixel.h \
+	gpu/gpuAPI.h \
     sound/xa.h \
     sound/stdafx.h \
     sound/spu.h \
@@ -103,10 +95,8 @@ HEADERS += \
     sound/externals.h \
     sound/dsoundoss.h \
     sound/dma.h \
-    sound/cfg.h \
-    sound/adsr.h \
-    android/minimal.h \
-    android/emulator.h
+	sound/adsr.h \
+	machine.h
 
 SOURCES += \
     ppf.c \
@@ -137,5 +127,12 @@ SOURCES += \
     new_dynarec/new_dynarec.c \
     new_dynarec/fpu.c \
     new_dynarec/emu_if.c \
-    new_dynarec/assem_arm.c
+	new_dynarec/assem_arm.c \
+	machine.cpp
+
+
+
+
+
+
 

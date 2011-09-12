@@ -476,12 +476,6 @@ int SaveState(const char *file) {
 	gzwrite(f, (void *)&SaveVersion, sizeof(u32));
 	gzwrite(f, (void *)&Config.HLE, sizeof(boolean));
 
-	pMem = (unsigned char *)malloc(128 * 96 * 3);
-	if (pMem == NULL) return -1;
-	GPU_getScreenPic(pMem);
-	gzwrite(f, pMem, 128 * 96 * 3);
-	free(pMem);
-
 	if (Config.HLE)
 		psxBiosFreeze(1);
 
@@ -544,7 +538,6 @@ int LoadState(const char *file) {
 		psxBiosInit();
 
 	psxCpu->Reset();
-	gzseek(f, 128 * 96 * 3, SEEK_CUR);
 
 	gzread(f, psxM, 0x00200000);
 	gzread(f, psxR, 0x00080000);
@@ -704,6 +697,7 @@ static unsigned short crctab[256] = {
 	0x2E93, 0x3EB2, 0x0ED1, 0x1EF0
 };
 
+// TODO replace with qChecksum
 u16 calcCrc(u8 *d, int len) {
 	u16 crc = 0;
 	int i;

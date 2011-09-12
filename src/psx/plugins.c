@@ -21,7 +21,6 @@
 * Plugin library callback/access functions.
 */
 
-#include "minimal.h"
 #include "plugins.h"
 #include "cdriso.h"
 #include <time.h>
@@ -76,8 +75,6 @@ CDRsetfilename        CDR_setfilename;
 CDRreadCDDA           CDR_readCDDA;
 CDRgetTE              CDR_getTE;
 
-SPUconfigure          SPU_configure;
-SPUabout              SPU_about;
 SPUinit               SPU_init;
 SPUshutdown           SPU_shutdown;
 SPUtest               SPU_test;
@@ -610,20 +607,9 @@ long PAD2_close(void) {
 u16 ReadZodKeys()
 {
 	u16 pad_status = 0xffff;
-	u32 keys = gp2x_joystick_read();
+//	u32 keys = gp2x_joystick_read();
 
-#ifdef PANDORA
-  if(	keys & GP2X_PUSH && keys & GP2X_L ) // L2
-  {
-  	keys |= GP2X_VOL_DOWN;
-  }
-  if(	keys & GP2X_PUSH && keys & GP2X_R ) // R2
-  {
-  	keys |= GP2X_VOL_UP;
-  }
-#endif
-
-  if(	keys & GP2X_VOL_DOWN ) // L2
+/* TODO  if(	keys & GP2X_VOL_DOWN ) // L2
 	{
 		pad_status &= ~(1<<8);
 	}
@@ -681,38 +667,7 @@ u16 ReadZodKeys()
 	if (keys & GP2X_Y)
 	{
 		pad_status &= ~(1<<12);
-	}
-
-#if 0
-  if( (keys & GP2X_L) && (keys & GP2X_R) && (keys & GP2X_X) && (keys & GP2X_Y) && (keys & GP2X_A) && (keys & GP2X_B) )
-  {
-    SysClose();
-  }
-  if( keys == GP2X_PUSH )
-	{
-		// Menu system
-		u32 w = gp2xscreen_width;
-		u32 h = gp2xscreen_height;
-    u32 isRGB24;
-    
-		gp2x_change_res(320, 240, 16);
-    gp2x_sound_thread_mute();
-
-		if( 0 != SelectOptions() )
-		{
-      GPU_force_res_change = 1;
-			psx4all_emulating=1;
-			psxCpu->Execute();
-			psx4all_emulating=0;
-		}
-#if !defined(ANDROID)
-    gp2x_sound_thread_play(NULL);
-#endif
-		isRGB24 = (GPU_GP1 & 0x00200000 ? 32 : 0);
-    gp2x_change_res(w, h, isRGB24 ? 24 : 16);
-	}
-#endif
-
+	}*/
 	return pad_status;
 }
 

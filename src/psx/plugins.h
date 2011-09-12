@@ -123,7 +123,6 @@ typedef struct  GPUFreeze_t
 } GPUFreeze_t;
 long GPU_freeze(uint32_t, GPUFreeze_t *);
 #endif
-long GPU_getScreenPic(unsigned char *);
 long GPU_showScreenPic(unsigned char *);
 void GPU_clearDynarec(void (CALLBACK *callback)(void));
 void GPU_vBlank(int);
@@ -180,9 +179,7 @@ void SPU_writeDMAMem(unsigned short *, int);
 void SPU_readDMAMem(unsigned short *, int);
 void SPU_playADPCMchannel(xa_decode_t *);
 void SPU_registerCallback(void (CALLBACK *callback)(void));
-long SPU_configure(void);
 long SPU_test(void);
-void SPU_about(void);
 /*
 typedef struct {
 	unsigned char PluginName[8];

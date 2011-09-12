@@ -71,7 +71,7 @@ typedef uint8_t boolean;
 #include "system.h"
 #include "debug.h"
 
-#include "gpuAPI/gpuAPI.h"
+#include "gpu/gpuAPI.h"
 
 #define strnicmp strncasecmp
 #define __inline inline

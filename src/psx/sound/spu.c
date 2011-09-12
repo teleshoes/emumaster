@@ -21,7 +21,6 @@
 #define _IN_SPU
 
 #include "externals.h"
-#include "cfg.h"
 #include "dsoundoss.h"
 #include "regs.h"
 
@@ -1137,7 +1136,13 @@ long CALLBACK SPU_init(void)
  cpu_cycles = 0;
  enable_audio = global_enable_audio;
  
- ReadConfig();                                         // read user stuff
+ iVolume=2;
+ iXAPitch=0;
+ iSPUIRQWait=0;
+ iUseTimer=0;
+ iUseReverb=0;
+ iUseInterpolation=0;
+ iDisStereo=0;
  SetupStreams();                                       // prepare streaming
 
  return 0;
@@ -1219,38 +1224,6 @@ long CALLBACK SPU_shutdown(void)
 long CALLBACK SPU_test(void)
 {
  return 0;
-}
-
-// SPUCONFIGURE: call config dialog
-long CALLBACK SPU_configure(void)
-{
-#if defined (_WINDOWS)
- DialogBox(hInst,MAKEINTRESOURCE(IDD_CFGDLG),
-           GetActiveWindow(),(DLGPROC)DSoundDlgProc);
-#elif defined (_MACOSX)
- DoConfiguration();
-#else
-#if 0
- StartCfgTool("CFG");
-#endif
-#endif
-
- return 0;
-}
-
-// SPUABOUT: show about window
-void CALLBACK SPU_about(void)
-{
-#if defined (_WINDOWS)
- DialogBox(hInst,MAKEINTRESOURCE(IDD_ABOUT),
-           GetActiveWindow(),(DLGPROC)AboutDlgProc);
-#elif defined (_MACOSX)
- DoAbout();
-#else
-#if 0
- StartCfgTool("ABOUT");
-#endif
-#endif
 }
 
 // SETUP CALLBACKS

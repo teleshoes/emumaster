@@ -1,3 +1,8 @@
+poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
+
+ s saves do not work in yoshi
+ s snes fix different resolutions
+ s state in state gallery must become currently selected without clicking
  s L,R buttons
  s add "more" icon in rom gallery, hide trash,homescreen and "play" in machine selection view
  x make icons in home screen removable

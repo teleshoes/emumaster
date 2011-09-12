@@ -143,6 +143,7 @@ void psxMemShutdown() {
 
 static int writeok = 1;
 
+// TODO improve this
 u8 psxMemRead8(u32 mem) {
 	char *p;
 	u32 t;
