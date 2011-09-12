@@ -41,10 +41,6 @@
 #ifndef _PORT_H_
 #define _PORT_H_
 
-
-// horrible mess here
-int yo_rand(void);
-
 // debug
 #ifdef __DEBUG_PRINT
 #undef printf

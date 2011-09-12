@@ -184,8 +184,6 @@ void S9xDeinterleaveMode2 ();
 void S9xSaveSRAM (void);
 END_EXTERN_C
 
-void S9xAutoSaveSRAM ();
-
 #ifdef NO_INLINE_SET_GET
 u8 S9xGetByte (u32 Address, struct SCPUState *);
 u16 S9xGetWord (u32 Address, struct SCPUState *);

@@ -24,4 +24,4 @@ syntax: regexp
 syntax: regexp
 \.so$
 syntax: regexp
-^emumaster-build-harmattan-debug$
+^emumaster-build-

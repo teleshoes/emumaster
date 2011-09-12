@@ -1270,7 +1270,7 @@ bool8 S9xInitSound (void)
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(SnesSound, 1) \
+STATE_SERIALIZE_BEGIN_##sl(SnesSound, 1) \
 	STATE_SERIALIZE_VAR_##sl(SoundData.master_volume_left) \
 	STATE_SERIALIZE_VAR_##sl(SoundData.master_volume_right) \
 	STATE_SERIALIZE_VAR_##sl(SoundData.echo_volume_left) \
@@ -1313,10 +1313,7 @@ bool8 S9xInitSound (void)
 		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].sample_pointer) \
 		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].mode) \
 	} \
-	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
-		S9xFixSoundAfterSnapshotLoad(); \
-	} \
-	STATE_SERIALIZE_END_##sl(SnesSound)
+STATE_SERIALIZE_END_##sl(SnesSound)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

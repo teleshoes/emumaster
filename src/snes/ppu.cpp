@@ -2873,7 +2873,6 @@ printf ("%06x: %d\n", t, FxEmulate (2000000));
 		IPPU.ColorsChanged = TRUE; \
 		IPPU.OBJChanged = TRUE; \
 		S9xFixColourBrightness(); \
-		IPPU.RenderThisFrame = FALSE; \
 	} \
 	STATE_SERIALIZE_END_##sl(SnesPpu)
 
