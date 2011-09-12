@@ -84,7 +84,7 @@
 #define reg_a1            r1
 #define reg_a2            r2
 
-#define reg_s0            r10
+#define reg_s0            r9
 #define reg_base          sp
 #define reg_flags         r11
 

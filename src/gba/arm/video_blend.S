@@ -1,7 +1,7 @@
 .align 4
 
 .global expand_blend
-.global expand_normala
+.global expand_normals
 
 @ Input:
 @   r0 = screen_src_ptr
@@ -175,7 +175,7 @@ expand_normala:
   stmia r0!, { r4, r5, r6, r7 }
 
   subs r1, r1, #8
-  bne 2b
+  bgt 2b
 
   ldmia sp!, { r4, r5, r6, r7, pc }
 

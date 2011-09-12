@@ -17,8 +17,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef GBAMEMORY_H
+#define GBAMEMORY_H
+
+#include "common.h"
+#include "cpu.h"
 
 typedef enum
 {
@@ -68,13 +71,13 @@ typedef struct
   u32 source_address;
   u32 dest_address;
   u32 length;
-  dma_repeat_type repeat_type;
-  dma_ds_type direct_sound_channel;
-  dma_increment_type source_direction;
-  dma_increment_type dest_direction;
-  dma_length_type length_type;
-  dma_start_type start_type;
-  dma_irq_type irq;
+  u32 repeat_type;
+  u32 direct_sound_channel;
+  u32 source_direction;
+  u32 dest_direction;
+  u32 length_type;
+  u32 start_type;
+  u32 irq;
 } dma_transfer_type;
 
 typedef enum
@@ -153,6 +156,31 @@ typedef enum
   FLASH_MANUFACTURER_SST       = 0xBF
 } flash_manufacturer_id_type;
 
+#if defined(__cplusplus)
+
+#include <QObject>
+#include <QPair>
+
+class GbaMemory : public QObject {
+	Q_OBJECT
+public:
+	explicit GbaMemory(QObject *parent = 0);
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+	bool loadGamePack(const QString &fileName);
+private:
+	void loadConfig();
+	void invalidate();
+	QPair<QString, QString> parseLine(const QString &line);
+
+	QString m_gamePackTitle;
+	QString m_gamePackCode;
+	QString m_gamePackMaker;
+};
+
+extern "C" {
+#endif
+
 u8 function_cc read_memory8(u32 address);
 u32 function_cc read_memory16(u32 address);
 u16 function_cc read_memory16_signed(u32 address);
@@ -168,22 +196,15 @@ extern u32 memory_limits[16];
 extern u32 waitstate_cycles_sequential[16][3];
 
 extern u32 gamepak_size;
-extern u8 gamepak_title[13];
-extern u8 gamepak_code[5];
-extern u8 gamepak_maker[3];
-extern u8 gamepak_filename[512];
 
 cpu_alert_type dma_transfer(dma_transfer_type *dma);
 u8 *memory_region(u32 address, u32 *memory_limit);
-u32 load_gamepak(const char *name);
 void init_memory();
 void init_gamepak_buffer();
 void bios_region_read_allow();
 u8 *load_gamepak_page(u32 physical_index);
-void memory_write_mem_savestate(file_tag_type savestate_file);
-void memory_read_savestate(file_tag_type savestate_file);
-void load_state(char *savestate_filename);
-void save_state(char *savestate_filename, u16 *screen_capture);
+u32 function_cc read_eeprom();
+u8 read_backup(u32 address);
 
 extern u8 *gamepak_rom;
 extern u32 gamepak_ram_buffer_size;
@@ -191,8 +212,6 @@ extern u32 oam_update;
 extern u32 gbc_sound_update;
 extern u32 gbc_sound_wave_update;
 extern dma_transfer_type dma[4];
-
-extern u8 *write_mem_ptr;
 
 extern u16 palette_ram[512];
 extern u16 oam_ram[512];
@@ -206,9 +225,13 @@ extern u8 bios_rom[1024 * 32];
 extern u32 bios_read_protect;
 
 extern u8 *memory_map_read[8 * 1024];
-extern u32 *reg;
 extern u8 *memory_map_write[8 * 1024];
+extern u32 *reg;
 
-extern flash_device_id_type flash_device_id;
+extern u32 flash_device_id;
 
+#if defined(__cplusplus)
+}
 #endif
+
+#endif // GBAMEMORY_H

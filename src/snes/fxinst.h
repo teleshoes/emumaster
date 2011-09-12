@@ -219,67 +219,67 @@
 struct FxRegs_s
 {
     /* FxChip registers */
-    uint32	avReg[16];		/* 16 Generic registers */
-    uint32	vColorReg;		/* Internal color register */
-    uint32	vPlotOptionReg;		/* Plot option register */
-    uint32	vStatusReg;		/* Status register */
-    uint32	vPrgBankReg;		/* Program bank index register */
-    uint32	vRomBankReg;		/* Rom bank index register */
-    uint32	vRamBankReg;		/* Ram bank index register */
-    uint32	vCacheBaseReg;		/* Cache base address register */
-    uint32	vCacheFlags;		/* Saying what parts of the cache was written to */
-    uint32	vLastRamAdr;		/* Last RAM address accessed */
-    uint32 *	pvDreg;			/* Pointer to current destination register */
-    uint32 *	pvSreg;			/* Pointer to current source register */
-    uint8	vRomBuffer;		/* Current byte read by R14 */
-    uint8	vPipe;			/* Instructionset pipe */
-    uint32	vPipeAdr;		/* The address of where the pipe was read from */
+    u32	avReg[16];		/* 16 Generic registers */
+    u32	vColorReg;		/* Internal color register */
+    u32	vPlotOptionReg;		/* Plot option register */
+    u32	vStatusReg;		/* Status register */
+    u32	vPrgBankReg;		/* Program bank index register */
+    u32	vRomBankReg;		/* Rom bank index register */
+    u32	vRamBankReg;		/* Ram bank index register */
+    u32	vCacheBaseReg;		/* Cache base address register */
+    u32	vCacheFlags;		/* Saying what parts of the cache was written to */
+    u32	vLastRamAdr;		/* Last RAM address accessed */
+    u32 *	pvDreg;			/* Pointer to current destination register */
+    u32 *	pvSreg;			/* Pointer to current source register */
+    u8	vRomBuffer;		/* Current byte read by R14 */
+    u8	vPipe;			/* Instructionset pipe */
+    u32	vPipeAdr;		/* The address of where the pipe was read from */
 
     /* status register optimization stuff */
-    uint32	vSign;			/* v & 0x8000 */
-    uint32	vZero;			/* v == 0 */
-    uint32	vCarry;			/* a value of 1 or 0 */
-    int32	vOverflow;		/* (v >= 0x8000 || v < -0x8000) */
+    u32	vSign;			/* v & 0x8000 */
+    u32	vZero;			/* v == 0 */
+    u32	vCarry;			/* a value of 1 or 0 */
+    s32	vOverflow;		/* (v >= 0x8000 || v < -0x8000) */
     
     /* Other emulator variables */
     
-    int32	vErrorCode;
-    uint32	vIllegalAddress;
+    s32	vErrorCode;
+    u32	vIllegalAddress;
     
-    uint8	bBreakPoint;
-    uint32	vBreakPoint;
-    uint32	vStepPoint;
+    u8	bBreakPoint;
+    u32	vBreakPoint;
+    u32	vStepPoint;
     
-    uint8 *	pvRegisters;	/* 768 bytes located in the memory at address 0x3000 */
-    uint32	nRamBanks;	/* Number of 64kb-banks in FxRam (Don't confuse it with SNES-Ram!!!) */
-    uint8 *	pvRam;		/* Pointer to FxRam */
-    uint32	nRomBanks;	/* Number of 32kb-banks in Cart-ROM */
-    uint8 *     pvRom;		/* Pointer to Cart-ROM */
+    u8 *	pvRegisters;	/* 768 bytes located in the memory at address 0x3000 */
+    u32	nRamBanks;	/* Number of 64kb-banks in FxRam (Don't confuse it with SNES-Ram!!!) */
+    u8 *	pvRam;		/* Pointer to FxRam */
+    u32	nRomBanks;	/* Number of 32kb-banks in Cart-ROM */
+    u8 *     pvRom;		/* Pointer to Cart-ROM */
 
-    uint32	vMode;		/* Color depth/mode */
-    uint32	vPrevMode;	/* Previous depth */
-    uint8 *	pvScreenBase;
-    uint8 *	apvScreen[32];		/* Pointer to each of the 32 screen colums */
+    u32	vMode;		/* Color depth/mode */
+    u32	vPrevMode;	/* Previous depth */
+    u8 *	pvScreenBase;
+    u8 *	apvScreen[32];		/* Pointer to each of the 32 screen colums */
     int		x[32];
-    uint32	vScreenHeight;		/* 128, 160, 192 or 256 (could be overriden by cmode) */
-    uint32	vScreenRealHeight;	/* 128, 160, 192 or 256 */
-    uint32	vPrevScreenHeight;
-    uint32	vScreenSize;
+    u32	vScreenHeight;		/* 128, 160, 192 or 256 (could be overriden by cmode) */
+    u32	vScreenRealHeight;	/* 128, 160, 192 or 256 */
+    u32	vPrevScreenHeight;
+    u32	vScreenSize;
     void	(*pfPlot)();
     void	(*pfRpix)();
     
-    uint8 *	pvRamBank;		/* Pointer to current RAM-bank */
-    uint8 *	pvRomBank;		/* Pointer to current ROM-bank */
-    uint8 *	pvPrgBank;		/* Pointer to current program ROM-bank */
+    u8 *	pvRamBank;		/* Pointer to current RAM-bank */
+    u8 *	pvRomBank;		/* Pointer to current ROM-bank */
+    u8 *	pvPrgBank;		/* Pointer to current program ROM-bank */
 
-    uint8 *	apvRamBank[FX_RAM_BANKS];/* Ram bank table (max 256kb) */
-    uint8 *	apvRomBank[256];	/* Rom bank table */
+    u8 *	apvRamBank[FX_RAM_BANKS];/* Ram bank table (max 256kb) */
+    u8 *	apvRomBank[256];	/* Rom bank table */
 
-    uint8	bCacheActive;
-    uint8 *	pvCache;		/* Pointer to the GSU cache */
-    uint8 	avCacheBackup[512];	/* Backup of ROM when the cache has replaced it */
-    uint32	vCounter;
-    uint32	vInstCount;
+    u8	bCacheActive;
+    u8 *	pvCache;		/* Pointer to the GSU cache */
+    u8 	avCacheBackup[512];	/* Backup of ROM when the cache has replaced it */
+    u32	vCounter;
+    u32	vInstCount;
 };
 
 
@@ -342,14 +342,14 @@ struct FxRegs_s
 #define ALT3 (TF(ALT1)&&TF(ALT2))
 
 /* Sign extend from 8/16 bit to 32 bit */
-#define SEX16(a) ((int32)((int16)(a)))
-#define SEX8(a) ((int32)((int8)(a)))
+#define SEX16(a) ((s32)((s16)(a)))
+#define SEX8(a) ((s32)((s8)(a)))
 
 /* Unsign extend from 8/16 bit to 32 bit */
-#define USEX16(a) ((uint32)((uint16)(a)))
-#define USEX8(a) ((uint32)((uint8)(a)))
+#define USEX16(a) ((u32)((u16)(a)))
+#define USEX8(a) ((u32)((u8)(a)))
 
-#define SUSEX16(a) ((int32)((uint16)(a)))
+#define SUSEX16(a) ((s32)((u16)(a)))
 
 /* Set/Clr Sign and Zero flag */
 #define TSZ(num) TS(S, (num & 0x8000)); TS(Z, (!USEX16(num)) )
@@ -435,27 +435,27 @@ struct FxRegs_s
 #define CLSR USEX8(GSU.pvRegisters[GSU_CLSR])
 
 /* Execute instruction from the pipe, and fetch next byte to the pipe */
-#define FX_STEP { uint32 vOpcode = (uint32)PIPE; FETCHPIPE; \
+#define FX_STEP { u32 vOpcode = (u32)PIPE; FETCHPIPE; \
 (*fx_ppfOpcodeTable[ (GSU.vStatusReg & 0x300) | vOpcode ])(); } \
 
 #define FX_FUNCTION_RUN			0
 #define FX_FUNCTION_RUN_TO_BREAKPOINT	1
 #define FX_FUNCTION_STEP_OVER		2
 
-extern uint32 (**fx_ppfFunctionTable)(uint32);
+extern u32 (**fx_ppfFunctionTable)(u32);
 extern void (**fx_ppfPlotTable)();
 extern void (**fx_ppfOpcodeTable)();
 
-extern uint32 (*fx_apfFunctionTable[])(uint32);
+extern u32 (*fx_apfFunctionTable[])(u32);
 extern void (*fx_apfOpcodeTable[])();
 extern void (*fx_apfPlotTable[])();
-extern uint32 (*fx_a_apfFunctionTable[])(uint32);
+extern u32 (*fx_a_apfFunctionTable[])(u32);
 extern void (*fx_a_apfOpcodeTable[])();
 extern void (*fx_a_apfPlotTable[])();
-extern uint32 (*fx_r_apfFunctionTable[])(uint32);
+extern u32 (*fx_r_apfFunctionTable[])(u32);
 extern void (*fx_r_apfOpcodeTable[])();
 extern void (*fx_r_apfPlotTable[])();
-extern uint32 (*fx_ar_apfFunctionTable[])(uint32);
+extern u32 (*fx_ar_apfFunctionTable[])(u32);
 extern void (*fx_ar_apfOpcodeTable[])();
 extern void (*fx_ar_apfPlotTable[])();
 

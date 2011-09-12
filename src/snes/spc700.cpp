@@ -41,7 +41,7 @@
 #include "snes9x.h"
 #include "memmap.h"
 #include "display.h"
-#include "cpuexec.h"
+#include "cpu.h"
 #include "apu.h"
 #include "spc700.h"
 #include "port.h"
@@ -57,10 +57,10 @@
 #else
 
 #if defined(NO_INLINE_SET_GET)
-uint8 S9xAPUGetByteZ (uint8 address);
-uint8 S9xAPUGetByte (uint32 address);
-void S9xAPUSetByteZ (uint8, uint8 address);
-void S9xAPUSetByte (uint8, uint32 address);
+u8 S9xAPUGetByteZ (u8 address);
+u8 S9xAPUGetByte (u32 address);
+void S9xAPUSetByteZ (u8, u8 address);
+void S9xAPUSetByte (u8, u32 address);
 #else
 #undef INLINE
 #define INLINE inline
@@ -68,15 +68,15 @@ void S9xAPUSetByte (uint8, uint32 address);
 #endif
 
 START_EXTERN_C
-extern uint8 Work8;
-extern uint16 Work16;
-extern uint32 Work32;
+extern u8 Work8;
+extern u16 Work16;
+extern u32 Work32;
 extern signed char Int8;
 extern short Int16;
 extern long Int32;
 extern short Int16;
-extern uint8 W1;
-extern uint8 W2;
+extern u8 W1;
+extern u8 W2;
 
 END_EXTERN_C
 
@@ -141,35 +141,35 @@ void STOP (char *s)
 #define SBC(a,b)\
 Int16 = (short) (a) - (short) (b) + (short) (APUCheckCarry ()) - 1;\
 IAPU._Carry = Int16 >= 0;\
-if ((((a) ^ (b)) & 0x80) && (((a) ^ (uint8) Int16) & 0x80))\
+if ((((a) ^ (b)) & 0x80) && (((a) ^ (u8) Int16) & 0x80))\
     APUSetOverflow ();\
 else \
     APUClearOverflow (); \
 APUSetHalfCarry ();\
-if(((a) ^ (b) ^ (uint8) Int16) & 0x10)\
+if(((a) ^ (b) ^ (u8) Int16) & 0x10)\
     APUClearHalfCarry ();\
-(a) = (uint8) Int16;\
-APUSetZN8 ((uint8) Int16);
+(a) = (u8) Int16;\
+APUSetZN8 ((u8) Int16);
 
 // XXX: HalfCarry - BJ fixed?
 #define ADC(a,b)\
 Work16 = (a) + (b) + APUCheckCarry();\
 IAPU._Carry = Work16 >= 0x100; \
-if (~((a) ^ (b)) & ((b) ^ (uint8) Work16) & 0x80)\
+if (~((a) ^ (b)) & ((b) ^ (u8) Work16) & 0x80)\
     APUSetOverflow ();\
 else \
     APUClearOverflow (); \
 APUClearHalfCarry ();\
-/*if(((a) ^ (b) ^ (uint8) Int16) & 0x10)  notaz: Int16!? */\
-if(((a) ^ (b) ^ (uint8) Work16) & 0x10)\
+/*if(((a) ^ (b) ^ (u8) Int16) & 0x10)  notaz: Int16!? */\
+if(((a) ^ (b) ^ (u8) Work16) & 0x10)\
     APUSetHalfCarry ();\
-(a) = (uint8) Work16;\
-APUSetZN8 ((uint8) Work16);
+(a) = (u8) Work16;\
+APUSetZN8 ((u8) Work16);
 
 #define CMP(a,b)\
 Int16 = (short) (a) - (short) (b);\
 IAPU._Carry = Int16 >= 0;\
-APUSetZN8 ((uint8) Int16);
+APUSetZN8 ((u8) Int16);
 
 #define ASL(b)\
     IAPU._Carry = ((b) & 0x80) != 0; \
@@ -182,13 +182,13 @@ APUSetZN8 ((uint8) Int16);
 #define ROL(b)\
     Work16 = ((b) << 1) | APUCheckCarry (); \
     IAPU._Carry = Work16 >= 0x100; \
-    (b) = (uint8) Work16; \
+    (b) = (u8) Work16; \
     APUSetZN8 (b);
 #define ROR(b)\
-    Work16 = (b) | ((uint16) APUCheckCarry () << 8); \
-    IAPU._Carry = (uint8) Work16 & 1; \
+    Work16 = (b) | ((u16) APUCheckCarry () << 8); \
+    IAPU._Carry = (u8) Work16 & 1; \
     Work16 >>= 1; \
-    (b) = (uint8) Work16; \
+    (b) = (u8) Work16; \
     APUSetZN8 (b);
 
 #define Push(b)\
@@ -201,11 +201,11 @@ APUSetZN8 ((uint8) Int16);
 
 #ifdef FAST_LSB_WORD_ACCESS
 #define PushW(w)\
-    *(uint16 *) (IAPU.RAM + 0xff + IAPU.S) = w;\
+    *(u16 *) (IAPU.RAM + 0xff + IAPU.S) = w;\
     IAPU.S -= 2;
 #define PopW(w)\
     IAPU.S += 2;\
-    w = *(uint16 *) (IAPU.RAM + 0xff + IAPU.S);
+    w = *(u16 *) (IAPU.RAM + 0xff + IAPU.S);
 #else
 #define PushW(w)\
     *(IAPU.RAM + 0xff + IAPU.S) = w;\
@@ -226,24 +226,24 @@ APUSetZN8 ((uint8) Int16);
 
 #ifdef FAST_LSB_WORD_ACCESS
 #define IndexedXIndirect()\
-    IAPU.Address = *(uint16 *) (IAPU.DirectPage + ((OP1 + IAPU.X) & 0xff));
+    IAPU.Address = *(u16 *) (IAPU.DirectPage + ((OP1 + IAPU.X) & 0xff));
 
 #define Absolute()\
-    IAPU.Address = *(uint16 *) (IAPU.PC + 1);
+    IAPU.Address = *(u16 *) (IAPU.PC + 1);
 
 #define AbsoluteX()\
-    IAPU.Address = *(uint16 *) (IAPU.PC + 1) + IAPU.X;
+    IAPU.Address = *(u16 *) (IAPU.PC + 1) + IAPU.X;
 
 #define AbsoluteY()\
-    IAPU.Address = *(uint16 *) (IAPU.PC + 1) + IAPU.YA.B.Y;
+    IAPU.Address = *(u16 *) (IAPU.PC + 1) + IAPU.YA.B.Y;
 
 #define MemBit()\
-    IAPU.Address = *(uint16 *) (IAPU.PC + 1);\
-    IAPU.Bit = (uint8)(IAPU.Address >> 13);\
+    IAPU.Address = *(u16 *) (IAPU.PC + 1);\
+    IAPU.Bit = (u8)(IAPU.Address >> 13);\
     IAPU.Address &= 0x1fff;
 
 #define IndirectIndexedY()\
-    IAPU.Address = *(uint16 *) (IAPU.DirectPage + OP1) + IAPU.YA.B.Y;
+    IAPU.Address = *(u16 *) (IAPU.DirectPage + OP1) + IAPU.YA.B.Y;
 #else
 #define IndexedXIndirect()\
     IAPU.Address = *(IAPU.DirectPage + ((OP1 + IAPU.X) & 0xff)) + \
@@ -259,7 +259,7 @@ APUSetZN8 ((uint8) Int16);
 
 #define MemBit()\
     IAPU.Address = OP1 + (OP2 << 8);\
-    IAPU.Bit = (int8) (IAPU.Address >> 13);\
+    IAPU.Bit = (s8) (IAPU.Address >> 13);\
     IAPU.Address &= 0x1fff;
 
 #define IndirectIndexedY()\
@@ -322,7 +322,7 @@ void Apu4F () // PCALL $XX
 }
 
 #define SET(b) \
-S9xAPUSetByteZ ((uint8) (S9xAPUGetByteZ (OP1 ) | (1 << (b))), OP1); \
+S9xAPUSetByteZ ((u8) (S9xAPUGetByteZ (OP1 ) | (1 << (b))), OP1); \
 IAPU.PC += 2
 
 void Apu02 ()
@@ -366,7 +366,7 @@ void ApuE2 ()
 }
 
 #define CLR(b) \
-S9xAPUSetByteZ ((uint8) (S9xAPUGetByteZ (OP1) & ~(1 << (b))), OP1); \
+S9xAPUSetByteZ ((u8) (S9xAPUGetByteZ (OP1) & ~(1 << (b))), OP1); \
 IAPU.PC += 2;
 
 void Apu12 ()
@@ -414,7 +414,7 @@ Work8 = OP1; \
 Relative2 (); \
 if (S9xAPUGetByteZ (Work8) & (1 << (b))) \
 { \
-    IAPU.PC = IAPU.RAM + (uint16) Int16; \
+    IAPU.PC = IAPU.RAM + (u16) Int16; \
     CPU.APU_Cycles += IAPU.TwoCycles; \
 } \
 else \
@@ -465,7 +465,7 @@ Work8 = OP1; \
 Relative2 (); \
 if (!(S9xAPUGetByteZ (Work8) & (1 << (b)))) \
 { \
-    IAPU.PC = IAPU.RAM + (uint16) Int16; \
+    IAPU.PC = IAPU.RAM + (u16) Int16; \
     CPU.APU_Cycles += IAPU.TwoCycles; \
 } \
 else \
@@ -875,7 +875,7 @@ void Apu10 ()
     Relative ();
     if (!APUCheckNegative ())
     {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
+	IAPU.PC = IAPU.RAM + (u16) Int16;
 	CPU.APU_Cycles += IAPU.TwoCycles;
 	APUShutdown ();
     }
@@ -889,7 +889,7 @@ void Apu30 ()
     Relative ();
     if (APUCheckNegative ())
     {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
+	IAPU.PC = IAPU.RAM + (u16) Int16;
 	CPU.APU_Cycles += IAPU.TwoCycles;
 	APUShutdown ();
     }
@@ -903,7 +903,7 @@ void Apu90 ()
     Relative ();
     if (!APUCheckCarry ())
     {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
+	IAPU.PC = IAPU.RAM + (u16) Int16;
 	CPU.APU_Cycles += IAPU.TwoCycles;
 	APUShutdown ();
     }
@@ -917,7 +917,7 @@ void ApuB0 ()
     Relative ();
     if (APUCheckCarry ())
     {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
+	IAPU.PC = IAPU.RAM + (u16) Int16;
 	CPU.APU_Cycles += IAPU.TwoCycles;
 	APUShutdown ();
     }
@@ -931,7 +931,7 @@ void ApuD0 ()
     Relative ();
     if (!APUCheckZero ())
     {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
+	IAPU.PC = IAPU.RAM + (u16) Int16;
 	CPU.APU_Cycles += IAPU.TwoCycles;
 	APUShutdown ();
     }
@@ -945,7 +945,7 @@ void ApuF0 ()
     Relative ();
     if (APUCheckZero ())
     {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
+	IAPU.PC = IAPU.RAM + (u16) Int16;
 	CPU.APU_Cycles += IAPU.TwoCycles;
 	APUShutdown ();
     }
@@ -959,7 +959,7 @@ void Apu50 ()
     Relative ();
     if (!APUCheckOverflow ())
     {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
+	IAPU.PC = IAPU.RAM + (u16) Int16;
 	CPU.APU_Cycles += IAPU.TwoCycles;
     }
     else
@@ -972,7 +972,7 @@ void Apu70 ()
     Relative ();
     if (APUCheckOverflow ())
     {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
+	IAPU.PC = IAPU.RAM + (u16) Int16;
 	CPU.APU_Cycles += IAPU.TwoCycles;
     }
     else
@@ -983,7 +983,7 @@ void Apu2F ()
 {
 // BRA
     Relative ();
-    IAPU.PC = IAPU.RAM + (uint16) Int16;
+    IAPU.PC = IAPU.RAM + (u16) Int16;
 }
 
 void Apu80 ()
@@ -1013,7 +1013,7 @@ void Apu1A ()
 // DECW dp
     Work16 = S9xAPUGetByteZ (OP1) + (S9xAPUGetByteZ (OP1 + 1) << 8);
     Work16--;
-    S9xAPUSetByteZ ((uint8) Work16, OP1);
+    S9xAPUSetByteZ ((u8) Work16, OP1);
     S9xAPUSetByteZ (Work16 >> 8, OP1 + 1);
     APUSetZN16 (Work16);
     IAPU.PC += 2;
@@ -1025,7 +1025,7 @@ void Apu5A ()
     Work16 = S9xAPUGetByteZ (OP1) + (S9xAPUGetByteZ (OP1 + 1) << 8);
     Int32 = (long) IAPU.YA.W - (long) Work16;
     IAPU._Carry = Int32 >= 0;
-    APUSetZN16 ((uint16) Int32);
+    APUSetZN16 ((u16) Int32);
     IAPU.PC += 2;
 }
 
@@ -1034,7 +1034,7 @@ void Apu3A ()
 // INCW dp
     Work16 = S9xAPUGetByteZ (OP1) + (S9xAPUGetByteZ (OP1 + 1) << 8);
     Work16++;
-    S9xAPUSetByteZ ((uint8) Work16, OP1);
+    S9xAPUSetByteZ ((u8) Work16, OP1);
     S9xAPUSetByteZ (Work16 >> 8, OP1 + 1);
     APUSetZN16 (Work16);
     IAPU.PC += 2;
@@ -1045,16 +1045,16 @@ void Apu7A ()
 {
 // ADDW YA,dp
     Work16 = S9xAPUGetByteZ (OP1) + (S9xAPUGetByteZ (OP1 + 1) << 8);
-    Work32 = (uint32) IAPU.YA.W + Work16;
+    Work32 = (u32) IAPU.YA.W + Work16;
     IAPU._Carry = Work32 >= 0x10000;
-    if (~(IAPU.YA.W ^ Work16) & (Work16 ^ (uint16) Work32) & 0x8000)
+    if (~(IAPU.YA.W ^ Work16) & (Work16 ^ (u16) Work32) & 0x8000)
 	APUSetOverflow ();
     else
 	APUClearOverflow ();
     APUClearHalfCarry ();
-    if((IAPU.YA.W ^ Work16 ^ (uint16) Work32) & 0x10)
+    if((IAPU.YA.W ^ Work16 ^ (u16) Work32) & 0x10)
         APUSetHalfCarry ();
-    IAPU.YA.W = (uint16) Work32;
+    IAPU.YA.W = (u16) Work32;
     APUSetZN16 (IAPU.YA.W);
     IAPU.PC += 2;
 }
@@ -1069,18 +1069,18 @@ void Apu9A ()
     APUClearHalfCarry ();
     IAPU._Carry = Int32 >= 0;
     if (((IAPU.YA.W ^ Work16) & 0x8000) &&
-	    ((IAPU.YA.W ^ (uint16) Int32) & 0x8000))
+	    ((IAPU.YA.W ^ (u16) Int32) & 0x8000))
 	APUSetOverflow ();
     else
 	APUClearOverflow ();
 //    if (((IAPU.YA.W ^ Work16) & 0x0080) &&
-//	    ((IAPU.YA.W ^ (uint16) Int32) & 0x0080))
+//	    ((IAPU.YA.W ^ (u16) Int32) & 0x0080))
 //	APUSetHalfCarry ();                              // notaz: strange here
     APUSetHalfCarry ();
-//    if((IAPU.YA.W ^ Work16 ^ (uint16) Work32) & 0x10) // notaz: Work32?!
-    if((IAPU.YA.W ^ Work16 ^ (uint16) Int32) & 0x10)
+//    if((IAPU.YA.W ^ Work16 ^ (u16) Work32) & 0x10) // notaz: Work32?!
+    if((IAPU.YA.W ^ Work16 ^ (u16) Int32) & 0x10)
         APUClearHalfCarry ();
-    IAPU.YA.W = (uint16) Int32;
+    IAPU.YA.W = (u16) Int32;
     APUSetZN16 (IAPU.YA.W);
     IAPU.PC += 2;
 }
@@ -1444,7 +1444,7 @@ void Apu2E ()
     
     if (S9xAPUGetByteZ (Work8) != IAPU.YA.B.A)
     {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
+	IAPU.PC = IAPU.RAM + (u16) Int16;
 	CPU.APU_Cycles += IAPU.TwoCycles;
 	APUShutdown ();
     }
@@ -1460,7 +1460,7 @@ void ApuDE ()
 
     if (S9xAPUGetByteZ (Work8) != IAPU.YA.B.A)
     {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
+	IAPU.PC = IAPU.RAM + (u16) Int16;
 	CPU.APU_Cycles += IAPU.TwoCycles;
 	APUShutdown ();
     }
@@ -1864,7 +1864,7 @@ void Apu6E ()
     S9xAPUSetByteZ (W1, Work8);
     if (W1 != 0)
     {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
+	IAPU.PC = IAPU.RAM + (u16) Int16;
 	CPU.APU_Cycles += IAPU.TwoCycles;
     }
     else
@@ -1878,7 +1878,7 @@ void ApuFE ()
     IAPU.YA.B.Y--;
     if (IAPU.YA.B.Y != 0)
     {
-	IAPU.PC = IAPU.RAM + (uint16) Int16;
+	IAPU.PC = IAPU.RAM + (u16) Int16;
 	CPU.APU_Cycles += IAPU.TwoCycles;
     }
     else
@@ -2272,7 +2272,7 @@ void ApuCD ()
 void ApuCF ()
 {
 // MUL YA
-    IAPU.YA.W = (uint16) IAPU.YA.B.A * IAPU.YA.B.Y;
+    IAPU.YA.W = (u16) IAPU.YA.B.A * IAPU.YA.B.Y;
     APUSetZN16 (IAPU.YA.W);
     IAPU.PC++;
 }

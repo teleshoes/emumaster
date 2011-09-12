@@ -17,11 +17,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef SOUND_H
-#define SOUND_H
+#ifndef GBASOUND_H
+#define GBASOUND_H
 
-#define BUFFER_SIZE 65536
-#define SOUND_BUFFER_SIZE 16384
+#include "common.h"
+
+#define SOUND_BUFFER_SIZE 8192
 
 typedef enum
 {
@@ -46,8 +47,8 @@ typedef struct
   // The + 1 is to give some extra room for linear interpolation
   // when wrapping around.
   u32 buffer_index;
-  direct_sound_status_type status;
-  direct_sound_volume_type volume;
+  u32 status;
+  u32 volume;
   u32 last_cpu_ticks;
 } direct_sound_struct;
 
@@ -85,11 +86,28 @@ typedef struct
   u32 wave_type;
   u32 wave_bank;
   u32 wave_volume;
-  gbc_sound_status_type status;
+  u32 status;
   u32 active_flag;
   u32 master_enable;
   s8 *sample_data;
 } gbc_sound_struct;
+
+#if defined(__cplusplus)
+
+#include <QObject>
+
+class GbaSound : public QObject {
+	Q_OBJECT
+public:
+	explicit GbaSound(QObject *parent = 0);
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+	int fillBuffer(char *stream, int streamSize);
+	void setEnabled(bool on);
+};
+
+extern "C" {
+#endif
 
 extern direct_sound_struct direct_sound_channel[2];
 extern gbc_sound_struct gbc_sound_channel[4];
@@ -101,18 +119,15 @@ extern u32 gbc_sound_master_volume;
 extern u32 sound_frequency;
 extern u32 sound_on;
 
-extern u32 global_enable_audio;
 extern u32 enable_low_pass_filter;
 
 void sound_timer_queue8(u32 channel, u8 value);
 void sound_timer_queue16(u32 channel, u16 value);
 void sound_timer_queue32(u32 channel, u32 value);
-void sound_timer(fixed16_16 frequency_step, u32 channel);
+void sound_timer(fixed16_16 frequency_step, int channel);
 void sound_reset_fifo(u32 channel);
 void update_gbc_sound(u32 cpu_ticks);
 void init_sound();
-void sound_write_mem_savestate(file_tag_type savestate_file);
-void sound_read_savestate(file_tag_type savestate_file);
 
 #define gbc_sound_tone_control_low(channel, address)                          \
 {                                                                             \
@@ -308,4 +323,8 @@ static u32 gbc_sound_wave_volume[4] = { 0, 16384, 8192, 4096 };
 
 void reset_sound();
 
+#if defined(__cplusplus)
+}
 #endif
+
+#endif // GBASOUND_H

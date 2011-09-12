@@ -19,9 +19,10 @@ ASM_SOURCES = \
 
 SOURCES += $$ASM_SOURCES \
     dsp1.cpp \
-    snesmachine.cpp \
     cheats2.cpp \
-    cheats.cpp
+    cheats.cpp \
+    spc700.cpp \
+    machine.cpp
 
 HEADERS += \
     sdd1emu.h \
@@ -40,18 +41,26 @@ HEADERS += \
     seta.h \
     gfx.h \
     dma.h \
-    cpuexec.h \
     c4.h \
     apumem.h \
     apu.h \
     sdd1.h \
     dsp1.h \
-    snesmachine.h \
-    cheats.h
+    cheats.h \
+    cpu.h \
+    machine.h \
+    missing.h \
+    65c816.h \
+    sa1.h \
+    sar.h \
+    pixform.h \
+    messages.h \
+    getset.h \
+    display.h \
+    debug.h
 
 SOURCES += \
     sdd1emu.cpp \
-    snapshot.cpp \
     fxemu.cpp \
     fxinst.cpp \
     os9x_asm_cpu.cpp \
@@ -60,7 +69,6 @@ SOURCES += \
     globals.cpp \
     tile.cpp \
     srtc.cpp \
-    spc700.cpp \
     soundux.cpp \
     seta010.cpp \
     seta011.cpp \
@@ -69,13 +77,31 @@ SOURCES += \
     gfx.cpp \
     dma.cpp \
     data.cpp \
-    cpuexec.cpp \
     cpu.cpp \
     clip.cpp \
     c4emu.cpp \
     c4.cpp \
     apu.cpp \
     sdd1.cpp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

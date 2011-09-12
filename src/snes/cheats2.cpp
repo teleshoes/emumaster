@@ -55,7 +55,7 @@ void S9xInitCheatData ()
 }
 
 void S9xAddCheat (bool8 enable, bool8 save_current_value, 
-		  uint32 address, uint8 byte)
+		  u32 address, u8 byte)
 {
     if (Cheat.num_cheats < sizeof (Cheat.c) / sizeof (Cheat. c [0]))
     {
@@ -71,7 +71,7 @@ void S9xAddCheat (bool8 enable, bool8 save_current_value,
     }
 }
 
-void S9xDeleteCheat (uint32 which1)
+void S9xDeleteCheat (u32 which1)
 {
     if (which1 < Cheat.num_cheats)
     {
@@ -90,7 +90,7 @@ void S9xDeleteCheats ()
     Cheat.num_cheats = 0;
 }
 
-void S9xEnableCheat (uint32 which1)
+void S9xEnableCheat (u32 which1)
 {
     if (which1 < Cheat.num_cheats && !Cheat.c [which1].enabled)
     {
@@ -99,7 +99,7 @@ void S9xEnableCheat (uint32 which1)
     }
 }
 
-void S9xDisableCheat (uint32 which1)
+void S9xDisableCheat (u32 which1)
 {
     if (which1 < Cheat.num_cheats && Cheat.c [which1].enabled)
     {
@@ -108,33 +108,33 @@ void S9xDisableCheat (uint32 which1)
     }
 }
 
-void S9xRemoveCheat (uint32 which1)
+void S9xRemoveCheat (u32 which1)
 {
     if (Cheat.c [which1].saved)
     {
-	uint32 address = Cheat.c [which1].address;
+	u32 address = Cheat.c [which1].address;
 
 	int block = (address >> MEMMAP_SHIFT) & MEMMAP_MASK;
-	uint8 *ptr = Memory.Map [block];
+	u8 *ptr = Memory.Map [block];
 	    
-	if (ptr >= (uint8 *) CMemory::MAP_LAST)
+	if (ptr >= (u8 *) CMemory::MAP_LAST)
 	    *(ptr + (address & 0xffff)) = Cheat.c [which1].saved_byte;
 	else
 	    S9xSetByte (address, Cheat.c [which1].saved_byte);
     }
 }
 
-void S9xApplyCheat (uint32 which1)
+void S9xApplyCheat (u32 which1)
 {
-    uint32 address = Cheat.c [which1].address;
+    u32 address = Cheat.c [which1].address;
 
     if (!Cheat.c [which1].saved)
 	Cheat.c [which1].saved_byte = S9xGetByte (address);
 
     int block = (address >> MEMMAP_SHIFT) & MEMMAP_MASK;
-    uint8 *ptr = Memory.Map [block];
+    u8 *ptr = Memory.Map [block];
     
-    if (ptr >= (uint8 *) CMemory::MAP_LAST)
+    if (ptr >= (u8 *) CMemory::MAP_LAST)
 	*(ptr + (address & 0xffff)) = Cheat.c [which1].byte;
     else
 	S9xSetByte (address, Cheat.c [which1].byte);
@@ -145,7 +145,7 @@ void S9xApplyCheats ()
 {
     if (Settings.ApplyCheats)
     {
-        for (uint32 i = 0; i < Cheat.num_cheats; i++)
+        for (u32 i = 0; i < Cheat.num_cheats; i++)
             if (Cheat.c [i].enabled)
                 S9xApplyCheat (i);
     }
@@ -153,7 +153,7 @@ void S9xApplyCheats ()
 
 void S9xRemoveCheats ()
 {
-    for (uint32 i = 0; i < Cheat.num_cheats; i++)
+    for (u32 i = 0; i < Cheat.num_cheats; i++)
 	if (Cheat.c [i].enabled)
 	    S9xRemoveCheat (i);
 }
@@ -163,7 +163,7 @@ bool8 S9xLoadCheatFile (const char *filename)
     Cheat.num_cheats = 0;
 
     FILE *fs = fopen (filename, "rb");
-    uint8 data [28];
+    u8 data [28];
 
     if (!fs)
 	return (FALSE);
@@ -195,12 +195,12 @@ bool8 S9xSaveCheatFile (const char *filename)
     }
 
     FILE *fs = fopen (filename, "wb");
-    uint8 data [28];
+    u8 data [28];
 
     if (!fs)
 	return (FALSE);
 
-    uint32 i;
+    u32 i;
     for (i = 0; i < Cheat.num_cheats; i++)
     {
 	memset (data, 0, 28);
@@ -216,9 +216,9 @@ bool8 S9xSaveCheatFile (const char *filename)
 	    data [0] |= 8;
 
 	data [1] = Cheat.c [i].byte;
-	data [2] = (uint8) Cheat.c [i].address;
-	data [3] = (uint8) (Cheat.c [i].address >> 8);
-	data [4] = (uint8) (Cheat.c [i].address >> 16);
+	data [2] = (u8) Cheat.c [i].address;
+	data [3] = (u8) (Cheat.c [i].address >> 8);
+	data [4] = (u8) (Cheat.c [i].address >> 16);
 	data [5] = Cheat.c [i].saved_byte;
 
 	memmove (&data [8], Cheat.c [i].name, 19);

@@ -76,40 +76,40 @@
 #ifndef _DSP1_H_
 #define _DSP1_H_
 
-extern void (*SetDSP)(uint8, uint16);
-extern uint8 (*GetDSP)(uint16);
+extern void (*SetDSP)(u8, u16);
+extern u8 (*GetDSP)(u16);
 
-void DSP1SetByte(uint8 byte, uint16 address);
-uint8 DSP1GetByte(uint16 address);
+void DSP1SetByte(u8 byte, u16 address);
+u8 DSP1GetByte(u16 address);
 
-void DSP2SetByte(uint8 byte, uint16 address);
-uint8 DSP2GetByte(uint16 address);
+void DSP2SetByte(u8 byte, u16 address);
+u8 DSP2GetByte(u16 address);
 
-void DSP3SetByte(uint8 byte, uint16 address);
-uint8 DSP3GetByte(uint16 address);
+void DSP3SetByte(u8 byte, u16 address);
+u8 DSP3GetByte(u16 address);
 void  DSP3_Reset();
 
-void DSP4SetByte(uint8 byte, uint16 address);
-uint8 DSP4GetByte(uint16 address);
+void DSP4SetByte(u8 byte, u16 address);
+u8 DSP4GetByte(u16 address);
 
 START_EXTERN_C
 struct SDSP1 {
-	uint8 version;
+	u8 version;
     bool8 waiting4command;
     bool8 first_parameter;
-    uint8 command;
-    uint32 in_count;
-    uint32 in_index;
-    uint32 out_count;
-    uint32 out_index;
-    uint8 parameters [512];
+    u8 command;
+    u32 in_count;
+    u32 in_index;
+    u32 out_count;
+    u32 out_index;
+    u8 parameters [512];
 //output was 512 for DSP-2 work, updated to reflect current thinking on DSP-3
-    uint8 output [512];
+    u8 output [512];
 };
 
 void S9xResetDSP1 ();
-uint8 S9xGetDSP (uint16 Address);
-void S9xSetDSP (uint8 Byte, uint16 Address);
+u8 S9xGetDSP (u16 Address);
+void S9xSetDSP (u8 Byte, u16 Address);
 extern struct SDSP1 DSP1;
 
 END_EXTERN_C

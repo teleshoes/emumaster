@@ -8,6 +8,15 @@ class QImage;
 class QSettings;
 class QProcess;
 
+typedef qint8 s8;
+typedef quint8 u8;
+typedef qint16 s16;
+typedef quint16 u16;
+typedef qint32 s32;
+typedef quint32 u32;
+typedef qint64 s64;
+typedef quint64 u64;
+
 class BASE_EXPORT IMachine : public QObject {
 	Q_OBJECT
 public:
@@ -54,6 +63,8 @@ public:
 
 	virtual void saveSettings(QSettings &s);
 	virtual void loadSettings(QSettings &s);
+signals:
+	void videoSrcRectChanged();
 protected:
 	void setFrameRate(qreal rate);
 	void setVideoSrcRect(const QRectF &rect);
@@ -77,9 +88,26 @@ inline qreal IMachine::frameRate() const
 inline QRectF IMachine::videoSrcRect() const
 { return m_videoSrcRect; }
 
-#define STATE_SERIALIZE_BEGIN_SAVE(t) bool t::save(QDataStream &s) {
-#define STATE_SERIALIZE_BEGIN_LOAD(t) bool t::load(QDataStream &s) {
-#define STATE_SERIALIZE_END(t) return true; }
+#define STATE_SERIALIZE_BEGIN_SAVE(t_,version_) \
+	bool t_::save(QDataStream &s) { \
+		int version__ = version_; \
+		s << QString(#t_); \
+		s << version__;
+
+#define STATE_SERIALIZE_BEGIN_LOAD(t_,version_) \
+	bool t_::load(QDataStream &s) { \
+		QString ts_; \
+		s >> ts_; \
+		if (ts_ != #t_) \
+			return false; \
+		int version__; \
+		s >> version__; \
+		Q_UNUSED(version__)
+
+#define STATE_SERIALIZE_VERSION version__
+
+#define STATE_SERIALIZE_END_SAVE(t) return true; }
+#define STATE_SERIALIZE_END_LOAD(t) return true; }
 
 #define STATE_SERIALIZE_PARENT_SAVE(t) if (!t::save(s)) return false;
 #define STATE_SERIALIZE_PARENT_LOAD(t) if (!t::load(s)) return false;
@@ -90,6 +118,9 @@ inline QRectF IMachine::videoSrcRect() const
 #define STATE_SERIALIZE_SUBCALL_LOAD(v) if (!(v).load(s)) return false;
 #define STATE_SERIALIZE_SUBCALL_PTR_SAVE(v) if (!(v)->save(s)) return false;
 #define STATE_SERIALIZE_SUBCALL_PTR_LOAD(v) if (!(v)->load(s)) return false;
+
+#define STATE_SERIALIZE_TEST_TYPE_SAVE true
+#define STATE_SERIALIZE_TEST_TYPE_LOAD false
 
 #define STATE_SERIALIZE_ARRAY_SAVE(array,size) \
 	if (s.writeRawData(reinterpret_cast<const char *>(array), (size)) != (size)) \

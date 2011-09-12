@@ -41,6 +41,7 @@
 #ifndef _SPC700_H_
 #define _SPC700_H_
 
+#include "machine.h"
 #include "port.h"
 
 #ifdef SPCTOOL
@@ -89,20 +90,20 @@
 typedef union
 {
 #ifdef LSB_FIRST
-    struct { uint8 A, Y; } B;
+    struct { u8 A, Y; } B;
 #else
-    struct { uint8 Y, A; } B;
+    struct { u8 Y, A; } B;
 #endif
-    uint16 W;
-	uint32 _padder; // make sure this whole thing takes 4 bytes
+    u16 W;
+	u32 _padder; // make sure this whole thing takes 4 bytes
 } YAndA;
 
 struct SAPURegisters{
-    uint8  P;
+    u8  P;
     YAndA YA;
-    uint8  X;
-    uint8  S;
-    uint16  PC;
+    u8  X;
+    u8  S;
+    u16  PC;
 };
 
 //EXTERN_C struct SAPURegisters APURegisters;
@@ -118,11 +119,11 @@ struct SAPURegisters{
 // 1.953us := 1.024065.54MHz
 
 #ifdef SPCTOOL
-EXTERN_C int32 ESPC (int32);
+EXTERN_C s32 ESPC (s32);
 
 #define APU_EXECUTE() \
 { \
-    int32 l = (CPU.Cycles - CPU.APU_Cycles) / 14; \
+    s32 l = (CPU.Cycles - CPU.APU_Cycles) / 14; \
     if (l > 0) \
     { \
         l -= _EmuSPC(l); \

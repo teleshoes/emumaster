@@ -13,24 +13,24 @@ HEADERS += \
     arm/arm_emit.h \
     arm/arm_dpimacros.h \
     arm/arm_codegen.h \
-    gbamachine.h \
-    gbapad.h \
-    gbasound.h \
-    gbamemory.h \
-    gbavideo.h \
-    gbacpu.h \
-    gbacommon.h \
-    gbacheats.h
+    video.h \
+    sound.h \
+    pad.h \
+    memory.h \
+    machine.h \
+    cpu.h \
+    common.h \
+    cheats.h
 
 SOURCES += \
-    gbamachine.cpp \
-    gbapad.cpp \
-    gbavideo.cpp \
-    gbamemory.cpp \
-    gbasound.cpp \
-    gbacpu_threaded.c \
-    gbacpu.cpp \
-    gbacheats.cpp
+    cheats.cpp \
+    cpu.cpp \
+    cpu_threaded.c \
+    machine.cpp \
+    memory.cpp \
+    pad.cpp \
+    sound.cpp \
+    video.cpp
 
 QMAKE_CFLAGS += -std=c99
 
@@ -46,6 +46,40 @@ unix {
 
 	INSTALLS += qml game_config
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -74,17 +74,17 @@
 *******************************************************************************/
 
 
-uint16 DSP2Op09Word1=0;
-uint16 DSP2Op09Word2=0;
+u16 DSP2Op09Word1=0;
+u16 DSP2Op09Word2=0;
 bool DSP2Op05HasLen=false;
 int DSP2Op05Len=0;
 bool DSP2Op06HasLen=false;
 int DSP2Op06Len=0;
-uint8 DSP2Op05Transparent=0;
+u8 DSP2Op05Transparent=0;
 
 void DSP2_Op05 ()
 {
-	uint8 color;
+	u8 color;
 	// Overlay bitmap with transparency.
 	// Input:
 	//
@@ -222,7 +222,7 @@ void DSP2_Op0D()
 
 	int i;
 	int pixel_offset;
-	uint8 pixelarray[512];
+	u8 pixelarray[512];
 
 	for(i=0; i<DSP2Op0DOutLen*2; i++)
 	{
@@ -259,7 +259,7 @@ void DSP2_Op0D()
 	uint32 multiplier;	// Any size int >= 32-bits
 	uint32 pixloc;		// match size of multiplier
 	int	i, j;
-	uint8 pixelarray[512];
+	u8 pixelarray[512];
 
 	if (DSP2Op0DInLen <= DSP2Op0DOutLen)
 		multiplier = 0x10000;	// In our self defined fixed point 0x10000 == 1
@@ -299,7 +299,7 @@ void DSP2_Op0D()
 	float multiplier;
 	float pixloc;
 	int	i, j;
-	uint8 pixelarray[512];
+	u8 pixelarray[512];
 
 	if (DSP2Op0DInLen <= DSP2Op0DOutLen)
 		multiplier = (float) 1.0;

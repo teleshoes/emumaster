@@ -42,15 +42,15 @@
 #define _TILE_H_
 
 #define TILE_PREAMBLE \
-    uint8 *pCache; \
+    u8 *pCache; \
 \
-    uint32 TileAddr = BG.TileAddress + ((Tile & 0x3ff) << BG.TileShift); \
+    u32 TileAddr = BG.TileAddress + ((Tile & 0x3ff) << BG.TileShift); \
     if ((Tile & 0x1ff) >= 256) \
 	TileAddr += BG.NameSelect; \
 \
     TileAddr &= 0xffff; \
 \
-    uint32 TileNumber; \
+    u32 TileNumber; \
     pCache = &BG.Buffer[(TileNumber = (TileAddr >> BG.TileShift)) << 6]; \
 \
     if (!BG.Buffered [TileNumber]) \
@@ -59,7 +59,7 @@
     if (BG.Buffered [TileNumber] == BLANK_TILE) \
 	return; \
 \
-    register uint32 l; \
+    register u32 l; \
     if (BG.DirectColourMode) \
     { \
 	if (IPPU.DirectColourMapsNeedRebuild) \
@@ -75,9 +75,9 @@
 	bp = pCache + StartLine; \
 	for (l = LineCount; l != 0; l--, bp += 8, Offset += gfx->PPL) \
 	{ \
-	    if (*(uint32 *) bp) \
+	    if (*(u32 *) bp) \
 		NORMAL (Offset, bp, gfx); \
-	    if (*(uint32 *) (bp + 4)) \
+	    if (*(u32 *) (bp + 4)) \
 		NORMAL (Offset + N, bp + 4, gfx); \
 	} \
     } \
@@ -87,9 +87,9 @@
 	bp = pCache + StartLine; \
 	for (l = LineCount; l != 0; l--, bp += 8, Offset += gfx->PPL) \
 	{ \
-	    if (*(uint32 *) (bp + 4)) \
+	    if (*(u32 *) (bp + 4)) \
 		FLIPPED (Offset, bp + 4, gfx); \
-	    if (*(uint32 *) bp) \
+	    if (*(u32 *) bp) \
 		FLIPPED (Offset + N, bp, gfx); \
 	} \
     } \
@@ -99,9 +99,9 @@
 	bp = pCache + 56 - StartLine; \
 	for (l = LineCount; l != 0; l--, bp -= 8, Offset += gfx->PPL) \
 	{ \
-	    if (*(uint32 *) (bp + 4)) \
+	    if (*(u32 *) (bp + 4)) \
 		FLIPPED (Offset, bp + 4, gfx); \
-	    if (*(uint32 *) bp) \
+	    if (*(u32 *) bp) \
 		FLIPPED (Offset + N, bp, gfx); \
 	} \
     } \
@@ -110,17 +110,17 @@
 	bp = pCache + 56 - StartLine; \
 	for (l = LineCount; l != 0; l--, bp -= 8, Offset += gfx->PPL) \
 	{ \
-	    if (*(uint32 *) bp) \
+	    if (*(u32 *) bp) \
 		NORMAL (Offset, bp, gfx); \
-	    if (*(uint32 *) (bp + 4)) \
+	    if (*(u32 *) (bp + 4)) \
 		NORMAL (Offset + N, bp + 4, gfx); \
 	} \
     }
 
 #define TILE_CLIP_PREAMBLE \
-    uint32 dd; \
-    uint32 d1; \
-    uint32 d2; \
+    u32 dd; \
+    u32 d1; \
+    u32 d2; \
 \
     if (StartPixel < 4) \
     { \
@@ -150,10 +150,10 @@
 	bp = pCache + StartLine; \
 	for (l = LineCount; l != 0; l--, bp += 8, Offset += gfx->PPL) \
 	{ \
-	    if ((dd = (*(uint32 *) bp) & d1)) \
-		NORMAL (Offset, (uint8 *) &dd, gfx); \
-	    if ((dd = (*(uint32 *) (bp + 4)) & d2)) \
-		NORMAL (Offset + N, (uint8 *) &dd, gfx); \
+	    if ((dd = (*(u32 *) bp) & d1)) \
+		NORMAL (Offset, (u8 *) &dd, gfx); \
+	    if ((dd = (*(u32 *) (bp + 4)) & d2)) \
+		NORMAL (Offset + N, (u8 *) &dd, gfx); \
 	} \
     } \
     else \
@@ -164,10 +164,10 @@
 	SWAP_DWORD (d2); \
 	for (l = LineCount; l != 0; l--, bp += 8, Offset += gfx->PPL) \
 	{ \
-	    if ((dd = *(uint32 *) (bp + 4) & d1)) \
-		FLIPPED (Offset, (uint8 *) &dd, gfx); \
-	    if ((dd = *(uint32 *) bp & d2)) \
-		FLIPPED (Offset + N, (uint8 *) &dd, gfx); \
+	    if ((dd = *(u32 *) (bp + 4) & d1)) \
+		FLIPPED (Offset, (u8 *) &dd, gfx); \
+	    if ((dd = *(u32 *) bp & d2)) \
+		FLIPPED (Offset + N, (u8 *) &dd, gfx); \
 	} \
     } \
     else \
@@ -178,10 +178,10 @@
 	SWAP_DWORD (d2); \
 	for (l = LineCount; l != 0; l--, bp -= 8, Offset += gfx->PPL) \
 	{ \
-	    if ((dd = *(uint32 *) (bp + 4) & d1)) \
-		FLIPPED (Offset, (uint8 *) &dd, gfx); \
-	    if ((dd = *(uint32 *) bp & d2)) \
-		FLIPPED (Offset + N, (uint8 *) &dd, gfx); \
+	    if ((dd = *(u32 *) (bp + 4) & d1)) \
+		FLIPPED (Offset, (u8 *) &dd, gfx); \
+	    if ((dd = *(u32 *) bp & d2)) \
+		FLIPPED (Offset + N, (u8 *) &dd, gfx); \
 	} \
     } \
     else \
@@ -189,10 +189,10 @@
 	bp = pCache + 56 - StartLine; \
 	for (l = LineCount; l != 0; l--, bp -= 8, Offset += gfx->PPL) \
 	{ \
-	    if ((dd = (*(uint32 *) bp) & d1)) \
-		NORMAL (Offset, (uint8 *) &dd, gfx); \
-	    if ((dd = (*(uint32 *) (bp + 4)) & d2)) \
-		NORMAL (Offset + N, (uint8 *) &dd, gfx); \
+	    if ((dd = (*(u32 *) bp) & d1)) \
+		NORMAL (Offset, (u8 *) &dd, gfx); \
+	    if ((dd = (*(u32 *) (bp + 4)) & d2)) \
+		NORMAL (Offset + N, (u8 *) &dd, gfx); \
 	} \
     }
 
@@ -272,7 +272,7 @@
 	bp = pCache + StartLine; \
 	for (l = LineCount; l != 0; l--, bp += 8, Offset += gfx->PPL) \
 	{ \
-	    /*if (*(uint32 *) bp)*/if (((uint32)bp[0])|((uint32)bp[2])|((uint32)bp[4])|((uint32)bp[6])) \
+	    /*if (*(u32 *) bp)*/if (((u32)bp[0])|((u32)bp[2])|((u32)bp[4])|((u32)bp[6])) \
 		NORMAL (Offset, bp); \
 	} \
     } \
@@ -282,7 +282,7 @@
 	bp = pCache + StartLine; \
 	for (l = LineCount; l != 0; l--, bp += 8, Offset += gfx->PPL) \
 	{ \
-	    /*if (*(uint32 *) (bp + 4))*/if (((uint32)bp[0])|((uint32)bp[2])|((uint32)bp[4])|((uint32)bp[6])) \
+	    /*if (*(u32 *) (bp + 4))*/if (((u32)bp[0])|((u32)bp[2])|((u32)bp[4])|((u32)bp[6])) \
 		FLIPPED (Offset, bp); \
 	} \
     } \
@@ -292,7 +292,7 @@
 	bp = pCache + 56 - StartLine; \
 	for (l = LineCount; l != 0; l--, bp -= 8, Offset += gfx->PPL) \
 	{ \
-	    /*if (*(uint32 *) (bp + 4))*/if (((uint32)bp[0])|((uint32)bp[2])|((uint32)bp[4])|((uint32)bp[6]))  \
+	    /*if (*(u32 *) (bp + 4))*/if (((u32)bp[0])|((u32)bp[2])|((u32)bp[4])|((u32)bp[6]))  \
 		FLIPPED (Offset, bp); \
 	} \
     } \
@@ -301,7 +301,7 @@
 	bp = pCache + 56 - StartLine; \
 	for (l = LineCount; l != 0; l--, bp -= 8, Offset += gfx->PPL) \
 	{ \
-	    /*if (*(uint32 *) bp)*/if (((uint32)bp[0])|((uint32)bp[2])|((uint32)bp[4])|((uint32)bp[6])) \
+	    /*if (*(u32 *) bp)*/if (((u32)bp[0])|((u32)bp[2])|((u32)bp[4])|((u32)bp[6])) \
 		NORMAL (Offset, bp); \
 	} \
     }
@@ -315,8 +315,8 @@
 	bp = pCache + StartLine; \
 	for (l = LineCount; l != 0; l--, bp += 8, Offset += gfx->PPL) \
 	{ \
-	    /*if ((dd = (*(uint32 *) bp) & d1))*/if (dd = (((((uint32)bp[6])<<24)|(((uint32)bp[4])<<16)|(((uint32)bp[2])<<8)|((uint32)bp[0]))&d1)) \
-		NORMAL (Offset, (uint8 *) &dd); \
+	    /*if ((dd = (*(u32 *) bp) & d1))*/if (dd = (((((u32)bp[6])<<24)|(((u32)bp[4])<<16)|(((u32)bp[2])<<8)|((u32)bp[0]))&d1)) \
+		NORMAL (Offset, (u8 *) &dd); \
 	} \
     } \
     else \
@@ -327,8 +327,8 @@
 	/*SWAP_DWORD (d2);*/ \
 	for (l = LineCount; l != 0; l--, bp += 8, Offset += gfx->PPL) \
 	{ \
-	    /*if ((dd = *(uint32 *) (bp + 4) & d1))*/if (dd = (((((uint32)bp[6])<<24)|(((uint32)bp[4])<<16)|(((uint32)bp[2])<<8)|((uint32)bp[0]))&d1)) \
-		FLIPPED (Offset, (uint8 *) &dd); \
+	    /*if ((dd = *(u32 *) (bp + 4) & d1))*/if (dd = (((((u32)bp[6])<<24)|(((u32)bp[4])<<16)|(((u32)bp[2])<<8)|((u32)bp[0]))&d1)) \
+		FLIPPED (Offset, (u8 *) &dd); \
 	} \
     } \
     else \
@@ -339,8 +339,8 @@
 	/*SWAP_DWORD (d2);*/ \
 	for (l = LineCount; l != 0; l--, bp -= 8, Offset += gfx->PPL) \
 	{ \
-	    /*if ((dd = *(uint32 *) (bp + 4) & d1))*/if (dd = (((((uint32)bp[6])<<24)|(((uint32)bp[4])<<16)|(((uint32)bp[2])<<8)|((uint32)bp[0]))&d1)) \
-		FLIPPED (Offset, (uint8 *) &dd); \
+	    /*if ((dd = *(u32 *) (bp + 4) & d1))*/if (dd = (((((u32)bp[6])<<24)|(((u32)bp[4])<<16)|(((u32)bp[2])<<8)|((u32)bp[0]))&d1)) \
+		FLIPPED (Offset, (u8 *) &dd); \
 	} \
     } \
     else \
@@ -348,8 +348,8 @@
 	bp = pCache + 56 - StartLine; \
 	for (l = LineCount; l != 0; l--, bp -= 8, Offset += gfx->PPL) \
 	{ \
-	    /*if ((dd = (*(uint32 *) bp) & d1))*/ if (dd = (((((uint32)bp[6])<<24)|(((uint32)bp[4])<<16)|(((uint32)bp[2])<<8)|((uint32)bp[0]))&d1)) \
-		NORMAL (Offset, (uint8 *) &dd); \
+	    /*if ((dd = (*(u32 *) bp) & d1))*/ if (dd = (((((u32)bp[6])<<24)|(((u32)bp[4])<<16)|(((u32)bp[2])<<8)|((u32)bp[0]))&d1)) \
+		NORMAL (Offset, (u8 *) &dd); \
 	} \
     }    
 

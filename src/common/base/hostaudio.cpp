@@ -20,37 +20,6 @@ static void contextStreamCallback(pa_context *context, void *userdata) {
 	 }
 }
 
-static void streamStateCallback(pa_stream *stream, void *userdata) {
-	if (!stream || !userdata)
-		return;
-	HostAudio *hostAudio = reinterpret_cast<HostAudio *>(userdata);
-	switch (pa_stream_get_state(stream)) {
-	case PA_STREAM_READY:
-	case PA_STREAM_FAILED:
-	case PA_STREAM_TERMINATED:
-		pa_threaded_mainloop_signal(hostAudio->mainloop(), 0);
-		break;
-	case PA_STREAM_UNCONNECTED:
-	case PA_STREAM_CREATING:
-		break;
-	}
-}
-
-static void streamLatencyUpdateCallback(pa_stream *stream, void *userdata) {
-	if (!stream || !userdata)
-		return;
-	HostAudio *hostAudio = reinterpret_cast<HostAudio *>(userdata);
-	pa_threaded_mainloop_signal(hostAudio->mainloop(), 0);
-}
-
-static void streamRequestCallback(pa_stream *stream, size_t length, void *userdata) {
-	Q_UNUSED(length)
-	if (!stream || !userdata)
-		return;
-	HostAudio *hostAudio = reinterpret_cast<HostAudio *>(userdata);
-	pa_threaded_mainloop_signal(hostAudio->mainloop(), 0);
-}
-
 HostAudio::HostAudio(IMachine *machine) :
 	m_mainloop(0),
 	m_context(0),
@@ -107,13 +76,8 @@ void HostAudio::open(int sampleRate) {
 		qDebug("Could not acquire new PulseAudio stream: %s", pa_strerror(error));
 		return;
 	}
-
-	pa_stream_set_state_callback(m_stream, streamStateCallback, this);
-	pa_stream_set_write_callback(m_stream, streamRequestCallback, this);
-	pa_stream_set_latency_update_callback(m_stream, streamLatencyUpdateCallback, this);
-
 	pa_stream_flags_t flags = (pa_stream_flags_t)(PA_STREAM_ADJUST_LATENCY | PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_AUTO_TIMING_UPDATE);
-	//pa_stream_flags_t flags = (pa_stream_flags_t) (PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_EARLY_REQUESTS);
+//	pa_stream_flags_t flags = (pa_stream_flags_t) (PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_EARLY_REQUESTS);
 	if (pa_stream_connect_playback(m_stream, 0, &buffer_attributes, flags, 0, 0) < 0) {
 		int error = pa_context_errno(m_context);
 		qDebug("Could not connect for playback: %s", pa_strerror(error));
@@ -150,12 +114,14 @@ void HostAudio::sendFrame() {
 	size_t size = -1;
 	void *data;
 	pa_stream_begin_write(m_stream, &data, &size);
+	size = qMin(size, pa_stream_writable_size(m_stream));
 	size = m_machine->fillAudioBuffer(reinterpret_cast<char *>(data), size);
 	if (size)
 		pa_stream_write(m_stream, data, size, 0, 0, PA_SEEK_RELATIVE);
 	else
 		pa_stream_cancel_write(m_stream);
 	pa_threaded_mainloop_unlock(m_mainloop);
+	pa_threaded_mainloop_signal(m_mainloop, 0);
 }
 
 void HostAudio::waitForStreamReady() {

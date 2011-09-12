@@ -44,54 +44,54 @@
 #include "memmap.h"
 
 struct SSA1Registers {
-    uint8   PB;
-    uint8   DB;
-    mypair    P;
-    mypair    A;
-    mypair    D;
-    mypair    S;
-    mypair    X;
-    mypair    Y;
-    uint16  PC;
+	u8   PB;
+	u8   DB;
+	URegister    P;
+	URegister    A;
+	URegister    D;
+	URegister    S;
+	URegister    X;
+	URegister    Y;
+	u16  PC;
 };
 
 struct SSA1 {
     struct  SOpcodes *S9xOpcodes;
-    uint8   _Carry;
-    uint8   _Zero;
-    uint8   _Negative;
-    uint8   _Overflow;
+	u8   _Carry;
+	u8   _Zero;
+	u8   _Negative;
+	u8   _Overflow;
     bool8   CPUExecuting;
-    uint32  ShiftedPB;
-    uint32  ShiftedDB;
-    uint32  Flags;
+	u32  ShiftedPB;
+	u32  ShiftedDB;
+	u32  Flags;
     bool8   Executing;
     bool8   NMIActive;
     bool8   IRQActive;
     bool8   WaitingForInterrupt;
     bool8   Waiting;
-//    uint8   WhichEvent;
-    uint8   *PC;
-    uint8   *PCBase;
-    uint8   *BWRAM;
-    uint8   *PCAtOpcodeStart;
-    uint8   *WaitAddress;
-    uint32  WaitCounter;
-    uint8   *WaitByteAddress1;
-    uint8   *WaitByteAddress2;
+//    u8   WhichEvent;
+	u8   *PC;
+	u8   *PCBase;
+	u8   *BWRAM;
+	u8   *PCAtOpcodeStart;
+	u8   *WaitAddress;
+	u32  WaitCounter;
+	u8   *WaitByteAddress1;
+	u8   *WaitByteAddress2;
 //    long    Cycles;
 //    long    NextEvent;
 //    long    V_Counter;
-    uint8   *Map [MEMMAP_NUM_BLOCKS];
-    uint8   *WriteMap [MEMMAP_NUM_BLOCKS];
-    int16   op1;
-    int16   op2;
+	u8   *Map [MEMMAP_NUM_BLOCKS];
+	u8   *WriteMap [MEMMAP_NUM_BLOCKS];
+	s16   op1;
+	s16   op2;
     int     arithmetic_op;
-    int64   sum;
+	s64   sum;
     bool8   overflow;
-    uint8   VirtualBitmapFormat;
+	u8   VirtualBitmapFormat;
     bool8   in_char_dma;
-    uint8   variable_bit_pos;
+	u8   variable_bit_pos;
 };
 
 START_EXTERN_C
@@ -117,13 +117,13 @@ END_EXTERN_C
 
 
 START_EXTERN_C
-uint8 S9xSA1GetByte (uint32);
-uint16 S9xSA1GetWord (uint32);
-void S9xSA1SetByte (uint8, uint32);
-void S9xSA1SetWord (uint16, uint32);
-void S9xSA1SetPCBase (uint32);
-uint8 S9xGetSA1 (uint32);
-void S9xSetSA1 (uint8, uint32);
+u8 S9xSA1GetByte (u32);
+u16 S9xSA1GetWord (u32);
+void S9xSA1SetByte (u8, u32);
+void S9xSA1SetWord (u16, u32);
+void S9xSA1SetPCBase (u32);
+u8 S9xGetSA1 (u32);
+void S9xSetSA1 (u8, u32);
 
 extern struct SOpcodes S9xSA1OpcodesM1X1 [256];
 extern struct SOpcodes S9xSA1OpcodesM1X0 [256];

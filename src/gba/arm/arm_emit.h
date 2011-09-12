@@ -21,8 +21,6 @@
 #define ARM_EMIT_H
 
 #include "arm_codegen.h"
-#include <syscall.h>
-#include <stdio.h>
 
 static inline void sys_cacheflush(void *start, void *end) {
 	__builtin___clear_cache(start, end);
@@ -76,7 +74,7 @@ void step_debug_arm(u32 pc);
 #define reg_a1          ARMREG_R1
 #define reg_a2          ARMREG_R2
 
-#define reg_s0          ARMREG_R10
+#define reg_s0          ARMREG_R9
 #define reg_base        ARMREG_SP
 #define reg_flags       ARMREG_R11
 
@@ -176,7 +174,7 @@ s32 arm_register_allocation[] =
   reg_x4,       // GBA r12
   mem_reg,      // GBA r13
   reg_x5,       // GBA r14
-  mem_reg,      // GBA r15
+  mem_reg,       // GBA r15
 
   mem_reg,
   mem_reg,
@@ -213,7 +211,7 @@ s32 thumb_register_allocation[] =
   mem_reg,      // GBA r12
   mem_reg,      // GBA r13
   mem_reg,      // GBA r14
-  mem_reg,      // GBA r15
+  mem_reg,       // GBA r15
 
   mem_reg,
   mem_reg,

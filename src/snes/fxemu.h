@@ -93,13 +93,13 @@
 #ifndef snes9x_types_defined
 #define snes9x_types_defined
 
-typedef unsigned char uint8;
-typedef unsigned short uint16;
-typedef unsigned int uint32;
+typedef unsigned char u8;
+typedef unsigned short u16;
+typedef unsigned int u32;
 typedef unsigned char bool8;
-typedef signed char int8;
-typedef short int16;
-typedef int int32;
+typedef signed char s8;
+typedef short s16;
+typedef int s32;
 #endif
 
 #ifndef TRUE
@@ -113,46 +113,46 @@ typedef int int32;
 /* The FxInfo_s structure, the link between the FxEmulator and the Snes Emulator */
 struct FxInit_s
 {
-    uint32	vFlags;
-    uint8 *	pvRegisters;	/* 768 bytes located in the memory at address 0x3000 */
-    uint32	nRamBanks;	/* Number of 64kb-banks in GSU-RAM/BackupRAM (banks 0x70-0x73) */
-    uint8 *	pvRam;		/* Pointer to GSU-RAM */
-    uint32	nRomBanks;	/* Number of 32kb-banks in Cart-ROM */
-    uint8 *	pvRom;		/* Pointer to Cart-ROM */
+    u32	vFlags;
+    u8 *	pvRegisters;	/* 768 bytes located in the memory at address 0x3000 */
+    u32	nRamBanks;	/* Number of 64kb-banks in GSU-RAM/BackupRAM (banks 0x70-0x73) */
+    u8 *	pvRam;		/* Pointer to GSU-RAM */
+    u32	nRomBanks;	/* Number of 32kb-banks in Cart-ROM */
+    u8 *	pvRom;		/* Pointer to Cart-ROM */
 };
 
 /* Reset the FxChip */
 extern void FxReset(struct FxInit_s *psFxInfo);
 
 /* Execute until the next stop instruction */
-extern int FxEmulate(uint32 nInstructions);
+extern int FxEmulate(u32 nInstructions);
 
 /* Write access to the cache */
-extern void FxCacheWriteAccess(uint16 vAddress);
+extern void FxCacheWriteAccess(u16 vAddress);
 extern void FxFlushCache();	/* Callled when the G flag in SFR is set to zero */
 
 /* Breakpoint */
-extern void FxBreakPointSet(uint32 vAddress);
+extern void FxBreakPointSet(u32 vAddress);
 extern void FxBreakPointClear();
 
 /* Step by step execution */
-extern int FxStepOver(uint32 nInstructions);
+extern int FxStepOver(u32 nInstructions);
 
 /* Errors */
 extern int FxGetErrorCode();
 extern int FxGetIllegalAddress();
 
 /* Access to internal registers */
-extern uint32 FxGetColorRegister();
-extern uint32 FxGetPlotOptionRegister();
-extern uint32 FxGetSourceRegisterIndex();
-extern uint32 FxGetDestinationRegisterIndex();
+extern u32 FxGetColorRegister();
+extern u32 FxGetPlotOptionRegister();
+extern u32 FxGetSourceRegisterIndex();
+extern u32 FxGetDestinationRegisterIndex();
 
 /* Get string for opcode currently in the pipe */
 extern void FxPipeString(char * pvString);
 
 /* Get the byte currently in the pipe */
-extern uint8 FxPipe();
+extern u8 FxPipe();
 
 
 /* Option flags */

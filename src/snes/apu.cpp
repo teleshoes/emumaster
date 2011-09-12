@@ -43,14 +43,9 @@
 #include "spc700.h"
 #include "apu.h"
 #include "soundux.h"
-#include "cpuexec.h"
+#include "cpu.h"
+#include <QDataStream>
 
-/* For note-triggered SPC dump support */
-//#include "snapshot.h"
-
-//const char *S9xGetFilenameInc (const char *);
-
-//extern int NoiseFreq [32];
 #ifdef DEBUGGER
 void S9xTraceSoundDSP (const char *s, int i1 = 0, int i2 = 0, int i3 = 0,
 		       int i4 = 0, int i5 = 0, int i6 = 0, int i7 = 0);
@@ -184,13 +179,13 @@ static inline void S9xSetEchoVolume (short volume_left, short volume_right)
     SoundData.echo_volume [1] = volume_right;
 }
 
-static inline void S9xSetEchoWriteEnable (uint8 byte)
+static inline void S9xSetEchoWriteEnable (u8 byte)
 {
     SoundData.echo_write_enabled = byte;
     S9xSetEchoDelay (APU.DSP [APU_EDL] & 15);
 }
 
-static inline void S9xSetFrequencyModulationEnable (uint8 byte)
+static inline void S9xSetFrequencyModulationEnable (u8 byte)
 {
     SoundData.pitch_mod = byte & (0xFE);//~1;
 }
@@ -373,7 +368,7 @@ static inline void S9xPlaySample (int channel)
 }
 
 #ifdef ASM_SPC700
-extern "C" uint32 Spc700JumpTab;
+extern "C" u32 Spc700JumpTab;
 #endif
 
 bool8 S9xInitAPU ()
@@ -385,9 +380,9 @@ bool8 S9xInitAPU ()
 	IAPU.asmJumpTab = &Spc700JumpTab;
 #endif
 
-	IAPU.RAM = (uint8 *) malloc (0x10000);
-    IAPU.ShadowRAM = NULL;//(uint8 *) malloc (0x10000);
-    IAPU.CachedSamples = NULL;//(uint8 *) malloc (0x40000);
+	IAPU.RAM = (u8 *) malloc (0x10000);
+	IAPU.ShadowRAM = NULL;//(u8 *) malloc (0x10000);
+	IAPU.CachedSamples = NULL;//(u8 *) malloc (0x40000);
     
     if (!IAPU.RAM /*|| !IAPU.ShadowRAM || !IAPU.CachedSamples*/)
     {
@@ -417,7 +412,7 @@ void S9xDeinitAPU ()
     }
 }
 
-EXTERN_C uint8 APUROM [64];
+EXTERN_C u8 APUROM [64];
 
 void S9xResetAPU ()
 {
@@ -474,25 +469,12 @@ void S9xResetAPU ()
     S9xSetEchoEnable (0);
 }
 
-extern int framecpto;
-void S9xSetAPUDSP (uint8 byte)
+void S9xSetAPUDSP (u8 byte)
 {
-    uint8 reg = IAPU.RAM [0xf2];
-	static uint8 KeyOn;
-	static uint8 KeyOnPrev;
+	u8 reg = IAPU.RAM [0xf2];
+	static u8 KeyOn;
+	static u8 KeyOnPrev;
     int i;
-    
-/*    char str[64];
-    if (byte!=0)
-    {
-		sprintf(str,"fr : %d\nwrite dsp %d\ncpu cycle=%d pc=%04X",framecpto,byte,CPU.Cycles,CPU.PC-CPU.PCBase);
-		S9xMessage(0,0,str);
-		gp32_pause();
-	}*/
-
-	//extern uint8 spc_dump_dsp[0x100];
-
-	//spc_dump_dsp[reg] = byte;
 
     switch (reg)
     {
@@ -540,7 +522,7 @@ void S9xSetAPUDSP (uint8 byte)
 	    if (Settings.TraceSoundDSP)
 		S9xTraceSoundDSP ("[%d] Noise:", ICPU.Scanline);
 #endif
-	    uint8 mask = 1;
+		u8 mask = 1;
 	    for (int c = 0; c < 8; c++, mask <<= 1)
 	    {
 		int type;
@@ -635,7 +617,7 @@ void S9xSetAPUDSP (uint8 byte)
     case APU_KOFF:
 		//		if (byte)
 	{
-	    uint8 mask = 1;
+		u8 mask = 1;
 #ifdef DEBUGGER
 	    if (Settings.TraceSoundDSP)
 		S9xTraceSoundDSP ("[%d] Key off:", ICPU.Scanline);
@@ -682,7 +664,7 @@ void S9xSetAPUDSP (uint8 byte)
 
 	if (byte)
 	{
-	    uint8 mask = 1;
+		u8 mask = 1;
 #ifdef DEBUGGER
 
 	    if (Settings.TraceSoundDSP)
@@ -912,7 +894,7 @@ void S9xSetAPUDSP (uint8 byte)
 	    if (Settings.TraceSoundDSP)
 	    {
 		S9xTraceSoundDSP ("[%d] FreqMod:", ICPU.Scanline);
-		uint8 mask = 1;
+		u8 mask = 1;
 		for (int c = 0; c < 8; c++, mask <<= 1)
 		{
 		    if (byte & mask)
@@ -942,7 +924,7 @@ void S9xSetAPUDSP (uint8 byte)
 	    if (Settings.TraceSoundDSP)
 	    {
 		S9xTraceSoundDSP ("[%d] Echo:", ICPU.Scanline);
-		uint8 mask = 1;
+		u8 mask = 1;
 		for (int c = 0; c < 8; c++, mask <<= 1)
 		{
 		    if (byte & mask)
@@ -999,7 +981,7 @@ void S9xSetAPUDSP (uint8 byte)
 	APU.DSP [reg] = byte;
 }
 
-void S9xFixEnvelope (int channel, uint8 gain, uint8 adsr1, uint8 adsr2)
+void S9xFixEnvelope (int channel, u8 gain, u8 adsr1, u8 adsr2)
 {
     if (adsr1 & 0x80)
     {
@@ -1051,7 +1033,7 @@ void S9xFixEnvelope (int channel, uint8 gain, uint8 adsr1, uint8 adsr2)
     }
 }
 
-void S9xSetAPUControl (uint8 byte)
+void S9xSetAPUControl (u8 byte)
 {
 //if (byte & 0x40)
 //printf ("*** Special SPC700 timing enabled\n");
@@ -1105,7 +1087,7 @@ void S9xSetAPUControl (uint8 byte)
     IAPU.RAM [0xf1] = byte;
 }
 
-void S9xSetAPUTimer (uint16 Address, uint8 byte)
+void S9xSetAPUTimer (u16 Address, u8 byte)
 {
     IAPU.RAM [Address] = byte;
 
@@ -1129,10 +1111,10 @@ void S9xSetAPUTimer (uint16 Address, uint8 byte)
     }
 }
 
-uint8 S9xGetAPUDSP ()
+u8 S9xGetAPUDSP ()
 {
-    uint8 reg = IAPU.RAM [0xf2] & 0x7f;
-    uint8 byte = APU.DSP [reg];
+	u8 reg = IAPU.RAM [0xf2] & 0x7f;
+	u8 byte = APU.DSP [reg];
 
     switch (reg)
     {
@@ -1162,7 +1144,7 @@ uint8 S9xGetAPUDSP ()
     case APU_ENVX + 0x60:
     case APU_ENVX + 0x70:
 		return 0;
-//		return ((uint8) S9xGetEnvelopeHeight (reg >> 4));
+//		return ((u8) S9xGetEnvelopeHeight (reg >> 4));
 
     case APU_ENDX:
 // To fix speech in Magical Drop 2 6/11/00
@@ -1173,3 +1155,40 @@ uint8 S9xGetAPUDSP ()
     }
     return (byte);
 }
+
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(SnesApu, 1) \
+	STATE_SERIALIZE_VAR_##sl(APU.Cycles) \
+	STATE_SERIALIZE_VAR_##sl(APU.ShowROM) \
+	STATE_SERIALIZE_VAR_##sl(APU.Flags) \
+	STATE_SERIALIZE_VAR_##sl(APU.KeyedChannels) \
+	STATE_SERIALIZE_ARRAY_##sl(APU.OutPorts, sizeof(APU.OutPorts)) \
+	STATE_SERIALIZE_ARRAY_##sl(APU.DSP, sizeof(APU.DSP)) \
+	STATE_SERIALIZE_ARRAY_##sl(APU.ExtraRAM, sizeof(APU.ExtraRAM)) \
+	STATE_SERIALIZE_ARRAY_##sl(APU.Timer, sizeof(APU.Timer)) \
+	STATE_SERIALIZE_ARRAY_##sl(APU.TimerTarget, sizeof(APU.TimerTarget)) \
+	STATE_SERIALIZE_ARRAY_##sl(APU.TimerEnabled, sizeof(APU.TimerEnabled)) \
+	STATE_SERIALIZE_ARRAY_##sl(APU.TimerValueWritten, sizeof(APU.TimerValueWritten)) \
+	\
+	u16 pc = IAPU.PC - IAPU.RAM; \
+	STATE_SERIALIZE_VAR_##sl(IAPU.P) \
+	STATE_SERIALIZE_VAR_##sl(IAPU.YA.W) \
+	STATE_SERIALIZE_VAR_##sl(IAPU.X) \
+	STATE_SERIALIZE_VAR_##sl(IAPU.S) \
+	STATE_SERIALIZE_VAR_##sl(pc) \
+	IAPU.PC = IAPU.RAM + pc; \
+	STATE_SERIALIZE_ARRAY_##sl(IAPU.RAM, 0x10000) \
+	\
+	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
+		S9xAPUUnpackStatus(); \
+		if (APUCheckDirectPage()) \
+			IAPU.DirectPage = IAPU.RAM + 0x100; \
+		else \
+			IAPU.DirectPage = IAPU.RAM; \
+		Settings.APUEnabled = TRUE; \
+		CPU.APU_APUExecuting = TRUE; \
+	} \
+	STATE_SERIALIZE_END_##sl(SnesApu)
+
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

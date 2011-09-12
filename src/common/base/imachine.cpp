@@ -18,8 +18,13 @@ void IMachine::reset()
 
 void IMachine::setFrameRate(qreal rate)
 { m_frameRate = rate; }
-void IMachine::setVideoSrcRect(const QRectF &rect)
-{ m_videoSrcRect = rect; }
+
+void IMachine::setVideoSrcRect(const QRectF &rect) {
+	if (m_videoSrcRect != rect) {
+		m_videoSrcRect = rect;
+		emit videoSrcRectChanged();
+	}
+}
 
 void IMachine::saveSettings(QSettings &s)
 { Q_UNUSED(s) }

@@ -49,28 +49,28 @@ enum { RGB565, RGB555, BGR565, BGR555, GBR565, GBR555, RGB5551 };
 #define BUILD_PIXEL2(R,G,B) ((*GFX.BuildPixel2) (R, G, B))
 #define DECOMPOSE_PIXEL(Pixel,R,G,B) ((*GFX.DecomposePixel) (Pixel, R,G,B))
 
-extern uint32 RED_LOW_BIT_MASK;
-extern uint32 GREEN_LOW_BIT_MASK;
-extern uint32 BLUE_LOW_BIT_MASK;
-extern uint32 RED_HI_BIT_MASK;
-extern uint32 GREEN_HI_BIT_MASK;
-extern uint32 BLUE_HI_BIT_MASK;
-extern uint32 MAX_RED;
-extern uint32 MAX_GREEN;
-extern uint32 MAX_BLUE;
-extern uint32 SPARE_RGB_BIT_MASK;
-extern uint32 GREEN_HI_BIT;
-extern uint32 RGB_LOW_BITS_MASK;
-extern uint32 RGB_HI_BITS_MASK;
-extern uint32 RGB_HI_BITS_MASKx2;
-extern uint32 RGB_REMOVE_LOW_BITS_MASK;
-extern uint32 FIRST_COLOR_MASK;
-extern uint32 SECOND_COLOR_MASK;
-extern uint32 THIRD_COLOR_MASK;
-extern uint32 ALPHA_BITS_MASK;
-extern uint32 FIRST_THIRD_COLOR_MASK;
-extern uint32 TWO_LOW_BITS_MASK;
-extern uint32 HIGH_BITS_SHIFTED_TWO_MASK;
+extern u32 RED_LOW_BIT_MASK;
+extern u32 GREEN_LOW_BIT_MASK;
+extern u32 BLUE_LOW_BIT_MASK;
+extern u32 RED_HI_BIT_MASK;
+extern u32 GREEN_HI_BIT_MASK;
+extern u32 BLUE_HI_BIT_MASK;
+extern u32 MAX_RED;
+extern u32 MAX_GREEN;
+extern u32 MAX_BLUE;
+extern u32 SPARE_RGB_BIT_MASK;
+extern u32 GREEN_HI_BIT;
+extern u32 RGB_LOW_BITS_MASK;
+extern u32 RGB_HI_BITS_MASK;
+extern u32 RGB_HI_BITS_MASKx2;
+extern u32 RGB_REMOVE_LOW_BITS_MASK;
+extern u32 FIRST_COLOR_MASK;
+extern u32 SECOND_COLOR_MASK;
+extern u32 THIRD_COLOR_MASK;
+extern u32 ALPHA_BITS_MASK;
+extern u32 FIRST_THIRD_COLOR_MASK;
+extern u32 TWO_LOW_BITS_MASK;
+extern u32 HIGH_BITS_SHIFTED_TWO_MASK;
 
 #endif
 

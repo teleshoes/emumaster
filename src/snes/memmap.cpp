@@ -39,18 +39,12 @@
  * Nintendo Co., Limited and its subsidiary companies.
  */
 
-#ifndef __GP32__ 
-#include <string.h>
-#include <ctype.h>
-#endif
-
-#ifdef __linux
-#include <unistd.h>
-#endif
+#include <QDataStream>
+#include <stdio.h>
 
 #include "snes9x.h"
 #include "memmap.h"
-#include "cpuexec.h"
+#include "cpu.h"
 #include "ppu.h"
 #include "display.h"
 #include "cheats.h"
@@ -64,12 +58,12 @@
 extern struct FxInit_s SuperFX;
 #endif
 
-static uint8 bytes0x2000 [0x2000];
+static u8 bytes0x2000 [0x2000];
 
 extern char *rom_filename;
-extern bool8 LoadZip(const char* , int32 *, int32 *);
+extern bool8 LoadZip(const char* , s32 *, s32 *);
 
-bool8_32 CMemory::AllASCII (uint8 *b, int size)
+bool8_32 CMemory::AllASCII (u8 *b, int size)
 {
     for (int i = 0; i < size; i++)
     {
@@ -164,19 +158,19 @@ char *CMemory::Safe (const char *s)
 /**********************************************************************************************/
 bool8_32 CMemory::Init ()
 {
-    RAM	    = (uint8 *) malloc (0x20000);
-    SRAM    = (uint8 *) malloc (0x20000);
-    VRAM    = (uint8 *) malloc (0x10000);
-    ROM     = (uint8 *) malloc (MAX_ROM_SIZE + 0x200 + 0x8000);
+    RAM	    = (u8 *) malloc (0x20000);
+    SRAM    = (u8 *) malloc (0x20000);
+    VRAM    = (u8 *) malloc (0x10000);
+    ROM     = (u8 *) malloc (MAX_ROM_SIZE + 0x200 + 0x8000);
     FillRAM = NULL;
 
-    IPPU.TileCache [TILE_2BIT] = (uint8 *) malloc (MAX_2BIT_TILES * 128);
-    IPPU.TileCache [TILE_4BIT] = (uint8 *) malloc (MAX_4BIT_TILES * 128);
-    IPPU.TileCache [TILE_8BIT] = (uint8 *) malloc (MAX_8BIT_TILES * 128);
+    IPPU.TileCache [TILE_2BIT] = (u8 *) malloc (MAX_2BIT_TILES * 128);
+    IPPU.TileCache [TILE_4BIT] = (u8 *) malloc (MAX_4BIT_TILES * 128);
+    IPPU.TileCache [TILE_8BIT] = (u8 *) malloc (MAX_8BIT_TILES * 128);
 	
-    IPPU.TileCached [TILE_2BIT] = (uint8 *) malloc (MAX_2BIT_TILES);
-    IPPU.TileCached [TILE_4BIT] = (uint8 *) malloc (MAX_4BIT_TILES);
-    IPPU.TileCached [TILE_8BIT] = (uint8 *) malloc (MAX_8BIT_TILES);
+    IPPU.TileCached [TILE_2BIT] = (u8 *) malloc (MAX_2BIT_TILES);
+    IPPU.TileCached [TILE_4BIT] = (u8 *) malloc (MAX_4BIT_TILES);
+    IPPU.TileCached [TILE_8BIT] = (u8 *) malloc (MAX_8BIT_TILES);
     
     if (!RAM || !SRAM || !VRAM || !ROM ||
         !IPPU.TileCache [TILE_2BIT] || !IPPU.TileCache [TILE_4BIT] ||
@@ -203,7 +197,7 @@ bool8_32 CMemory::Init ()
     SuperFX.nRamBanks = 1;
     SuperFX.pvRam = ::SRAM;
     SuperFX.nRomBanks = (2 * 1024 * 1024) / (32 * 1024);
-    SuperFX.pvRom = (uint8 *) ROM;
+    SuperFX.pvRom = (u8 *) ROM;
 
 	ZeroMemory (IPPU.TileCached [TILE_2BIT], MAX_2BIT_TILES);
     ZeroMemory (IPPU.TileCached [TILE_4BIT], MAX_4BIT_TILES);
@@ -340,7 +334,7 @@ again:
     memmove (&ext [0], &ext[1], 4);
 #endif
 
-    int32 TotalFileSize = 0;
+    s32 TotalFileSize = 0;
 
 #ifdef UNZIP_SUPPORT
     if( checkzip( fname ) )
@@ -359,7 +353,7 @@ again:
 	strcpy (ROMFilename, fname);
 
 	HeaderCount = 0;
-	uint8 *ptr = ROM;
+	u8 *ptr = ROM;
 	bool8_32 more = FALSE;
 
 	do
@@ -560,7 +554,7 @@ again:
 	    
 	nblocks = step;
 #endif
-	uint8 blocks [256];
+	u8 blocks [256];
 
 	if (Tales)
 	{
@@ -601,7 +595,7 @@ again:
 	    }
 	}
 
-	uint8 *tmp = (uint8 *) malloc (0x8000);
+	u8 *tmp = (u8 *) malloc (0x8000);
 	if (tmp)
 	{
 	    for (i = 0; i < nblocks * 2; i++)
@@ -614,7 +608,7 @@ again:
 			memmove (&ROM [blocks [j] * 0x8000], 
 				 &ROM [blocks [i] * 0x8000], 0x8000);
 			memmove (&ROM [blocks [i] * 0x8000], tmp, 0x8000);
-			uint8 b = blocks [j];
+			u8 b = blocks [j];
 			blocks [j] = blocks [i];
 			blocks [i] = b;
 			break;
@@ -652,7 +646,7 @@ again:
 
     S9xReset ();
 
-    return 0;
+	return TRUE;
 }
 
 void S9xDeinterleaveMode2 ()
@@ -667,7 +661,7 @@ void S9xDeinterleaveMode2 ()
 	step >>= 1;
 	
     nblocks = step;
-    uint8 blocks [256];
+    u8 blocks [256];
     int i;
 
     for (i = 0; i < nblocks * 2; i++)
@@ -676,7 +670,7 @@ void S9xDeinterleaveMode2 ()
 		    ((i & 8) >> 2) | ((i & 16) >> 2);
     }
 
-    uint8 *tmp = (uint8 *) malloc (0x8000);
+    u8 *tmp = (u8 *) malloc (0x8000);
 
     if (tmp)
     {
@@ -690,7 +684,7 @@ void S9xDeinterleaveMode2 ()
 		    memmove (&Memory.ROM [blocks [j] * 0x8000], 
 			     &Memory.ROM [blocks [i] * 0x8000], 0x8000);
 		    memmove (&Memory.ROM [blocks [i] * 0x8000], tmp, 0x8000);
-		    uint8 b = blocks [j];
+		    u8 b = blocks [j];
 		    blocks [j] = blocks [i];
 		    blocks [i] = b;
 		    break;
@@ -876,10 +870,10 @@ void CMemory::InitROM (bool8_32 Interleaved)
 	power2++;
 
     size = 1 << power2;
-    uint32 remainder = CalculatedSize - size;
+    u32 remainder = CalculatedSize - size;
 
-    uint32 sum1 = 0;
-    uint32 sum2 = 0;
+    u32 sum1 = 0;
+    u32 sum2 = 0;
 
     int i;
 
@@ -1009,8 +1003,8 @@ bool8_32 CMemory::LoadSRAM (const char *filename)
 		S9xHardResetSRTC ();
 		return (FALSE);
     }
-    if (Settings.SDD1)
-	S9xSDD1LoadLoggedData ();
+//  TODO  if (Settings.SDD1)
+//	S9xSDD1LoadLoggedData ();
 
     return (TRUE);
 }
@@ -1025,8 +1019,8 @@ bool8_32 CMemory::SaveSRAM (const char *filename)
 	S9xSRTCPreSaveState ();
     }
 
-    if (Settings.SDD1)
-	S9xSDD1SaveLoggedData ();
+// TODO    if (Settings.SDD1)
+//	S9xSDD1SaveLoggedData ();
 
     if (size > 0x20000)
 	size = 0x20000;
@@ -1054,7 +1048,7 @@ void CMemory::FixROMSpeed ()
     for (c = 0x800; c < 0x1000; c++)
     {
 	if (BlockIsROM [c])
-	    MemorySpeed [c] = (uint8) CPU.FastROMSpeed;
+	    MemorySpeed [c] = (u8) CPU.FastROMSpeed;
     }
 }
 
@@ -1064,7 +1058,7 @@ void CMemory::WriteProtectROM ()
     for (int c = 0; c < 0x1000; c++)
     {
 	if (BlockIsROM [c])
-	    WriteMap [c] = (uint8 *) MAP_NONE;
+	    WriteMap [c] = (u8 *) MAP_NONE;
     }
 }
 
@@ -1086,7 +1080,7 @@ void CMemory::MapRAM ()
     // Banks 70->77, S-RAM
     for (c = 0; c < 0x80; c++)
     {
-	Map [c + 0x700] = (uint8 *) MAP_LOROM_SRAM;
+	Map [c + 0x700] = (u8 *) MAP_LOROM_SRAM;
 	BlockIsRAM [c + 0x700] = TRUE;
 	BlockIsROM [c + 0x700] = FALSE;
     }
@@ -1139,25 +1133,25 @@ void CMemory::LoROMMap ()
 	BlockIsRAM [c + 0] = BlockIsRAM [c + 0x800] = TRUE;
 	BlockIsRAM [c + 1] = BlockIsRAM [c + 0x801] = TRUE;
 
-	Map [c + 2] = Map [c + 0x802] = (uint8 *) MAP_PPU;
-	Map [c + 3] = Map [c + 0x803] = (uint8 *) MAP_PPU;
-	Map [c + 4] = Map [c + 0x804] = (uint8 *) MAP_CPU;
-	Map [c + 5] = Map [c + 0x805] = (uint8 *) MAP_CPU;
+	Map [c + 2] = Map [c + 0x802] = (u8 *) MAP_PPU;
+	Map [c + 3] = Map [c + 0x803] = (u8 *) MAP_PPU;
+	Map [c + 4] = Map [c + 0x804] = (u8 *) MAP_CPU;
+	Map [c + 5] = Map [c + 0x805] = (u8 *) MAP_CPU;
 	if (Settings.DSP1Master)
 	{
-	    Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_DSP;
-	    Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_DSP;
+	    Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_DSP;
+	    Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_DSP;
 	}
 	else
 	if (Settings.C4)
 	{
-	    Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_C4;
-	    Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_C4;
+	    Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_C4;
+	    Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_C4;
 	}
 	else
 	{
-	    Map [c + 6] = Map [c + 0x806] = (uint8 *) bytes0x2000 - 0x6000;
-	    Map [c + 7] = Map [c + 0x807] = (uint8 *) bytes0x2000 - 0x6000;
+	    Map [c + 6] = Map [c + 0x806] = (u8 *) bytes0x2000 - 0x6000;
+	    Map [c + 7] = Map [c + 0x807] = (u8 *) bytes0x2000 - 0x6000;
 	}
 
 	for (i = c + 8; i < c + 16; i++)
@@ -1182,7 +1176,7 @@ void CMemory::LoROMMap ()
 	{
 	    for (i = c + 8; i < c + 16; i++)
 	    {
-		Map [i] = Map [i + 0x800] = (uint8 *) MAP_DSP;
+		Map [i] = Map [i + 0x800] = (u8 *) MAP_DSP;
 		BlockIsROM [i] = BlockIsROM [i + 0x800] = FALSE;
 	    }
 	}
@@ -1208,7 +1202,7 @@ void CMemory::LoROMMap ()
     {
 	for (c = 0; c < 0x100; c++)
 	{
-	    Map [c + 0xe00] = (uint8 *) MAP_DSP;
+	    Map [c + 0xe00] = (u8 *) MAP_DSP;
 	    MemorySpeed [c + 0xe00] = SLOW_ONE_CYCLE;
 	    BlockIsROM [c + 0xe00] = FALSE;
 	}
@@ -1230,19 +1224,19 @@ void CMemory::HiROMMap ()
 	Map [c + 1] = Map [c + 0x801] = RAM;
 	BlockIsRAM [c + 1] = BlockIsRAM [c + 0x801] = TRUE;
 
-	Map [c + 2] = Map [c + 0x802] = (uint8 *) MAP_PPU;
-	Map [c + 3] = Map [c + 0x803] = (uint8 *) MAP_PPU;
-	Map [c + 4] = Map [c + 0x804] = (uint8 *) MAP_CPU;
-	Map [c + 5] = Map [c + 0x805] = (uint8 *) MAP_CPU;
+	Map [c + 2] = Map [c + 0x802] = (u8 *) MAP_PPU;
+	Map [c + 3] = Map [c + 0x803] = (u8 *) MAP_PPU;
+	Map [c + 4] = Map [c + 0x804] = (u8 *) MAP_CPU;
+	Map [c + 5] = Map [c + 0x805] = (u8 *) MAP_CPU;
 	if (Settings.DSP1Master)
 	{
-	    Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_DSP;
-	    Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_DSP;
+	    Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_DSP;
+	    Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_DSP;
 	}
 	else
 	{
-	    Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_NONE;
-	    Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_NONE;
+	    Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_NONE;
+	    Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_NONE;
 	}
 	    
 	for (i = c + 8; i < c + 16; i++)
@@ -1263,10 +1257,10 @@ void CMemory::HiROMMap ()
     // Banks 30->3f and b0->bf, address ranges 6000->7fff is S-RAM.
     for (c = 0; c < 16; c++)
     {
-	Map [0x306 + (c << 4)] = (uint8 *) MAP_HIROM_SRAM;
-	Map [0x307 + (c << 4)] = (uint8 *) MAP_HIROM_SRAM;
-	Map [0xb06 + (c << 4)] = (uint8 *) MAP_HIROM_SRAM;
-	Map [0xb07 + (c << 4)] = (uint8 *) MAP_HIROM_SRAM;
+	Map [0x306 + (c << 4)] = (u8 *) MAP_HIROM_SRAM;
+	Map [0x307 + (c << 4)] = (u8 *) MAP_HIROM_SRAM;
+	Map [0xb06 + (c << 4)] = (u8 *) MAP_HIROM_SRAM;
+	Map [0xb07 + (c << 4)] = (u8 *) MAP_HIROM_SRAM;
 	BlockIsRAM [0x306 + (c << 4)] = TRUE;
 	BlockIsRAM [0x307 + (c << 4)] = TRUE;
 	BlockIsRAM [0xb06 + (c << 4)] = TRUE;
@@ -1293,9 +1287,9 @@ void CMemory::TalesROMMap (bool8_32 Interleaved)
     int c;
     int i;
 
-    uint32 OFFSET0 = 0x400000;
-    uint32 OFFSET1 = 0x400000;
-    uint32 OFFSET2 = 0x000000;
+    u32 OFFSET0 = 0x400000;
+    u32 OFFSET1 = 0x400000;
+    u32 OFFSET2 = 0x000000;
 
     if (Interleaved)
     {
@@ -1312,12 +1306,12 @@ void CMemory::TalesROMMap (bool8_32 Interleaved)
 	BlockIsRAM [c + 0] = BlockIsRAM [c + 0x800] = TRUE;
 	BlockIsRAM [c + 1] = BlockIsRAM [c + 0x801] = TRUE;
 
-	Map [c + 2] = Map [c + 0x802] = (uint8 *) MAP_PPU;
-	Map [c + 3] = Map [c + 0x803] = (uint8 *) MAP_PPU;
-	Map [c + 4] = Map [c + 0x804] = (uint8 *) MAP_CPU;
-	Map [c + 5] = Map [c + 0x805] = (uint8 *) MAP_CPU;
-	Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_NONE;
-	Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_NONE;
+	Map [c + 2] = Map [c + 0x802] = (u8 *) MAP_PPU;
+	Map [c + 3] = Map [c + 0x803] = (u8 *) MAP_PPU;
+	Map [c + 4] = Map [c + 0x804] = (u8 *) MAP_CPU;
+	Map [c + 5] = Map [c + 0x805] = (u8 *) MAP_CPU;
+	Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_NONE;
+	Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_NONE;
 	for (i = c + 8; i < c + 16; i++)
 	{
 	    Map [i] = &ROM [((c << 12) + OFFSET0) % CalculatedSize];
@@ -1338,10 +1332,10 @@ void CMemory::TalesROMMap (bool8_32 Interleaved)
     // Banks 30->3f and b0->bf, address ranges 6000->7ffff is S-RAM.
     for (c = 0; c < 16; c++)
     {
-	Map [0x306 + (c << 4)] = (uint8 *) MAP_HIROM_SRAM;
-	Map [0x307 + (c << 4)] = (uint8 *) MAP_HIROM_SRAM;
-	Map [0xb06 + (c << 4)] = (uint8 *) MAP_HIROM_SRAM;
-	Map [0xb07 + (c << 4)] = (uint8 *) MAP_HIROM_SRAM;
+	Map [0x306 + (c << 4)] = (u8 *) MAP_HIROM_SRAM;
+	Map [0x307 + (c << 4)] = (u8 *) MAP_HIROM_SRAM;
+	Map [0xb06 + (c << 4)] = (u8 *) MAP_HIROM_SRAM;
+	Map [0xb07 + (c << 4)] = (u8 *) MAP_HIROM_SRAM;
 	BlockIsRAM [0x306 + (c << 4)] = TRUE;
 	BlockIsRAM [0x307 + (c << 4)] = TRUE;
 	BlockIsRAM [0xb06 + (c << 4)] = TRUE;
@@ -1382,12 +1376,12 @@ void CMemory::AlphaROMMap ()
 	BlockIsRAM [c + 0] = BlockIsRAM [c + 0x800] = TRUE;
 	BlockIsRAM [c + 1] = BlockIsRAM [c + 0x801] = TRUE;
 
-	Map [c + 2] = Map [c + 0x802] = (uint8 *) MAP_PPU;
-	Map [c + 3] = Map [c + 0x803] = (uint8 *) MAP_PPU;
-	Map [c + 4] = Map [c + 0x804] = (uint8 *) MAP_CPU;
-	Map [c + 5] = Map [c + 0x805] = (uint8 *) MAP_CPU;
-	Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_DSP;
-	Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_DSP;
+	Map [c + 2] = Map [c + 0x802] = (u8 *) MAP_PPU;
+	Map [c + 3] = Map [c + 0x803] = (u8 *) MAP_PPU;
+	Map [c + 4] = Map [c + 0x804] = (u8 *) MAP_CPU;
+	Map [c + 5] = Map [c + 0x805] = (u8 *) MAP_CPU;
+	Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_DSP;
+	Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_DSP;
 
 	for (i = c + 8; i < c + 16; i++)
 	{
@@ -1434,12 +1428,12 @@ void CMemory::SuperFXROMMap ()
 	BlockIsRAM [c + 0] = BlockIsRAM [c + 0x800] = TRUE;
 	BlockIsRAM [c + 1] = BlockIsRAM [c + 0x801] = TRUE;
 
-	Map [c + 2] = Map [c + 0x802] = (uint8 *) MAP_PPU;
-	Map [c + 3] = Map [c + 0x803] = (uint8 *) MAP_PPU;
-	Map [c + 4] = Map [c + 0x804] = (uint8 *) MAP_CPU;
-	Map [c + 5] = Map [c + 0x805] = (uint8 *) MAP_CPU;
-	Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_DSP;
-	Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_DSP;
+	Map [c + 2] = Map [c + 0x802] = (u8 *) MAP_PPU;
+	Map [c + 3] = Map [c + 0x803] = (u8 *) MAP_PPU;
+	Map [c + 4] = Map [c + 0x804] = (u8 *) MAP_CPU;
+	Map [c + 5] = Map [c + 0x805] = (u8 *) MAP_CPU;
+	Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_DSP;
+	Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_DSP;
 	for (i = c + 8; i < c + 16; i++)
 	{
 	    Map [i] = Map [i + 0x800] = &ROM [c << 11] - 0x8000;
@@ -1488,10 +1482,10 @@ void CMemory::SuperFXROMMap ()
     // Banks 00->3f and 80->bf address ranges 6000->7fff is RAM.
     for (c = 0; c < 0x40; c++)
     {
-	Map [0x006 + (c << 4)] = (uint8 *) ::SRAM - 0x6000;
-	Map [0x007 + (c << 4)] = (uint8 *) ::SRAM - 0x6000;
-	Map [0x806 + (c << 4)] = (uint8 *) ::SRAM - 0x6000;
-	Map [0x807 + (c << 4)] = (uint8 *) ::SRAM - 0x6000;
+	Map [0x006 + (c << 4)] = (u8 *) ::SRAM - 0x6000;
+	Map [0x007 + (c << 4)] = (u8 *) ::SRAM - 0x6000;
+	Map [0x806 + (c << 4)] = (u8 *) ::SRAM - 0x6000;
+	Map [0x807 + (c << 4)] = (u8 *) ::SRAM - 0x6000;
 	BlockIsRAM [0x006 + (c << 4)] = TRUE;
 	BlockIsRAM [0x007 + (c << 4)] = TRUE;
 	BlockIsRAM [0x806 + (c << 4)] = TRUE;
@@ -1521,12 +1515,12 @@ void CMemory::SA1ROMMap ()
 	BlockIsRAM [c + 0] = BlockIsRAM [c + 0x800] = TRUE;
 	BlockIsRAM [c + 1] = BlockIsRAM [c + 0x801] = TRUE;
 
-	Map [c + 2] = Map [c + 0x802] = (uint8 *) MAP_PPU;
-	Map [c + 3] = Map [c + 0x803] = (uint8 *) &Memory.FillRAM [0x3000] - 0x3000;
-	Map [c + 4] = Map [c + 0x804] = (uint8 *) MAP_CPU;
-	Map [c + 5] = Map [c + 0x805] = (uint8 *) MAP_CPU;
-	Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_BWRAM;
-	Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_BWRAM;
+	Map [c + 2] = Map [c + 0x802] = (u8 *) MAP_PPU;
+	Map [c + 3] = Map [c + 0x803] = (u8 *) &Memory.FillRAM [0x3000] - 0x3000;
+	Map [c + 4] = Map [c + 0x804] = (u8 *) MAP_CPU;
+	Map [c + 5] = Map [c + 0x805] = (u8 *) MAP_CPU;
+	Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_BWRAM;
+	Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_BWRAM;
 	for (i = c + 8; i < c + 16; i++)
 	{
 	    Map [i] = Map [i + 0x800] = &ROM [c << 11] - 0x8000;
@@ -1546,7 +1540,7 @@ void CMemory::SA1ROMMap ()
     for (c = 0; c < 0x400; c += 16)
     {
 	for (i = c; i < c + 16; i++)
-	    Map [i + 0x400] = (uint8 *) &SRAM [(c << 12) & 0x1ffff];
+	    Map [i + 0x400] = (u8 *) &SRAM [(c << 12) & 0x1ffff];
 
 	for (i = c; i < c + 16; i++)
 	{
@@ -1585,14 +1579,14 @@ void CMemory::SA1ROMMap ()
     for (c = 0; c < 0x400; c += 16)
     {
 	SA1.Map [c + 0] = SA1.Map [c + 0x800] = &Memory.FillRAM [0x3000];
-	SA1.Map [c + 1] = SA1.Map [c + 0x801] = (uint8 *) MAP_NONE;
+	SA1.Map [c + 1] = SA1.Map [c + 0x801] = (u8 *) MAP_NONE;
 	SA1.WriteMap [c + 0] = SA1.WriteMap [c + 0x800] = &Memory.FillRAM [0x3000];
-	SA1.WriteMap [c + 1] = SA1.WriteMap [c + 0x801] = (uint8 *) MAP_NONE;
+	SA1.WriteMap [c + 1] = SA1.WriteMap [c + 0x801] = (u8 *) MAP_NONE;
     }
 
     // Banks 60->6f
     for (c = 0; c < 0x100; c++)
-	SA1.Map [c + 0x600] = SA1.WriteMap [c + 0x600] = (uint8 *) MAP_BWRAM_BITMAP;
+	SA1.Map [c + 0x600] = SA1.WriteMap [c + 0x600] = (u8 *) MAP_BWRAM_BITMAP;
     
     BWRAM = SRAM;
 }
@@ -1610,12 +1604,12 @@ void CMemory::LoROM24MBSMap ()
 	BlockIsRAM [c + 0] = BlockIsRAM [c + 0x800] = TRUE;
 	BlockIsRAM [c + 1] = BlockIsRAM [c + 0x801] = TRUE;
 
-	Map [c + 2] = Map [c + 0x802] = (uint8 *) MAP_PPU;
-	Map [c + 3] = Map [c + 0x803] = (uint8 *) MAP_PPU;
-	Map [c + 4] = Map [c + 0x804] = (uint8 *) MAP_CPU;
-	Map [c + 5] = Map [c + 0x805] = (uint8 *) MAP_CPU;
-        Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_NONE;
-        Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_NONE;
+	Map [c + 2] = Map [c + 0x802] = (u8 *) MAP_PPU;
+	Map [c + 3] = Map [c + 0x803] = (u8 *) MAP_PPU;
+	Map [c + 4] = Map [c + 0x804] = (u8 *) MAP_CPU;
+	Map [c + 5] = Map [c + 0x805] = (u8 *) MAP_CPU;
+        Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_NONE;
+        Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_NONE;
 
 	for (i = c + 8; i < c + 16; i++)
 	{
@@ -1640,12 +1634,12 @@ void CMemory::LoROM24MBSMap ()
 	BlockIsRAM [c + 0x800] = TRUE;
 	BlockIsRAM [c + 0x801] = TRUE;
 
-	Map [c + 0x802] = (uint8 *) MAP_PPU;
-	Map [c + 0x803] = (uint8 *) MAP_PPU;
-	Map [c + 0x804] = (uint8 *) MAP_CPU;
-	Map [c + 0x805] = (uint8 *) MAP_CPU;
-        Map [c + 0x806] = (uint8 *) MAP_NONE;
-	Map [c + 0x807] = (uint8 *) MAP_NONE;
+	Map [c + 0x802] = (u8 *) MAP_PPU;
+	Map [c + 0x803] = (u8 *) MAP_PPU;
+	Map [c + 0x804] = (u8 *) MAP_CPU;
+	Map [c + 0x805] = (u8 *) MAP_CPU;
+        Map [c + 0x806] = (u8 *) MAP_NONE;
+	Map [c + 0x807] = (u8 *) MAP_NONE;
 
 	for (i = c + 8; i < c + 16; i++)
 	{
@@ -1694,19 +1688,19 @@ void CMemory::SufamiTurboLoROMMap ()
 	BlockIsRAM [c + 0] = BlockIsRAM [c + 0x800] = TRUE;
 	BlockIsRAM [c + 1] = BlockIsRAM [c + 0x801] = TRUE;
 
-	Map [c + 2] = Map [c + 0x802] = (uint8 *) MAP_PPU;
-	Map [c + 3] = Map [c + 0x803] = (uint8 *) MAP_PPU;
-	Map [c + 4] = Map [c + 0x804] = (uint8 *) MAP_CPU;
-	Map [c + 5] = Map [c + 0x805] = (uint8 *) MAP_CPU;
+	Map [c + 2] = Map [c + 0x802] = (u8 *) MAP_PPU;
+	Map [c + 3] = Map [c + 0x803] = (u8 *) MAP_PPU;
+	Map [c + 4] = Map [c + 0x804] = (u8 *) MAP_CPU;
+	Map [c + 5] = Map [c + 0x805] = (u8 *) MAP_CPU;
 	if (Settings.DSP1Master)
 	{
-	    Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_DSP;
-	    Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_DSP;
+	    Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_DSP;
+	    Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_DSP;
 	}
 	else
 	{
-	    Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_NONE;
-	    Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_NONE;
+	    Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_NONE;
+	    Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_NONE;
 	}
 	for (i = c + 8; i < c + 16; i++)
 	{
@@ -1730,7 +1724,7 @@ void CMemory::SufamiTurboLoROMMap ()
 	{
 	    for (i = c + 8; i < c + 16; i++)
 	    {
-		Map [i] = Map [i + 0x800] = (uint8 *) MAP_DSP;
+		Map [i] = Map [i + 0x800] = (u8 *) MAP_DSP;
 		BlockIsROM [i] = BlockIsROM [i + 0x800] = FALSE;
 	    }
 	}
@@ -1756,7 +1750,7 @@ void CMemory::SufamiTurboLoROMMap ()
     {
 	for (c = 0; c < 0x100; c++)
 	{
-	    Map [c + 0xe00] = (uint8 *) MAP_DSP;
+	    Map [c + 0xe00] = (u8 *) MAP_DSP;
 	    MemorySpeed [c + 0xe00] = SLOW_ONE_CYCLE;
 	    BlockIsROM [c + 0xe00] = FALSE;
 	}
@@ -1776,7 +1770,7 @@ void CMemory::SufamiTurboLoROMMap ()
     // Banks 60->67, S-RAM
     for (c = 0; c < 0x80; c++)
     {
-	Map [c + 0x600] = (uint8 *) MAP_LOROM_SRAM;
+	Map [c + 0x600] = (u8 *) MAP_LOROM_SRAM;
 	BlockIsRAM [c + 0x600] = TRUE;
 	BlockIsROM [c + 0x600] = FALSE;
     }
@@ -1797,12 +1791,12 @@ void CMemory::SRAM512KLoROMMap ()
 	BlockIsRAM [c + 0] = BlockIsRAM [c + 0x800] = TRUE;
 	BlockIsRAM [c + 1] = BlockIsRAM [c + 0x801] = TRUE;
 
-	Map [c + 2] = Map [c + 0x802] = (uint8 *) MAP_PPU;
-	Map [c + 3] = Map [c + 0x803] = (uint8 *) MAP_PPU;
-	Map [c + 4] = Map [c + 0x804] = (uint8 *) MAP_CPU;
-	Map [c + 5] = Map [c + 0x805] = (uint8 *) MAP_CPU;
-	Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_NONE;
-	Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_NONE;
+	Map [c + 2] = Map [c + 0x802] = (u8 *) MAP_PPU;
+	Map [c + 3] = Map [c + 0x803] = (u8 *) MAP_PPU;
+	Map [c + 4] = Map [c + 0x804] = (u8 *) MAP_CPU;
+	Map [c + 5] = Map [c + 0x805] = (u8 *) MAP_CPU;
+	Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_NONE;
+	Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_NONE;
 
 	for (i = c + 8; i < c + 16; i++)
 	{
@@ -1852,12 +1846,12 @@ void CMemory::SRAM1024KLoROMMap ()
 	BlockIsRAM [c + 0] = BlockIsRAM [c + 0x800] = BlockIsRAM [c + 0x400] = BlockIsRAM [c + 0xc00] = TRUE;
 	BlockIsRAM [c + 1] = BlockIsRAM [c + 0x801] = BlockIsRAM [c + 0x401] = BlockIsRAM [c + 0xc01] = TRUE;
 
-	Map [c + 2] = Map [c + 0x802] = Map [c + 0x402] = Map [c + 0xc02] = (uint8 *) MAP_PPU;
-	Map [c + 3] = Map [c + 0x803] = Map [c + 0x403] = Map [c + 0xc03] = (uint8 *) MAP_PPU;
-	Map [c + 4] = Map [c + 0x804] = Map [c + 0x404] = Map [c + 0xc04] = (uint8 *) MAP_CPU;
-	Map [c + 5] = Map [c + 0x805] = Map [c + 0x405] = Map [c + 0xc05] = (uint8 *) MAP_CPU;
-	Map [c + 6] = Map [c + 0x806] = Map [c + 0x406] = Map [c + 0xc06] = (uint8 *) MAP_NONE;
-	Map [c + 7] = Map [c + 0x807] = Map [c + 0x407] = Map [c + 0xc07] = (uint8 *) MAP_NONE;
+	Map [c + 2] = Map [c + 0x802] = Map [c + 0x402] = Map [c + 0xc02] = (u8 *) MAP_PPU;
+	Map [c + 3] = Map [c + 0x803] = Map [c + 0x403] = Map [c + 0xc03] = (u8 *) MAP_PPU;
+	Map [c + 4] = Map [c + 0x804] = Map [c + 0x404] = Map [c + 0xc04] = (u8 *) MAP_CPU;
+	Map [c + 5] = Map [c + 0x805] = Map [c + 0x405] = Map [c + 0xc05] = (u8 *) MAP_CPU;
+	Map [c + 6] = Map [c + 0x806] = Map [c + 0x406] = Map [c + 0xc06] = (u8 *) MAP_NONE;
+	Map [c + 7] = Map [c + 0x807] = Map [c + 0x407] = Map [c + 0xc07] = (u8 *) MAP_NONE;
 	for (i = c + 8; i < c + 16; i++)
 	{
 	    Map [i] = Map [i + 0x800] = Map [i + 0x400] = Map [i + 0xc00] = &ROM [c << 11] - 0x8000;
@@ -1890,14 +1884,14 @@ void CMemory::BSHiROMMap ()
 	Map [c + 1] = Map [c + 0x801] = RAM;
 	BlockIsRAM [c + 1] = BlockIsRAM [c + 0x801] = TRUE;
 
-	Map [c + 2] = Map [c + 0x802] = (uint8 *) MAP_PPU;
-	Map [c + 3] = Map [c + 0x803] = (uint8 *) MAP_PPU;
-	Map [c + 4] = Map [c + 0x804] = (uint8 *) MAP_CPU;
+	Map [c + 2] = Map [c + 0x802] = (u8 *) MAP_PPU;
+	Map [c + 3] = Map [c + 0x803] = (u8 *) MAP_PPU;
+	Map [c + 4] = Map [c + 0x804] = (u8 *) MAP_CPU;
 	// XXX: How large is SRAM??
-	Map [c + 5] = Map [c + 0x805] = (uint8 *) SRAM;
+	Map [c + 5] = Map [c + 0x805] = (u8 *) SRAM;
 	BlockIsRAM [c + 5] = BlockIsRAM [c + 0x805] = TRUE;
-	Map [c + 6] = Map [c + 0x806] = (uint8 *) MAP_NONE;
-	Map [c + 7] = Map [c + 0x807] = (uint8 *) MAP_NONE;
+	Map [c + 6] = Map [c + 0x806] = (u8 *) MAP_NONE;
+	Map [c + 7] = Map [c + 0x807] = (u8 *) MAP_NONE;
 	    
 	for (i = c + 8; i < c + 16; i++)
 	{
@@ -2481,7 +2475,7 @@ void CMemory::ApplyROMFixes ()
 	// Banks 70->7e, S-RAM
 	for (int c = 0; c < 0xe0; c++)
 	{
-	    Map [c + 0x700] = (uint8 *) MAP_LOROM_SRAM;
+	    Map [c + 0x700] = (u8 *) MAP_LOROM_SRAM;
 	    BlockIsRAM [c + 0x700] = TRUE;
 	    BlockIsROM [c + 0x700] = FALSE;
 	}
@@ -2581,7 +2575,7 @@ static long ReadInt (FILE *f, unsigned nbytes)
 #define IPS_EOF 0x00454F46l
 
 void CMemory::CheckForIPSPatch (const char *rom_filename, bool8_32 header,
-				int32 &rom_size)
+				s32 &rom_size)
 {
     //char  dir [_MAX_DIR + 1];
     //char  drive [_MAX_DRIVE + 1];
@@ -2599,7 +2593,7 @@ void CMemory::CheckForIPSPatch (const char *rom_filename, bool8_32 header,
 	return;
     }
 
-    int32 ofs;
+    s32 ofs;
 
     for (;;)
     {
@@ -2631,7 +2625,7 @@ void CMemory::CheckForIPSPatch (const char *rom_filename, bool8_32 header,
 		rchar = fgetc (patch_file);
 		if (rchar == EOF) 
 		    goto err_eof;
-		ROM [ofs++] = (uint8) rchar;
+		ROM [ofs++] = (u8) rchar;
             }
 	    if (ofs > rom_size)
 		rom_size = ofs;
@@ -2650,7 +2644,7 @@ void CMemory::CheckForIPSPatch (const char *rom_filename, bool8_32 header,
 		goto err_eof;
 
 	    while (rlen--) 
-		ROM [ofs++] = (uint8) rchar;
+		ROM [ofs++] = (u8) rchar;
 
 	    if (ofs > rom_size)
 		rom_size = ofs;
@@ -2675,3 +2669,17 @@ err_eof:
 #undef INLINE
 #define INLINE
 #include "getset.h"
+
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(SnesMemory, 1) \
+	STATE_SERIALIZE_ARRAY_##sl(Memory.RAM, 0x20000) \
+	STATE_SERIALIZE_ARRAY_##sl(Memory.VRAM, 0x10000) \
+	STATE_SERIALIZE_ARRAY_##sl(Memory.SRAM, 0x20000) \
+	STATE_SERIALIZE_ARRAY_##sl(Memory.FillRAM, 0x8000) \
+	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
+		Memory.FixROMSpeed(); \
+	} \
+	STATE_SERIALIZE_END_##sl(SnesMemory)
+
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

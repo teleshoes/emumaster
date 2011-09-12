@@ -22,7 +22,6 @@
 #else
 
 #ifndef __GP32__
-#include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdlib.h>

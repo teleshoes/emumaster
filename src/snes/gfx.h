@@ -45,59 +45,59 @@
 
 struct SGFX{
     // Initialize these variables
-    uint8  *Screen;
-    uint8  *SubScreen;
-    uint8  *ZBuffer;
-    uint8  *SubZBuffer;
-    uint32 Pitch;
+    u8  *Screen;
+    u8  *SubScreen;
+    u8  *ZBuffer;
+    u8  *SubZBuffer;
+    u32 Pitch;
 
     // Setup in call to S9xGraphicsInit()
     int   Delta;
-    uint16 *X2;
-    uint16 *ZERO_OR_X2;
-    uint16 *ZERO;
-    uint32 RealPitch; // True pitch of Screen buffer.
-    uint32 Pitch2;    // Same as RealPitch except while using speed up hack for Glide.
-    uint32 ZPitch;    // Pitch of ZBuffer
-    uint32 PPL;	      // Number of pixels on each of Screen buffer
-    uint32 PPLx2;
-    uint32 PixSize;
-    uint8  *S;
-    uint8  *DB;
-    uint16 *ScreenColors;
-    uint32 DepthDelta;
-    uint8  Z1;
-    uint8  Z2;
-    uint32 FixedColour;
+    u16 *X2;
+    u16 *ZERO_OR_X2;
+    u16 *ZERO;
+    u32 RealPitch; // True pitch of Screen buffer.
+    u32 Pitch2;    // Same as RealPitch except while using speed up hack for Glide.
+    u32 ZPitch;    // Pitch of ZBuffer
+    u32 PPL;	      // Number of pixels on each of Screen buffer
+    u32 PPLx2;
+    u32 PixSize;
+    u8  *S;
+    u8  *DB;
+    u16 *ScreenColors;
+    u32 DepthDelta;
+    u8  Z1;
+    u8  Z2;
+    u32 FixedColour;
     const char *InfoString;
-    uint32 InfoStringTimeout;
-    uint32 StartY;
-    uint32 EndY;
+    u32 InfoStringTimeout;
+    u32 StartY;
+    u32 EndY;
     struct ClipData *pCurrentClip;
-    uint32 Mode7Mask;
-    uint32 Mode7PriorityMask;
+    u32 Mode7Mask;
+    u32 Mode7PriorityMask;
     int	   OBJList [129];
-    uint32 Sizes [129];
+    u32 Sizes [129];
     int    VPositions [129];
 
-    uint8  r212c;
-    uint8  r212d;
-    uint8  r2130;
-    uint8  r2131;
+    u8  r212c;
+    u8  r212d;
+    u8  r2130;
+    u8  r2131;
     bool8_32  Pseudo;
     
 #ifdef GFX_MULTI_FORMAT
-    uint32 PixelFormat;
-    uint32 (*BuildPixel) (uint32 R, uint32 G, uint32 B);
-    uint32 (*BuildPixel2) (uint32 R, uint32 G, uint32 B);
-    void   (*DecomposePixel) (uint32 Pixel, uint32 &R, uint32 &G, uint32 &B);
+    u32 PixelFormat;
+    u32 (*BuildPixel) (u32 R, u32 G, u32 B);
+    u32 (*BuildPixel2) (u32 R, u32 G, u32 B);
+    void   (*DecomposePixel) (u32 Pixel, u32 &R, u32 &G, u32 &B);
 #endif
 };
 
 struct SLineData {
     struct {
-	uint16 VOffset;
-	uint16 HOffset;
+	u16 VOffset;
+	u16 HOffset;
     } BG [4];
 };
 
@@ -108,19 +108,19 @@ struct SLineData {
 
 struct SBG
 {
-    uint32 TileSize;
-    uint32 BitShift;
-    uint32 TileShift;
-    uint32 TileAddress;
-    uint32 NameSelect;
-    uint32 SCBase;
+    u32 TileSize;
+    u32 BitShift;
+    u32 TileShift;
+    u32 TileAddress;
+    u32 NameSelect;
+    u32 SCBase;
 
-    uint32 StartPalette;
-    uint32 PaletteShift;
-    uint32 PaletteMask;
+    u32 StartPalette;
+    u32 PaletteShift;
+    u32 PaletteMask;
     
-	uint8 *Buffer;
-    uint8 *Buffered;
+	u8 *Buffer;
+    u8 *Buffered;
     bool8_32  DirectColourMode;
 };
 
@@ -134,35 +134,35 @@ struct SLineMatrixData
     short CentreY;
 };
 
-extern uint32 odd_high [4][16];
-extern uint32 odd_low [4][16];
-extern uint32 even_high [4][16];
-extern uint32 even_low [4][16];
+extern u32 odd_high [4][16];
+extern u32 odd_low [4][16];
+extern u32 even_high [4][16];
+extern u32 even_low [4][16];
 extern SBG BG;
-extern uint16 DirectColourMaps [8][256];
+extern u16 DirectColourMaps [8][256];
 
-//extern uint8 add32_32 [32][32];
-//extern uint8 add32_32_half [32][32];
-//extern uint8 sub32_32 [32][32];
-//extern uint8 sub32_32_half [32][32];
-extern uint8 mul_brightness [16][32];
+//extern u8 add32_32 [32][32];
+//extern u8 add32_32_half [32][32];
+//extern u8 sub32_32 [32][32];
+//extern u8 sub32_32_half [32][32];
+extern u8 mul_brightness [16][32];
 
 // Could use BSWAP instruction on Intel port...
 #define SWAP_DWORD(dw) dw = ((dw & 0xff) << 24) | ((dw & 0xff00) << 8) | \
 		            ((dw & 0xff0000) >> 8) | ((dw & 0xff000000) >> 24)
 
 #ifdef FAST_LSB_WORD_ACCESS
-#define READ_2BYTES(s) (*(uint16 *) (s))
-#define WRITE_2BYTES(s, d) *(uint16 *) (s) = (d)
+#define READ_2BYTES(s) (*(u16 *) (s))
+#define WRITE_2BYTES(s, d) *(u16 *) (s) = (d)
 #else
 #ifdef LSB_FIRST
-#define READ_2BYTES(s) (*(uint8 *) (s) | (*((uint8 *) (s) + 1) << 8))
-#define WRITE_2BYTES(s, d) *(uint8 *) (s) = (d), \
-			   *((uint8 *) (s) + 1) = (d) >> 8
+#define READ_2BYTES(s) (*(u8 *) (s) | (*((u8 *) (s) + 1) << 8))
+#define WRITE_2BYTES(s, d) *(u8 *) (s) = (d), \
+			   *((u8 *) (s) + 1) = (d) >> 8
 #else  // else MSB_FISRT
-#define READ_2BYTES(s) (*(uint8 *) (s) | (*((uint8 *) (s) + 1) << 8))
-#define WRITE_2BYTES(s, d) *(uint8 *) (s) = (d), \
-			   *((uint8 *) (s) + 1) = (d) >> 8
+#define READ_2BYTES(s) (*(u8 *) (s) | (*((u8 *) (s) + 1) << 8))
+#define WRITE_2BYTES(s, d) *(u8 *) (s) = (d), \
+			   *((u8 *) (s) + 1) = (d) >> 8
 #endif // LSB_FIRST
 #endif // i386
 #define SUB_SCREEN_DEPTH 0
@@ -202,23 +202,23 @@ GFX.ZERO_OR_X2 [(((C1) | RGB_HI_BITS_MASKx2) - \
 GFX.ZERO [(((C1) | RGB_HI_BITS_MASKx2) - \
 	   ((C2) & RGB_REMOVE_LOW_BITS_MASK)) >> 1]
 
-typedef void (*NormalTileRenderer) (uint32 Tile, uint32 Offset, 
-				    uint32 StartLine, uint32 LineCount, struct SGFX * gfx);
-typedef void (*ClippedTileRenderer) (uint32 Tile, uint32 Offset,
-				     uint32 StartPixel, uint32 Width,
-				     uint32 StartLine, uint32 LineCount, struct SGFX * gfx);
-typedef void (*LargePixelRenderer) (uint32 Tile, uint32 Offset,
-				    uint32 StartPixel, uint32 Pixels,
-				    uint32 StartLine, uint32 LineCount, struct SGFX * gfx);
+typedef void (*NormalTileRenderer) (u32 Tile, u32 Offset, 
+				    u32 StartLine, u32 LineCount, struct SGFX * gfx);
+typedef void (*ClippedTileRenderer) (u32 Tile, u32 Offset,
+				     u32 StartPixel, u32 Width,
+				     u32 StartLine, u32 LineCount, struct SGFX * gfx);
+typedef void (*LargePixelRenderer) (u32 Tile, u32 Offset,
+				    u32 StartPixel, u32 Pixels,
+				    u32 StartLine, u32 LineCount, struct SGFX * gfx);
 
 
 START_EXTERN_C
 void S9xStartScreenRefresh ();
-void S9xDrawScanLine (uint8 Line);
+void S9xDrawScanLine (u8 Line);
 void S9xEndScreenRefresh ();
 void S9xSetupOBJ (struct SOBJ *);
 void S9xUpdateScreen ();
-void RenderLine (uint8 line);
+void RenderLine (u8 line);
 void S9xBuildDirectColourMaps ();
 
 // External port interface which must be implemented or initialised for each
@@ -227,10 +227,8 @@ extern struct SGFX GFX;
 
 bool8_32 S9xGraphicsInit ();
 void S9xGraphicsDeinit();
-bool8_32 S9xInitUpdate (void);
 bool8_32 S9xDeinitUpdate (int Width, int Height, bool8_32 sixteen_bit);
-void S9xSetPalette ();
-void S9xSyncSpeed ();
+//void S9xSetPalette ();
 
 #ifdef GFX_MULTI_FORMAT
 bool8_32 S9xSetRenderPixelFormat (int format);

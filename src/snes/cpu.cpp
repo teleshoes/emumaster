@@ -42,7 +42,7 @@
 #include "memmap.h"
 #include "ppu.h"
 #include "dsp1.h"
-#include "cpuexec.h"
+#include "cpu.h"
 #include "debug.h"
 #include "apu.h"
 #include "dma.h"
@@ -56,9 +56,11 @@
 //#include "spc7110.h"
 
 #include "soundux.h"
+#include "missing.h"
 
 #ifdef SUPER_FX
 #include "fxemu.h"
+#include <QDataStream>
 
 extern struct FxInit_s SuperFX;
 
@@ -68,6 +70,8 @@ void S9xResetSuperFX ()
     FxReset (&SuperFX);
 }
 #endif
+
+#include "os9x_asm_cpu.h"
 
 void S9xResetCPU ()
 {
@@ -87,7 +91,7 @@ void S9xResetCPU ()
     ClearFlags (Decimal);
 
     CPU.Flags = CPU.Flags & (DEBUG_MODE_FLAG | TRACE_FLAG);
-    CPU.BranchSkip = FALSE;
+	CPU.BranchSkip = false;
     CPU.NMIActive = FALSE;
     CPU.IRQActive = FALSE;
     CPU.WaitingForInterrupt = FALSE;
@@ -113,13 +117,7 @@ void S9xResetCPU ()
     CPU.IRQCycleCount = 0;
     S9xSetPCBase (Registers.PC);
 
-#ifndef VAR_CYCLES
-    //ICPU.Speed = S9xE1M1X1; // unused
-#endif
-    //ICPU.S9xOpcodes = S9xOpcodesM1X1; // unused
     ICPU.CPUExecuting = TRUE;
-
-    //S9xUnpackStatus(); // not needed
 }
 
 
@@ -157,12 +155,241 @@ void S9xReset (void)
     Settings.Paused = FALSE;
     
        //Init CPU Map & co
-    CPU.Memory_Map=(uint8*)&(Memory.Map);
-    CPU.Memory_WriteMap=(uint8*)&(Memory.WriteMap);
-    CPU.Memory_MemorySpeed=(uint8*)&(Memory.MemorySpeed);
-    CPU.Memory_BlockIsRAM=(uint8*)&(Memory.BlockIsRAM);
+	CPU.Memory_Map=(u8*)&(Memory.Map);
+	CPU.Memory_WriteMap=(u8*)&(Memory.WriteMap);
+	CPU.Memory_MemorySpeed=(u8*)&(Memory.MemorySpeed);
+	CPU.Memory_BlockIsRAM=(u8*)&(Memory.BlockIsRAM);
     CPU.Memory_SRAM=Memory.SRAM;
     CPU.Memory_BWRAM=Memory.BWRAM;
 //    CPU.Memory_SRAMMask=Memory.SRAMMask;
 	
 }
+
+void S9xMainLoop (void)
+{
+	asmMainLoop(&CPU);
+	Registers.PC = CPU.PC - CPU.PCBase;
+	S9xAPUPackStatus ();
+	if (CPU.Flags & SCAN_KEYS_FLAG)
+	{
+		CPU.Flags &= ~SCAN_KEYS_FLAG;
+	}
+
+	if (CPU.BRKTriggered && Settings.SuperFX && !CPU.TriedInterleavedMode2)
+	{
+	CPU.TriedInterleavedMode2 = TRUE;
+	CPU.BRKTriggered = FALSE;
+	S9xDeinterleaveMode2 ();
+	}
+}
+
+void S9xSetIRQ (u32 source)
+{
+	CPU.IRQActive |= source;
+	CPU.Flags |= IRQ_PENDING_FLAG;
+	CPU.IRQCycleCount = 3;
+	if (CPU.WaitingForInterrupt)
+	{
+	// Force IRQ to trigger immediately after WAI -
+	// Final Fantasy Mystic Quest crashes without this.
+	CPU.IRQCycleCount = 0;
+	CPU.WaitingForInterrupt = FALSE;
+	CPU.PC++;
+	}
+}
+
+void S9xDoHBlankProcessing ()
+{
+#ifdef CPU_SHUTDOWN
+	CPU.WaitCounter++;
+#endif
+	switch (CPU.WhichEvent)
+	{
+	case HBLANK_START_EVENT:
+		if (IPPU.HDMA && CPU.V_Counter <= PPU.ScreenHeight)
+			IPPU.HDMA = S9xDoHDMA (IPPU.HDMA);
+		break;
+
+	case HBLANK_END_EVENT:
+		APU_EXECUTE(3); // notaz: run spc700 in sound 'speed hack' mode
+
+		if(Settings.SuperFX)
+			S9xSuperFXExec ();
+
+		CPU.Cycles -= Settings.H_Max;
+		if (/*IAPU.APUExecuting*/CPU.APU_APUExecuting)
+			CPU.APU_Cycles -= Settings.H_Max;
+		else
+			CPU.APU_Cycles = 0;
+
+		CPU.NextEvent = -1;
+		ICPU.Scanline++;
+
+		if (++CPU.V_Counter > (Settings.PAL ? SNES_MAX_PAL_VCOUNTER : SNES_MAX_NTSC_VCOUNTER))
+		{
+			PPU.OAMAddr = PPU.SavedOAMAddr;
+			PPU.OAMFlip = 0;
+			CPU.V_Counter = 0;
+			CPU.NMIActive = FALSE;
+			ICPU.Frame++;
+			PPU.HVBeamCounterLatched = 0;
+			CPU.Flags |= SCAN_KEYS_FLAG;
+			S9xStartHDMA ();
+		}
+
+		if (PPU.VTimerEnabled && !PPU.HTimerEnabled &&
+			CPU.V_Counter == PPU.IRQVBeamPos)
+		{
+			S9xSetIRQ (PPU_V_BEAM_IRQ_SOURCE);
+		}
+
+		if (CPU.V_Counter == PPU.ScreenHeight + FIRST_VISIBLE_LINE)
+		{
+			// Start of V-blank
+			S9xEndScreenRefresh ();
+			PPU.FirstSprite = 0;
+			IPPU.HDMA = 0;
+			// Bits 7 and 6 of $4212 are computed when read in S9xGetPPU.
+			missing.dma_this_frame = 0;
+			IPPU.MaxBrightness = PPU.Brightness;
+			PPU.ForcedBlanking = (Memory.FillRAM [0x2100] >> 7) & 1;
+
+			Memory.FillRAM[0x4210] = 0x80;
+			if (Memory.FillRAM[0x4200] & 0x80)
+			{
+			CPU.NMIActive = TRUE;
+			CPU.Flags |= NMI_FLAG;
+			CPU.NMICycleCount = CPU.NMITriggerPoint;
+			}
+
+			}
+
+		if (CPU.V_Counter == PPU.ScreenHeight + 3)
+			S9xUpdateJoypads ();
+
+		if (CPU.V_Counter == FIRST_VISIBLE_LINE)
+		{
+			Memory.FillRAM[0x4210] = 0;
+			CPU.Flags &= ~NMI_FLAG;
+			S9xStartScreenRefresh ();
+		}
+		if (CPU.V_Counter >= FIRST_VISIBLE_LINE &&
+			CPU.V_Counter < PPU.ScreenHeight + FIRST_VISIBLE_LINE)
+		{
+			RenderLine (CPU.V_Counter - FIRST_VISIBLE_LINE);
+		}
+		// Use TimerErrorCounter to skip update of SPC700 timers once
+		// every 128 updates. Needed because this section of code is called
+		// once every emulated 63.5 microseconds, which coresponds to
+		// 15.750KHz, but the SPC700 timers need to be updated at multiples
+		// of 8KHz, hence the error correction.
+	//	IAPU.TimerErrorCounter++;
+	//	if (IAPU.TimerErrorCounter >= )
+	//	    IAPU.TimerErrorCounter = 0;
+	//	else
+		{
+			if (APU.TimerEnabled [2])
+			{
+			APU.Timer [2] += 4;
+			while (APU.Timer [2] >= APU.TimerTarget [2])
+			{
+				IAPU.RAM [0xff] = (IAPU.RAM [0xff] + 1) & 0xf;
+				APU.Timer [2] -= APU.TimerTarget [2];
+#ifdef SPC700_SHUTDOWN
+				IAPU.WaitCounter++;
+				/*IAPU.APUExecuting*/CPU.APU_APUExecuting= TRUE;
+#endif
+			}
+			}
+			if (CPU.V_Counter & 1)
+			{
+			if (APU.TimerEnabled [0])
+			{
+				APU.Timer [0]++;
+				if (APU.Timer [0] >= APU.TimerTarget [0])
+				{
+				IAPU.RAM [0xfd] = (IAPU.RAM [0xfd] + 1) & 0xf;
+				APU.Timer [0] = 0;
+#ifdef SPC700_SHUTDOWN
+				IAPU.WaitCounter++;
+				/*IAPU.APUExecuting*/CPU.APU_APUExecuting = TRUE;
+#endif
+				}
+			}
+			if (APU.TimerEnabled [1])
+			{
+				APU.Timer [1]++;
+				if (APU.Timer [1] >= APU.TimerTarget [1])
+				{
+				IAPU.RAM [0xfe] = (IAPU.RAM [0xfe] + 1) & 0xf;
+				APU.Timer [1] = 0;
+#ifdef SPC700_SHUTDOWN
+				IAPU.WaitCounter++;
+				/*IAPU.APUExecuting*/CPU.APU_APUExecuting = TRUE;
+#endif
+				}
+			}
+			}
+		}
+		break;
+	case HTIMER_BEFORE_EVENT:
+	case HTIMER_AFTER_EVENT:
+		if (PPU.HTimerEnabled &&
+			(!PPU.VTimerEnabled || CPU.V_Counter == PPU.IRQVBeamPos))
+		{
+			S9xSetIRQ (PPU_H_BEAM_IRQ_SOURCE);
+		}
+		break;
+	}
+	S9xReschedule ();
+}
+
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(SnesCpu, 1) \
+	u32 oldCpuFlags = CPU.Flags; \
+	STATE_SERIALIZE_VAR_##sl(CPU.Flags) \
+	STATE_SERIALIZE_VAR_##sl(CPU.BranchSkip) \
+	STATE_SERIALIZE_VAR_##sl(CPU.NMIActive) \
+	STATE_SERIALIZE_VAR_##sl(CPU.IRQActive) \
+	STATE_SERIALIZE_VAR_##sl(CPU.WaitingForInterrupt) \
+	STATE_SERIALIZE_VAR_##sl(CPU.WhichEvent) \
+	STATE_SERIALIZE_VAR_##sl(CPU.Cycles) \
+	STATE_SERIALIZE_VAR_##sl(CPU.NextEvent) \
+	STATE_SERIALIZE_VAR_##sl(CPU.V_Counter) \
+	STATE_SERIALIZE_VAR_##sl(CPU.MemSpeed) \
+	STATE_SERIALIZE_VAR_##sl(CPU.MemSpeedx2) \
+	STATE_SERIALIZE_VAR_##sl(CPU.FastROMSpeed) \
+	\
+	u16 p_w = Registers.P.W; \
+	u16 a_w = Registers.A.W; \
+	u16 d_w = Registers.D.W; \
+	u16 s_w = Registers.S.W; \
+	u16 x_w = Registers.X.W; \
+	u16 y_w = Registers.Y.W; \
+	u16 pc = Registers.PC; \
+	STATE_SERIALIZE_VAR_##sl(Registers.PB) \
+	STATE_SERIALIZE_VAR_##sl(Registers.DB) \
+	STATE_SERIALIZE_VAR_##sl(p_w) \
+	STATE_SERIALIZE_VAR_##sl(a_w) \
+	STATE_SERIALIZE_VAR_##sl(d_w) \
+	STATE_SERIALIZE_VAR_##sl(s_w) \
+	STATE_SERIALIZE_VAR_##sl(x_w) \
+	STATE_SERIALIZE_VAR_##sl(y_w) \
+	STATE_SERIALIZE_VAR_##sl(pc) \
+	Registers.P.W = p_w; \
+	Registers.A.W = a_w; \
+	Registers.D.W = d_w; \
+	Registers.S.W = s_w; \
+	Registers.X.W = x_w; \
+	Registers.Y.W = y_w; \
+	Registers.PC = pc; \
+	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
+		CPU.Flags |= oldCpuFlags & (DEBUG_MODE_FLAG | TRACE_FLAG | SINGLE_STEP_FLAG | FRAME_ADVANCE_FLAG); \
+		CPU.InDMA = FALSE; \
+		ICPU.ShiftedPB = Registers.PB << 16; \
+		ICPU.ShiftedDB = Registers.DB << 16; \
+	} \
+	STATE_SERIALIZE_END_##sl(SnesCpu)
+
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

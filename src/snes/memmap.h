@@ -38,35 +38,44 @@
  * Super NES and Super Nintendo Entertainment System are trademarks of
  * Nintendo Co., Limited and its subsidiary companies.
  */
-#ifndef _memmap_h_
-#define _memmap_h_
+#ifndef SNESMEMORY_H
+#define SNESMEMORY_H
+
+#include <imachine.h>
+
+class SnesMemory : public QObject {
+	Q_OBJECT
+public:
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+};
 
 #include "snes9x.h"
 
 #ifdef FAST_LSB_WORD_ACCESS
-#define READ_WORD(s) (*(uint16 *) (s))
-#define READ_DWORD(s) (*(uint32 *) (s))
-#define WRITE_WORD(s, d) (*(uint16 *) (s) = (d)
-#define WRITE_DWORD(s, d) (*(uint32 *) (s) = (d)
+#define READ_WORD(s) (*(u16 *) (s))
+#define READ_DWORD(s) (*(u32 *) (s))
+#define WRITE_WORD(s, d) (*(u16 *) (s) = (d)
+#define WRITE_DWORD(s, d) (*(u32 *) (s) = (d)
 #else
-#define READ_WORD(s) ( *(uint8 *) (s) |\
-		      (*((uint8 *) (s) + 1) << 8))
-#define READ_DWORD(s) ( *(uint8 *) (s) |\
-		       (*((uint8 *) (s) + 1) << 8) |\
-		       (*((uint8 *) (s) + 2) << 16) |\
-		       (*((uint8 *) (s) + 3) << 24))
-#define WRITE_WORD(s, d) *(uint8 *) (s) = (d), \
-                         *((uint8 *) (s) + 1) = (d) >> 8
-#define WRITE_DWORD(s, d) *(uint8 *) (s) = (uint8) (d), \
-                          *((uint8 *) (s) + 1) = (uint8) ((d) >> 8),\
-                          *((uint8 *) (s) + 2) = (uint8) ((d) >> 16),\
-                          *((uint8 *) (s) + 3) = (uint8) ((d) >> 24)
-#define WRITE_3WORD(s, d) *(uint8 *) (s) = (uint8) (d), \
-                          *((uint8 *) (s) + 1) = (uint8) ((d) >> 8),\
-                          *((uint8 *) (s) + 2) = (uint8) ((d) >> 16)
-#define READ_3WORD(s) ( *(uint8 *) (s) |\
-                       (*((uint8 *) (s) + 1) << 8) |\
-                       (*((uint8 *) (s) + 2) << 16))
+#define READ_WORD(s) ( *(u8 *) (s) |\
+		      (*((u8 *) (s) + 1) << 8))
+#define READ_DWORD(s) ( *(u8 *) (s) |\
+		       (*((u8 *) (s) + 1) << 8) |\
+		       (*((u8 *) (s) + 2) << 16) |\
+		       (*((u8 *) (s) + 3) << 24))
+#define WRITE_WORD(s, d) *(u8 *) (s) = (d), \
+                         *((u8 *) (s) + 1) = (d) >> 8
+#define WRITE_DWORD(s, d) *(u8 *) (s) = (u8) (d), \
+                          *((u8 *) (s) + 1) = (u8) ((d) >> 8),\
+                          *((u8 *) (s) + 2) = (u8) ((d) >> 16),\
+                          *((u8 *) (s) + 3) = (u8) ((d) >> 24)
+#define WRITE_3WORD(s, d) *(u8 *) (s) = (u8) (d), \
+                          *((u8 *) (s) + 1) = (u8) ((d) >> 8),\
+                          *((u8 *) (s) + 2) = (u8) ((d) >> 16)
+#define READ_3WORD(s) ( *(u8 *) (s) |\
+                       (*((u8 *) (s) + 1) << 8) |\
+                       (*((u8 *) (s) + 2) << 16))
                           
 #endif
 
@@ -104,12 +113,12 @@ public:
     void AlphaROMMap ();
     void SA1ROMMap ();
     void BSHiROMMap ();
-    bool8_32 AllASCII (uint8 *b, int size);
+    bool8_32 AllASCII (u8 *b, int size);
     int  ScoreHiROM (bool8_32 skip_header);
     int  ScoreLoROM (bool8_32 skip_header);
     void ApplyROMFixes ();
     void CheckForIPSPatch (const char *rom_filename, bool8_32 header,
-			   int32 &rom_size);
+			   s32 &rom_size);
     
     const char *TVStandard ();
     const char *Speed ();
@@ -129,48 +138,48 @@ public:
     };
     enum { MAX_ROM_SIZE = 0x400000 }; //4Mo for now
     
-    uint8 *RAM;
-    uint8 *ROM;
-    uint8 *VRAM;
-    uint8 *SRAM;
-    uint8 *BWRAM;
-    uint8 *FillRAM;
-    uint8 *C4RAM;
+    u8 *RAM;
+    u8 *ROM;
+    u8 *VRAM;
+    u8 *SRAM;
+    u8 *BWRAM;
+    u8 *FillRAM;
+    u8 *C4RAM;
     bool8_32 HiROM;
     bool8_32 LoROM;
-    uint16 SRAMMask;
-    uint8 SRAMSize;
-    uint8 *Map [MEMMAP_NUM_BLOCKS];
-    uint8 *WriteMap [MEMMAP_NUM_BLOCKS];
-    uint8 MemorySpeed [MEMMAP_NUM_BLOCKS];
-    uint8 BlockIsRAM [MEMMAP_NUM_BLOCKS];
-    uint8 BlockIsROM [MEMMAP_NUM_BLOCKS];
+    u16 SRAMMask;
+    u8 SRAMSize;
+    u8 *Map [MEMMAP_NUM_BLOCKS];
+    u8 *WriteMap [MEMMAP_NUM_BLOCKS];
+    u8 MemorySpeed [MEMMAP_NUM_BLOCKS];
+    u8 BlockIsRAM [MEMMAP_NUM_BLOCKS];
+    u8 BlockIsROM [MEMMAP_NUM_BLOCKS];
     char  ROMName [ROM_NAME_LEN];
     char  ROMId [5];
     char  CompanyId [3];
-    uint8 ROMSpeed;
-    uint8 ROMType;
-    uint8 ROMSize;
-    int32 ROMFramesPerSecond;
-    int32 HeaderCount;
-    uint32 CalculatedSize;
-    uint32 CalculatedChecksum;
-    uint32 ROMChecksum;
-    uint32 ROMComplementChecksum;
-    uint8  *SDD1Index;
-    uint8  *SDD1Data;
-    uint32 SDD1Entries;
-    uint32 SDD1LoggedDataCountPrev;
-    uint32 SDD1LoggedDataCount;
-    uint8  SDD1LoggedData [MEMMAP_MAX_SDD1_LOGGED_ENTRIES];
+    u8 ROMSpeed;
+    u8 ROMType;
+    u8 ROMSize;
+    s32 ROMFramesPerSecond;
+    s32 HeaderCount;
+    u32 CalculatedSize;
+    u32 CalculatedChecksum;
+    u32 ROMChecksum;
+    u32 ROMComplementChecksum;
+    u8  *SDD1Index;
+    u8  *SDD1Data;
+    u32 SDD1Entries;
+    u32 SDD1LoggedDataCountPrev;
+    u32 SDD1LoggedDataCount;
+    u8  SDD1LoggedData [MEMMAP_MAX_SDD1_LOGGED_ENTRIES];
     char ROMFilename [_MAX_PATH];
 };
 
 START_EXTERN_C
 extern CMemory Memory;
-extern uint8 *SRAM;
-extern uint8 *ROM;
-extern uint8 *RegRAM;
+extern u8 *SRAM;
+extern u8 *ROM;
+extern u8 *RegRAM;
 void S9xDeinterleaveMode2 ();
 void S9xSaveSRAM (void);
 END_EXTERN_C
@@ -178,16 +187,16 @@ END_EXTERN_C
 void S9xAutoSaveSRAM ();
 
 #ifdef NO_INLINE_SET_GET
-uint8 S9xGetByte (uint32 Address, struct SCPUState *);
-uint16 S9xGetWord (uint32 Address, struct SCPUState *);
-void S9xSetByte (uint8 Byte, uint32 Address, struct SCPUState * );
-void S9xSetWord (uint16 Byte, uint32 Address, struct SCPUState *);
-void S9xSetPCBase (uint32 Address, struct SCPUState *);
-uint8 *S9xGetMemPointer (uint32 Address);
-uint8 *GetBasePointer (uint32 Address);
+u8 S9xGetByte (u32 Address, struct SCPUState *);
+u16 S9xGetWord (u32 Address, struct SCPUState *);
+void S9xSetByte (u8 Byte, u32 Address, struct SCPUState * );
+void S9xSetWord (u16 Byte, u32 Address, struct SCPUState *);
+void S9xSetPCBase (u32 Address, struct SCPUState *);
+u8 *S9xGetMemPointer (u32 Address);
+u8 *GetBasePointer (u32 Address);
 #else
 #define INLINE inline
 #include "getset.h"
 #endif // NO_INLINE_SET_GET
 
-#endif // _memmap_h_
+#endif // SNESMEMORY_H

@@ -43,7 +43,7 @@
 #include "ppu.h"
 #include "dsp1.h"
 #include "missing.h"
-#include "cpuexec.h"
+#include "cpu.h"
 #include "debug.h"
 #include "apu.h"
 #include "dma.h"
@@ -57,12 +57,13 @@
 #include "fxemu.h"
 #endif
 
+struct SICPU ICPU;
+
 START_EXTERN_C
 char String[513];
 
 struct Missing missing;
 
-struct SICPU ICPU;
 
 struct SCPUState CPU;
 
@@ -82,10 +83,10 @@ struct SSA1Registers SA1Registers;
 
 struct SSA1 SA1;
 
-uint8 *SRAM = NULL;
-uint8 *ROM = NULL;
-uint8 *RegRAM = NULL;
-uint8 *C4RAM = NULL;
+u8 *SRAM = NULL;
+u8 *ROM = NULL;
+u8 *RegRAM = NULL;
+u8 *C4RAM = NULL;
 
 long OpAddress = 0;
 
@@ -94,13 +95,13 @@ CMemory Memory;
 struct SSNESGameFixes SNESGameFixes;
 
 #ifndef ASM_SPC700
-uint8 A1 = 0, A2 = 0, A3 = 0, A4 = 0, W1 = 0, W2 = 0, W3 = 0, W4 = 0;
-uint8 Ans8 = 0;
-uint16 Ans16 = 0;
-uint32 Ans32 = 0;
-uint8 Work8 = 0;
-uint16 Work16 = 0;
-uint32 Work32 = 0;
+u8 A1 = 0, A2 = 0, A3 = 0, A4 = 0, W1 = 0, W2 = 0, W3 = 0, W4 = 0;
+u8 Ans8 = 0;
+u16 Ans16 = 0;
+u32 Ans32 = 0;
+u8 Work8 = 0;
+u16 Work16 = 0;
+u32 Work32 = 0;
 signed char Int8 = 0;
 short Int16 = 0;
 long Int32 = 0;
@@ -119,13 +120,11 @@ struct FxInit_s SuperFX;
 
 struct SPPU PPU;
 struct InternalPPU IPPU;
-//yoyo
-uint32 gp32_ColorsChanged;
 
 struct SDMA DMA[8];
 
-uint8 *HDMAMemPointers [8];
-uint8 *HDMABasePointers [8];
+u8 *HDMAMemPointers [8];
+u8 *HDMABasePointers [8];
 
 struct SBG BG;
 
@@ -133,53 +132,53 @@ struct SGFX GFX;
 struct SLineData LineData[240];
 struct SLineMatrixData LineMatrixData [240];
 
-uint8 Mode7Depths [2];
+u8 Mode7Depths [2];
 NormalTileRenderer DrawTilePtr = NULL;
 ClippedTileRenderer DrawClippedTilePtr = NULL;
 NormalTileRenderer DrawHiResTilePtr = NULL;
 ClippedTileRenderer DrawHiResClippedTilePtr = NULL;
 LargePixelRenderer DrawLargePixelPtr = NULL;
 
-uint32 odd_high[4][16];
-uint32 odd_low[4][16];
-uint32 even_high[4][16];
-uint32 even_low[4][16];
+u32 odd_high[4][16];
+u32 odd_low[4][16];
+u32 even_high[4][16];
+u32 even_low[4][16];
 
 #ifdef GFX_MULTI_FORMAT
 
-uint32 RED_LOW_BIT_MASK = RED_LOW_BIT_MASK_RGB565;
-uint32 GREEN_LOW_BIT_MASK = GREEN_LOW_BIT_MASK_RGB565;
-uint32 BLUE_LOW_BIT_MASK = BLUE_LOW_BIT_MASK_RGB565;
-uint32 RED_HI_BIT_MASK = RED_HI_BIT_MASK_RGB565;
-uint32 GREEN_HI_BIT_MASK = GREEN_HI_BIT_MASK_RGB565;
-uint32 BLUE_HI_BIT_MASK = BLUE_HI_BIT_MASK_RGB565;
-uint32 MAX_RED = MAX_RED_RGB565;
-uint32 MAX_GREEN = MAX_GREEN_RGB565;
-uint32 MAX_BLUE = MAX_BLUE_RGB565;
-uint32 SPARE_RGB_BIT_MASK = SPARE_RGB_BIT_MASK_RGB565;
-uint32 GREEN_HI_BIT = (MAX_GREEN_RGB565 + 1) >> 1;
-uint32 RGB_LOW_BITS_MASK = (RED_LOW_BIT_MASK_RGB565 | 
+u32 RED_LOW_BIT_MASK = RED_LOW_BIT_MASK_RGB565;
+u32 GREEN_LOW_BIT_MASK = GREEN_LOW_BIT_MASK_RGB565;
+u32 BLUE_LOW_BIT_MASK = BLUE_LOW_BIT_MASK_RGB565;
+u32 RED_HI_BIT_MASK = RED_HI_BIT_MASK_RGB565;
+u32 GREEN_HI_BIT_MASK = GREEN_HI_BIT_MASK_RGB565;
+u32 BLUE_HI_BIT_MASK = BLUE_HI_BIT_MASK_RGB565;
+u32 MAX_RED = MAX_RED_RGB565;
+u32 MAX_GREEN = MAX_GREEN_RGB565;
+u32 MAX_BLUE = MAX_BLUE_RGB565;
+u32 SPARE_RGB_BIT_MASK = SPARE_RGB_BIT_MASK_RGB565;
+u32 GREEN_HI_BIT = (MAX_GREEN_RGB565 + 1) >> 1;
+u32 RGB_LOW_BITS_MASK = (RED_LOW_BIT_MASK_RGB565 | 
 			    GREEN_LOW_BIT_MASK_RGB565 |
 			    BLUE_LOW_BIT_MASK_RGB565);
-uint32 RGB_HI_BITS_MASK = (RED_HI_BIT_MASK_RGB565 |
+u32 RGB_HI_BITS_MASK = (RED_HI_BIT_MASK_RGB565 |
 			   GREEN_HI_BIT_MASK_RGB565 |
 			   BLUE_HI_BIT_MASK_RGB565);
-uint32 RGB_HI_BITS_MASKx2 = (RED_HI_BIT_MASK_RGB565 |
+u32 RGB_HI_BITS_MASKx2 = (RED_HI_BIT_MASK_RGB565 |
 			     GREEN_HI_BIT_MASK_RGB565 |
 			     BLUE_HI_BIT_MASK_RGB565) << 1;
-uint32 RGB_REMOVE_LOW_BITS_MASK = ~RGB_LOW_BITS_MASK;
-uint32 FIRST_COLOR_MASK = FIRST_COLOR_MASK_RGB565;
-uint32 SECOND_COLOR_MASK = SECOND_COLOR_MASK_RGB565;
-uint32 THIRD_COLOR_MASK = THIRD_COLOR_MASK_RGB565;
-uint32 ALPHA_BITS_MASK = ALPHA_BITS_MASK_RGB565;
-uint32 FIRST_THIRD_COLOR_MASK = 0;
-uint32 TWO_LOW_BITS_MASK = 0;
-uint32 HIGH_BITS_SHIFTED_TWO_MASK = 0;
+u32 RGB_REMOVE_LOW_BITS_MASK = ~RGB_LOW_BITS_MASK;
+u32 FIRST_COLOR_MASK = FIRST_COLOR_MASK_RGB565;
+u32 SECOND_COLOR_MASK = SECOND_COLOR_MASK_RGB565;
+u32 THIRD_COLOR_MASK = THIRD_COLOR_MASK_RGB565;
+u32 ALPHA_BITS_MASK = ALPHA_BITS_MASK_RGB565;
+u32 FIRST_THIRD_COLOR_MASK = 0;
+u32 TWO_LOW_BITS_MASK = 0;
+u32 HIGH_BITS_SHIFTED_TWO_MASK = 0;
 
-uint32 current_graphic_format = RGB565;
+u32 current_graphic_format = RGB565;
 #endif
 
-uint8 GetBank = 0;
+u8 GetBank = 0;
 struct SCheatData Cheat;
 
 SoundStatus so;
@@ -192,7 +191,7 @@ int FilterTaps [8];
 unsigned long Z = 0;
 int Loop [16];
 
-uint16 SignExtend [2] = {
+u16 SignExtend [2] = {
     0x00, 0xff00
 };
 
@@ -200,7 +199,7 @@ int HDMA_ModeByteCounts [8] = {
     1, 2, 2, 4, 4, 0, 0, 0
 };
 
-uint8 BitShifts[8][4] =
+u8 BitShifts[8][4] =
 {
     {2, 2, 2, 2},	// 0
     {4, 4, 2, 0},	// 1
@@ -211,7 +210,7 @@ uint8 BitShifts[8][4] =
     {4, 0, 0, 0},	// 6
     {8, 0, 0, 0}	// 7
 };
-uint8 TileShifts[8][4] =
+u8 TileShifts[8][4] =
 {
     {4, 4, 4, 4},	// 0
     {5, 5, 4, 0},	// 1
@@ -222,7 +221,7 @@ uint8 TileShifts[8][4] =
     {5, 0, 0, 0},	// 6
     {6, 0, 0, 0}	// 7
 };
-uint8 PaletteShifts[8][4] =
+u8 PaletteShifts[8][4] =
 {
     {2, 2, 2, 2},	// 0
     {4, 4, 2, 0},	// 1
@@ -233,7 +232,7 @@ uint8 PaletteShifts[8][4] =
     {4, 0, 0, 0},	// 6
     {0, 0, 0, 0}	// 7
 };
-uint8 PaletteMasks[8][4] =
+u8 PaletteMasks[8][4] =
 {
     {7, 7, 7, 7},	// 0
     {7, 7, 7, 0},	// 1
@@ -244,7 +243,7 @@ uint8 PaletteMasks[8][4] =
     {7, 0, 0, 0},	// 6
     {0, 0, 0, 0}	// 7
 };
-uint8 Depths[8][4] =
+u8 Depths[8][4] =
 {
     {TILE_2BIT, TILE_2BIT, TILE_2BIT, TILE_2BIT}, // 0
     {TILE_4BIT, TILE_4BIT, TILE_2BIT, 0},         // 1
@@ -255,10 +254,10 @@ uint8 Depths[8][4] =
     {TILE_8BIT, 0, 0, 0},                         // 6
     {0, 0, 0, 0}                                  // 7
 };
-uint8 BGSizes [2] = {
+u8 BGSizes [2] = {
     8, 16
 };
-uint16 DirectColourMaps [8][256];
+u16 DirectColourMaps [8][256];
 
 long FilterValues[4][2] =
 {
@@ -274,7 +273,7 @@ int NoiseFreq [32] = {
     5300, 6400, 8000, 10700, 16000, 32000
 };
 
-uint32 HeadMask [4] = {
+u32 HeadMask [4] = {
 #ifdef LSB_FIRST
     0xffffffff, 0xffffff00, 0xffff0000, 0xff000000
 #else
@@ -282,7 +281,7 @@ uint32 HeadMask [4] = {
 #endif
 };
 
-uint32 TailMask [5] = {
+u32 TailMask [5] = {
 #ifdef LSB_FIRST
     0x00000000, 0x000000ff, 0x0000ffff, 0x00ffffff, 0xffffffff
 #else
@@ -291,7 +290,7 @@ uint32 TailMask [5] = {
 };
 
 START_EXTERN_C
-uint8 APUROM [64] =
+u8 APUROM [64] =
 {
     0xCD,0xEF,0xBD,0xE8,0x00,0xC6,0x1D,0xD0,0xFC,0x8F,0xAA,0xF4,0x8F,
     0xBB,0xF5,0x78,0xCC,0xF4,0xD0,0xFB,0x2F,0x19,0xEB,0xF4,0xD0,0xFC,
@@ -305,7 +304,7 @@ struct SNetPlay NetPlay;
 #endif
 
 // Raw SPC700 instruction cycle lengths
-int32 S9xAPUCycleLengths [256] = 
+s32 S9xAPUCycleLengths [256] = 
 {
     /*        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, a, b, c, d, e, f, */
     /* 00 */  2, 8, 4, 5, 3, 4, 3, 6, 2, 6, 5, 4, 5, 4, 6, 8, 
@@ -328,7 +327,7 @@ int32 S9xAPUCycleLengths [256] =
 
 // Actual data used by CPU emulation, will be scaled by APUReset routine
 // to be relative to the 65c816 instruction lengths.
-int32 S9xAPUCycles [256] =
+s32 S9xAPUCycles [256] =
 {
     /*        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, a, b, c, d, e, f, */
     /* 00 */  2, 8, 4, 5, 3, 4, 3, 6, 2, 6, 5, 4, 5, 4, 6, 8, 
@@ -350,7 +349,7 @@ int32 S9xAPUCycles [256] =
 };
 
 #ifndef VAR_CYCLES
-uint8 S9xE1M1X1 [256] = {
+u8 S9xE1M1X1 [256] = {
 	8, 6, 8, 4, 5, 3, 5, 6, 3, 2, 2, 4, 6, 4, 6, 5,		/* e=1, m=1, x=1 */
 	2, 5, 5, 7, 5, 4, 6, 6, 2, 4, 2, 2, 6, 4, 7, 5,
 	6, 6, 8, 4, 3, 3, 5, 6, 4, 2, 2, 5, 4, 4, 6, 5,
@@ -369,7 +368,7 @@ uint8 S9xE1M1X1 [256] = {
 	2, 5, 5, 7, 5, 4, 6, 6, 2, 4, 4, 2, 6, 4, 7, 5
 };
 
-uint8 S9xE0M1X1 [256] = {
+u8 S9xE0M1X1 [256] = {
 	8, 6, 8, 4, 5, 3, 5, 6, 3, 2, 2, 4, 6, 4, 6, 5,		/* e=0, m=1, x=1 */
 	2, 5, 5, 7, 5, 4, 6, 6, 2, 4, 2, 2, 6, 4, 7, 5,
 	6, 6, 8, 4, 3, 3, 5, 6, 4, 2, 2, 5, 4, 4, 6, 5,
@@ -388,7 +387,7 @@ uint8 S9xE0M1X1 [256] = {
 	2, 5, 5, 7, 5, 4, 6, 6, 2, 4, 4, 2, 6, 4, 7, 5
 };
 
-uint8 S9xE0M0X1 [256] = {
+u8 S9xE0M0X1 [256] = {
 	8, 7, 8, 5, 7, 4, 7, 7, 3, 3, 2, 4, 8, 5, 8, 6,		/* e=0, m=0, x=1 */
 	2, 6, 6, 8, 7, 5, 8, 7, 2, 5, 2, 2, 8, 5, 9, 6,
 	6, 7, 8, 5, 4, 4, 7, 7, 4, 3, 2, 5, 5, 5, 8, 6,
@@ -407,7 +406,7 @@ uint8 S9xE0M0X1 [256] = {
 	2, 6, 6, 8, 5, 5, 8, 7, 2, 5, 4, 2, 6, 5, 9, 6
 };
 
-uint8 S9xE0M1X0 [256] = {
+u8 S9xE0M1X0 [256] = {
 	8, 6, 8, 4, 5, 3, 5, 6, 3, 2, 2, 4, 6, 4, 6, 5,		/* e=0, m=1, x=0 */
 	2, 6, 5, 7, 5, 4, 6, 6, 2, 5, 2, 2, 6, 5, 7, 5,
 	6, 6, 8, 4, 3, 3, 5, 6, 4, 2, 2, 5, 4, 4, 6, 5,
@@ -426,7 +425,7 @@ uint8 S9xE0M1X0 [256] = {
 	2, 6, 5, 7, 5, 4, 8, 6, 2, 5, 5, 2, 6, 5, 7, 5
 };
 
-uint8 S9xE0M0X0 [256] = {
+u8 S9xE0M0X0 [256] = {
 	8, 7, 8, 5, 7, 4, 7, 7, 3, 3, 2, 4, 8, 5, 8, 6,		/* e=0, m=0, x=0 */
 	2, 7, 6, 8, 7, 5, 8, 7, 2, 6, 2, 2, 8, 6, 9, 6,
 	6, 7, 8, 5, 4, 4, 7, 7, 4, 3, 2, 5, 5, 5, 8, 6,

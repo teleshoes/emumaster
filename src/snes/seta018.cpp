@@ -95,10 +95,10 @@ ST018_Regs ST018;
 static int line;	// line counter
 
 extern "C"{
-uint8 S9xGetST018(uint32 Address)
+u8 S9xGetST018(u32 Address)
 {
-	uint8 t = 0;
-	uint16 address = (uint16) Address & 0xFFFF;
+	u8 t = 0;
+	u16 address = (u16) Address & 0xFFFF;
 
 	line++;
 
@@ -108,7 +108,7 @@ uint8 S9xGetST018(uint32 Address)
 	{
 		if (ST018.out_count)
 		{
-			t = (uint8) ST018.output [ST018.out_index];
+			t = (u8) ST018.output [ST018.out_index];
 			ST018.out_index++;
 			if (ST018.out_count==ST018.out_index)
 				ST018.out_count=0;
@@ -125,9 +125,9 @@ uint8 S9xGetST018(uint32 Address)
 	return t;
 }
 
-void S9xSetST018(uint8 Byte, uint32 Address)
+void S9xSetST018(u8 Byte, u32 Address)
 {
-	uint16 address = (uint16) Address&0xFFFF;
+	u16 address = (u16) Address&0xFFFF;
 	static bool reset = false;
 
 	printf( "ST018 W: %06X %02X\n", Address, Byte );

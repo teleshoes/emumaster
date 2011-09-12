@@ -21,8 +21,18 @@
 // - stm reglist writeback when base is in the list needs adjustment
 // - block memory needs psr swapping and user mode reg swapping
 
-#include <stdio.h>
+typedef signed char s8;
+typedef unsigned char u8;
+typedef signed short s16;
+typedef unsigned short u16;
+typedef signed int s32;
+typedef unsigned int u32;
+typedef signed long long s64;
+typedef unsigned long long u64;
+
 #include "common.h"
+#include "memory.h"
+#include "machine.h"
 
 u8 rom_translation_cache[ROM_TRANSLATION_CACHE_SIZE];
 u8 *rom_translation_ptr = rom_translation_cache;
@@ -62,8 +72,6 @@ typedef struct
   u32 branch_target;
   u8 *branch_source;
 } block_exit_type;
-
-extern u8 bit_count[256];
 
 #define arm_decode_data_proc_reg()                                            \
   u32 rn = (opcode >> 16) & 0x0F;                                             \
@@ -2826,7 +2834,7 @@ u8 function_cc *block_lookup_address_##type(u32 pc)                           \
         sprintf(buffer, "bad jump %x (%x) (%x)\n", pc, reg[REG_PC],           \
          last_instruction);                                                   \
         printf(buffer);                                                       \
-        quit();                                                               \
+		exit(-1);                                                               \
       }                                                                       \
       block_address = (u8 *)(-1);                                             \
       break;                                                                  \
@@ -3166,7 +3174,7 @@ block_exit_type block_exits[MAX_EXITS];
 s32 translate_block_##type(u32 pc, translation_region_type                    \
  translation_region, u32 smc_enable)                                          \
 {                                                                             \
-  u32 opcode;                                                                 \
+  u32 opcode = 0;                                                             \
   u32 last_opcode;                                                            \
   u32 condition;                                                              \
   u32 last_condition;                                                         \
@@ -3181,9 +3189,9 @@ s32 translate_block_##type(u32 pc, translation_region_type                    \
   u32 branch_target;                                                          \
   u32 cycle_count = 0;                                                        \
   u8 *translation_target;                                                     \
-  u8 *backpatch_address;                                                      \
-  u8 *translation_ptr;                                                        \
-  u8 *translation_cache_limit;                                                \
+  u8 *backpatch_address = 0;                                                  \
+  u8 *translation_ptr = 0;                                                    \
+  u8 *translation_cache_limit = 0;                                            \
   s32 i;                                                                      \
   u32 flag_status;                                                            \
   block_exit_type external_block_exits[MAX_EXITS];                            \
@@ -3462,22 +3470,3 @@ void flush_translation_cache_bios()
   last_bios_translation_ptr = bios_translation_cache;
   memset(bios_rom + 0x4000, 0, 0x4000);
 }
-
-void dump_translation_cache()
-{
-  file_open(ram_cache, "/home/user/MyDocs/ram_cache.bin", write);
-  file_write(ram_cache, ram_translation_cache,
-   ram_translation_ptr - ram_translation_cache);
-  fclose(ram_cache);
-
-  file_open(rom_cache, "/home/user/MyDocs/rom_cache.bin", write);
-  file_write(rom_cache, rom_translation_cache,
-   rom_translation_ptr - rom_translation_cache);
-  fclose(rom_cache);
-
-  file_open(bios_cache, "/home/user/MyDocs/bios_cache.bin", write);
-  file_write(bios_cache, bios_translation_cache,
-   bios_translation_ptr - bios_translation_cache);
-  fclose(bios_cache);
-}
-

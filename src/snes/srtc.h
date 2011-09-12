@@ -87,19 +87,19 @@ typedef struct
 {
     bool8 needs_init;
     bool8 count_enable;	// Does RTC mark time or is it frozen
-    uint8 data [MAX_RTC_INDEX+1];
-    int8  index;
-    uint8 mode;
+    u8 data [MAX_RTC_INDEX+1];
+    s8  index;
+    u8 mode;
 
     time_t system_timestamp;	// Of latest RTC load time
-    uint32 pad;
+    u32 pad;
 } SRTC_DATA;
 
 extern SRTC_DATA           rtc;
 
 void    S9xUpdateSrtcTime ();
-void	S9xSetSRTC (uint8 data, uint16 Address);
-uint8	S9xGetSRTC (uint16 Address);
+void	S9xSetSRTC (u8 data, u16 Address);
+u8	S9xGetSRTC (u16 Address);
 void	S9xSRTCPreSaveState ();
 void	S9xSRTCPostLoadState ();
 void	S9xResetSRTC ();

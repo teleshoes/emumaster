@@ -1167,7 +1167,7 @@ reg_cpu_var .req R14
 .globl asmS9xSetByte
 .globl asmS9xSetWord
 
-@ uint8 aaS9xGetByte(uint32 address);
+@ u8 aaS9xGetByte(u32 address);
 asmS9xGetByte:
 	@  in : R0  = 0x00hhmmll
 	@  out : R0 = 0x000000ll
@@ -1310,7 +1310,7 @@ GBBWRAM:
 	LDMFD		R13!,{PC}
 
 
-@ uint16 aaS9xGetWord(uint32 address);
+@ u16 aaS9xGetWord(u32 address);
 asmS9xGetWord:
 	@  in : R0  = 0x00hhmmll
 	@  out : R0 = 0x000000ll
@@ -1582,7 +1582,7 @@ GW_Not_Aligned4:
 
 
 
-@ void aaS9xSetByte(uint32 address,uint8 val);
+@ void aaS9xSetByte(u32 address,u8 val);
 asmS9xSetByte:
 	@  in : R0=0x00hhmmll  R1=0x000000ll	
 	@  DESTROYED : R0,R1,R2,R3
@@ -1746,7 +1746,7 @@ SBBWRAM:
 
 
 
-@ void aaS9xSetWord(uint32 address,uint16 val);
+@ void aaS9xSetWord(u32 address,u16 val);
 asmS9xSetWord:
 	@  in : R0  = 0x00hhmmll R1=0x0000hhll
 	@  DESTROYED : R0,R1,R2,R3

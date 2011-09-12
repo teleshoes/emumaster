@@ -49,9 +49,9 @@ void S9xGraphicsMode ();
 char *S9xParseArgs (char **argv, int argc);
 void S9xParseArg (char **argv, int &index, int argc);
 void S9xExtraUsage ();
-uint32 S9xReadJoypad (int which1_0_to_4);
-bool8_32 S9xReadMousePosition (int which1_0_to_1, int &x, int &y, uint32 &buttons);
-bool8_32 S9xReadSuperScopePosition (int &x, int &y, uint32 &buttons);
+u32 S9xReadJoypad (int which1_0_to_4);
+bool8_32 S9xReadMousePosition (int which1_0_to_1, int &x, int &y, u32 &buttons);
+bool8_32 S9xReadSuperScopePosition (int &x, int &y, u32 &buttons);
 
 void S9xUsage ();
 void S9xInitDisplay (int argc, char **argv);

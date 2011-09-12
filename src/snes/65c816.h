@@ -2,11 +2,11 @@
  * Snes9x - Portable Super Nintendo Entertainment System (TM) emulator.
  *
  * (c) Copyright 1996 - 2001 Gary Henderson (gary.henderson@ntlworld.com) and
- *                           Jerremy Koot (jkoot@snes9x.com)
+ *						   Jerremy Koot (jkoot@snes9x.com)
  *
  * Super FX C emulator code 
  * (c) Copyright 1997 - 1999 Ivar (ivar@snes9x.com) and
- *                           Gary Henderson.
+ *						   Gary Henderson.
  * Super FX assembler emulator code (c) Copyright 1998 zsKnight and _Demo_.
  *
  * DSP1 emulator code (c) Copyright 1998 Ivar, _Demo_ and Gary Henderson.
@@ -41,7 +41,8 @@
 #ifndef _65c816_h_
 #define _65c816_h_
 
-#include "port.h"
+#include <imachine.h>
+#include <QtEndian>
 
 #define AL A.B.l
 #define AH A.B.h
@@ -97,26 +98,25 @@
 #define SetFlags(f)   (Registers.P.W |=  (f))
 #define CheckFlag(f)  (Registers.PL & (f))
 
-typedef union
-{
-#ifdef LSB_FIRST
-    struct { uint8 l,h; } PACKING B;
+typedef union {
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+	struct { u8 l,h; } Q_PACKED B;
 #else
-    struct { uint8 h,l; } PACKING B;
+	struct { u8 h,l; } Q_PACKED B;
 #endif
-    uint16 W;
-} ALIGN_BY_ONE mypair;
+	u16 W;
+} Q_PACKED URegister;
 
 struct SRegisters{
-    uint8  PB;
-    uint8  DB;
-    mypair   P;
-    mypair   A;
-    mypair   D;
-    mypair   X;
-    mypair   S;
-    mypair   Y;
-    uint16 PC;
+	u8  PB;
+	u8  DB;
+	URegister   P;
+	URegister   A;
+	URegister   D;
+	URegister   X;
+	URegister   S;
+	URegister   Y;
+	u16 PC;
 } PACKING;
 
 #define Registers	CPU.Regs

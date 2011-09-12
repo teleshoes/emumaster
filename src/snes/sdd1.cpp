@@ -48,7 +48,7 @@
 #include <unistd.h>
 #endif
 
-void S9xSetSDD1MemoryMap (uint32 bank, uint32 value)
+void S9xSetSDD1MemoryMap (u32 bank, u32 value)
 {
     bank = 0xc00 + bank * 0x100;
     value = value * 1024 * 1024;
@@ -57,7 +57,7 @@ void S9xSetSDD1MemoryMap (uint32 bank, uint32 value)
 
     for (c = 0; c < 0x100; c += 16)
     {
-	uint8 *block = &Memory.ROM [value + (c << 12)];
+	u8 *block = &Memory.ROM [value + (c << 12)];
 	int i;
 
 	for (i = c; i < c + 16; i++)
@@ -83,15 +83,15 @@ void S9xSDD1PostLoadState ()
 
 static int S9xCompareSDD1LoggedDataEntries (const void *p1, const void *p2)
 {
-    uint8 *b1 = (uint8 *) p1;
-    uint8 *b2 = (uint8 *) p2;
-    uint32 a1 = (*b1 << 16) + (*(b1 + 1) << 8) + *(b1 + 2);
-    uint32 a2 = (*b2 << 16) + (*(b2 + 1) << 8) + *(b2 + 2);
+    u8 *b1 = (u8 *) p1;
+    u8 *b2 = (u8 *) p2;
+    u32 a1 = (*b1 << 16) + (*(b1 + 1) << 8) + *(b1 + 2);
+    u32 a2 = (*b2 << 16) + (*(b2 + 1) << 8) + *(b2 + 2);
 
     return (a1 - a2);
 }
 
-void S9xSDD1SaveLoggedData ()
+/*void S9xSDD1SaveLoggedData ()
 {
     if (Memory.SDD1LoggedDataCount != Memory.SDD1LoggedDataCountPrev)
     {
@@ -128,4 +128,4 @@ void S9xSDD1LoadLoggedData ()
 	    Memory.SDD1LoggedDataCount = Memory.SDD1LoggedDataCountPrev = c;
 	fclose (fs);
     }
-}
+}*/

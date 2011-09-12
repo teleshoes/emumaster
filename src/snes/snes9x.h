@@ -43,12 +43,13 @@
 
 #define VERSION "1.39"
 
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "port.h"
 #include "65c816.h"
 #include "messages.h"
+
+#include "machine.h"
 
 #if defined(USE_GLIDE) && !defined(GFX_MULTI_FORMAT)
 #define GFX_MULTI_FORMAT
@@ -127,10 +128,10 @@
 //#define SNES_CLOCK_LEN (1.0 / SNES_CLOCK_SPEED)
 
 #ifdef VAR_CYCLES
-//#define SNES_CYCLES_PER_SCANLINE ((uint32) ((SNES_SCANLINE_TIME / SNES_CLOCK_LEN) * 6 + 0.5))
-#define SNES_CYCLES_PER_SCANLINE ((uint32)(228*6))
+//#define SNES_CYCLES_PER_SCANLINE ((u32) ((SNES_SCANLINE_TIME / SNES_CLOCK_LEN) * 6 + 0.5))
+#define SNES_CYCLES_PER_SCANLINE ((u32)(228*6))
 #else
-#define SNES_CYCLES_PER_SCANLINE ((uint32) (SNES_SCANLINE_TIME / SNES_CLOCK_LEN + 0.5))
+#define SNES_CYCLES_PER_SCANLINE ((u32) (SNES_SCANLINE_TIME / SNES_CLOCK_LEN + 0.5))
 #endif
 
 #define SNES_TR_MASK	    (1 << 4)
@@ -187,57 +188,48 @@ enum {
 #define MEMMAP_NUM_BLOCKS (0x1000000 / MEMMAP_BLOCK_SIZE)
 
 struct SCPUState{
-    uint32  Flags;					//0
-    bool8   BranchSkip;				//4
-    bool8   NMIActive;				//5
-    bool8   IRQActive;				//6
-    bool8   WaitingForInterrupt;	//7
-    struct SRegisters Regs;			//8
-		//uint8  PB;				//8
-		//uint8  DB;				//9
-		//pair   P;					//10
-		//pair   A;					//12
-		//pair   D;					//14
-		//pair   X;					//16
-		//pair   S;					//18
-		//pair   Y;					//20
-	    //uint16 PC;				//22
-    uint8   *PC;					//24
-    int32   Cycles;					//28
-    uint8   *PCBase;				//32
-    uint8   *PCAtOpcodeStart;		//36
-    uint8   *WaitAddress;			//40
-    uint32  WaitCounter;			//44
-    int32   NextEvent;				//48
-    int32   V_Counter;				//52
-    int32   MemSpeed;				//56
-    int32   MemSpeedx2;				//60
-	int32   FastROMSpeed;			//64
-    uint32 AutoSaveTimer;    		//68
-    uint32 NMITriggerPoint;    		//72
-    uint32 NMICycleCount;			//76
-    uint32 IRQCycleCount;			//80
+	u32  Flags;					//0
+	bool8   BranchSkip;				//4
+	bool8   NMIActive;				//5
+	bool8   IRQActive;				//6
+	bool8   WaitingForInterrupt;	//7
+	struct SRegisters Regs;			//8
+	u8   *PC;					//24
+	s32   Cycles;					//28
+	u8   *PCBase;				//32
+	u8   *PCAtOpcodeStart;		//36
+	u8   *WaitAddress;			//40
+	u32  WaitCounter;			//44
+	s32   NextEvent;				//48
+	s32   V_Counter;				//52
+	s32   MemSpeed;				//56
+	s32   MemSpeedx2;				//60
+	s32   FastROMSpeed;			//64
+	u32 AutoSaveTimer;    		//68
+	u32 NMITriggerPoint;    		//72
+	u32 NMICycleCount;			//76
+	u32 IRQCycleCount;			//80
 
-    bool8   InDMA;					//84
-    uint8   WhichEvent;				//85
+	bool8   InDMA;					//84
+	u8   WhichEvent;				//85
 	bool8  SRAMModified;			//86
 	bool8  BRKTriggered;			//87
-	uint32	_ARM_asm_reserved_1;	//88  to stock current jmp table
-    bool8  TriedInterleavedMode2;	//92
-    bool8  _ARM_asm_padding1[3];	//93
+	u32	_ARM_asm_reserved_1;	//88  to stock current jmp table
+	bool8  TriedInterleavedMode2;	//92
+	bool8  _ARM_asm_padding1[3];	//93
     
-    uint8*	Memory_Map;				//96
-    uint8*	Memory_WriteMap;		//100
-    uint8*	Memory_MemorySpeed;		//104
-    uint8*	Memory_BlockIsRAM;		//108
-    uint8*	Memory_SRAM;			//112
-    uint8*	Memory_BWRAM;			//116
-    uint16	Memory_SRAMMask;		//120
-    bool8	APU_APUExecuting;		//122
-    bool8	_ARM_asm_padding2;		//123
-    uint32	_PALMSOS_R9;			//124
-    uint32	_PALMSOS_R10;    		//128
-  	int32	APU_Cycles;				//132 notaz
+	u8*	Memory_Map;				//96
+	u8*	Memory_WriteMap;		//100
+	u8*	Memory_MemorySpeed;		//104
+	u8*	Memory_BlockIsRAM;		//108
+	u8*	Memory_SRAM;			//112
+	u8*	Memory_BWRAM;			//116
+	u16	Memory_SRAMMask;		//120
+	bool8	APU_APUExecuting;		//122
+	bool8	_ARM_asm_padding2;		//123
+	u32	_PALMSOS_R9;			//124
+	u32	_PALMSOS_R10;    		//128
+	s32	APU_Cycles;				//132 notaz
 };
 
 
@@ -251,7 +243,7 @@ struct SSettings{
     // CPU options
     bool8  APUEnabled;
     bool8  Shutdown;
-    uint8  SoundSkipMethod;
+	u8  SoundSkipMethod;
     long   H_Max;
     long   HBlankStart;
     long   CyclesPercentage;
@@ -275,10 +267,10 @@ struct SSettings{
     bool8  ForcePAL;
     bool8  ForceNTSC;
     bool8  PAL;
-    uint32 FrameTimePAL;
-    uint32 FrameTimeNTSC;
-    uint32 FrameTime;
-    uint32 SkipFrames;
+	u32 FrameTimePAL;
+	u32 FrameTimeNTSC;
+	u32 FrameTime;
+	u32 SkipFrames;
 
     // ROM image options
     bool8  ForceLoROM;
@@ -304,7 +296,7 @@ struct SSettings{
     bool8  Mouse;
     bool8  SuperScope;
     bool8  SRTC;
-    uint32 ControllerOption;
+	u32 ControllerOption;
     
     bool8  ShutdownMaster;
     bool8  MultiPlayer5Master;
@@ -317,7 +309,7 @@ struct SSettings{
     bool8  SDD1;
 
     // Sound options
-    uint32 SoundPlaybackRate;
+	u32 SoundPlaybackRate;
     bool8  TraceSoundDSP;
     bool8  Stereo;
     bool8  ReverseStereo;
@@ -333,7 +325,7 @@ struct SSettings{
     bool8  ThreadSound;
     bool8  Mute;
 //    bool8  NextAPUEnabled;
-    uint8  AltSampleDecode;
+	u8  AltSampleDecode;
     bool8  FixFrequency;
     
     // Graphics options
@@ -348,7 +340,6 @@ struct SSettings{
     bool8  ForceTransparency;
     bool8  ForceNoTransparency;
     bool8  DisableHDMA;
-    bool8  DisplayFrameRate;
 
     // Others
     bool8  NetPlay;
@@ -357,15 +348,15 @@ struct SSettings{
     int    Port;
     bool8  GlideEnable;
     bool8  OpenGLEnable;
-    int32  AutoSaveDelay; // Time in seconds before S-RAM auto-saved if modified.
+	s32  AutoSaveDelay; // Time in seconds before S-RAM auto-saved if modified.
     bool8  ApplyCheats;
     bool8  TurboMode;
-    uint32 TurboSkipFrames;
-    uint32 AutoMaxSkipFrames;
-	uint32 os9x_hack;
+	u32 TurboSkipFrames;
+	u32 AutoMaxSkipFrames;
+	u32 os9x_hack;
     
 // Fixes for individual games
-    uint32 StrikeGunnerOffsetHack;
+	u32 StrikeGunnerOffsetHack;
     bool8  ChuckRock;
     bool8  StarfoxHack;
     bool8  WinterGold;
@@ -373,11 +364,11 @@ struct SSettings{
     bool8  WrestlemaniaArcade;
     bool8  BS;	// Japanese Satellite System games.
     bool8  DaffyDuck;
-    uint8  APURAMInitialValue;
+	u8  APURAMInitialValue;
     bool8  SDD1Pack;
     
 	// notaz
-	uint32 GfxLayerMask;
+	u32 GfxLayerMask;
 #ifdef __WIN32__
     int    SoundDriver;
 #endif
@@ -385,15 +376,15 @@ struct SSettings{
 
 struct SSNESGameFixes
 {
-    uint8 NeedInit0x2137;
-    uint8 umiharakawaseFix;
-    uint8 alienVSpredetorFix;
-    uint8 APU_OutPorts_ReturnValueFix;
-    uint8 Old_Read0x4200;
-    uint8 _0x213E_ReturnValue;
-    uint8 TouhaidenControllerFix;
-    uint8 SoundEnvelopeHeightReading2;
-    uint8 SRAMInitialValue;
+	u8 NeedInit0x2137;
+	u8 umiharakawaseFix;
+	u8 alienVSpredetorFix;
+	u8 APU_OutPorts_ReturnValueFix;
+	u8 Old_Read0x4200;
+	u8 _0x213E_ReturnValue;
+	u8 TouhaidenControllerFix;
+	u8 SoundEnvelopeHeightReading2;
+	u8 SRAMInitialValue;
 };
 
 START_EXTERN_C
@@ -402,7 +393,6 @@ extern struct SCPUState CPU;
 extern struct SSNESGameFixes SNESGameFixes;
 extern char String [513];
 
-void S9xExit ();
 void S9xMessage (int type, int number, const char *message);
 void S9xLoadSDD1Data ();
 END_EXTERN_C
@@ -417,7 +407,7 @@ enum {
     PAUSE_RESTORE_GUI = (1 << 6),
     PAUSE_FREEZE_FILE = (1 << 7)
 };
-void S9xSetPause (uint32 mask);
-void S9xClearPause (uint32 mask);
+void S9xSetPause (u32 mask);
+void S9xClearPause (u32 mask);
 
 #endif

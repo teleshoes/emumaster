@@ -1,5 +1,4 @@
  s L,R buttons
- s when you switch console type then the fast scroll in the list of roms do not work
  s add "more" icon in rom gallery, hide trash,homescreen and "play" in machine selection view
  x make icons in home screen removable
  s accelerometer as a controller
@@ -19,6 +18,7 @@
  s nesapu performance
  s 6502 in assembly
  s bluetooth gamepad
+ - portrait mode in rom gallery makes titles half visible
  - mappers 72-255
  - test PAL for NES
  - catch load/save errors

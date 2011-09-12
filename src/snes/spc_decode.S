@@ -42,7 +42,7 @@
 1122:
 .endm
 
-@ void DecodeBlockAsm2 (int8 *, int16 *, int32 *, int32 *);
+@ void DecodeBlockAsm2 (s8 *, s16 *, s32 *, s32 *);
 @ DecodeBlockAsm2 (compressed, raw, &ch->previous [0], &ch->previous [1]);
 	.align 4
 DecodeBlockAsm:

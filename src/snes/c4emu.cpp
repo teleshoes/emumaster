@@ -94,7 +94,7 @@ void S9xInitC4 ()
     memset(Memory.C4RAM, 0, 0x2000);
 }
 
-uint8 S9xGetC4 (uint16 Address)
+u8 S9xGetC4 (u16 Address)
 {
 #ifdef DEBUGGER
     if(Settings.BGLayering) printf("%02x from %04x\n", Memory.C4RAM[Address-0x6000], Address);
@@ -103,7 +103,7 @@ uint8 S9xGetC4 (uint16 Address)
     return (Memory.C4RAM [Address-0x6000]);
 }
 
-static uint8 C4TestPattern [12 * 4] =
+static u8 C4TestPattern [12 * 4] =
 {
     0x00, 0x00, 0x00, 0xff,
     0xff, 0xff, 0x00, 0xff,
@@ -121,17 +121,17 @@ static uint8 C4TestPattern [12 * 4] =
 
 
 static void C4ConvOAM(void){
-    uint8 *OAMptr=Memory.C4RAM+(Memory.C4RAM[0x626]<<2);
-    for(uint8 *i=Memory.C4RAM+0x1fd; i>OAMptr; i-=4){
+    u8 *OAMptr=Memory.C4RAM+(Memory.C4RAM[0x626]<<2);
+    for(u8 *i=Memory.C4RAM+0x1fd; i>OAMptr; i-=4){
         // Clear OAM-to-be
         *i=0xe0;
     }
 
-    uint16 globalX, globalY;
-    uint8 *OAMptr2;
-    int16 SprX, SprY;
-    uint8 SprName, SprAttr;
-    uint8 SprCount;
+    u16 globalX, globalY;
+    u8 *OAMptr2;
+    s16 SprX, SprY;
+    u8 SprName, SprAttr;
+    u8 SprCount;
     
     globalX=READ_WORD(Memory.C4RAM+0x0621);
     globalY=READ_WORD(Memory.C4RAM+0x0623);
@@ -140,37 +140,37 @@ static void C4ConvOAM(void){
 #ifdef DEBUGGER
     if(Memory.C4RAM[0x625]!=0) printf("$6625=%02x, expected 00\n", Memory.C4RAM[0x625]);
     if((Memory.C4RAM[0x626]>>2)!=Memory.C4RAM[0x629]) printf("$6629=%02x, expected %02x\n", Memory.C4RAM[0x629], (Memory.C4RAM[0x626]>>2));
-    if(((uint16)Memory.C4RAM[0x626]<<2)!=READ_WORD(Memory.C4RAM+0x627)) printf("$6627=%04x, expected %04x\n", READ_WORD(Memory.C4RAM+0x627), ((uint16)Memory.C4RAM[0x626]<<2));
+    if(((u16)Memory.C4RAM[0x626]<<2)!=READ_WORD(Memory.C4RAM+0x627)) printf("$6627=%04x, expected %04x\n", READ_WORD(Memory.C4RAM+0x627), ((u16)Memory.C4RAM[0x626]<<2));
 #endif
 
     if(Memory.C4RAM[0x0620]!=0){
         SprCount=128-Memory.C4RAM[0x626];
-        uint8 offset=(Memory.C4RAM[0x626]&3)*2;
-        uint8 *srcptr=Memory.C4RAM+0x220;
+        u8 offset=(Memory.C4RAM[0x626]&3)*2;
+        u8 *srcptr=Memory.C4RAM+0x220;
         for(int i=Memory.C4RAM[0x0620]; i>0 && SprCount>0; i--, srcptr+=16){
             SprX=READ_WORD(srcptr)-globalX;
             SprY=READ_WORD(srcptr+2)-globalY;
             SprName=srcptr[5];
             SprAttr=srcptr[4] | srcptr[0x06]; // XXX: mask bits?
 
-                uint8 *sprptr=S9xGetMemPointer(READ_3WORD(srcptr+7));
+                u8 *sprptr=S9xGetMemPointer(READ_3WORD(srcptr+7));
                 if(*sprptr!=0){
-                    int16 X, Y;
+                    s16 X, Y;
                     for(int SprCnt=*sprptr++; SprCnt>0 && SprCount>0; SprCnt--, sprptr+=4){
-                        X=(int8)sprptr[1];
+                        X=(s8)sprptr[1];
                         if(SprAttr&0x40){ // flip X
                             X=-X-((sprptr[0]&0x20)?16:8);
                         }
                         X+=SprX;
                         if(X>=-16 && X<=272){
-                            Y=(int8)sprptr[2];
+                            Y=(s8)sprptr[2];
                             if(SprAttr&0x80){
                                 Y=-Y-((sprptr[0]&0x20)?16:8);
                             }
                             Y+=SprY;
                             if(Y>=-16 && Y<=224){
                                 OAMptr[0]=X&0xff;
-                                OAMptr[1]=(uint8)Y;
+                                OAMptr[1]=(u8)Y;
                                 OAMptr[2]=SprName+sprptr[3];
                                 OAMptr[3]=SprAttr^(sprptr[0]&0xc0); // XXX: Carry from SprName addition?
                                 *OAMptr2 &= ~(3<<offset);
@@ -184,8 +184,8 @@ static void C4ConvOAM(void){
                         }
                     }
                 } else if(SprCount>0){
-                    OAMptr[0]=(uint8)SprX;
-                    OAMptr[1]=(uint8)SprY;
+                    OAMptr[0]=(u8)SprX;
+                    OAMptr[1]=(u8)SprY;
                     OAMptr[2]=SprName;
                     OAMptr[3]=SprAttr;
                     *OAMptr2 &= ~(3<<offset);
@@ -202,51 +202,51 @@ static void C4ConvOAM(void){
 }
 
 static void C4DoScaleRotate(int row_padding){
-    int16 A, B, C, D;
+    s16 A, B, C, D;
 
     // Calculate matrix
-    int32 XScale=READ_WORD(Memory.C4RAM+0x1f8f);
+    s32 XScale=READ_WORD(Memory.C4RAM+0x1f8f);
     if(XScale&0x8000) XScale=0x7fff;
-    int32 YScale=READ_WORD(Memory.C4RAM+0x1f92);
+    s32 YScale=READ_WORD(Memory.C4RAM+0x1f92);
     if(YScale&0x8000) YScale=0x7fff;
 
     if(READ_WORD(Memory.C4RAM+0x1f80)==0)
 	{ // no rotation
         // XXX: only do this for C and D?
         // XXX: and then only when YScale is 0x1000?
-        A=(int16)XScale;
+        A=(s16)XScale;
 		B=0;
         C=0;
-		D=(int16)YScale;
+		D=(s16)YScale;
     }
 	else if(READ_WORD(Memory.C4RAM+0x1f80)==128){ // 90 degree rotation
         // XXX: Really do this?
         A=0;
-		B=(int16)(-YScale);
-        C=(int16)XScale;
+		B=(s16)(-YScale);
+        C=(s16)XScale;
 		D=0;
     } else if(READ_WORD(Memory.C4RAM+0x1f80)==256){ // 180 degree rotation
         // XXX: Really do this?
-        A=(int16)(-XScale);
+        A=(s16)(-XScale);
 		B=0;
         C=0;
-		D=(int16)(-YScale);
+		D=(s16)(-YScale);
     } else if(READ_WORD(Memory.C4RAM+0x1f80)==384){ // 270 degree rotation
         // XXX: Really do this?
         A=0;
-		B=(int16)YScale;
-        C=(int16)(-XScale);
+		B=(s16)YScale;
+        C=(s16)(-XScale);
 		D=0;
     } else {
-        A=(int16)SAR(C4CosTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*XScale, 15);
-        B=(int16)(-SAR(C4SinTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*YScale, 15));
-        C=(int16)SAR(C4SinTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*XScale, 15);
-        D=(int16)SAR(C4CosTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*YScale, 15);
+        A=(s16)SAR(C4CosTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*XScale, 15);
+        B=(s16)(-SAR(C4SinTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*YScale, 15));
+        C=(s16)SAR(C4SinTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*XScale, 15);
+        D=(s16)SAR(C4CosTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*YScale, 15);
     }
 
     // Calculate Pixel Resolution
-    uint8 w=Memory.C4RAM[0x1f89]&~7;
-    uint8 h=Memory.C4RAM[0x1f8c]&~7;
+    u8 w=Memory.C4RAM[0x1f89]&~7;
+    u8 h=Memory.C4RAM[0x1f8c]&~7;
 
 //    printf("%dx%d XScale=%04x YScale=%04x angle=%03x\n", w, h, XScale, YScale, READ_WORD(Memory.C4RAM+0x1f80)&0x1ff);
 //    printf("Matrix: [%10g %10g]  [%04x %04x]\n", A/4096.0, B/4096.0, A&0xffff, B&0xffff);
@@ -255,8 +255,8 @@ static void C4DoScaleRotate(int row_padding){
     // Clear the output RAM
     memset(Memory.C4RAM, 0, (w+row_padding/4)*h/2);
 
-    int32 Cx=(int16)READ_WORD(Memory.C4RAM+0x1f83);
-    int32 Cy=(int16)READ_WORD(Memory.C4RAM+0x1f86);
+    s32 Cx=(s16)READ_WORD(Memory.C4RAM+0x1f83);
+    s32 Cy=(s16)READ_WORD(Memory.C4RAM+0x1f86);
 
 #ifdef DEBUGGER
     if(Memory.C4RAM[0x1f97]!=0) printf("$7f97=%02x, expected 00\n", Memory.C4RAM[0x1f97]);
@@ -267,14 +267,14 @@ static void C4DoScaleRotate(int row_padding){
     // The low 12 bits are fractional, so (Cx<<12) gives us the Cx we want in
     // the function. We do Cx*A etc normally because the matrix parameters
     // already have the fractional parts.
-    int32 LineX=(Cx<<12) - Cx*A - Cx*B;
-    int32 LineY=(Cy<<12) - Cy*C - Cy*D;
+    s32 LineX=(Cx<<12) - Cx*A - Cx*B;
+    s32 LineY=(Cy<<12) - Cy*C - Cy*D;
     
     // Start loop
-    uint32 X, Y;
-    uint8 byte;
+    u32 X, Y;
+    u8 byte;
     int outidx=0;
-    uint8 bit=0x80;
+    u8 bit=0x80;
     for(int y=0; y<h; y++){
         X=LineX;
         Y=LineY;
@@ -282,7 +282,7 @@ static void C4DoScaleRotate(int row_padding){
             if((X>>12)>=w || (Y>>12)>=h){
                 byte=0;
             } else {
-                uint32 addr=(Y>>12)*w+(X>>12);
+                u32 addr=(Y>>12)*w+(X>>12);
                 byte=Memory.C4RAM[0x600+(addr>>1)];
                 if(addr&1) byte>>=4;
             }
@@ -313,8 +313,8 @@ static void C4DoScaleRotate(int row_padding){
     }
 }
 
-static void C4DrawLine(int32 X1, int32 Y1, int16 Z1,
-                       int32 X2, int32 Y2, int16 Z2, uint8 Color){
+static void C4DrawLine(s32 X1, s32 Y1, s16 Z1,
+                       s32 X2, s32 Y2, s16 Z2, u8 Color){
     // Transform coordinates
     C4WFXVal=(short)X1;
     C4WFYVal=(short)Y1;
@@ -340,17 +340,17 @@ static void C4DrawLine(int32 X1, int32 Y1, int16 Z1,
     C4WFX2Val=(short)(X2>>8);
     C4WFY2Val=(short)(Y2>>8);
     C4CalcWireFrame();
-    X2=(int16)C4WFXVal;
-    Y2=(int16)C4WFYVal;
+    X2=(s16)C4WFXVal;
+    Y2=(s16)C4WFYVal;
 
     // render line
     for(int i=C4WFDist?C4WFDist:1; i>0; i--)
 	{ //.loop
         if(X1>0xff && Y1>0xff && X1<0x6000 && Y1<0x6000)
 		{
-            uint16 addr=((X1&~0x7ff) + (Y1&~0x7ff)*12 + (Y1&0x700))>>7;
+            u16 addr=((X1&~0x7ff) + (Y1&~0x7ff)*12 + (Y1&0x700))>>7;
             addr=(((Y1>>8)>>3)<<8)-(((Y1>>8)>>3)<<6)+(((X1>>8)>>3)<<4)+((Y1>>8)&7)*2;
-            uint8 bit=0x80>>((X1>>8)&7);
+            u8 bit=0x80>>((X1>>8)&7);
             Memory.C4RAM[addr+0x300]&=~bit;
             Memory.C4RAM[addr+0x301]&=~bit;
             if(Color&1) Memory.C4RAM[addr+0x300]|=bit;
@@ -363,11 +363,11 @@ static void C4DrawLine(int32 X1, int32 Y1, int16 Z1,
 
 static void C4DrawWireFrame(void)
 {
-    uint8 *line=S9xGetMemPointer(READ_3WORD(Memory.C4RAM+0x1f80));
-    uint8 *point1, *point2;
-    int16 X1, Y1, Z1;
-    int16 X2, Y2, Z2;
-    uint8 Color;
+    u8 *line=S9xGetMemPointer(READ_3WORD(Memory.C4RAM+0x1f80));
+    u8 *point1, *point2;
+    s16 X1, Y1, Z1;
+    s16 X2, Y2, Z2;
+    u8 Color;
 
 #ifdef DEBUGGER
     if(READ_3WORD(Memory.C4RAM+0x1f8f)&0xff00ff) printf("wireframe: Unexpected value in $7f8f: %06x\n", READ_3WORD(Memory.C4RAM+0x1f8f));
@@ -376,7 +376,7 @@ static void C4DrawWireFrame(void)
 
     for(int i=Memory.C4RAM[0x0295]; i>0; i--, line+=5){
         if(line[0]==0xff && line[1]==0xff){
-            uint8 *tmp=line-5;
+            u8 *tmp=line-5;
             while(line[2]==0xff && line[3]==0xff) tmp-=5;
             point1=S9xGetMemPointer((Memory.C4RAM[0x1f82]<<16) | (tmp[2]<<8) | tmp[3]);
         } else {
@@ -406,7 +406,7 @@ static void C4TransformLines(void){
 #endif
 
     // transform vertices
-    uint8 *ptr=Memory.C4RAM;
+    u8 *ptr=Memory.C4RAM;
 	{
 		for(int i=READ_WORD(Memory.C4RAM+0x1f80); i>0; i--, ptr+=0x10)
 		{
@@ -428,7 +428,7 @@ static void C4TransformLines(void){
     WRITE_WORD(Memory.C4RAM+0x605+8, 0x40);
 
     ptr=Memory.C4RAM+0xb02;
-    uint8 *ptr2=Memory.C4RAM;
+    u8 *ptr2=Memory.C4RAM;
 	{
 	    for(int i=READ_WORD(Memory.C4RAM+0xb00); i>0; i--, ptr+=2, ptr2+=8)
 		{
@@ -444,7 +444,7 @@ static void C4TransformLines(void){
     }
 }
 static void C4BitPlaneWave(){
-    static uint16 bmpdata[]={
+    static u16 bmpdata[]={
         0x0000, 0x0002, 0x0004, 0x0006, 0x0008, 0x000A, 0x000C, 0x000E,
         0x0200, 0x0202, 0x0204, 0x0206, 0x0208, 0x020A, 0x020C, 0x020E,
         0x0400, 0x0402, 0x0404, 0x0406, 0x0408, 0x040A, 0x040C, 0x040E,
@@ -452,10 +452,10 @@ static void C4BitPlaneWave(){
         0x0800, 0x0802, 0x0804, 0x0806, 0x0808, 0x080A, 0x080C, 0x080E
     };
     
-    uint8 *dst=Memory.C4RAM;
-    uint32 waveptr=Memory.C4RAM[0x1f83];
-    uint16 mask1=0xc0c0;
-    uint16 mask2=0x3f3f;
+    u8 *dst=Memory.C4RAM;
+    u32 waveptr=Memory.C4RAM[0x1f83];
+    u16 mask1=0xc0c0;
+    u16 mask2=0x3f3f;
 
 #ifdef DEBUGGER
     if(READ_3WORD(Memory.C4RAM+0x1f80) != Memory.C4RAM[waveptr+0xb00]) printf("$7f80=%06x, expected %02x\n", READ_3WORD(Memory.C4RAM+0x1f80), Memory.C4RAM[waveptr+0xb00]);
@@ -463,9 +463,9 @@ static void C4BitPlaneWave(){
 
     for(int j=0; j<0x10; j++){
         do {
-            int16 height=-((int8)Memory.C4RAM[waveptr+0xb00])-16;
+            s16 height=-((s8)Memory.C4RAM[waveptr+0xb00])-16;
             for(int i=0; i<40; i++){
-                uint16 tmp=READ_WORD(dst+bmpdata[i]) & mask2;
+                u16 tmp=READ_WORD(dst+bmpdata[i]) & mask2;
                 if(height>=0){
                     if(height<8){
                         tmp|=mask1&READ_WORD(Memory.C4RAM+0xa00+height*2);
@@ -483,9 +483,9 @@ static void C4BitPlaneWave(){
         dst+=16;
 
         do {
-            int16 height=-((int8)Memory.C4RAM[waveptr+0xb00])-16;
+            s16 height=-((s8)Memory.C4RAM[waveptr+0xb00])-16;
             for(int i=0; i<40; i++){
-                uint16 tmp=READ_WORD(dst+bmpdata[i]) & mask2;
+                u16 tmp=READ_WORD(dst+bmpdata[i]) & mask2;
                 if(height>=0){
                     if(height<8){
                         tmp|=mask1&READ_WORD(Memory.C4RAM+0xa10+height*2);
@@ -506,38 +506,38 @@ static void C4BitPlaneWave(){
 
 static void C4SprDisintegrate()
 {
-    uint8 width, height;
-    uint32 StartX, StartY;
-    uint8 *src;
-    int32 scaleX, scaleY;
-    int32 Cx, Cy;
+    u8 width, height;
+    u32 StartX, StartY;
+    u8 *src;
+    s32 scaleX, scaleY;
+    s32 Cx, Cy;
 
     width=Memory.C4RAM[0x1f89];
     height=Memory.C4RAM[0x1f8c];
-    Cx=(int16)READ_WORD(Memory.C4RAM+0x1f80);
-    Cy=(int16)READ_WORD(Memory.C4RAM+0x1f83);
+    Cx=(s16)READ_WORD(Memory.C4RAM+0x1f80);
+    Cy=(s16)READ_WORD(Memory.C4RAM+0x1f83);
 
 #ifdef DEBUGGER
     if((Cx&~1)!=width/2 || (Cy&~1)!=height/2) printf("Center is not middle of image for disintegrate! (%d, %d) != (%d, %d)\n", Cx, Cy, width/2, height/2);
 #endif
     
-    scaleX=(int16)READ_WORD(Memory.C4RAM+0x1f86);
-    scaleY=(int16)READ_WORD(Memory.C4RAM+0x1f8f);
+    scaleX=(s16)READ_WORD(Memory.C4RAM+0x1f86);
+    scaleY=(s16)READ_WORD(Memory.C4RAM+0x1f8f);
     StartX=-Cx*scaleX+(Cx<<8);
     StartY=-Cy*scaleY+(Cy<<8);
     src=Memory.C4RAM+0x600;
 
     memset(Memory.C4RAM, 0, width*height/2);
     
-    for(uint32 y=StartY, i=0; i<height; i++, y+=scaleY)
+    for(u32 y=StartY, i=0; i<height; i++, y+=scaleY)
 	{
-        for(uint32 x=StartX, j=0; j<width; j++, x+=scaleX)
+        for(u32 x=StartX, j=0; j<width; j++, x+=scaleX)
 		{
             if((x>>8)<width && (y>>8)<height && (y>>8)*width+(x>>8)<0x2000)
 			{
-                uint8 pixel=(j&1)?(*src>>4):*src;
+                u8 pixel=(j&1)?(*src>>4):*src;
                 int idx=(y>>11)*width*4+(x>>11)*32+((y>>8)&7)*2;
-                uint8 mask=0x80>>((x>>8)&7);
+                u8 mask=0x80>>((x>>8)&7);
                 if(pixel&1) Memory.C4RAM[idx]|=mask;
                 if(pixel&2) Memory.C4RAM[idx+1]|=mask;
                 if(pixel&4) Memory.C4RAM[idx+16]|=mask;
@@ -609,7 +609,7 @@ static void S9xC4ProcessSprites()
     }
 }
 
-void S9xSetC4 (uint8 byte, uint16 Address)
+void S9xSetC4 (u8 byte, u16 Address)
 {
     int i;
 
@@ -649,11 +649,11 @@ void S9xSetC4 (uint8 byte, uint16 Address)
                 if(Memory.C4RAM[0x1f4d]!=2) printf("$7f4d=%02x, expected 02 for command 05 %02x\n", Memory.C4RAM[0x1f4d], Memory.C4RAM[0x1f4d]);
 #endif
                 {
-                    int32 tmp=0x10000;
+                    s32 tmp=0x10000;
                     if(READ_WORD(Memory.C4RAM+0x1f83)){
                         tmp=SAR((tmp/READ_WORD(Memory.C4RAM+0x1f83))*READ_WORD(Memory.C4RAM+0x1f81), 8);
                     }
-                    WRITE_WORD(Memory.C4RAM+0x1f80, (uint16)tmp);
+                    WRITE_WORD(Memory.C4RAM+0x1f80, (u16)tmp);
                 }
                 break;
 
@@ -676,9 +676,9 @@ void S9xSetC4 (uint8 byte, uint16 Address)
                 if(Memory.C4RAM[0x1f4d]!=2) printf("$7f4d=%02x, expected 02 for command 10 %02x\n", Memory.C4RAM[0x1f4d], Memory.C4RAM[0x1f4d]);
 #endif
                 {
-                    int32 tmp=SAR((int32)READ_WORD(Memory.C4RAM+0x1f83)*C4CosTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*2, 16);
+                    s32 tmp=SAR((s32)READ_WORD(Memory.C4RAM+0x1f83)*C4CosTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*2, 16);
                     WRITE_3WORD(Memory.C4RAM+0x1f86, tmp);
-                    tmp=SAR((int32)READ_WORD(Memory.C4RAM+0x1f83)*C4SinTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*2, 16);
+                    tmp=SAR((s32)READ_WORD(Memory.C4RAM+0x1f83)*C4SinTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*2, 16);
                     WRITE_3WORD(Memory.C4RAM+0x1f89, (tmp-SAR(tmp, 6)));
                 }
                 break;
@@ -689,9 +689,9 @@ void S9xSetC4 (uint8 byte, uint16 Address)
                 if(Memory.C4RAM[0x1f4d]!=2) printf("$7f4d=%02x, expected 02 for command 13 %02x\n", Memory.C4RAM[0x1f4d], Memory.C4RAM[0x1f4d]);
 #endif
                 {
-                    int32 tmp=SAR((int32)READ_WORD(Memory.C4RAM+0x1f83)*C4CosTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*2, 8);
+                    s32 tmp=SAR((s32)READ_WORD(Memory.C4RAM+0x1f83)*C4CosTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*2, 8);
                     WRITE_3WORD(Memory.C4RAM+0x1f86, tmp);
-                    tmp=SAR((int32)READ_WORD(Memory.C4RAM+0x1f83)*C4SinTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*2, 8);
+                    tmp=SAR((s32)READ_WORD(Memory.C4RAM+0x1f83)*C4SinTable[READ_WORD(Memory.C4RAM+0x1f80)&0x1ff]*2, 8);
                     WRITE_3WORD(Memory.C4RAM+0x1f89, tmp);
                 }
                 break;
@@ -703,7 +703,7 @@ void S9xSetC4 (uint8 byte, uint16 Address)
 #endif
                 C41FXVal=READ_WORD(Memory.C4RAM+0x1f80);
                 C41FYVal=READ_WORD(Memory.C4RAM+0x1f83);
-                C41FDist=(int16)sqrt((double)C41FXVal*C41FXVal + (double)C41FYVal*C41FYVal);
+                C41FDist=(s16)sqrt((double)C41FXVal*C41FXVal + (double)C41FYVal*C41FYVal);
                 WRITE_WORD(Memory.C4RAM+0x1f80, C41FDist);
                 break;
 
@@ -724,24 +724,24 @@ void S9xSetC4 (uint8 byte, uint16 Address)
 //                   printf("22 Trapezoid!\n");
                     if(Memory.C4RAM[0x1f4d]!=2) printf("$7f4d=%02x, expected 02 for command 22 %02x\n", Memory.C4RAM[0x1f4d], Memory.C4RAM[0x1f4d]);
 #endif
-                    int16 angle1=READ_WORD(Memory.C4RAM+0x1f8c)&0x1ff;
-                    int16 angle2=READ_WORD(Memory.C4RAM+0x1f8f)&0x1ff;
+                    s16 angle1=READ_WORD(Memory.C4RAM+0x1f8c)&0x1ff;
+                    s16 angle2=READ_WORD(Memory.C4RAM+0x1f8f)&0x1ff;
 #ifdef DEBUGGER
                     if(C4CosTable[angle1]==0) fprintf(stderr, "22 Trapezoid: Invalid tangent! angle1=%d\n", angle1);
                     if(C4CosTable[angle2]==0) fprintf(stderr, "22 Trapezoid: Invalid tangent! angle2=%d\n", angle2);
 #endif
-                    int32 tan1=(C4CosTable[angle1]!=0)?((((int32)C4SinTable[angle1])<<16)/C4CosTable[angle1]):0x80000000;
-                    int32 tan2=(C4CosTable[angle2]!=0)?((((int32)C4SinTable[angle2])<<16)/C4CosTable[angle2]):0x80000000;
-                    int16 y = READ_WORD(Memory.C4RAM+0x1f83) - READ_WORD(Memory.C4RAM+0x1f89);
-                    int16 left, right;
+                    s32 tan1=(C4CosTable[angle1]!=0)?((((s32)C4SinTable[angle1])<<16)/C4CosTable[angle1]):0x80000000;
+                    s32 tan2=(C4CosTable[angle2]!=0)?((((s32)C4SinTable[angle2])<<16)/C4CosTable[angle2]):0x80000000;
+                    s16 y = READ_WORD(Memory.C4RAM+0x1f83) - READ_WORD(Memory.C4RAM+0x1f89);
+                    s16 left, right;
                     for(int j=0; j<225; j++)
                     {
                         if(y>=0)
                         {
-                            left = SAR((int32)tan1*y, 16) -
+                            left = SAR((s32)tan1*y, 16) -
                                 READ_WORD(Memory.C4RAM+0x1f80) + 
                                 READ_WORD(Memory.C4RAM+0x1f86);
-                            right = SAR((int32)tan2*y, 16) -
+                            right = SAR((s32)tan2*y, 16) -
                                 READ_WORD(Memory.C4RAM+0x1f80) + 
                                 READ_WORD(Memory.C4RAM+0x1f86) +
                                 READ_WORD(Memory.C4RAM+0x1f93);
@@ -768,8 +768,8 @@ void S9xSetC4 (uint8 byte, uint16 Address)
                             left=1;
                             right=0;
                         }
-                        Memory.C4RAM[j+0x800] = (uint8)left;
-                        Memory.C4RAM[j+0x900] = (uint8)right;
+                        Memory.C4RAM[j+0x800] = (u8)left;
+                        Memory.C4RAM[j+0x900] = (u8)right;
                         y++;
                     }
                 }
@@ -781,8 +781,8 @@ void S9xSetC4 (uint8 byte, uint16 Address)
                 if(Memory.C4RAM[0x1f4d]!=2) printf("$7f4d=%02x, expected 02 for command 25 %02x\n", Memory.C4RAM[0x1f4d], Memory.C4RAM[0x1f4d]);
 #endif
                 { 
-                    int32 foo=READ_3WORD(Memory.C4RAM+0x1f80);
-                    int32 bar=READ_3WORD(Memory.C4RAM+0x1f83);
+                    s32 foo=READ_3WORD(Memory.C4RAM+0x1f80);
+                    s32 bar=READ_3WORD(Memory.C4RAM+0x1f83);
                     foo*=bar;
                     WRITE_3WORD(Memory.C4RAM+0x1f80, foo);
                 }
@@ -813,7 +813,7 @@ void S9xSetC4 (uint8 byte, uint16 Address)
                 if(Memory.C4RAM[0x1f4d]!=0x0e) printf("$7f4d=%02x, expected 0e for command 40 %02x\n", Memory.C4RAM[0x1f4d], Memory.C4RAM[0x1f4d]);
 #endif
                 {
-                    uint16 sum=0;
+                    u16 sum=0;
                     for(int i=0; i<0x800; sum+=Memory.C4RAM[i++]);
                     WRITE_WORD(Memory.C4RAM+0x1f80, sum);
                 }
@@ -825,10 +825,10 @@ void S9xSetC4 (uint8 byte, uint16 Address)
                 if(Memory.C4RAM[0x1f4d]!=0x0e) printf("$7f4d=%02x, expected 0e for command 54 %02x\n", Memory.C4RAM[0x1f4d], Memory.C4RAM[0x1f4d]);
 #endif
                 {
-                    int64 a=SAR((int64)READ_3WORD(Memory.C4RAM+0x1f80)<<40, 40);
-				//	printf("%08X%08X\n", (uint32)(a>>32), (uint32)(a&0xFFFFFFFF));
+                    s64 a=SAR((s64)READ_3WORD(Memory.C4RAM+0x1f80)<<40, 40);
+				//	printf("%08X%08X\n", (u32)(a>>32), (u32)(a&0xFFFFFFFF));
                     a*=a;
-				//	printf("%08X%08X\n", (uint32)(a>>32), (uint32)(a&0xFFFFFFFF));
+				//	printf("%08X%08X\n", (u32)(a>>32), (u32)(a&0xFFFFFFFF));
                     WRITE_3WORD(Memory.C4RAM+0x1f83, a);
                     WRITE_3WORD(Memory.C4RAM+0x1f86, (a>>24));
                 }
@@ -872,7 +872,7 @@ void S9xSetC4 (uint8 byte, uint16 Address)
     }
 }
 
-int16 C4SinTable[512] = {
+s16 C4SinTable[512] = {
 	    0,    402,    804,   1206,   1607,   2009,   2410,   2811,
       3211,   3611,   4011,   4409,   4808,   5205,   5602,   5997,
       6392,   6786,   7179,   7571,   7961,   8351,   8739,   9126,
@@ -939,7 +939,7 @@ int16 C4SinTable[512] = {
      -3211,  -2811,  -2410,  -2009,  -1607,  -1206,   -804,   -402
 };
 
-int16 C4CosTable[512] = {
+s16 C4CosTable[512] = {
 	     32767,  32765,  32758,  32745,  32728,  32706,  32679,  32647,
      32610,  32568,  32521,  32469,  32413,  32351,  32285,  32214,
      32138,  32057,  31971,  31881,  31785,  31685,  31581,  31471,

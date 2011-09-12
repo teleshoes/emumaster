@@ -105,10 +105,10 @@
 #include "sdd1emu.h"
 
 static int valid_bits;
-static uint16 in_stream;
-static uint8 *in_buf;
-static uint8 bit_ctr[8];
-static uint8 context_states[32];
+static u16 in_stream;
+static u8 *in_buf;
+static u8 bit_ctr[8];
+static u8 context_states[32];
 static int context_MPS[32];
 static int bitplane_type;
 static int high_context_bits;
@@ -116,9 +116,9 @@ static int low_context_bits;
 static int prev_bits[8];
 
 static struct {
-    uint8 code_size;
-    uint8 MPS_next;
-    uint8 LPS_next;
+    u8 code_size;
+    u8 MPS_next;
+    u8 LPS_next;
 } evolution_table[] = {
     /*  0 */ { 0,25,25},
     /*  1 */ { 0, 2, 1},
@@ -155,7 +155,7 @@ static struct {
     /* 32 */ { 7,24,22}
 };
 
-static uint8 run_table[128] = {
+static u8 run_table[128] = {
     128,  64,  96,  32, 112,  48,  80,  16, 120,  56,  88,  24, 104,  40,  72,
       8, 124,  60,  92,  28, 108,  44,  76,  12, 116,  52,  84,  20, 100,  36,
      68,   4, 126,  62,  94,  30, 110,  46,  78,  14, 118,  54,  86,  22, 102,
@@ -167,8 +167,8 @@ static uint8 run_table[128] = {
     113,  49,  81,  17,  97,  33,  65,   1
 };
 
-static inline uint8 GetCodeword(int bits){
-    uint8 tmp;
+static inline u8 GetCodeword(int bits){
+    u8 tmp;
 
     if(!valid_bits){
         in_stream|=*(in_buf++);
@@ -188,7 +188,7 @@ static inline uint8 GetCodeword(int bits){
     return run_table[tmp];
 }
 
-static inline uint8 GolombGetBit(int code_size){
+static inline u8 GolombGetBit(int code_size){
     if(!bit_ctr[code_size]) bit_ctr[code_size]=GetCodeword(code_size);
     bit_ctr[code_size]--;
     if(bit_ctr[code_size]==0x80){
@@ -198,9 +198,9 @@ static inline uint8 GolombGetBit(int code_size){
     return (bit_ctr[code_size]==0)?1:0;
 }
 
-static inline uint8 ProbGetBit(uint8 context){
-    uint8 state=context_states[context];
-    uint8 bit=GolombGetBit(evolution_table[state].code_size);
+static inline u8 ProbGetBit(u8 context){
+    u8 state=context_states[context];
+    u8 bit=GolombGetBit(evolution_table[state].code_size);
 
     if(bit&1){
         context_states[context]=evolution_table[state].LPS_next;
@@ -217,8 +217,8 @@ static inline uint8 ProbGetBit(uint8 context){
     return context_MPS[context]; /* we know bit is 0, so don't bother xoring */
 }
 
-static inline uint8 GetBit(uint8 cur_bitplane){
-    uint8 bit;
+static inline u8 GetBit(u8 cur_bitplane){
+    u8 bit;
     
     bit=ProbGetBit(((cur_bitplane&1)<<4)
                    | ((prev_bits[cur_bitplane]&high_context_bits)>>5)
@@ -229,9 +229,9 @@ static inline uint8 GetBit(uint8 cur_bitplane){
     return bit;
 }
 
-void SDD1_decompress(uint8 *out, uint8 *in, int len){
-    uint8 bit, i, plane;
-    uint8 byte1, byte2;
+void SDD1_decompress(u8 *out, u8 *in, int len){
+    u8 bit, i, plane;
+    u8 byte1, byte2;
 
     if(len==0) len=0x10000;
     
@@ -316,11 +316,11 @@ void SDD1_decompress(uint8 *out, uint8 *in, int len){
     }
 }
 
-static uint8 cur_plane;
-static uint8 num_bits;
-static uint8 next_byte;
+static u8 cur_plane;
+static u8 num_bits;
+static u8 next_byte;
 
-void SDD1_init(uint8 *in){
+void SDD1_init(u8 *in){
     bitplane_type=in[0]>>6;
 
     switch(in[0]&0x30){
@@ -354,9 +354,9 @@ void SDD1_init(uint8 *in){
     num_bits=0;
 }
 
-uint8 SDD1_get_byte(void){
-    uint8 bit;
-    uint8 byte=0;
+u8 SDD1_get_byte(void){
+    u8 bit;
+    u8 byte=0;
     
     switch(bitplane_type){
       case 0:

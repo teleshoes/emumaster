@@ -332,7 +332,7 @@ void	S9xUpdateSrtcTime ()
 /* S9xSetSRTC()                                                                               */
 /* This function sends data to the S-RTC used in Dai Kaijyu Monogatari II                     */
 /**********************************************************************************************/
-void S9xSetSRTC (uint8 data, uint16 Address)
+void S9xSetSRTC (u8 data, u16 Address)
 {
 
     data &= 0x0F;	// Data is only 4-bits, mask out unused bits.
@@ -437,7 +437,7 @@ void S9xSetSRTC (uint8 data, uint16 Address)
 /* S9xGetSRTC()                                                                               */
 /* This function retrieves data from the S-RTC                                                */
 /**********************************************************************************************/
-uint8 S9xGetSRTC (uint16 Address)
+u8 S9xGetSRTC (u16 Address)
 {
     if ( rtc.mode == MODE_READ )
     {
@@ -484,14 +484,14 @@ void S9xSRTCPreSaveState ()
 #ifdef LSB_FIRST
 	memmove (&SRAM [s + 5 + MAX_RTC_INDEX], &rtc.system_timestamp, 8);
 #else
-	SRAM [s + 5  + MAX_RTC_INDEX] = (uint8) (rtc.system_timestamp >>  0);
-	SRAM [s + 6  + MAX_RTC_INDEX] = (uint8) (rtc.system_timestamp >>  8);
-	SRAM [s + 7  + MAX_RTC_INDEX] = (uint8) (rtc.system_timestamp >> 16);
-	SRAM [s + 8  + MAX_RTC_INDEX] = (uint8) (rtc.system_timestamp >> 24);
-	SRAM [s + 9  + MAX_RTC_INDEX] = (uint8) (rtc.system_timestamp >> 32);
-	SRAM [s + 10 + MAX_RTC_INDEX] = (uint8) (rtc.system_timestamp >> 40);
-	SRAM [s + 11 + MAX_RTC_INDEX] = (uint8) (rtc.system_timestamp >> 48);
-	SRAM [s + 12 + MAX_RTC_INDEX] = (uint8) (rtc.system_timestamp >> 56);
+	SRAM [s + 5  + MAX_RTC_INDEX] = (u8) (rtc.system_timestamp >>  0);
+	SRAM [s + 6  + MAX_RTC_INDEX] = (u8) (rtc.system_timestamp >>  8);
+	SRAM [s + 7  + MAX_RTC_INDEX] = (u8) (rtc.system_timestamp >> 16);
+	SRAM [s + 8  + MAX_RTC_INDEX] = (u8) (rtc.system_timestamp >> 24);
+	SRAM [s + 9  + MAX_RTC_INDEX] = (u8) (rtc.system_timestamp >> 32);
+	SRAM [s + 10 + MAX_RTC_INDEX] = (u8) (rtc.system_timestamp >> 40);
+	SRAM [s + 11 + MAX_RTC_INDEX] = (u8) (rtc.system_timestamp >> 48);
+	SRAM [s + 12 + MAX_RTC_INDEX] = (u8) (rtc.system_timestamp >> 56);
 #endif
     }
 }

@@ -17,26 +17,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef GBACOMMON_H
+#define GBACOMMON_H
+
+#if defined(__cplusplus)
+#include <imachine.h>
+#endif
 
 #define ror(dest, value, shift)                                               \
   dest = ((value) >> shift) | ((value) << (32 - shift))                       \
-
-// Huge thanks to pollux for the heads up on using native file I/O
-// functions on PSP for vastly improved memstick performance.
-
-#define file_write_mem(filename_tag, buffer, size)                            \
-{                                                                             \
-  memcpy(write_mem_ptr, buffer, size);                                        \
-  write_mem_ptr += size;                                                      \
-}                                                                             \
-
-#define file_write_mem_array(filename_tag, array)                             \
-  file_write_mem(filename_tag, array, sizeof(array))                          \
-
-#define file_write_mem_variable(filename_tag, variable)                       \
-  file_write_mem(filename_tag, &variable, sizeof(variable))                   \
 
 #if defined(__i386__)
   #define function_cc __attribute__((regparm(2)))
@@ -44,56 +33,8 @@
   #define function_cc
 #endif
 
-  typedef unsigned char u8;
-  typedef signed char s8;
-  typedef unsigned short int u16;
-  typedef signed short int s16;
-  typedef unsigned long u32;
-  typedef signed long s32;
-  typedef unsigned long long int u64;
-  typedef signed long long int s64;
-
-  #define convert_palette(value)                                              \
-    value = ((value & 0x1F) << 11) | ((value & 0x03E0) << 1) | (value >> 10)  \
-
-  #define stdio_file_open_read  "rb"
-  #define stdio_file_open_write "wb"
-
-  #define file_open(filename_tag, filename, mode)                             \
-    FILE *filename_tag = fopen(filename, stdio_file_open_##mode)              \
-
-  #define file_check_valid(filename_tag)                                      \
-    (filename_tag)                                                            \
-
-  #define file_read(filename_tag, buffer, size)                               \
-    fread(buffer, size, 1, filename_tag)                                      \
-
-  #define file_write(filename_tag, buffer, size)                              \
-    fwrite(buffer, size, 1, filename_tag)                                     \
-
-  #define file_seek(filename_tag, offset, type)                               \
-    fseek(filename_tag, offset, type)                                         \
-
-  #define file_tag_type FILE *
-
-// These must be variables, not constants.
-
-#define file_read_variable(filename_tag, variable)                            \
-  file_read(filename_tag, &variable, sizeof(variable))                        \
-
-#define file_write_variable(filename_tag, variable)                           \
-  file_write(filename_tag, &variable, sizeof(variable))                       \
-
-// These must be statically declared arrays (ie, global or on the stack,
-// not dynamically allocated on the heap)
-
-#define file_read_array(filename_tag, array)                                  \
-  file_read(filename_tag, array, sizeof(array))                               \
-
-#define file_write_array(filename_tag, array)                                 \
-  file_write(filename_tag, array, sizeof(array))                              \
-
-
+#define convert_palette(value)                                              \
+  value = ((value & 0x1F) << 11) | ((value & 0x03E0) << 1) | (value >> 10)  \
 
 typedef u32 fixed16_16;
 
@@ -130,11 +71,5 @@ typedef u32 fixed16_16;
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include "cpu.h"
-#include "memory.h"
-#include "video.h"
-#include "sound.h"
-#include "main.h"
-#include "cheats.h"
 
-#endif
+#endif // GBACOMMON_H

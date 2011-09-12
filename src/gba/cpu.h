@@ -17,8 +17,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef CPU_H
-#define CPU_H
+#ifndef GBACPU_H
+#define GBACPU_H
+
+#include "common.h"
 
 // System mode and user mode are represented as the same here
 
@@ -105,12 +107,27 @@ typedef enum
   TRANSLATION_REGION_BIOS
 } translation_region_type;
 
+#if defined(__cplusplus)
+
+#include <QObject>
+
+class GbaCpu : public QObject {
+	Q_OBJECT
+public:
+	explicit GbaCpu(QObject *parent = 0);
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+};
+
+extern "C" {
+#endif
+
 extern debug_state current_debug_state;
 extern u32 instruction_count;
 extern u32 last_instruction;
 
-u32 function_cc step_debug(u32 pc, u32 cycles);
-u32 execute_arm(u32 cycles);
+void function_cc step_debug(u32 pc, u32 cycles);
+void execute_arm(u32 cycles);
 void raise_interrupt(irq_type irq_raised);
 
 u32 function_cc execute_load_u8(u32 address);
@@ -123,8 +140,6 @@ void function_cc execute_store_u16(u32 address, u32 source);
 void function_cc execute_store_u32(u32 address, u32 source);
 u32 function_cc execute_arm_translate(u32 cycles);
 void init_translater();
-void cpu_write_mem_savestate(file_tag_type savestate_file);
-void cpu_read_savestate(file_tag_type savestate_file);
 
 u8 function_cc *block_lookup_address_arm(u32 pc);
 u8 function_cc *block_lookup_address_thumb(u32 pc);
@@ -195,6 +210,12 @@ extern u32 memory_writes_u16;
 extern u32 memory_writes_u32;
 
 void init_cpu();
-void move_reg();
+void set_cpu_mode(u32 new_mode);
+void move_reg(u32 *new_reg);
+extern const u8 bit_count[256];
 
+#if defined(__cplusplus)
+}
 #endif
+
+#endif // GBACPU_H

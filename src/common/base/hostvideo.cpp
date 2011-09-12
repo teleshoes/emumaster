@@ -14,14 +14,8 @@ HostVideo::HostVideo(IMachine *machine, MachineThread *thread) :
 	m_machine(machine),
 	m_thread(thread) {
 
-	m_srcRect = m_machine->videoSrcRect();
-	Q_ASSERT_X(m_srcRect.width() != 0.0f && m_srcRect.height() != 0.0f, "HostVideo", "define source rect!");
-	qreal scale = qMin(854.0f/m_srcRect.width(), 480.0f/m_srcRect.height());
-	qreal w = m_srcRect.width() * scale;
-	qreal h = m_srcRect.height() * scale;
-	qreal x = 854.0f/2.0f-w/2.0f;
-	qreal y = 480.0f/2.0f-h/2.0f;
-	m_dstRect = QRectF(x, y, w, h);
+	updateRects();
+	QObject::connect(machine, SIGNAL(videoSrcRectChanged()), SLOT(updateRects()));
 
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_AcceptTouchEvents);
@@ -175,4 +169,15 @@ void HostVideo::changeEvent(QEvent *e) {
 	QGLWidget::changeEvent(e);
 	if (e->type() == QEvent::WindowStateChange && windowState().testFlag(Qt::WindowMinimized))
 		emit minimized();
+}
+
+void HostVideo::updateRects() {
+	m_srcRect = m_machine->videoSrcRect();
+	Q_ASSERT_X(m_srcRect.width() != 0.0f && m_srcRect.height() != 0.0f, "HostVideo", "define source rect!");
+	qreal scale = qMin(854.0f/m_srcRect.width(), 480.0f/m_srcRect.height());
+	qreal w = m_srcRect.width() * scale;
+	qreal h = m_srcRect.height() * scale;
+	qreal x = 854.0f/2.0f-w/2.0f;
+	qreal y = 480.0f/2.0f-h/2.0f;
+	m_dstRect = QRectF(x, y, w, h);
 }

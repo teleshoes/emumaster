@@ -17,14 +17,27 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef VIDEO_H
-#define VIDEO_H
+#ifndef GBAVIDEO_H
+#define GBAVIDEO_H
+
+#include "common.h"
+
+#if defined(__cplusplus)
+
+#include <QObject>
+
+class GbaVideo : public QObject {
+	Q_OBJECT
+public:
+	explicit GbaVideo(QObject *parent = 0);
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+};
+
+extern "C" {
+#endif
 
 void update_scanline();
-void video_write_mem_savestate(file_tag_type savestate_file);
-void video_read_savestate(file_tag_type savestate_file);
-
-extern u16 *get_screen_pixels();
 
 void debug_screen_printf(const char *format, ...);
 void debug_screen_printl(const char *format, ...);
@@ -36,6 +49,9 @@ extern s32 affine_reference_y[2];
 typedef void (* tile_render_function)(u32 layer_number, u32 start, u32 end,
  void *dest_ptr);
 typedef void (* bitmap_render_function)(u32 start, u32 end, void *dest_ptr);
+
+void expand_normal(u16 *screen_ptr, u32 start, u32 end);
+void expand_blend(u32 *screen_src_ptr, u16 *screen_dest_ptr, u32 start, u32 end);
 
 typedef struct
 {
@@ -54,4 +70,8 @@ typedef struct
   bitmap_render_function normal_render;
 } bitmap_layer_render_struct;
 
+#if defined(__cplusplus)
+}
 #endif
+
+#endif // GBAVIDEO_H

@@ -34,6 +34,8 @@ protected:
 	void paintEvent(QPaintEvent *);
 	void closeEvent(QCloseEvent *e);
 	void changeEvent(QEvent *e);
+private slots:
+	void updateRects();
 private:
 	IMachine *m_machine;
 	MachineThread *m_thread;

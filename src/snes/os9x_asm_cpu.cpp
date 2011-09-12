@@ -1,7 +1,7 @@
 #include "snes9x.h"
 #include "apu.h"
 #include "ppu.h"
-#include "cpuexec.h"
+#include "cpu.h"
 //#include "cpuops.h"
 #include "port.h"
 #include "os9x_asm_cpu.h"
@@ -13,7 +13,7 @@
 
 START_EXTERN_C
 
-void asm_S9xSetPCBase(uint32 Address)
+void asm_S9xSetPCBase(u32 Address)
 {
 #ifdef __debug_c_setpc__
 	printf("spcb\n");
@@ -50,7 +50,7 @@ void asm_S9xDoHBlankProcessing(void)
 }
 
 
-uint8 asm_S9xGetByte(uint32 Address)
+u8 asm_S9xGetByte(u32 Address)
 {
 #ifdef __debug_c_io__
 	printf("gb\n");
@@ -58,7 +58,7 @@ uint8 asm_S9xGetByte(uint32 Address)
 	return S9xGetByte(Address);	
 }
 
-uint16 asm_S9xGetWord(uint32 Address)
+u16 asm_S9xGetWord(u32 Address)
 {
 #ifdef __debug_c_io__
 	printf("gw\n");
@@ -67,7 +67,7 @@ uint16 asm_S9xGetWord(uint32 Address)
 }
 
 
-void asm_S9xSetByte(uint32 Address,uint8 value)
+void asm_S9xSetByte(u32 Address,u8 value)
 {	
 #ifdef __debug_c_io__
 	printf("sb\n");		
@@ -75,7 +75,7 @@ void asm_S9xSetByte(uint32 Address,uint8 value)
 	S9xSetByte(value,Address);	
 }
 
-void asm_S9xSetWord(uint32 Address,uint16 value)
+void asm_S9xSetWord(u32 Address,u16 value)
 {	
 #ifdef __debug_c_io__
 	printf("sw\n");

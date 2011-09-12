@@ -38,8 +38,19 @@
  * Super NES and Super Nintendo Entertainment System are trademarks of
  * Nintendo Co., Limited and its subsidiary companies.
  */
-#ifndef _SOUND_H_
-#define _SOUND_H_
+#ifndef SNESSOUND_H
+#define SNESSOUND_H
+
+#include "machine.h"
+#include "port.h"
+#include "snes9x.h"
+
+class SnesSound : public QObject {
+	Q_OBJECT
+public:
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+};
 
 enum { SOUND_SAMPLE = 0, SOUND_NOISE, SOUND_EXTRA_NOISE, SOUND_MUTE };
 enum { SOUND_SILENT, SOUND_ATTACK, SOUND_DECAY, SOUND_SUSTAIN,
@@ -69,9 +80,9 @@ typedef struct {
     int playback_rate;
     bool8 stereo;
     bool8 mute_sound;
-    uint8 sound_switch;
+	u8 sound_switch;
     int noise_gen;
-	uint32 freqbase; // notaz
+	u32 freqbase; // notaz
 } SoundStatus;
 
 EXTERN_C SoundStatus so;
@@ -81,44 +92,43 @@ typedef struct {
     int type;
     short volume_left;
     short volume_right;
-    uint32 hertz;
-    uint32 frequency;
-    uint32 count;
+	u32 hertz;
+	u32 frequency;
+	u32 count;
     bool8 loop;
     int envx;
     short left_vol_level;
     short right_vol_level;
     short envx_target;
-    unsigned long int env_error;
-    unsigned long erate;
+	u32 env_error;
+	u32 erate;
     int direction;
-    unsigned long attack_rate;
-    unsigned long decay_rate;
-    unsigned long sustain_rate;
-    unsigned long release_rate;
-    unsigned long sustain_level;
+	u32 attack_rate;
+	u32 decay_rate;
+	u32 sustain_rate;
+	u32 release_rate;
+	u32 sustain_level;
     signed short sample;
-    signed short decoded [16];
-    signed short previous16 [2];
+	s16 decoded [16];
     signed short *block;
-    uint16 sample_number;
+	u16 sample_number;
     bool8 last_block;
     bool8 needs_decode;
-    uint32 block_pointer;
-    uint32 sample_pointer;
+	u32 block_pointer;
+	u32 sample_pointer;
     int *echo_buf_ptr;
     int mode;
-    int32 envxx;
+	s32 envxx;
     signed short next_sample;
-    int32 interpolate;
-    int32 previous [2];
+	s32 interpolate;
+	s32 previous [2];
 	// notaz
-	uint8 env_ind_attack;
-	uint8 env_ind_decay;
-	uint8 env_ind_sustain;
-	uint8 dummy1;
+	u8 env_ind_attack;
+	u8 env_ind_decay;
+	u8 env_ind_sustain;
+	u8 dummy1;
     // Just incase they are needed in the future, for snapshot compatibility.
-    uint32 dummy [7];
+	u32 dummy [7];
 	//I'll use Fatl's recovery on savestates.
 	short gaussian[8];
 	int   g_index;
@@ -139,7 +149,7 @@ typedef struct
     int echo_channel_enable;
     int pitch_mod;
     // Just incase they are needed in the future, for snapshot compatibility.
-    uint32 dummy [3];
+	u32 dummy [3];
     Channel channels [NUM_CHANNELS];
     bool8 no_filter;
     int master_volume [2];
@@ -154,21 +164,18 @@ void S9xSetSoundKeyOff (int channel);
 void S9xSetSoundDecayMode (int channel);
 void S9xSetSoundAttachMode (int channel);
 void S9xSoundStartEnvelope (Channel *);
-void S9xSetSoundSample (int channel, uint16 sample_number);
+void S9xSetSoundSample (int channel, u16 sample_number);
 void S9xSetEchoDelay (int byte);
 void S9xResetSound (bool8 full);
 void S9xFixSoundAfterSnapshotLoad ();
 void S9xPlaybackSoundSetting (int channel);
-void S9xFixEnvelope (int channel, uint8 gain, uint8 adsr1, uint8 adsr2);
+void S9xFixEnvelope (int channel, u8 gain, u8 adsr1, u8 adsr2);
 void S9xStartSample (int channel);
 
 EXTERN_C void S9xMixSamples (signed short *buffer, int sample_count);
 EXTERN_C void S9xMixSamplesO(signed short *buffer, int sample_count, int sample_offset);
-void S9xSetPlaybackRate (uint32 rate);
+void S9xSetPlaybackRate (u32 rate);
 EXTERN_C bool8 S9xInitSound (void);
-#endif
-
-
 
 // notaz: some stuff from soundux.cpp to enable their inlining
 #include "apu.h"
@@ -261,13 +268,13 @@ static inline void S9xSetEnvRate (Channel *ch, unsigned long rate, int direction
     else
     {
 	ch->erate = (unsigned long)
-		    (((int64) FIXED_POINT * 1000 * steps [ch->state]) /
+			(((s64) FIXED_POINT * 1000 * steps [ch->state]) /
 		      (rate * so.playback_rate));
     }
 #endif
 }
 
-static inline void S9xSetEchoEnable (uint8 byte)
+static inline void S9xSetEchoEnable (u8 byte)
 {
     SoundData.echo_channel_enable = byte;
     if (!SoundData.echo_write_enabled || Settings.DisableSoundEcho)
@@ -307,10 +314,10 @@ static inline void S9xSetFilterCoefficient (int tap, int value)
 			   FilterTaps [7] == 0;
 }
 
-static inline uint16 *S9xGetSampleAddress (int sample_number)
+static inline u16 *S9xGetSampleAddress (int sample_number)
 {
-    uint32 addr = (((APU.DSP[APU_DIR] << 8) + (sample_number << 2)) & 0xffff);
-    return (uint16 *)(IAPU.RAM + addr);
+	u32 addr = (((APU.DSP[APU_DIR] << 8) + (sample_number << 2)) & 0xffff);
+	return (u16 *)(IAPU.RAM + addr);
 }
 
 static inline void S9xSetSoundFrequency (int channel, int hertz) // hertz [0~64K<<1]
@@ -321,7 +328,7 @@ static inline void S9xSetSoundFrequency (int channel, int hertz) // hertz [0~64K
 			hertz = NoiseFreq [APU.DSP [APU_FLG] & 0x1f];
 #if 0 // notaz: this compiles to something awful
 		SoundData.channels[channel].frequency = (int)
-			(((int64) hertz * FIXED_POINT) / so.playback_rate);
+			(((s64) hertz * FIXED_POINT) / so.playback_rate);
 #else
 		SoundData.channels[channel].frequency = (hertz * so.freqbase) >> 11;
 #endif
@@ -334,3 +341,4 @@ static inline void S9xSetSoundFrequency (int channel, int hertz) // hertz [0~64K
 	}
 }
 
+#endif // SNESSOUND_h

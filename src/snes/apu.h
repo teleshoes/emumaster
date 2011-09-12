@@ -38,63 +38,64 @@
  * Super NES and Super Nintendo Entertainment System are trademarks of
  * Nintendo Co., Limited and its subsidiary companies.
  */
-#ifndef _apu_h_
-#define _apu_h_
+#ifndef SNESAPU_H
+#define SNESAPU_H
 
 #include "spc700.h"
 #include "port.h"
-/*
-typedef union
-{
-    struct { uint8 A, Y; } B;
-    uint16 W;
-} YAndA;
-*/
+#include <imachine.h>
+
+class SnesApu : public QObject {
+	Q_OBJECT
+public:
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+};
 
 struct SIAPU
 {
-    uint8  *DirectPage;        // 0x00
-    uint32 Address;            // 0x04  c core only
-    uint8  *WaitAddress1;      // 0x08
-    uint8  *WaitAddress2;      // 0x0C
-    uint32 WaitCounter;        // 0x10
-    uint8  *ShadowRAM;         // 0x14
-    uint8  *CachedSamples;     // 0x18
-    uint8  _Carry;             // 0x1C  c core only
-    uint8  _Overflow;          // 0x1D  c core only
-    uint8  Bit;                // 0x1E  c core only
-    uint8  pad0;
-    uint32 TimerErrorCounter;  // 0x20
-    uint32 Scanline;           // 0x24
-    int32  OneCycle;           // 0x28
-    int32  TwoCycles;          // 0x2C
+	u8  *DirectPage;        // 0x00
+	u32 Address;            // 0x04  c core only
+	u8  *WaitAddress1;      // 0x08
+	u8  *WaitAddress2;      // 0x0C
+	u32 WaitCounter;        // 0x10
+	u8  *ShadowRAM;         // 0x14
+	u8  *CachedSamples;     // 0x18
+	u8  _Carry;             // 0x1C  c core only
+	u8  _Overflow;          // 0x1D  c core only
+	u8  Bit;                // 0x1E  c core only
+	u8  pad0;
+	u32 TimerErrorCounter;  // 0x20
+	u32 Scanline;           // 0x24
+	s32  OneCycle;           // 0x28
+	s32  TwoCycles;          // 0x2C
     // notaz: reordered and moved everything here, for faster context load/save
-	uint32 *asmJumpTab;        // 0x30
-    uint8  *PC;                // 0x34
+	u32 *asmJumpTab;        // 0x30
+	u8  *PC;                // 0x34
     YAndA  YA;                 // 0x38  0x0000YYAA
-	uint8  P;                  // 0x3C  flags: NODBHIZC
-    uint8  pad1;
-    uint8  pad2;
-	uint8  _Zero;              // 0x3F  Z=0, when this!=0; also stores neg flag in &0x80
-    uint8  X;                  // 0x40
-    uint8  S;                  // 0x41  stack pointer, default: 0xff
-    uint16 pad3;
-    uint8  *RAM;               // 0x44
+	u8  P;                  // 0x3C  flags: NODBHIZC
+	u8  pad1;
+	u8  pad2;
+	u8  _Zero;              // 0x3F  Z=0, when this!=0; also stores neg flag in &0x80
+	u8  X;                  // 0x40
+	u8  S;                  // 0x41  stack pointer, default: 0xff
+	u16 pad3;
+	u8  *RAM;               // 0x44
 
-	uint8  *ExtraRAM;          // 0x48  shortcut to APU.ExtraRAM
+	u8  *ExtraRAM;          // 0x48  shortcut to APU.ExtraRAM
 };
 
 struct SAPU
 {
-    int32  Cycles;
+	s32  Cycles;
     bool8  ShowROM;
-    uint8  Flags;
-    uint8  KeyedChannels;
-    uint8  OutPorts [4];
-    uint8  DSP [0x80];
-    uint8  ExtraRAM [64];
-    uint16 Timer [3];
-    uint16 TimerTarget [3];
+	u8  Flags;
+	u8  KeyedChannels;
+	u8  OutPorts [4];
+	u8  DSP [0x80];
+	u8  ExtraRAM [64];
+	u16 Timer [3];
+	u16 TimerTarget [3];
     bool8  TimerEnabled [3];
     bool8  TimerValueWritten [3];
 };
@@ -133,15 +134,15 @@ bool8 S9xInitAPU ();
 void S9xDeinitAPU ();
 void S9xDecacheSamples ();
 int S9xTraceAPU ();
-int S9xAPUOPrint (char *buffer, uint16 Address);
-void S9xSetAPUControl (uint8 byte);
-void S9xSetAPUDSP (uint8 byte);
-uint8 S9xGetAPUDSP ();
-void S9xSetAPUTimer (uint16 Address, uint8 byte);
+int S9xAPUOPrint (char *buffer, u16 Address);
+void S9xSetAPUControl (u8 byte);
+void S9xSetAPUDSP (u8 byte);
+u8 S9xGetAPUDSP ();
+void S9xSetAPUTimer (u16 Address, u8 byte);
 void S9xOpenCloseSoundTracingFile (bool8);
 void S9xPrintAPUState ();
-extern int32 S9xAPUCycles [256];	// Scaled cycle lengths
-extern int32 S9xAPUCycleLengths [256];	// Raw data.
+extern s32 S9xAPUCycles [256];	// Scaled cycle lengths
+extern s32 S9xAPUCycleLengths [256];	// Raw data.
 extern void (*S9xApuOpcodes [256]) (void);
 extern void (*S9xApuOpcodesReal [256]) (void);
 END_EXTERN_C
@@ -189,4 +190,5 @@ END_EXTERN_C
 #define APU_ECHO_DISABLED 0x20
 
 #define FREQUENCY_MASK 0x3fff
-#endif
+
+#endif // SNESAPU_H

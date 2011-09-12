@@ -65,8 +65,10 @@ Page {
 			text: "Load"
 			enabled: coverFlow.currentIndex >= 0
 			onClicked: {
-				if (!stateListModel.loadState(stateListModel.get(coverFlow.currentIndex)))
+				if (!stateListModel.loadState(stateListModel.get(coverFlow.currentIndex))) {
+					condole.log("load error")
 					errorDialog.open()
+				}
 			}
 		}
 	}

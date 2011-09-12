@@ -60,25 +60,6 @@ extern "C" void dprintf(char *format, ...);
 #define PIXEL_FORMAT RGB565
 #undef GFX_MULTI_FORMAT
 
-#ifndef snes9x_types_defined
-#define snes9x_types_defined
-
-typedef unsigned char bool8;
-typedef unsigned char uint8;
-typedef unsigned short uint16;
-typedef signed char int8;
-typedef signed short int16;
-typedef signed int int32;
-typedef unsigned int uint32;
-typedef long long int64; // correct?
-
-typedef unsigned char	bool8_32;
-typedef unsigned char	uint8_32;
-typedef unsigned short	uint16_32;
-typedef signed char		int8_32;
-typedef short			int16_32;
-#endif
-
 //Path Defines
 #undef  _MAX_PATH
 #define _MAX_DIR PATH_MAX
@@ -130,24 +111,19 @@ void _splitpath (const char *path, char *drive, char *dir, char *fname,
 
 #define ZeroMemory(a,b) memset((a),0,(b))
 
-EXTERN_C void S9xGenerateSound ();
-
 #define SLASH_STR "\\"
 #define SLASH_CHAR '\\'
 
 #define LSB_FIRST
 #define STATIC static
-#define FASTCALL 
 #define INLINE inline
 #define VOID void
 #define PACKING __attribute__ ((packed))
 #define ALIGN_BY_ONE  __attribute__ ((aligned (1), packed))
-#define gp32_pause()
 #define gm_memset memset
 #define CHECK_SOUND()
 #define CPU_SHUTDOWN
 #define VAR_CYCLES
-#define gp32_atoi atoi
 #undef  FAST_LSB_WORD_ACCESS
 #define SUPER_FX
 //#define OLD_COLOUR_BLENDING
