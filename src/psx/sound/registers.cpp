@@ -46,7 +46,7 @@
 // WRITE REGISTERS: called by main emu
 ////////////////////////////////////////////////////////////////////////
 
-void CALLBACK SPU_writeRegister(unsigned long reg, unsigned short val)
+void SPU_writeRegister(unsigned long reg, unsigned short val)
 {
  const unsigned long r=reg&0xfff;
  regArea[(r-0xc00)>>1] = val;
@@ -353,7 +353,7 @@ void CALLBACK SPU_writeRegister(unsigned long reg, unsigned short val)
 // READ REGISTER: called by main emu
 ////////////////////////////////////////////////////////////////////////
 
-unsigned short CALLBACK SPU_readRegister(unsigned long reg)
+unsigned short SPU_readRegister(unsigned long reg)
 {
  const unsigned long r=reg&0xfff;
         

@@ -31,14 +31,14 @@ unsigned long timeGetTime() {
  return tv.tv_sec * 1000 + tv.tv_usec/1000;            // to do that, but at least it works
 }
 
-extern "C" void qDebugC(const char *msg) {
+void qDebugC(const char *msg) {
 	qDebug(msg);
 }
 
 static void emu_config() {
 	Config.UseNet = 0;
 	Config.HLE = 0;
-	strcpy(Config.Net, _("Disabled"));
+	strcpy(Config.Net, "Disabled");
 
 	strcpy(Config.Mcd1, CONFIG_DIR"/mcd001.mcr");
 	strcpy(Config.Mcd2, CONFIG_DIR"/mcd002.mcr");

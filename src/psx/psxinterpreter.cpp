@@ -38,15 +38,20 @@ static u32 branchPC;
 #define debugI()
 #endif
 
-inline void execI();
+#if !defined(PSXREC)
+inline
+#else
+extern "C"
+#endif
+void execI();
 
 // Subsets
-void (*psxBSC[64])();
-void (*psxSPC[64])();
-void (*psxREG[32])();
-void (*psxCP0[32])();
-void (*psxCP2[64])();
-void (*psxCP2BSC[32])();
+extern void (*psxBSC[64])();
+extern void (*psxSPC[64])();
+extern void (*psxREG[32])();
+extern void (*psxCP0[32])();
+extern void (*psxCP2[64])();
+extern void (*psxCP2BSC[32])();
 
 static void delayRead(int reg, u32 bpc) {
 	u32 rold, rnew;
@@ -779,7 +784,12 @@ void psxTestSWInts() {
 	}
 }
 
-__inline void MTC0(int reg, u32 val) {
+#if !defined(PSXREC)
+__inline
+#else
+extern "C"
+#endif
+void MTC0(int reg, u32 val) {
 //	SysPrintf("MTC0 %d: %x\n", reg, val);
 	switch (reg) {
 		case 12: // Status
@@ -805,7 +815,7 @@ void psxCTC0() { MTC0(_Rd_, _u32(_rRt_)); }
 * Unknow instruction (would generate an exception)       *
 * Format:  ?                                             *
 *********************************************************/
-void psxNULL() { 
+extern "C" void psxNULL() {
 #ifdef PSXCPU_LOG
 	PSXCPU_LOG("psx: Unimplemented op %x\n", psxRegs.code);
 #endif
@@ -919,7 +929,7 @@ static void intShutdown() {
 }
 
 // interpreter execution
-inline void execI() { 
+void execI() {
 	u32 *code = (u32 *)PSXM(psxRegs.pc);
 	psxRegs.code = ((code == NULL) ? 0 : SWAP32(*code));
 

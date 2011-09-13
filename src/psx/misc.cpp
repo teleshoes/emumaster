@@ -103,14 +103,14 @@ void mmssdd( char *b, char *p )
 	READTRACK(); \
 	memcpy(_dir + 2048, buf + 12, 2048);
 
-int GetCdromFile(u8 *mdir, u8 *time, s8 *filename) {
+int GetCdromFile(u8 *mdir, u8 *time, char *filename) {
 	struct iso_directory_record *dir;
 	char ddir[4096];
 	u8 *buf;
 	int i;
 
 	// only try to scan if a filename is given
-	if (!strlen(filename)) return -1;
+	if (!strlen((char *)filename)) return -1;
 
 	i = 0;
 	while (i < 4096) {
@@ -121,7 +121,7 @@ int GetCdromFile(u8 *mdir, u8 *time, s8 *filename) {
 		i += dir->length[0];
 
 		if (dir->flags[0] & 0x2) { // it's a dir
-			if (!strnicmp((char *)&dir->name[0], filename, dir->name_len[0])) {
+			if (!strnicmp((char *)&dir->name[0], (char *)filename, dir->name_len[0])) {
 				if (filename[dir->name_len[0]] != '\\') continue;
 
 				filename += dir->name_len[0] + 1;
@@ -129,10 +129,10 @@ int GetCdromFile(u8 *mdir, u8 *time, s8 *filename) {
 				mmssdd(dir->extent, (char *)time);
 				READDIR(ddir);
 				i = 0;
-				mdir = ddir;
+				mdir = (u8 *)ddir;
 			}
 		} else {
-			if (!strnicmp((char *)&dir->name[0], filename, strlen(filename))) {
+			if (!strnicmp((char *)&dir->name[0], (char *)filename, strlen((char *)filename))) {
 				mmssdd(dir->extent, (char *)time);
 				break;
 			}
@@ -146,7 +146,7 @@ int LoadCdrom() {
 	struct iso_directory_record *dir;
 	u8 time[4], *buf;
 	u8 mdir[4096];
-	s8 exename[256];
+	char exename[256];
 
 	if (!Config.HLE) {
 		psxRegs.pc = psxRegs.GPR.n.ra;
@@ -179,7 +179,7 @@ int LoadCdrom() {
 		if (GetCdromFile(mdir, time, exename) == -1) {
 			sscanf((char *)buf + 12, "BOOT = cdrom:%256s", exename);
 			if (GetCdromFile(mdir, time, exename) == -1) {
-				char *ptr = strstr(buf + 12, "cdrom:");
+				char *ptr = strstr((char *)buf + 12, "cdrom:");
 				if (ptr != NULL) {
 					ptr += 6;
 					while (*ptr == '\\' || *ptr == '/') ptr++;
@@ -244,7 +244,7 @@ int LoadCdromFile(const char *filename, EXE_HEADER *head) {
 
 	READDIR(mdir);
 
-	if (GetCdromFile(mdir, time, exename) == -1) return -1;
+	if (GetCdromFile(mdir, time, (char *)exename) == -1) return -1;
 
 	READTRACK();
 
@@ -283,7 +283,7 @@ int CheckCdrom() {
 	CdromLabel[0] = '\0';
 	CdromId[0] = '\0';
 
-	strncpy(CdromLabel, buf + 52, 32);
+	strncpy(CdromLabel, (char *)buf + 52, 32);
 
 	// skip head and sub, and go to the root directory record
 	dir = (struct iso_directory_record *)&buf[12 + 156]; 
@@ -299,7 +299,7 @@ int CheckCdrom() {
 		if (GetCdromFile(mdir, time, exename) == -1) {
 			sscanf((char *)buf + 12, "BOOT = cdrom:%256s", exename);
 			if (GetCdromFile(mdir, time, exename) == -1) {
-				char *ptr = strstr(buf + 12, "cdrom:");			// possibly the executable is in some subdir
+				char *ptr = strstr((char *)buf + 12, "cdrom:");			// possibly the executable is in some subdir
 				if (ptr != NULL) {
 					ptr += 6;
 					while (*ptr == '\\' || *ptr == '/') ptr++;
@@ -341,8 +341,8 @@ int CheckCdrom() {
 	if (CdromLabel[0] == ' ') {
 		strncpy(CdromLabel, CdromId, 9);
 	}
-	SysPrintf(_("CD-ROM Label: %.32s\n"), CdromLabel);
-	SysPrintf(_("CD-ROM ID: %.9s\n"), CdromId);
+	SysPrintf("CD-ROM Label: %.32s\n", CdromLabel);
+	SysPrintf("CD-ROM ID: %.9s\n", CdromId);
 
 	BuildPPFCache();
 
@@ -387,7 +387,7 @@ int Load(const char *ExePath) {
 
 	tmpFile = fopen(ExePath, "rb");
 	if (tmpFile == NULL) {
-		SysPrintf(_("Error opening file: %s.\n"), ExePath);
+		SysPrintf("Error opening file: %s.\n", ExePath);
 		retval = -1;
 	} else {
 		type = PSXGetFileType(tmpFile);
@@ -427,18 +427,18 @@ int Load(const char *ExePath) {
 						case 0: /* End of file */
 							break;
 						default:
-							SysPrintf(_("Unknown CPE opcode %02x at position %08x.\n"), opcode, ftell(tmpFile) - 1);
+							SysPrintf("Unknown CPE opcode %02x at position %08x.\n", opcode, ftell(tmpFile) - 1);
 							retval = -1;
 							break;
 					}
 				} while (opcode != 0 && retval == 0);
 				break;
 			case COFF_EXE:
-				SysPrintf(_("COFF files not supported.\n"));
+				SysPrintf("COFF files not supported.\n");
 				retval = -1;
 				break;
 			case INVALID_EXE:
-				SysPrintf(_("This file does not appear to be a valid PSX file.\n"));
+				SysPrintf("This file does not appear to be a valid PSX file.\n");
 				retval = -1;
 				break;
 		}

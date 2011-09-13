@@ -3,7 +3,6 @@
 .globl ARM_MoveImage
 .globl ARM_ClearImage
 .globl ARM_ClearImage_Fast
-.globl convert_frame_buffer_bgr555_to_rgb555
 
 @arguments:
 @ u8* src               r0

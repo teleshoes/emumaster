@@ -71,35 +71,6 @@ HEADERS += \
 	machine.h
 
 SOURCES += \
-    ppf.c \
-    plugins.c \
-    misc.c \
-    mdec.c \
-    LnxMain.c \
-    gte.c \
-    disr3000a.c \
-    decode_xa.c \
-    debug.c \
-    cheat.c \
-    cdrom.c \
-    cdriso.c \
-    socket.c \
-    sio.c \
-    r3000a.c \
-    psxmem.c \
-    psxinterpreter.c \
-    psxhw.c \
-    psxhle.c \
-    psxdma.c \
-    psxcounters.c \
-    psxcommon.c \
-    psxbios.c \
-    new_dynarec/pcsxmem_inline.c \
-    new_dynarec/pcsxmem.c \
-    new_dynarec/new_dynarec.c \
-    new_dynarec/fpu.c \
-    new_dynarec/emu_if.c \
-	new_dynarec/assem_arm.c \
 	gpu/inner.cpp \
 	gpu/fixed.cpp \
 	gpu/core_Misc.cpp \
@@ -121,24 +92,37 @@ SOURCES += \
     sound/spu.cpp \
     sound/reverb.cpp \
     sound/registers.cpp \
-    sound/nullsnd.cpp \
     sound/freeze.cpp \
     sound/dma.cpp \
-    sound/adsr.cpp
+    sound/adsr.cpp \
+    plugins.cpp \
+    cdriso.cpp \
+    cdrom.cpp \
+    cheat.cpp \
+    debug.cpp \
+    decode_xa.cpp \
+    disr3000a.cpp \
+    gte.cpp \
+    LnxMain.cpp \
+    mdec.cpp \
+    misc.cpp \
+    ppf.cpp \
+    psxbios.cpp \
+    psxcommon.cpp \
+    psxcounters.cpp \
+    psxdma.cpp \
+    psxhle.cpp \
+    psxhw.cpp \
+    psxinterpreter.cpp \
+    psxmem.cpp \
+    r3000a.cpp \
+    sio.cpp \
+    socket.cpp \
+    new_dynarec/emu_if.c \
+    new_dynarec/fpu.c \
+    new_dynarec/new_dynarec.c \
+	new_dynarec/pcsxmem.c
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+OTHER_FILES += \
+	new_dynarec/assem_arm.c \
+	new_dynarec/pcsxmem_inline.c

@@ -45,7 +45,7 @@ int SysInit() {
 #endif
 
 	if (psxInit() == -1) {
-		printf(_("PSX emulator couldn't be initialized.\n"));
+		printf("PSX emulator couldn't be initialized.\n");
 		return -1;
 	}
 
@@ -66,7 +66,7 @@ void SysReset() {
 	// rearmed hack: EmuReset() runs some code when real BIOS is used,
 	// but we usually do reset from menu while GPU is not open yet,
 	// so we need to prevent updateLace() call..
-	void *real_lace = GPUupdateLace;
+	void (*real_lace)() = GPUupdateLace;
 	GPU_updateLace = dummy_lace;
 
 	EmuReset();

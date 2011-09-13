@@ -1210,7 +1210,7 @@ void psxBios__96_remove() { // 72
 }
 
 void psxBios_SetMem() { // 9f
-	u32 new = psxHu32(0x1060);
+	u32 newOne = psxHu32(0x1060);
 
 #ifdef PSXBIOS_LOG
 	PSXBIOS_LOG("psxBios_%s: %x, %x\n", biosA0n[0x9f], a0, a1);
@@ -1218,13 +1218,13 @@ void psxBios_SetMem() { // 9f
 
 	switch(a0) {
 		case 2:
-			psxHu32ref(0x1060) = SWAP32(new);
+			psxHu32ref(0x1060) = SWAP32(newOne);
 			psxMu32ref(0x060) = a0;
 			SysPrintf("Change effective memory : %d MBytes\n",a0);
 			break;
 
 		case 8:
-			psxHu32ref(0x1060) = SWAP32(new | 0x300);
+			psxHu32ref(0x1060) = SWAP32(newOne | 0x300);
 			psxMu32ref(0x060) = a0;
 			SysPrintf("Change effective memory : %d MBytes\n",a0);
 	
@@ -1651,7 +1651,7 @@ void psxBios_UnDeliverEvent() { // 0x20
 	} \
 	if (a1 & 0x200 && v0 == -1) { /* FCREAT */ \
 		for (i=1; i<16; i++) { \
-			int j, xor = 0; \
+			int j, xorVal = 0; \
  \
 			ptr = Mcd##mcd##Data + 128 * i; \
 			if ((*ptr & 0xF0) == 0x50) continue; \
@@ -1663,8 +1663,8 @@ void psxBios_UnDeliverEvent() { // 0x20
 			ptr[8] = 'B'; \
 			ptr[9] = 'I'; \
 			strcpy(ptr+0xa, FDesc[1 + mcd].name); \
-			for (j=0; j<127; j++) xor^= ptr[j]; \
-			ptr[127] = xor; \
+			for (j=0; j<127; j++) xorVal^= ptr[j]; \
+			ptr[127] = xorVal; \
 			FDesc[1 + mcd].mcfile = i; \
 			SysPrintf("openC %s\n", ptr); \
 			v0 = 1 + mcd; \
@@ -1913,15 +1913,15 @@ void psxBios_nextfile() { // 43
 
 #define burename(mcd) { \
 	for (i=1; i<16; i++) { \
-		int namelen, j, xor = 0; \
+		int namelen, j, xorVal = 0; \
 		ptr = Mcd##mcd##Data + 128 * i; \
 		if ((*ptr & 0xF0) != 0x50) continue; \
 		if (strcmp(Ra0+5, ptr+0xa)) continue; \
 		namelen = strlen(Ra1+5); \
 		memcpy(ptr+0xa, Ra1+5, namelen); \
 		memset(ptr+0xa+namelen, 0, 0x75-namelen); \
-		for (j=0; j<127; j++) xor^= ptr[j]; \
-		ptr[127] = xor; \
+		for (j=0; j<127; j++) xorVal^= ptr[j]; \
+		ptr[127] = xorVal; \
 		SaveMcd(Config.Mcd##mcd, Mcd##mcd##Data, 128 * i + 0xa, 0x76); \
 		v0 = 1; \
 		break; \
@@ -2541,7 +2541,7 @@ void psxBiosInit() {
 /**/
 	base = 0x1000;
 	size = sizeof(EvCB) * 32;
-	Event = (void *)&psxR[base]; base += size * 6;
+	Event = (EvCB *)&psxR[base]; base += size * 6;
 	memset(Event, 0, size * 6);
 	HwEV = Event;
 	EvEV = Event + 32;

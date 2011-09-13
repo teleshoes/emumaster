@@ -20,14 +20,14 @@
 #ifndef __PSXCOUNTERS_H__
 #define __PSXCOUNTERS_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "psxcommon.h"
 #include "r3000a.h"
 #include "psxmem.h"
 #include "plugins.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern u32 psxNextCounter, psxNextsCounter;
 

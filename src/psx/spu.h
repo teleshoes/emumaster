@@ -20,14 +20,14 @@
 #ifndef __SPU_H__
 #define __SPU_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "psxcommon.h"
 #include "plugins.h"
 #include "r3000a.h"
 #include "psxmem.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define H_SPUirqAddr     0x0da4
 #define H_SPUaddr        0x0da6
@@ -39,7 +39,7 @@ extern "C" {
 #define H_SPUoff1        0x0d8c
 #define H_SPUoff2        0x0d8e
 
-void CALLBACK SPUirq(void);
+void SPUirq(void);
 
 #ifdef __cplusplus
 }

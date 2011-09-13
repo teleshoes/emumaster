@@ -20,8 +20,8 @@
  */
 
 #include "psxcommon.h"
-#include "ppf.h"
 #include "cdrom.h"
+#include "ppf.h"
 
 typedef struct tagPPF_DATA {
 	s32					addr;
@@ -213,7 +213,7 @@ void BuildPPFCache() {
 	fread(buffer, 3, 1, ppffile);
 
 	if (strcmp(buffer, "PPF") != 0) {
-		SysPrintf(_("Invalid PPF patch: %s.\n"), szPPF);
+		SysPrintf("Invalid PPF patch: %s.\n", szPPF);
 		fclose(ppffile);
 		return;
 	}
@@ -289,7 +289,7 @@ void BuildPPFCache() {
 
 		default:
 			fclose(ppffile);
-			SysPrintf(_("Unsupported PPF version (%d).\n"), method + 1);
+			SysPrintf("Unsupported PPF version (%d).\n", method + 1);
 			return;
 	}
 
@@ -328,7 +328,7 @@ void BuildPPFCache() {
 
 	FillPPFCache(); // build address array
 
-	SysPrintf(_("Loaded PPF %d.0 patch: %s.\n"), method + 1, szPPF);
+	SysPrintf("Loaded PPF %d.0 patch: %s.\n", method + 1, szPPF);
 }
 
 // redump.org SBI files, slightly different handling from PCSX-Reloaded
@@ -345,7 +345,7 @@ int LoadSBI(const char *fname, int sector_count) {
 		return -1;
 
 if (sbi_sectors != NULL) printf("sbi_sectors?\n");
-	sbi_sectors = calloc(1, sector_count / 8);
+	sbi_sectors = (u8 *)calloc(1, sector_count / 8);
 	if (sbi_sectors == NULL)
 		return -1;
 
@@ -359,7 +359,7 @@ if (sbi_sectors != NULL) printf("sbi_sectors?\n");
 		if (s < sector_count)
 			sbi_sectors[s >> 3] |= 1 << (s&7);
 		else
-			SysPrintf(_("SBI sector %d >= %d?\n"), s, sector_count);
+			SysPrintf("SBI sector %d >= %d?\n", s, sector_count);
 	}
 
 	fclose(sbihandle);

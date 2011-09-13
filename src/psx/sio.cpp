@@ -182,11 +182,11 @@ void sioWrite8(unsigned char value) {
 							break;
 					}
 					{
-					char xor = 0;
+					char xorVal = 0;
 					int i;
 					for (i = 2; i < 128 + 4; i++)
-						xor ^= buf[i];
-					buf[132] = xor;
+						xorVal ^= buf[i];
+					buf[132] = xorVal;
 					}
 					buf[133] = 0x47;
 					bufcount = 133;
@@ -372,11 +372,11 @@ void LoadMcd(int mcd, char *str) {
 
 	if (*str == 0) {
 		sprintf(str, "memcards/card%d.mcd", mcd);
-		SysPrintf(_("No memory card value was specified - creating a default card %s\n"), str);
+		SysPrintf("No memory card value was specified - creating a default card %s\n", str);
 	}
 	f = fopen(str, "rb");
 	if (f == NULL) {
-		SysPrintf(_("The memory card %s doesn't exist - creating it\n"), str);
+		SysPrintf("The memory card %s doesn't exist - creating it\n", str);
 		CreateMcd(str);
 		f = fopen(str, "rb");
 		if (f != NULL) {
@@ -392,11 +392,11 @@ void LoadMcd(int mcd, char *str) {
 			fclose(f);
 		}
 		else
-			SysMessage(_("Memory card %s failed to load!\n"), str);
+			SysMessage("Memory card %s failed to load!\n", str);
 	}
 	else {
 		struct stat buf;
-		SysPrintf(_("Loading memory card %s\n"), str);
+		SysPrintf("Loading memory card %s\n", str);
 		if (stat(str, &buf) != -1) {
 			if (buf.st_size == MCD_SIZE + 64)
 				fseek(f, 64, SEEK_SET);
@@ -681,8 +681,8 @@ void GetMcdBlockInfo(int mcd, int block, McdBlock *Info) {
 
 	memset(Info, 0, sizeof(McdBlock));
 
-	if (mcd == 1) data = Mcd1Data;
-	if (mcd == 2) data = Mcd2Data;
+	if (mcd == 1) data = (u8 *)Mcd1Data;
+	if (mcd == 2) data = (u8 *)Mcd2Data;
 
 	ptr = data + block * 8192 + 2;
 
@@ -692,8 +692,8 @@ void GetMcdBlockInfo(int mcd, int block, McdBlock *Info) {
 
 	x = 0;
 
-	str = Info->Title;
-	sstr = Info->sTitle;
+	str = (u8 *)Info->Title;
+	sstr = (u8 *)Info->sTitle;
 
 	for (i = 0; i < 48; i++) {
 		c = *(ptr) << 8;
@@ -729,8 +729,8 @@ void GetMcdBlockInfo(int mcd, int block, McdBlock *Info) {
 		ptr += 2;
 	}
 
-	trim(str);
-	trim(sstr);
+	trim((char *)str);
+	trim((char *)sstr);
 
 	ptr = data + block * 8192 + 0x60; // icon palette data
 
@@ -756,9 +756,9 @@ void GetMcdBlockInfo(int mcd, int block, McdBlock *Info) {
 	Info->Flags = *ptr;
 
 	ptr += 0xa;
-	strncpy(Info->ID, ptr, 12);
+	strncpy(Info->ID, (char *)ptr, 12);
 	ptr += 12;
-	strncpy(Info->Name, ptr, 16);
+	strncpy(Info->Name, (char *)ptr, 16);
 }
 
 int sioFreeze(gzFile f, int Mode) {

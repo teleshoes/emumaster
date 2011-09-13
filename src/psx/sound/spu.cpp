@@ -62,7 +62,7 @@ int             bSPUIsOpen=0;
 unsigned long dwNewChannel=0;                          // flags for faster testing, if new channel starts
 unsigned long dwChannelOn=0;
 
-void (CALLBACK *cddavCallback)(unsigned short,unsigned short)=0;
+void (*cddavCallback)(unsigned short,unsigned short)=0;
 
 // certain globals (were local before, but with the new timeproc I need em global)
 
@@ -406,7 +406,7 @@ static int soundBufferBase = 0;
 static const int SoundBufferSize = 8192;
 static short soundBuffer[SoundBufferSize];
 
-extern "C" void MAINThread()
+void MAINThread()
 {
  int s_1,s_2,fa,ns,ns_from,ns_to;
  unsigned char * start;unsigned int nSample;
@@ -647,7 +647,7 @@ int spuFillBuffer(char *stream, int length) {
 
 // XA AUDIO
 
-void CALLBACK SPU_playADPCMchannel(xa_decode_t *xap)
+void SPU_playADPCMchannel(xa_decode_t *xap)
 {
  if(!xap)       return;
  if(!xap->freq) return;                                // no xa freq ? bye
@@ -656,7 +656,7 @@ void CALLBACK SPU_playADPCMchannel(xa_decode_t *xap)
 }
 
 // CDDA AUDIO
-void CALLBACK SPU_playCDDAchannel(short *pcm, int nbytes)
+void SPU_playCDDAchannel(short *pcm, int nbytes)
 {
  if (!pcm)      return;
  if (nbytes<=0) return;
@@ -731,7 +731,7 @@ void RemoveStreams(void)
 // INIT/EXIT STUFF
 
 // SPUINIT: this func will be called first by the main emu
-long CALLBACK SPU_init(void)
+long SPU_init(void)
 {
  spuMemC = (unsigned char *)spuMem;                    // just small setup
  memset((void *)&rvb, 0, sizeof(REVERBInfo));
@@ -772,7 +772,7 @@ long SPU_open(void)
 }
 
 // SPUCLOSE: called before shutdown
-long CALLBACK SPU_close(void)
+long SPU_close(void)
 {
  if (!bSPUIsOpen) return 0;                            // some security
 
@@ -784,7 +784,7 @@ long CALLBACK SPU_close(void)
 }
 
 // SPUSHUTDOWN: called by main emu on final exit
-long CALLBACK SPU_shutdown(void)
+long SPU_shutdown(void)
 {
  SPU_close();
  RemoveStreams();                                      // no more streaming
@@ -792,13 +792,13 @@ long CALLBACK SPU_shutdown(void)
  return 0;
 }
 
-void CALLBACK SPU_registerCDDAVolume(void (CALLBACK *CDDAVcallback)(unsigned short,unsigned short))
+void SPU_registerCDDAVolume(void (*CDDAVcallback)(unsigned short,unsigned short))
 {
  cddavCallback = CDDAVcallback;
 }
 
 // vim:shiftwidth=1:expandtab
 
-void CALLBACK SPUirq(void) {
+void SPUirq(void) {
 	psxHu32ref(0x1070) |= SWAPu32(0x200);
 }

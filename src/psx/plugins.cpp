@@ -28,7 +28,7 @@
 static char IsoFile[MAXPATHLEN] = "";
 static s64 cdOpenCaseTime = 0;
 
-long CALLBACK CDR__getStatus(struct CdrStat *stat) {
+long CDR__getStatus(struct CdrStat *stat) {
 	if (cdOpenCaseTime < 0 || cdOpenCaseTime > (s64)time(NULL))
 		stat->Status = 0x10;
 	else
@@ -110,7 +110,7 @@ unsigned char _PADpoll(unsigned char value) {
     return buf[bufc++];
 }
 
-unsigned char CALLBACK PAD1_startPoll(int pad) {
+unsigned char PAD1_startPoll(int pad) {
     PadDataS padd;
 
     PAD1_readPort1(&padd);
@@ -118,11 +118,11 @@ unsigned char CALLBACK PAD1_startPoll(int pad) {
     return _PADstartPoll(&padd);
 }
 
-unsigned char CALLBACK PAD1_poll(unsigned char value) {
+unsigned char PAD1_poll(unsigned char value) {
     return _PADpoll(value);
 }
 
-unsigned char CALLBACK PAD2_startPoll(int pad) {
+unsigned char PAD2_startPoll(int pad) {
 	PadDataS padd;
 
 	PAD2_readPort2(&padd);
@@ -130,7 +130,7 @@ unsigned char CALLBACK PAD2_startPoll(int pad) {
 	return _PADstartPoll(&padd);
 }
 
-unsigned char CALLBACK PAD2_poll(unsigned char value) {
+unsigned char PAD2_poll(unsigned char value) {
   return 0xFF; //_PADpoll(value);
 }
 
@@ -239,7 +239,7 @@ long PAD2_readPort2(PadDataS* a) {
 	return -1;
 }
 
-void CALLBACK clearDynarec(void) {
+void clearDynarec(void) {
 	psxCpu->Reset();
 }
 
@@ -249,22 +249,22 @@ int LoadPlugins() {
   cdrIsoInit();
 
 	ret = CDR_init();
-	if (ret < 0) { SysMessage (_("Error initializing CD-ROM plugin: %d"), ret); return -1; }
+	if (ret < 0) { SysMessage ("Error initializing CD-ROM plugin: %d", ret); return -1; }
 	ret = GPU_init();
-	if (ret < 0) { SysMessage (_("Error initializing GPU plugin: %d"), ret); return -1; }
+	if (ret < 0) { SysMessage ("Error initializing GPU plugin: %d", ret); return -1; }
 	ret = SPU_init();
-	if (ret < 0) { SysMessage (_("Error initializing SPU plugin: %d"), ret); return -1; }
+	if (ret < 0) { SysMessage ("Error initializing SPU plugin: %d", ret); return -1; }
 	ret = PAD1_init(1);
-	if (ret < 0) { SysMessage (_("Error initializing Controller 1 plugin: %d"), ret); return -1; }
+	if (ret < 0) { SysMessage ("Error initializing Controller 1 plugin: %d", ret); return -1; }
 	ret = PAD2_init(2);
-	if (ret < 0) { SysMessage (_("Error initializing Controller 2 plugin: %d"), ret); return -1; }
+	if (ret < 0) { SysMessage ("Error initializing Controller 2 plugin: %d", ret); return -1; }
 
 	ret = CDR_open();
-	if (ret < 0) { SysMessage (_("Error open CD-ROM plugin: %d"), ret); return -1; }
+	if (ret < 0) { SysMessage ("Error open CD-ROM plugin: %d", ret); return -1; }
 	ret = SPU_open();
-	if (ret < 0) { SysMessage (_("Error open SPU plugin: %d"), ret); return -1; }
+	if (ret < 0) { SysMessage ("Error open SPU plugin: %d", ret); return -1; }
 
-	SysPrintf(_("Plugins loaded.\n"));
+	SysPrintf("Plugins loaded.\n");
 	return 0;
 }
 

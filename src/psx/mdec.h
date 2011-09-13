@@ -20,14 +20,14 @@
 #ifndef __MDEC_H__
 #define __MDEC_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "psxcommon.h"
 #include "r3000a.h"
 #include "psxhw.h"
 #include "psxdma.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void mdecInit();
 void mdecWrite0(u32 data);

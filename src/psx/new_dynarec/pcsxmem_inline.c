@@ -45,7 +45,7 @@ static int emit_str_type(int type, int offs, int rs, int rt)
   }
 }
 
-static void convert_ram_addr(u_int a_rs, u_int a_rt, int rs, int rt)
+static void convert_ram_addr(u32 a_rs, u32 a_rt, int rs, int rt)
 {
   if(rs<0)
     emit_movimm(a_rt,rt);
@@ -57,13 +57,13 @@ static void convert_ram_addr(u_int a_rs, u_int a_rt, int rs, int rt)
     emit_movimm(a_rt,rt);
 }
 
-static int pcsx_direct_read(int type, u_int addr, int rs, int rt)
+static int pcsx_direct_read(int type, u32 addr, int rs, int rt)
 {
   if((addr & 0x1f800000) == 0) {
     assem_debug("pcsx_direct_read %08x ram\n",addr);
     if(rt<0)
       return 1;
-    u_int a=(addr&~0x60600000)|0x80000000;
+    u32 a=(addr&~0x60600000)|0x80000000;
     convert_ram_addr(addr,a,rs,rt);
     emit_ldr_type(type,0,rt,rt);
     return 1;
@@ -72,7 +72,7 @@ static int pcsx_direct_read(int type, u_int addr, int rs, int rt)
     assem_debug("pcsx_direct_read %08x bios\n",addr);
     if(rt<0)
       return 1;
-    emit_movimm((u_int)&psxR[addr&0x7ffff],rt);
+    emit_movimm((u32)&psxR[addr&0x7ffff],rt);
     emit_ldr_type(type,0,rt,rt);
     return 1;
   }
@@ -84,7 +84,7 @@ static int pcsx_direct_read(int type, u_int addr, int rs, int rt)
       emit_readword((int)&psxH_ptr,rt);
       emit_ldr_type(type,addr&0xfff,rt,rt);
     } else {
-      emit_movimm((u_int)&psxH[addr&0xfff],rt);
+      emit_movimm((u32)&psxH[addr&0xfff],rt);
       emit_ldr_type(type,0,rt,rt);
     }
     return 1;
@@ -94,11 +94,11 @@ static int pcsx_direct_read(int type, u_int addr, int rs, int rt)
   return 0;
 }
 
-static int pcsx_direct_write(int type, u_int addr, int rs, int rt, signed char *regmap)
+static int pcsx_direct_write(int type, u32 addr, int rs, int rt, signed char *regmap)
 {
   if((addr & 0x1f800000) == 0) {
     assem_debug("pcsx_direct_write %08x ram\n",addr);
-    u_int a=(addr&~0x60600000)|0x80000000;
+    u32 a=(addr&~0x60600000)|0x80000000;
     convert_ram_addr(addr,a,rs,HOST_TEMPREG);
     emit_str_type(type,0,HOST_TEMPREG,rt);
 
@@ -114,7 +114,7 @@ static int pcsx_direct_write(int type, u_int addr, int rs, int rt, signed char *
       emit_readword((int)&psxH_ptr,HOST_TEMPREG);
       emit_str_type(type,addr&0xfff,HOST_TEMPREG,rt);
     } else {
-      emit_movimm((u_int)&psxH[addr&0xfff],HOST_TEMPREG);
+      emit_movimm((u32)&psxH[addr&0xfff],HOST_TEMPREG);
       emit_str_type(type,0,HOST_TEMPREG,rt);
     }
     return 1;

@@ -20,15 +20,15 @@
 #ifndef __PSXHW_H__
 #define __PSXHW_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "psxcommon.h"
 #include "r3000a.h"
 #include "psxmem.h"
 #include "sio.h"
 #include "psxcounters.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define HW_DMA0_MADR (psxHu32ref(0x1080)) // MDEC in DMA
 #define HW_DMA0_BCR  (psxHu32ref(0x1084))

@@ -67,17 +67,17 @@ int psxMemInit() {
 	memset(psxMemRLUT, 0, 0x10000 * sizeof(void *));
 	memset(psxMemWLUT, 0, 0x10000 * sizeof(void *));
 
-  psxM = mmap((void *)0x80000000, 0x00220000, PROT_WRITE | PROT_READ, MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  psxM = (s8 *)mmap((void *)0x80000000, 0x00220000, PROT_WRITE | PROT_READ, MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
 	psxP = &psxM[0x200000];
 	psxH = &psxM[0x210000];
 
-	psxR = mmap((void *)0x9fc00000, 0x80000, PROT_WRITE | PROT_READ, MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	psxR = (s8 *)mmap((void *)0x9fc00000, 0x80000, PROT_WRITE | PROT_READ, MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
 	if (psxMemRLUT == NULL || psxMemWLUT == NULL || 
 		psxM != (void *)0x80000000 || psxR != (void *)0x9fc00000 ||
 		psxP == NULL || psxH == NULL) {
-		SysMessage(_("Error allocating memory!"));
+		SysMessage("Error allocating memory!");
 		return -1;
 	}
 
@@ -119,7 +119,7 @@ void psxMemReset() {
 		f = fopen(bios, "rb");
 
 		if (f == NULL) {
-			SysMessage(_("Could not open BIOS:\"%s\". Enabling HLE Bios!\n"), bios);
+			SysMessage("Could not open BIOS:\"%s\". Enabling HLE Bios!\n", bios);
 			memset(psxR, 0, 0x80000);
 			Config.HLE = TRUE;
 		} else {
@@ -156,7 +156,7 @@ u8 psxMemRead8(u32 mem) {
 			return psxHwRead8(mem);
 	} else {
 		p = (char *)(psxMemRLUT[t]);
-		if (p != NULL) {
+		if (p) {
 			if (Config.Debug)
 				DebugCheckBP((mem & 0xffffff) | 0x80000000, R1);
 			return *(u8 *)(p + (mem & 0xffff));
@@ -181,7 +181,7 @@ u16 psxMemRead16(u32 mem) {
 			return psxHwRead16(mem);
 	} else {
 		p = (char *)(psxMemRLUT[t]);
-		if (p != NULL) {
+		if (p) {
 			if (Config.Debug)
 				DebugCheckBP((mem & 0xffffff) | 0x80000000, R2);
 			return SWAPu16(*(u16 *)(p + (mem & 0xffff)));
@@ -206,7 +206,7 @@ u32 psxMemRead32(u32 mem) {
 			return psxHwRead32(mem);
 	} else {
 		p = (char *)(psxMemRLUT[t]);
-		if (p != NULL) {
+		if (p) {
 			if (Config.Debug)
 				DebugCheckBP((mem & 0xffffff) | 0x80000000, R4);
 			return SWAPu32(*(u32 *)(p + (mem & 0xffff)));
@@ -231,7 +231,7 @@ void psxMemWrite8(u32 mem, u8 value) {
 			psxHwWrite8(mem, value);
 	} else {
 		p = (char *)(psxMemWLUT[t]);
-		if (p != NULL) {
+		if (p) {
 			if (Config.Debug)
 				DebugCheckBP((mem & 0xffffff) | 0x80000000, W1);
 			*(u8 *)(p + (mem & 0xffff)) = value;
@@ -258,7 +258,7 @@ void psxMemWrite16(u32 mem, u16 value) {
 			psxHwWrite16(mem, value);
 	} else {
 		p = (char *)(psxMemWLUT[t]);
-		if (p != NULL) {
+		if (p) {
 			if (Config.Debug)
 				DebugCheckBP((mem & 0xffffff) | 0x80000000, W2);
 			*(u16 *)(p + (mem & 0xffff)) = SWAPu16(value);
@@ -286,7 +286,7 @@ void psxMemWrite32(u32 mem, u32 value) {
 			psxHwWrite32(mem, value);
 	} else {
 		p = (char *)(psxMemWLUT[t]);
-		if (p != NULL) {
+		if (p) {
 			if (Config.Debug)
 				DebugCheckBP((mem & 0xffffff) | 0x80000000, W4);
 			*(u32 *)(p + (mem & 0xffff)) = SWAPu32(value);
@@ -317,7 +317,7 @@ void psxMemWrite32(u32 mem, u32 value) {
 					case 0x00: case 0x1e988:
 						if (writeok == 1) break;
 						writeok = 1;
-						for (i = 0; i < 0x80; i++) psxMemWLUT[i + 0x0000] = (void *)&psxM[(i & 0x1f) << 16];
+						for (i = 0; i < 0x80; i++) psxMemWLUT[i + 0x0000] = (u8 *)&psxM[(i & 0x1f) << 16];
 						memcpy(psxMemWLUT + 0x8000, psxMemWLUT, 0x80 * sizeof(void *));
 						memcpy(psxMemWLUT + 0xa000, psxMemWLUT, 0x80 * sizeof(void *));
 						break;
@@ -344,7 +344,7 @@ void *psxMemPointer(u32 mem) {
 			return NULL;
 	} else {
 		p = (char *)(psxMemWLUT[t]);
-		if (p != NULL) {
+		if (p) {
 			return (void *)(p + (mem & 0xffff));
 		}
 		return NULL;

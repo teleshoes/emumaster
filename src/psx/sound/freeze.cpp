@@ -210,7 +210,7 @@ static void load_channel(SPUCHAN *d, SPUCHAN_orig *s, int ch)
 // SPUFREEZE: called by main emu on savestate load/save
 ////////////////////////////////////////////////////////////////////////
 
-long CALLBACK SPU_freeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
+long SPU_freeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
 {
  int i;SPUOSSFreeze_t * pFO;
 

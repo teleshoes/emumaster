@@ -487,7 +487,7 @@ static void Create_Fake_Subq()
 
 
 	// flag- next track
-	if( msf2sec(temp_cur) >= msf2sec( temp_next )-pregap ) {
+	if( msf2sec((char *)temp_cur) >= msf2sec( (char *)temp_next )-pregap ) {
 		fake_subq_change = 1;
 
 		cdr.CurTrack++;
@@ -522,15 +522,15 @@ static void Create_Fake_Subq()
 
 
 	// local time - pregap / real
-	diff = msf2sec(temp_cur) - msf2sec( temp_start );
+	diff = msf2sec((char *)temp_cur) - msf2sec( (char *)temp_start );
 	if( diff < 0 ) {
 		fake_subq_index = 0;
 
-		sec2msf( -diff, fake_subq_local );
+		sec2msf( -diff, (char *)fake_subq_local );
 	} else {
 		fake_subq_index = 1;
 
-		sec2msf( diff, fake_subq_local );
+		sec2msf( diff, (char *)fake_subq_local );
 	}
 }
 

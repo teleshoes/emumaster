@@ -144,7 +144,7 @@ void LoadCheats(const char *filename) {
 
 	fclose(fp);
 
-	SysPrintf(_("Cheats loaded from: %s\n"), filename);
+	SysPrintf("Cheats loaded from: %s\n", filename);
 }
 
 // save all cheats to the specified filename
@@ -176,7 +176,7 @@ void SaveCheats(const char *filename) {
 
 	fclose(fp);
 
-	SysPrintf(_("Cheats saved to: %s\n"), filename);
+	SysPrintf("Cheats saved to: %s\n", filename);
 }
 
 // apply all enabled cheats
@@ -319,7 +319,7 @@ int AddCheat(const char *descr, char *code) {
 		}
 	}
 
-	Cheats[NumCheats].Descr = strdup(descr[0] ? descr : _("(Untitled)"));
+	Cheats[NumCheats].Descr = strdup(descr[0] ? descr : "(Untitled)");
 	Cheats[NumCheats].Enabled = 0;
 	Cheats[NumCheats].First = NumCodes;
 	Cheats[NumCheats].n = 0;
@@ -440,7 +440,7 @@ int EditCheat(int index, const char *descr, char *code) {
 	}
 
 	free(Cheats[index].Descr);
-	Cheats[index].Descr = strdup(descr[0] ? descr : _("(Untitled)"));
+	Cheats[index].Descr = strdup(descr[0] ? descr : "(Untitled)");
 	Cheats[index].First = prev;
 	Cheats[index].n = NumCodes - prev;
 

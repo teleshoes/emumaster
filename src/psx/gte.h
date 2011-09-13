@@ -22,12 +22,12 @@
 #ifndef __GTE_H__
 #define __GTE_H__
 
+#include "psxcommon.h"
+#include "r3000a.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "psxcommon.h"
-#include "r3000a.h"
 
 void gteMFC2();
 void gteCFC2();

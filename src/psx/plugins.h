@@ -20,40 +20,22 @@
 #ifndef __PLUGINS_H__
 #define __PLUGINS_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "psxcommon.h"
-
-//#define ENABLE_SIO1API 1
-
-#ifndef _WIN32
-
-typedef void* HWND;
-#define CALLBACK
-
-long SPU_open(void);
-long PAD_open(unsigned long *);
-long NET_open(unsigned long *);
-long SIO1_open(unsigned long *);
-
-#else
-
-#include <windows.h>
-
-typedef long (CALLBACK* GPUopen)(HWND);
-typedef long (CALLBACK* SPUopen)(HWND);
-typedef long (CALLBACK* PADopen)(HWND);
-typedef long (CALLBACK* NETopen)(HWND);
-typedef long (CALLBACK* SIO1open)(HWND);
-
-#endif
 
 #include "spu.h"
 
 #include "psemu_plugin_defs.h"
 #include "decode_xa.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+//#define ENABLE_SIO1API 1
+
+long SPU_open(void);
+long NET_open(unsigned long *);
+long SIO1_open(unsigned long *);
 
 int LoadPlugins();
 void ReleasePlugins();
@@ -121,9 +103,9 @@ typedef struct  GPUFreeze_t
 long GPU_freeze(uint32_t, GPUFreeze_t *);
 #endif
 long GPU_showScreenPic(unsigned char *);
-void GPU_clearDynarec(void (CALLBACK *callback)(void));
+void GPU_clearDynarec(void (*callback)(void));
 void GPU_vBlank(int);
-void GPU_registerCallback(void (CALLBACK *callback)(int));
+void GPU_registerCallback(void (*callback)(int));
 
 // CD-ROM Functions
 long CDR_init(void);
@@ -309,13 +291,13 @@ unsigned short SIO1_readCtrl16(void);
 unsigned long SIO1_readCtrl32(void);
 unsigned short SIO1_readBaud16(void);
 unsigned long SIO1_readBaud32(void);
-void SIO1_registerCallback(void (CALLBACK *callback)(void));
+void SIO1_registerCallback(void (*callback)(void));
 
 #endif
 
-void CALLBACK clearDynarec(void);
+void clearDynarec(void);
 
-void CALLBACK GPU_busy( int ticks );
+void GPU_busy( int ticks );
 
 void SetIsoFile(const char *filename);
 const char *GetIsoFile(void);

@@ -226,7 +226,7 @@ extern int      SSumR[];
 extern int      SSumL[];
 extern int      iCycle;
 
-extern void (CALLBACK *cddavCallback)(unsigned short,unsigned short);
+extern void (*cddavCallback)(unsigned short,unsigned short);
 
 #endif
 

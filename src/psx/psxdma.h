@@ -20,14 +20,14 @@
 #ifndef __PSXDMA_H__
 #define __PSXDMA_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "psxcommon.h"
 #include "r3000a.h"
 #include "psxhw.h"
 #include "psxmem.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define GPUDMA_INT(eCycle) { \
 	psxRegs.interrupt |= (1 << PSXINT_GPUDMA); \

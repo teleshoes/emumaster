@@ -28,10 +28,10 @@
 
 // TODO change to be static not on heap
 R3000Acpu *psxCpu = NULL;
-psxRegisters psxRegs;
+//psxRegisters psxRegs;
 
 int psxInit() {
-	SysPrintf(_("Running PCSX Version %s (%s).\n"), PACKAGE_VERSION, __DATE__);
+	SysPrintf("Running PCSX Version %s (%s).\n", PACKAGE_VERSION, __DATE__);
 
 #ifdef PSXREC
 	if (Config.Cpu == CPU_INTERPRETER) {
