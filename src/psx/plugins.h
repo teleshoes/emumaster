@@ -124,7 +124,6 @@ long GPU_showScreenPic(unsigned char *);
 void GPU_clearDynarec(void (CALLBACK *callback)(void));
 void GPU_vBlank(int);
 void GPU_registerCallback(void (CALLBACK *callback)(int));
-void GPU_idle(void);
 
 // CD-ROM Functions
 long CDR_init(void);
@@ -175,8 +174,6 @@ unsigned short SPU_readDMA(void);
 void SPU_writeDMAMem(unsigned short *, int);
 void SPU_readDMAMem(unsigned short *, int);
 void SPU_playADPCMchannel(xa_decode_t *);
-void SPU_registerCallback(void (CALLBACK *callback)(void));
-long SPU_test(void);
 /*
 typedef struct {
 	unsigned char PluginName[8];
@@ -209,7 +206,6 @@ typedef struct
  unsigned char *SPUInfo;
 } SPUFreeze_t;
 long SPU_freeze(uint32_t, SPUFreeze_t *);
-void SPU_async(uint32_t);
 void SPU_playCDDAchannel(short *, int);
 
 // PAD Functions

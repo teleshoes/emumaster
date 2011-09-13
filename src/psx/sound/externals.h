@@ -46,12 +46,8 @@
 // num of channels
 #define MAXCHAN     24
 
-#ifdef IPHONE
-#define NSSIZE (45*20)
-#else
 // ~ 1 ms of data
 #define NSSIZE 441
-#endif
 
 ///////////////////////////////////////////////////////////
 // struct defines
@@ -199,14 +195,11 @@ extern unsigned short  regArea[];
 extern unsigned short  spuMem[];
 extern unsigned char * spuMemC;
 extern unsigned char * pSpuIrq;
-extern unsigned char * pSpuBuffer;
 
 // user settings
 
 extern int        iVolume;
 extern int        iXAPitch;
-extern int        iUseTimer;
-extern int        iSPUIRQWait;
 extern int        iDebugMode;
 extern int        iRecordMode;
 extern int        iUseReverb;
@@ -225,8 +218,6 @@ extern unsigned short spuCtrl;
 extern unsigned short spuStat;
 extern unsigned short spuIrq;
 extern unsigned long  spuAddr;
-extern int      bEndThread; 
-extern int      bThreadEnded;
 extern int      bSpuInit;
 extern unsigned int dwNewChannel;
 extern unsigned int dwChannelOn;
@@ -234,7 +225,6 @@ extern unsigned int dwChannelOn;
 extern int      SSumR[];
 extern int      SSumL[];
 extern int      iCycle;
-extern short *  pS;
 
 extern void (CALLBACK *cddavCallback)(unsigned short,unsigned short);
 
@@ -280,4 +270,3 @@ extern int            iReverbRepeat;
 extern int            iReverbNum;    
 
 #endif
-extern int enable_audio;

@@ -184,7 +184,6 @@ static void sec2msf(unsigned int s, char *msf) {
 		cdr.Play = FALSE; \
 		cdr.FastForward = 0; \
 		cdr.FastBackward = 0; \
-		/*SPU_registerCallback( SPUirq );*/ \
 	} \
 }
 

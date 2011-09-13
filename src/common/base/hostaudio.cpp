@@ -115,7 +115,8 @@ void HostAudio::sendFrame() {
 	void *data;
 	pa_stream_begin_write(m_stream, &data, &size);
 	size = qMin(size, pa_stream_writable_size(m_stream));
-	size = m_machine->fillAudioBuffer(reinterpret_cast<char *>(data), size);
+	if (size)
+		size = m_machine->fillAudioBuffer(reinterpret_cast<char *>(data), size);
 	if (size)
 		pa_stream_write(m_stream, data, size, 0, 0, PA_SEEK_RELATIVE);
 	else

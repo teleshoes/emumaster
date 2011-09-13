@@ -1,5 +1,7 @@
 poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
 
+ s sometimes screenshot in rom gallery is overwrited
+ s fps degradation on touch input
  s notify users about supported files extensions when a load error occures
  s update model in emulations : static objects instead of on heap
  s saves do not work in yoshi

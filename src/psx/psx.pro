@@ -66,7 +66,6 @@ HEADERS += \
     sound/psemuxa.h \
     sound/gauss_i.h \
     sound/externals.h \
-    sound/dsoundoss.h \
     sound/dma.h \
 	sound/adsr.h \
 	machine.h
@@ -126,6 +125,7 @@ SOURCES += \
     sound/freeze.cpp \
     sound/dma.cpp \
     sound/adsr.cpp
+
 
 
 

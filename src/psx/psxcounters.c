@@ -67,7 +67,7 @@ static const u32 CountToTarget    = 1;
 static const u32 FrameRate[]      = { 60, 50 };
 static const u32 VBlankStart[]    = { 240, 256 };
 static const u32 HSyncTotal[]     = { 262, 312 };
-static const u32 SpuUpdInterval[] = { 23, 22 };
+static const u32 SpuUpdInterval[] = { 100, 100 };
 
 static const s32 VerboseLevel     = 0;
 
@@ -240,6 +240,8 @@ void psxRcntReset( u32 index )
     psxRcntSet();
 }
 
+extern void MAINThread();
+
 void psxRcntUpdate()
 {
     u32 cycle;
@@ -273,15 +275,11 @@ void psxRcntUpdate()
         hSyncCount++;
 
         // Update spu.
-        if( spuSyncCount >= SpuUpdInterval[Config.PsxType] )
+		if( spuSyncCount >= SpuUpdInterval[Config.PsxType] )
         {
-            spuSyncCount = 0;
-
-            if( SPU_async )
-            {
-                SPU_async( SpuUpdInterval[Config.PsxType] * rcnts[3].target );
-            }
-        }
+			spuSyncCount = 0;
+			MAINThread();
+		}
         
         // VSync irq.
         if( hSyncCount == VBlankStart[Config.PsxType] )

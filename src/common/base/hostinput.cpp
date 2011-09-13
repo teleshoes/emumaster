@@ -18,9 +18,11 @@ bool HostInput::eventFilter(QObject *o, QEvent *e) {
 		QKeyEvent *ke = static_cast<QKeyEvent *>(e);
 		if (!ke->isAutoRepeat())
 			processKey(static_cast<Qt::Key>(ke->key()), state);
+		ke->accept();
 		return true;
 	} else if (e->type() == QEvent::TouchBegin || e->type() == QEvent::TouchUpdate || e->type() == QEvent::TouchEnd) {
 		processTouch(e);
+		e->accept();
 		return true;
 	} else {
 		return false;
