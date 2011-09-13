@@ -114,15 +114,31 @@ SOURCES += \
 	gpu/newGPU.cpp \
 	gpu/ARM_asm.S \
 	gpu/gpuAPI.cpp \
-	sound/xa.c \
-	sound/spu.c \
-	sound/reverb.c \
-	sound/registers.c \
-	sound/nullsnd.c \
-	sound/freeze.c \
-	sound/dma.c \
-	sound/adsr.c \
 	machine.cpp \
 	video_blit.S \
 	gte_neon.S \
-	new_dynarec/linkage_arm.S
+	new_dynarec/linkage_arm.S \
+    sound/xa.cpp \
+    sound/spu.cpp \
+    sound/reverb.cpp \
+    sound/registers.cpp \
+    sound/nullsnd.cpp \
+    sound/freeze.cpp \
+    sound/dma.cpp \
+    sound/adsr.cpp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
