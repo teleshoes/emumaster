@@ -1134,7 +1134,7 @@ long CALLBACK SPU_init(void)
 
  iCycle = 0; 
  cpu_cycles = 0;
- enable_audio = global_enable_audio;
+ enable_audio = 0;
  
  iVolume=2;
  iXAPitch=0;
@@ -1148,45 +1148,14 @@ long CALLBACK SPU_init(void)
  return 0;
 }
 
-// SPUOPEN: called by main emu after init
-#ifdef _WINDOWS
-long CALLBACK SPU_open(HWND hW)                          
-#else
 long SPU_open(void)
-#endif
 {
  if (bSPUIsOpen) return 0;                             // security for some stupid main emus
 
-#ifdef _WINDOWS
- LastWrite=0xffffffff;LastPlay=0;                      // init some play vars
- if(!IsWindow(hW)) hW=GetActiveWindow();
- hWMain = hW;                                          // store hwnd
-#endif
-
- SetupSound();                                         // setup sound (before init!)
  SetupTimer();                                         // timer for feeding data
 
  bSPUIsOpen = 1;
 
-#ifdef _WINDOWS
- if(iDebugMode)                                        // windows debug dialog
-  {
-   hWDebug=CreateDialog(hInst,MAKEINTRESOURCE(IDD_DEBUG),
-                        NULL,(DLGPROC)DebugDlgProc);
-   SetWindowPos(hWDebug,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_SHOWWINDOW|SWP_NOACTIVATE);
-   UpdateWindow(hWDebug);
-   SetFocus(hWMain);
-  }
-
- if(iRecordMode)                                       // windows recording dialog
-  {
-   hWRecord=CreateDialog(hInst,MAKEINTRESOURCE(IDD_RECORD),
-                        NULL,(DLGPROC)RecordDlgProc);
-   SetWindowPos(hWRecord,HWND_TOPMOST,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_SHOWWINDOW|SWP_NOACTIVATE);
-   UpdateWindow(hWRecord);
-   SetFocus(hWMain);
-  }
-#endif
 
  return PSE_SPU_ERR_SUCCESS;
 }
@@ -1198,15 +1167,7 @@ long CALLBACK SPU_close(void)
 
  bSPUIsOpen = 0;                                       // no more open
 
-#ifdef _WINDOWS
- if(IsWindow(hWDebug)) DestroyWindow(hWDebug);
- hWDebug=0;
- if(IsWindow(hWRecord)) DestroyWindow(hWRecord);
- hWRecord=0;
-#endif
-
  RemoveTimer();                                        // no more feeding
- RemoveSound();                                        // no more sound handling
 
  return 0;
 }
@@ -1238,29 +1199,6 @@ void CALLBACK SPU_registerCDDAVolume(void (CALLBACK *CDDAVcallback)(unsigned sho
 {
  cddavCallback = CDDAVcallback;
 }
-
-// COMMON PLUGIN INFO FUNCS
-/*
-char * CALLBACK PSEgetLibName(void)
-{
- return _(libraryName);
-}
-
-unsigned long CALLBACK PSEgetLibType(void)
-{
- return  PSE_LT_SPU;
-}
-
-unsigned long CALLBACK PSEgetLibVersion(void)
-{
- return (1 << 16) | (6 << 8);
-}
-
-char * SPUgetLibInfos(void)
-{
- return _(libraryInfo);
-}
-*/
 
 // vim:shiftwidth=1:expandtab
 

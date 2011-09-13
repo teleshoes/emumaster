@@ -158,10 +158,8 @@ enum {
 	CPU_INTERPRETER
 }; // CPU Types
 
-int EmuInit();
 void EmuReset();
 void EmuShutdown();
-void EmuUpdate();
 
 #ifdef __cplusplus
 }

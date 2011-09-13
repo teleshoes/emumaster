@@ -299,12 +299,9 @@ void psxRcntUpdate()
 
             GPU_vBlank( 0 );
             setIrq( 0x01 );
-
-            EmuUpdate();
             GPU_updateLace();
         }
     }
-
     DebugVSync();
 }
 

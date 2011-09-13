@@ -30,10 +30,6 @@ boolean NetOpened = FALSE;
 int Log = 0;
 FILE *emuLog = NULL;
 
-int EmuInit() {
-	return psxInit();
-}
-
 void EmuReset() {
 	FreeCheatSearchResults();
 	FreeCheatSearchMem();
@@ -49,15 +45,6 @@ void EmuShutdown() {
 	FreePPFCache();
 
 	psxShutdown();
-}
-
-void EmuUpdate() {
-	// Do not allow hotkeys inside a softcall from HLE BIOS
-	if (!Config.HLE || !hleSoftCall)
-		SysUpdate();
-
-	ApplyCheats();
-//	pl_frame_limit();
 }
 
 void __Log(char *fmt, ...) {

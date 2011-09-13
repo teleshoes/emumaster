@@ -33,7 +33,6 @@ extern "C" {
 typedef void* HWND;
 #define CALLBACK
 
-long GPU_open(unsigned long *, char *, char *);
 long SPU_open(void);
 long PAD_open(unsigned long *);
 long NET_open(unsigned long *);
@@ -68,8 +67,6 @@ char *PSEgetLibName(void);
 
 // GPU Functions
 long GPU_init(void);
-long GPU_shutdown(void);
-long GPU_close(void);
 void GPU_writeStatus(uint32_t);
 void GPU_writeData(uint32_t);
 void GPU_writeDataMem(uint32_t *, int);

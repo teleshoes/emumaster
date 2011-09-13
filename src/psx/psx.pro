@@ -12,33 +12,6 @@ unix {
 	INSTALLS += qml
 }
 
-ASM_SOURCES += \
-	gte_neon.S \
-	new_dynarec/linkage_arm.S
-
-SOURCES += $$ASM_SOURCES \
-	gpu/inner.cpp \
-	gpu/fixed.cpp \
-	gpu/core_Misc.cpp \
-	gpu/core_Draw.cpp \
-	gpu/core_Dma.cpp \
-	gpu/core_Command.cpp \
-	gpu/raster_Sprite.cpp \
-	gpu/raster_Poly.cpp \
-	gpu/raster_Line.cpp \
-	gpu/raster_Image.cpp \
-	gpu/newGPU.cpp \
-	gpu/ARM_asm.S \
-	gpu/gpuAPI.cpp \
-    sound/xa.c \
-    sound/spu.c \
-    sound/reverb.c \
-    sound/registers.c \
-    sound/nullsnd.c \
-    sound/freeze.c \
-    sound/dma.c \
-	sound/adsr.c
-
 HEADERS += \
     psemu_plugin_defs.h \
     ppf.h \
@@ -128,11 +101,28 @@ SOURCES += \
     new_dynarec/fpu.c \
     new_dynarec/emu_if.c \
 	new_dynarec/assem_arm.c \
-	machine.cpp
-
-
-
-
-
-
-
+	gpu/inner.cpp \
+	gpu/fixed.cpp \
+	gpu/core_Misc.cpp \
+	gpu/core_Draw.cpp \
+	gpu/core_Dma.cpp \
+	gpu/core_Command.cpp \
+	gpu/raster_Sprite.cpp \
+	gpu/raster_Poly.cpp \
+	gpu/raster_Line.cpp \
+	gpu/raster_Image.cpp \
+	gpu/newGPU.cpp \
+	gpu/ARM_asm.S \
+	gpu/gpuAPI.cpp \
+	sound/xa.c \
+	sound/spu.c \
+	sound/reverb.c \
+	sound/registers.c \
+	sound/nullsnd.c \
+	sound/freeze.c \
+	sound/dma.c \
+	sound/adsr.c \
+	machine.cpp \
+	video_blit.S \
+	gte_neon.S \
+	new_dynarec/linkage_arm.S

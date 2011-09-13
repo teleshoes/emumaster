@@ -26,6 +26,7 @@
 #include "mdec.h"
 #include "gte.h"
 
+// TODO change to be static not on heap
 R3000Acpu *psxCpu = NULL;
 psxRegisters psxRegs;
 

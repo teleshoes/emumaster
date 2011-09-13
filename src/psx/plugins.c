@@ -31,12 +31,9 @@ static s64 cdOpenCaseTime = 0;
 #if 0
 GPUupdateLace         GPU_updateLace;
 GPUinit               GPU_init;
-GPUshutdown           GPU_shutdown; 
 GPUconfigure          GPU_configure;
 GPUtest               GPU_test;
 GPUabout              GPU_about;
-GPUopen               GPU_open;
-GPUclose              GPU_close;
 GPUreadStatus         GPU_readStatus;
 GPUreadData           GPU_readData;
 GPUreadDataMem        GPU_readDataMem;
@@ -917,8 +914,6 @@ int LoadPlugins() {
 
 	ret = CDR_open();
 	if (ret < 0) { SysMessage (_("Error open CD-ROM plugin: %d"), ret); return -1; }
-	ret = GPU_open(NULL, NULL, NULL);
-	if (ret < 0) { SysMessage (_("Error open GPU plugin: %d"), ret); return -1; }
 	ret = SPU_open();
 	if (ret < 0) { SysMessage (_("Error open SPU plugin: %d"), ret); return -1; }
 	SPU_registerCallback(SPUirq);
@@ -960,8 +955,6 @@ void ReleasePlugins() {
 	if (ret < 0) { SysMessage("Error Closing PAD1 Plugin"); }
 	ret = PAD2_close();
 	if (ret < 0) { SysMessage("Error Closing PAD2 Plugin"); }
-	ret = GPU_close();
-	if (ret < 0) { SysMessage("Error Closing GPU Plugin"); }
 
 #ifdef ENABLE_SIO1API
 	ret = SIO1_close();
@@ -969,7 +962,6 @@ void ReleasePlugins() {
 #endif
 
   CDR_shutdown();
-  GPU_shutdown();
   SPU_shutdown();
   PAD1_shutdown();
   PAD2_shutdown();
@@ -980,7 +972,6 @@ void ReleasePlugins() {
 #if 0
 
 	if (hCDRDriver != NULL || cdrIsoActive()) CDR_shutdown();
-	if (hGPUDriver != NULL) GPU_shutdown();
 	if (hSPUDriver != NULL) SPU_shutdown();
 	if (hPAD1Driver != NULL) PAD1_shutdown();
 	if (hPAD2Driver != NULL) PAD2_shutdown();

@@ -351,8 +351,6 @@ void netError() {
 
 	CdromId[0] = '\0';
 	CdromLabel[0] = '\0';
-
-	SysRunGui();
 #endif
 }
 

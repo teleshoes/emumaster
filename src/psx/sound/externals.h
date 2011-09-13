@@ -280,5 +280,4 @@ extern int            iReverbRepeat;
 extern int            iReverbNum;    
 
 #endif
-extern int global_enable_audio;
 extern int enable_audio;
