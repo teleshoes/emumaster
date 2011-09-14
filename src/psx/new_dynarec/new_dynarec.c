@@ -7976,7 +7976,7 @@ int new_recompile_block(int addr)
 #endif
   else {
     printf("Compile at bogus memory address: %x \n", (int)addr);
-    exit(1);
+	assert(0);
   }
 
   /* Pass 1: disassemble */

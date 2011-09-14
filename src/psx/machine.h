@@ -9,6 +9,7 @@ class PsxMachine : public IMachine {
 	Q_OBJECT
 public:
 	explicit PsxMachine(QObject *parent = 0);
+	QString init();
 	void reset();
 	void updateGpuScale(int w, int h);
 	void flipScreen();

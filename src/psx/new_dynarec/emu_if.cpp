@@ -54,17 +54,21 @@ static void schedule_timeslice(void)
 typedef void (irq_func)();
 
 static irq_func * const irq_funcs[] = {
-	[PSXINT_SIO]	= sioInterrupt,
-	[PSXINT_CDR]	= cdrInterrupt,
-	[PSXINT_CDREAD]	= cdrReadInterrupt,
-	[PSXINT_GPUDMA]	= gpuInterrupt,
-	[PSXINT_MDECOUTDMA] = mdec1Interrupt,
-	[PSXINT_SPUDMA]	= spuInterrupt,
-	[PSXINT_MDECINDMA] = mdec0Interrupt,
-	[PSXINT_GPUOTCDMA] = gpuotcInterrupt,
-	[PSXINT_CDRDMA] = cdrDmaInterrupt,
-	[PSXINT_CDRLID] = cdrLidSeekInterrupt,
-	[PSXINT_CDRPLAY] = cdrPlayInterrupt,
+	sioInterrupt,
+	cdrInterrupt,
+	cdrReadInterrupt,
+	gpuInterrupt,
+	mdec1Interrupt,
+	spuInterrupt,
+	0,
+	mdec0Interrupt,
+	gpuotcInterrupt,
+	cdrDmaInterrupt,
+	0,
+	0,
+	cdrLidSeekInterrupt,
+	cdrPlayInterrupt,
+	0
 };
 
 /* local dupe of psxBranchTest, using event_cycles */
@@ -96,8 +100,7 @@ static void irq_test(void)
 	}
 }
 
-void gen_interupt()
-{
+void gen_interupt() {
 	evprintf("  +ge %08x, %u->%u\n", psxRegs.pc, psxRegs.cycle, next_interupt);
 
 	irq_test();
@@ -160,12 +163,12 @@ static int ari64_init()
 
 	for (i = 0; i < ARRAY_SIZE(gte_handlers); i++)
 		if (psxCP2[i] != psxNULL)
-			gte_handlers[i] = psxCP2[i];
+			gte_handlers[i] = (void *)psxCP2[i];
 #if defined(__arm__) && !defined(DRC_DBG) && !defined(ARMv5_ONLY)
-	gte_handlers[0x01] = gteRTPS_neon;
-	gte_handlers[0x30] = gteRTPT_neon;
-	gte_handlers[0x12] = gteMVMVA_neon;
-	gte_handlers[0x06] = gteNCLIP_neon;
+	gte_handlers[0x01] = (void *)gteRTPS_neon;
+	gte_handlers[0x30] = (void *)gteRTPT_neon;
+	gte_handlers[0x12] = (void *)gteMVMVA_neon;
+	gte_handlers[0x06] = (void *)gteNCLIP_neon;
 #endif
 	psxH_ptr = psxH;
 

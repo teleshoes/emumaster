@@ -33,10 +33,8 @@ R3000Acpu *psxCpu = NULL;
 int psxInit() {
 	SysPrintf("Running PCSX Version %s (%s).\n", PACKAGE_VERSION, __DATE__);
 
-#ifdef PSXREC
-	if (Config.Cpu == CPU_INTERPRETER) {
-		psxCpu = &psxInt;
-	} else psxCpu = &psxRec;
+#ifdef DYNAREC
+	psxCpu = &psxRec;
 #else
 	psxCpu = &psxInt;
 #endif

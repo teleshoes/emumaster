@@ -44,6 +44,7 @@ public:
 
 	explicit IMachine(const QString &name, QObject *parent = 0);
 	~IMachine();
+	virtual QString init() = 0;
 	Q_INVOKABLE virtual void reset();
 
 	QString name() const;

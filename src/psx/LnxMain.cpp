@@ -19,6 +19,7 @@
 #include "psxcommon.h"
 #include "sio.h"
 #include "ppf.h"
+#include "gpu/gpuAPI.h"
 
 int SysInit() {
 #ifdef EMU_LOG

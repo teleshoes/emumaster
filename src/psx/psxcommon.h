@@ -69,8 +69,6 @@ typedef uint8_t boolean;
 #define strnicmp strncasecmp
 #define __inline inline
 
-#include "gpu/gpuAPI.h"
-
 #ifdef __cplusplus
 #include <imachine.h>
 extern "C" {
@@ -91,10 +89,6 @@ typedef struct {
     char Sio1[MAXPATHLEN];
 	char Mcd1[MAXPATHLEN];
 	char Mcd2[MAXPATHLEN];
-	char Bios[MAXPATHLEN];
-	char BiosDir[MAXPATHLEN];
-	char PluginsDir[MAXPATHLEN];
-	char PatchesDir[MAXPATHLEN];
 	boolean Xa;
 	boolean Sio;
 	boolean Mdec;
@@ -107,11 +101,7 @@ typedef struct {
 	boolean RCntFix;
 	boolean UseNet;
 	boolean VSyncWA;
-	u8 Cpu; // CPU_DYNAREC or CPU_INTERPRETER
 	u8 PsxType; // PSX_TYPE_NTSC or PSX_TYPE_PAL
-#ifdef _WIN32
-	char Lang[256];
-#endif
 } PcsxConfig;
 
 extern PcsxConfig Config;
@@ -132,8 +122,6 @@ enum {
 	CPU_DYNAREC = 0,
 	CPU_INTERPRETER
 }; // CPU Types
-
-void EmuShutdown();
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,12 @@
+#ifndef EMUIF_H
+#define EMUIF_H
+
 #include "new_dynarec.h"
 #include "../r3000a.h"
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 extern char invalid_code[0x100000];
 
@@ -55,5 +62,13 @@ extern int pending_exception;
 void pcsx_mtc0(u32 reg);
 void pcsx_mtc0_ds(u32 reg);
 
+void gen_interupt();
+
 /* misc */
 extern void (*psxHLEt[])();
+
+#if defined(__cplusplus)
+}
+#endif
+
+#endif // EMUIF_H

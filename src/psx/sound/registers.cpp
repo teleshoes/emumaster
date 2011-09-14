@@ -16,6 +16,7 @@
  ***************************************************************************/
 
 #include "stdafx.h"
+#include "plugins.h"
 
 #define _IN_REGISTERS
 

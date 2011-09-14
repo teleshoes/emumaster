@@ -18,7 +18,12 @@
 #include "../psxcommon.h"
 #include "stdafx.h"
 
+extern "C" {
+
 void SetupTimer(void);
 void RemoveTimer(void);
 void SPU_playADPCMchannel(xa_decode_t *xap);
 void SPU_playCDDAchannel(short *pcm, int bytes);
+void SPUirq();
+
+}

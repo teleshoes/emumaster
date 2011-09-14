@@ -120,16 +120,18 @@ SOURCES += \
     r3000a.cpp \
     sio.cpp \
     socket.cpp \
-    new_dynarec/emu_if.c \
     new_dynarec/fpu.c \
     new_dynarec/new_dynarec.c \
 	new_dynarec/pcsxmem.c \
     pad.cpp \
-    gpu.cpp
+    gpu.cpp \
+    new_dynarec/emu_if.cpp
 
 OTHER_FILES += \
 	new_dynarec/assem_arm.c \
 	new_dynarec/pcsxmem_inline.c
+
+
 
 
 

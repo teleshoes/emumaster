@@ -44,9 +44,13 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 
 	loadSettings();
 
-	QString error = m_machine->setDisk(QString("%1/%2")
-									   .arg(m_machine->diskDirPath())
-									   .arg(diskName));
+	QString error = m_machine->init();
+
+	if (error.isEmpty()) {
+		error = m_machine->setDisk(QString("%1/%2")
+										   .arg(m_machine->diskDirPath())
+										   .arg(diskName));
+	}
 
 	m_stateListModel = new MachineStateListModel(m_machine, diskName);
 

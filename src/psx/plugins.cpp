@@ -23,6 +23,7 @@
 
 #include "plugins.h"
 #include "cdriso.h"
+#include "spu.h"
 #include <time.h>
 
 int LoadPlugins() {

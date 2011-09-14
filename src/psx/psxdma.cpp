@@ -22,6 +22,7 @@
 */
 
 #include "psxdma.h"
+#include "plugins.h"
 
 // Dma0/1 in Mdec.c
 // Dma3   in CdRom.c

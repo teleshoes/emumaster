@@ -18,6 +18,8 @@
 #include <QTime>
 #include "stdafx.h"
 #include "spu.h"
+#include "psxmem.h"
+#include "plugins.h"
 
 #define _IN_SPU
 

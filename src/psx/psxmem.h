@@ -23,6 +23,23 @@
 #include "psxcommon.h"
 
 #ifdef __cplusplus
+
+#include <QObject>
+
+class PsxMem : public QObject {
+	Q_OBJECT
+public:
+	void setBiosName(const QString &name);
+	void loadBios();
+private:
+	QString m_biosName;
+};
+
+inline void PsxMem::setBiosName(const QString &name)
+{ m_biosName = name; }
+
+extern PsxMem psxMem;
+
 extern "C" {
 #endif
 
@@ -121,10 +138,6 @@ extern u8 **psxMemRLUT;
 #define PSXMu32(mem)	(SWAP32(*(u32 *)PSXM(mem)))
 
 #define PSXMu32ref(mem)	(*(u32 *)PSXM(mem))
-
-#if !defined(PSXREC) && (defined(__x86_64__) || defined(__i386__) || defined(__ppc__)) && !defined(NOPSXREC)
-#define PSXREC
-#endif
 
 int psxMemInit();
 void psxMemReset();

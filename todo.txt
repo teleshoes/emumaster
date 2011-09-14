@@ -1,6 +1,5 @@
 poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
 
- b kula world wont save
  s start button misplaced
  s psx selectable bios
  s psx filter files in rom gallery
@@ -25,6 +24,7 @@ poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
  s bluetooth gamepad
  s zipped savestates
  b saves in gba tasmanian dont work
+ b kula world save/load dont work with bios
  s remove last state option
  - Amiga
  - N64

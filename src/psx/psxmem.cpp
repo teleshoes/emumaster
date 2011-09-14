@@ -26,6 +26,7 @@
 #include "psxmem.h"
 #include "r3000a.h"
 #include "psxhw.h"
+#include <QFile>
 #include <sys/mman.h>
 
 #ifndef MAP_ANONYMOUS
@@ -114,29 +115,13 @@ void psxMemReset() {
 	memset(psxM, 0, 0x00200000);
 	memset(psxP, 0, 0x00010000);
 
-	if (strcmp(Config.Bios, "HLE") != 0) {
-		sprintf(bios, "%s/%s", Config.BiosDir, Config.Bios);
-		f = fopen(bios, "rb");
-
-		if (f == NULL) {
-			SysMessage("Could not open BIOS:\"%s\". Enabling HLE Bios!\n", bios);
-			memset(psxR, 0, 0x80000);
-			Config.HLE = TRUE;
-		} else {
-			fread(psxR, 1, 0x80000, f);
-			fclose(f);
-			Config.HLE = FALSE;
-		}
-	} else Config.HLE = TRUE;
+	psxMem.loadBios();
 }
 
 void psxMemShutdown() {
 	munmap(psxM, 0x00220000);
 	munmap(psxR, 0x80000);
 
-// TODO ???
-  mmap((void *)0x80000000, 0x00220000, PROT_WRITE | PROT_READ | PROT_EXEC, MAP_FIXED | MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-  
 	free(psxMemRLUT);
 	free(psxMemWLUT);
 }
@@ -235,7 +220,7 @@ void psxMemWrite8(u32 mem, u8 value) {
 			if (Config.Debug)
 				DebugCheckBP((mem & 0xffffff) | 0x80000000, W1);
 			*(u8 *)(p + (mem & 0xffff)) = value;
-#ifdef PSXREC
+#ifdef DYNAREC
 			psxCpu->Clear((mem & (~3)), 1);
 #endif
 		} else {
@@ -262,7 +247,7 @@ void psxMemWrite16(u32 mem, u16 value) {
 			if (Config.Debug)
 				DebugCheckBP((mem & 0xffffff) | 0x80000000, W2);
 			*(u16 *)(p + (mem & 0xffff)) = SWAPu16(value);
-#ifdef PSXREC
+#ifdef DYNAREC
 			psxCpu->Clear((mem & (~3)), 1);
 #endif
 		} else {
@@ -290,12 +275,12 @@ void psxMemWrite32(u32 mem, u32 value) {
 			if (Config.Debug)
 				DebugCheckBP((mem & 0xffffff) | 0x80000000, W4);
 			*(u32 *)(p + (mem & 0xffff)) = SWAPu32(value);
-#ifdef PSXREC
+#ifdef DYNAREC
 			psxCpu->Clear(mem, 1);
 #endif
 		} else {
 			if (mem != 0xfffe0130) {
-#ifdef PSXREC
+#ifdef DYNAREC
 				if (!writeok)
 					psxCpu->Clear(mem, 1);
 #endif
@@ -349,4 +334,25 @@ void *psxMemPointer(u32 mem) {
 		}
 		return NULL;
 	}
+}
+
+PsxMem psxMem;
+
+void PsxMem::loadBios() {
+	if (m_biosName != "HLE" && !m_biosName.isEmpty()) {
+		QString path = QString("%1/%2")
+				.arg(IMachine::diskDirPath("psx"))
+				.arg(m_biosName);
+		QFile biosFile(path);
+		if (biosFile.open(QIODevice::ReadOnly)) {
+			biosFile.read((char *)psxR, 0x80000);
+			Config.HLE = FALSE;
+			return;
+		} else {
+			printf("Could not open bios \"%s\"!", qPrintable(m_biosName));
+		}
+	}
+	printf("Enabling HLE bios.");
+	memset(psxR, 0, 0x80000);
+	Config.HLE = TRUE;
 }

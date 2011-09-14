@@ -38,7 +38,7 @@ static u32 branchPC;
 #define debugI()
 #endif
 
-#if !defined(PSXREC)
+#if !defined(DYNAREC)
 inline
 #else
 extern "C"
@@ -784,10 +784,8 @@ void psxTestSWInts() {
 	}
 }
 
-#if !defined(PSXREC)
+#if !defined(DYNAREC)
 __inline
-#else
-extern "C"
 #endif
 void MTC0(int reg, u32 val) {
 //	SysPrintf("MTC0 %d: %x\n", reg, val);
@@ -815,7 +813,7 @@ void psxCTC0() { MTC0(_Rd_, _u32(_rRt_)); }
 * Unknow instruction (would generate an exception)       *
 * Format:  ?                                             *
 *********************************************************/
-extern "C" void psxNULL() {
+void psxNULL() {
 #ifdef PSXCPU_LOG
 	PSXCPU_LOG("psx: Unimplemented op %x\n", psxRegs.code);
 #endif

@@ -183,7 +183,7 @@ void BuildPPFCache() {
 	char			method, undo = 0, blockcheck = 0;
 	int				dizlen, dizyn;
 	unsigned char	ppfmem[512];
-	char			szPPF[MAXPATHLEN];
+	char			szPPF[1024];
 	int				count, seekpos, pos;
 	u32				anz; // use 32-bit to avoid stupid overflows
 	s32				ladr, off, anx;
@@ -204,7 +204,9 @@ void BuildPPFCache() {
 	buffer[10] = CdromId[8];
 	buffer[11] = '\0';
 
-	sprintf(szPPF, "%s%s", Config.PatchesDir, buffer);
+	// TODO patches
+	return;
+//	sprintf(szPPF, "%s%s", Config.PatchesDir, buffer);
 
 	ppffile = fopen(szPPF, "rb");
 	if (ppffile == NULL) return;

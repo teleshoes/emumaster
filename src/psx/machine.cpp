@@ -45,30 +45,28 @@ static void emu_config() {
 	Config.PsxAuto = 1;
 	Config.Cdda = 0;
 	Config.Xa = 0;
-#ifdef DYNAREC
-	Config.Cpu = CPU_DYNAREC;
-#else
- 	Config.Cpu = CPU_INTERPRETER;
-#endif
 	Config.Mdec = 0;
 	Config.PsxOut = 0;
-	Config.PsxType = 0;
+	Config.PsxType = PSX_TYPE_NTSC;
 	Config.RCntFix = 0;
 	Config.Sio = 0;
 	Config.SpuIrq = 0;
 	Config.VSyncWA = 0;
-	strcpy(Config.Bios, "scph1001.bin");
-	strcpy(Config.BiosDir, "/home/user/MyDocs/emumaster/psx");
+	psxMem.setBiosName("scph1001.bin");
 }
 
 PsxMachine::PsxMachine(QObject *parent) :
 	IMachine("psx", parent) {
+}
+
+QString PsxMachine::init() {
 	m_quit = false;
 	stop = 0;
 	emu_config();
 	SysInit();
 	setVideoSrcRect(QRect(0, 0, 256, 240));
 	setFrameRate(50); // TODO PAL/NTSC
+	return QString();
 }
 
 void PsxMachine::reset() {

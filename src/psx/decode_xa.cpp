@@ -22,6 +22,7 @@
 */
 
 #include "psxcommon.h"
+#include "decode_xa.h"
 
 #define FIXED
 

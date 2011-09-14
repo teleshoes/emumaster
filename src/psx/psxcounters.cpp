@@ -22,6 +22,7 @@
  */
 
 #include "psxcounters.h"
+#include "gpu/gpuAPI.h"
 #include <QDataStream>
 
 /******************************************************************************/
