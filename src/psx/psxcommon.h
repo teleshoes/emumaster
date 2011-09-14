@@ -133,7 +133,6 @@ enum {
 	CPU_INTERPRETER
 }; // CPU Types
 
-void EmuReset();
 void EmuShutdown();
 
 #ifdef __cplusplus

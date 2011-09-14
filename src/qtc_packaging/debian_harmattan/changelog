@@ -1,7 +1,10 @@
 emumaster (0.0.2) unstable; urgency=low
 
+  * added psx emulation
+  * added snes emulation
   * added gba emulation
   * added page to select the console
+  * states are compressed now
   * settings look refreshed
   * button to remove rom
   * asynchronous audio

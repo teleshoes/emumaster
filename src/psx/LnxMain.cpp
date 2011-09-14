@@ -16,23 +16,9 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA
  */
 
-#include "config.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdarg.h>
-#include <dlfcn.h>
-#include <sys/mman.h>
-#include <errno.h>
-#include <string.h>
-#include <time.h>
-#include <pthread.h>
-#include <dirent.h>
-#include <sys/stat.h>
-#include "sio.h"
-
 #include "psxcommon.h"
+#include "sio.h"
+#include "ppf.h"
 
 int SysInit() {
 #ifdef EMU_LOG
@@ -63,13 +49,13 @@ static void dummy_lace()
 }
 
 void SysReset() {
-	// rearmed hack: EmuReset() runs some code when real BIOS is used,
+	// rearmed hack: psxReset() runs some code when real BIOS is used,
 	// but we usually do reset from menu while GPU is not open yet,
 	// so we need to prevent updateLace() call..
 	void (*real_lace)() = GPUupdateLace;
 	GPU_updateLace = dummy_lace;
 
-	EmuReset();
+	psxReset();
 
 	// hmh core forgets this
 	CDR_stop();
@@ -78,7 +64,9 @@ void SysReset() {
 }
 
 void SysClose() {
-	EmuShutdown();
+	FreePPFCache();
+	psxShutdown();
+
 	ReleasePlugins();
 
 	StopDebugger();

@@ -675,9 +675,11 @@ PsxMdec psxMdec;
 // TODO move mdec to psxMdec, rewrite save/load
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(PsxMdec, 1) \
+STATE_SERIALIZE_BEGIN_##sl(PsxMdec, 1) \
 	STATE_SERIALIZE_ARRAY_##sl(&mdec, sizeof(mdec)) \
-	STATE_SERIALIZE_END_##sl(PsxMdec)
+	STATE_SERIALIZE_ARRAY_##sl(iq_y, sizeof(iq_y)) \
+	STATE_SERIALIZE_ARRAY_##sl(iq_uv, sizeof(iq_uv)) \
+STATE_SERIALIZE_END_##sl(PsxMdec)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

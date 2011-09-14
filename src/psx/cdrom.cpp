@@ -2093,7 +2093,7 @@ void PsxCdr::reset() {
 // TODO Xa - his own save/load
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(PsxCdr, 1) \
+STATE_SERIALIZE_BEGIN_##sl(PsxCdr, 1) \
 	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
 		StopCdda(); \
 	} \
@@ -2145,7 +2145,7 @@ void PsxCdr::reset() {
 	uint offset = psxCdr.pTransfer - psxCdr.Transfer; \
 	STATE_SERIALIZE_VAR_##sl(offset) \
 	psxCdr.pTransfer = psxCdr.Transfer + offset; \
-	STATE_SERIALIZE_END_##sl(PsxCdr)
+STATE_SERIALIZE_END_##sl(PsxCdr)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

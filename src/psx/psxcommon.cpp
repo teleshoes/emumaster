@@ -21,31 +21,11 @@
 #include "r3000a.h"
 #include "psxbios.h"
 
-#include "cheat.h"
-#include "ppf.h"
-
 PcsxConfig Config;
 boolean NetOpened = FALSE;
 
 int Log = 0;
 FILE *emuLog = NULL;
-
-void EmuReset() {
-	FreeCheatSearchResults();
-	FreeCheatSearchMem();
-
-	psxReset();
-}
-
-void EmuShutdown() {
-	ClearAllCheats();
-	FreeCheatSearchResults();
-	FreeCheatSearchMem();
-
-	FreePPFCache();
-
-	psxShutdown();
-}
 
 void __Log(char *fmt, ...) {
 	va_list list;

@@ -766,7 +766,7 @@ void GetMcdBlockInfo(int mcd, int block, McdBlock *Info) {
 PsxSio psxSio;
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(PsxSio, 1) \
+STATE_SERIALIZE_BEGIN_##sl(PsxSio, 1) \
 	STATE_SERIALIZE_ARRAY_##sl(buf, sizeof(buf)) \
 	STATE_SERIALIZE_VAR_##sl(StatReg) \
 	STATE_SERIALIZE_VAR_##sl(ModeReg) \
@@ -779,7 +779,7 @@ PsxSio psxSio;
 	STATE_SERIALIZE_VAR_##sl(adrH) \
 	STATE_SERIALIZE_VAR_##sl(adrL) \
 	STATE_SERIALIZE_VAR_##sl(padst) \
-	STATE_SERIALIZE_END_##sl(PsxSio)
+STATE_SERIALIZE_END_##sl(PsxSio)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

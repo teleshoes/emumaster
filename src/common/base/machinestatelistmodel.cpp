@@ -69,17 +69,24 @@ bool MachineStateListModel::saveState(int i) {
 		newState = true;
 	} else if (i == -2) {
 		newState = (indexOf(-2) < 0);
-	}
+	}	
+	QByteArray data;
+	data.reserve(10*1024*1024);
+	QDataStream s(&data, QIODevice::WriteOnly);
+	s.setByteOrder(QDataStream::LittleEndian);
+	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
+	s << m_machine->frame();
+	if (!m_machine->save(s))
+		return false;
+
 	QString name = QString::number(i);
 	QFile file(m_dir.filePath(name));
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
 		return false;
-	QDataStream s(&file);
-	s.setByteOrder(QDataStream::LittleEndian);
-	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
-	s << m_machine->frame();
-	if (!m_machine->save(s)) {
-		file.close();
+	QByteArray compressed = qCompress(data);
+	bool ok = (file.write(compressed) == compressed.size());
+	file.close();
+	if (!ok) {
 		file.remove();
 		return false;
 	}
@@ -113,7 +120,13 @@ bool MachineStateListModel::loadState(int i) {
 	QFile file(m_dir.filePath(name));
 	if (!file.open(QIODevice::ReadOnly))
 		return false;
-	QDataStream s(&file);
+
+	QByteArray compressed = file.readAll();
+	QByteArray data = qUncompress(compressed);
+	file.close();
+	compressed.clear();
+
+	QDataStream s(&data, QIODevice::ReadOnly);
 	s.setByteOrder(QDataStream::LittleEndian);
 	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
 	QImage omitFrame;
