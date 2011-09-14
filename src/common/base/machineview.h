@@ -23,6 +23,7 @@ class BASE_EXPORT MachineView : public QObject {
 	Q_PROPERTY(bool swipeEnable READ isSwipeEnabled WRITE setSwipeEnabled NOTIFY swipeEnableChanged)
 	Q_PROPERTY(bool padVisible READ isPadVisible WRITE setPadVisible NOTIFY padVisibleChanged)
 	Q_PROPERTY(bool quickQuitEnable READ isQuickQuitEnabled WRITE setQuickQuitEnabled NOTIFY quickQuitEnableChanged)
+	Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged)
 public:
 	explicit MachineView(IMachine *machine, const QString &diskName);
 	~MachineView();
@@ -46,6 +47,8 @@ public:
 	void setPadVisible(bool visible);
 	bool isQuickQuitEnabled() const;
 	void setQuickQuitEnabled(bool on);
+	bool keepAspectRatio() const;
+	void setKeepAspectRatio(bool on);
 
 	Q_INVOKABLE void saveScreenShot();
 
@@ -62,6 +65,7 @@ signals:
 	void swipeEnableChanged();
 	void padVisibleChanged();
 	void quickQuitEnableChanged();
+	void keepAspectRatioChanged();
 private slots:
 	void pauseStage2();
 	void onFrameGenerated(bool videoOn);

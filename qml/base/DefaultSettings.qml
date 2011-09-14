@@ -51,6 +51,10 @@ Column {
 		text: qsTr("Audio Enabled")
 		checked: machineView.audioEnable; onCheckedChanged: machineView.audioEnable = checked
 	}
+	EMSwitchOption {
+		text: qsTr("Keep Aspect Ratio")
+		checked: machineView.keepAspectRatio; onCheckedChanged: machineView.keepAspectRatio = checked
+	}
 	EMButtonOption {
 		labelText: qsTr("Overwirte Image in Gallery")
 		buttonText: qsTr("Take Screenshot")

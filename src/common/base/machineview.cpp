@@ -42,8 +42,6 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 	QObject::connect(m_hostVideo, SIGNAL(wantClose()), SLOT(close()));
 	QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
 
-	loadSettings();
-
 	QString error = m_machine->init();
 
 	if (error.isEmpty()) {
@@ -52,13 +50,15 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 										   .arg(diskName));
 	}
 
+	loadSettings();
+
 	m_stateListModel = new MachineStateListModel(m_machine, diskName);
 
 	m_settingsView = new SettingsView();
 	QObject::connect(m_settingsView->engine(), SIGNAL(quit()), SLOT(close()));
 	QObject::connect(m_settingsView, SIGNAL(wantClose()), SLOT(close()));
 
-	m_settingsView->engine()->addImageProvider("machine", new MachineImageProvider(m_machine, m_stateListModel));
+	m_settingsView->engine()->addImageProvider("machine", new MachineImageProvider(m_machine, m_hostVideo, m_stateListModel));
 	m_settingsView->rootContext()->setContextProperty("backgroundPath", "");
 	m_settingsView->rootContext()->setContextProperty("machineView", static_cast<QObject *>(this));
 	m_settingsView->rootContext()->setContextProperty("machine", static_cast<QObject *>(m_machine));
@@ -199,6 +199,7 @@ void MachineView::saveSettings() {
 //	s.setValue("audioSampleRate", m_audioSampleRate);
 
 	s.setValue("fpsVisible", m_hostVideo->isFpsVisible());
+	s.setValue("keepAspectRatio", m_hostVideo->keepApsectRatio());
 
 	s.setValue("quickQuit", m_hostVideo->isQuickQuitVisible());
 
@@ -218,6 +219,7 @@ void MachineView::loadSettings() {
 	m_machine->setAudioSampleRate(m_audioSampleRate);
 
 	m_hostVideo->setFpsVisible(s.value("fpsVisible", false).toBool());
+	m_hostVideo->setKeepAspectRatio(s.value("keepAspectRatio", false).toBool());
 
 	bool quickQuit = s.value("quickQuit", true).toBool();
 	m_hostVideo->setQuickQuitVisible(quickQuit);
@@ -250,6 +252,8 @@ bool MachineView::isPadVisible() const
 { return m_hostVideo->isPadVisible(); }
 bool MachineView::isQuickQuitEnabled() const
 { return m_hostVideo->isQuickQuitVisible(); }
+bool MachineView::keepAspectRatio() const
+{ return m_hostVideo->keepApsectRatio(); }
 
 void MachineView::setFpsVisible(bool on) {
 	if (m_hostVideo->isFpsVisible() != on) {
@@ -300,6 +304,13 @@ void MachineView::setQuickQuitEnabled(bool on) {
 		m_hostVideo->setQuickQuitVisible(on);
 		m_hostInput->setQuickQuitEnabled(on);
 		emit quickQuitEnableChanged();
+	}
+}
+
+void MachineView::setKeepAspectRatio(bool on) {
+	if (m_hostVideo->keepApsectRatio() != on) {
+		m_hostVideo->setKeepAspectRatio(on);
+		emit keepAspectRatioChanged();
 	}
 }
 

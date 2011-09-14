@@ -24,7 +24,12 @@ public:
 	bool isQuickQuitVisible() const;
 	void setQuickQuitVisible(bool on);
 
+	bool keepApsectRatio() const;
+	void setKeepAspectRatio(bool on);
+
 	void setMyVisible(bool visible);
+
+	QRectF dstRect() const;
 signals:
 	void wantClose();
 	void minimized();
@@ -60,10 +65,13 @@ private:
 
 	bool m_swipeEnabled;
 	bool m_quickQuitVisible;
+	bool m_keepAspectRatio;
 
 	friend class MachineView;
 };
 
+inline QRectF HostVideo::dstRect() const
+{ return m_dstRect; }
 inline bool HostVideo::isFpsVisible() const
 { return m_fpsVisible; }
 inline bool HostVideo::isPadVisible() const
@@ -72,5 +80,7 @@ inline bool HostVideo::isSwipeEnabled() const
 { return m_swipeEnabled; }
 inline bool HostVideo::isQuickQuitVisible() const
 { return m_quickQuitVisible; }
+inline bool HostVideo::keepApsectRatio() const
+{ return m_keepAspectRatio; }
 
 #endif // MACHINEGLWINDOW_H

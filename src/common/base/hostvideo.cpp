@@ -39,6 +39,7 @@ HostVideo::HostVideo(IMachine *machine, MachineThread *thread) :
 
 	m_swipeEnabled = true;
 	m_quickQuitVisible = false;
+	m_keepAspectRatio = false;
 }
 
 HostVideo::~HostVideo() {
@@ -172,13 +173,20 @@ void HostVideo::changeEvent(QEvent *e) {
 
 void HostVideo::updateRects() {
 	m_srcRect = m_machine->videoSrcRect();
-	Q_ASSERT_X(m_srcRect.width() != 0.0f && m_srcRect.height() != 0.0f, "HostVideo", "define source rect!");
-	qreal scale = qMin(854.0f/m_srcRect.width(), 480.0f/m_srcRect.height());
-	qreal w = m_srcRect.width() * scale;
-	qreal h = m_srcRect.height() * scale;
-	qreal x = 854.0f/2.0f-w/2.0f;
-	qreal y = 480.0f/2.0f-h/2.0f;
-	// TODO keep aspect ratio option
-//	m_dstRect = QRectF(x, y, w, h);
-	m_dstRect = QRectF(QPointF(), size());
+	Q_ASSERT_X(m_srcRect.width() != 0.0f && m_srcRect.height() != 0.0f, "HostVideo", "Define source rect!");
+	if (m_keepAspectRatio) {
+		qreal scale = qMin(qreal(width())/m_srcRect.width(), qreal(height())/m_srcRect.height());
+		qreal w = m_srcRect.width() * scale;
+		qreal h = m_srcRect.height() * scale;
+		qreal x = qreal(width())/2.0f-w/2.0f;
+		qreal y = qreal(height())/2.0f-h/2.0f;
+		m_dstRect = QRectF(x, y, w, h);
+	} else {
+		m_dstRect = QRectF(QPointF(), size());
+	}
+}
+
+void HostVideo::setKeepAspectRatio(bool on) {
+	m_keepAspectRatio = on;
+	updateRects();
 }

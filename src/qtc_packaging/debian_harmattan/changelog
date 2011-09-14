@@ -7,6 +7,7 @@ emumaster (0.0.2) unstable; urgency=low
   * states are compressed now
   * settings look refreshed
   * button to remove rom
+  * added keep aspect ratio option
   * asynchronous audio
   * redesigned architecture to speed up things
   * optional button to exit in top left corner

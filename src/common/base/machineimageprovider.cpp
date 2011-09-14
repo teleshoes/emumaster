@@ -1,11 +1,13 @@
 #include "machineimageprovider.h"
 #include "imachine.h"
 #include "machinestatelistmodel.h"
+#include "hostvideo.h"
 #include <QPainter>
 
-MachineImageProvider::MachineImageProvider(IMachine *machine, MachineStateListModel *stateListModel) :
+MachineImageProvider::MachineImageProvider(IMachine *machine, HostVideo *hostVideo, MachineStateListModel *stateListModel) :
 	QDeclarativeImageProvider(Image),
 	m_machine(machine),
+	m_hostVideo(hostVideo),
 	m_stateListModel(stateListModel) {
 }
 
@@ -26,21 +28,13 @@ QImage MachineImageProvider::requestImage(const QString &id, QSize *size, const 
 }
 
 QImage MachineImageProvider::screenShotGrayscaled() const {
-	// TODO merge with host video
-	QRect rect(0.0f, 0.0f, 854.0f, 480.0f);
-	QRectF srcRect, dstRect;
-	srcRect = m_machine->videoSrcRect();
-	qreal scale = qMin(854.0f/srcRect.width(), 480.0f/srcRect.height());
-	qreal w = srcRect.width() * scale;
-	qreal h = srcRect.height() * scale;
-	qreal x = 854.0f/2.0f-w/2.0f;
-	qreal y = 480.0f/2.0f-h/2.0f;
-	dstRect = QRectF(x, y, w, h);
+	QRectF srcRect = m_machine->videoSrcRect();
+	QRectF dstRect = m_hostVideo->dstRect();
 
-	QImage screenShot(rect.size(), QImage::Format_RGB32);
+	QImage screenShot(m_hostVideo->size(), QImage::Format_RGB32);
 	QPainter painter;
 	painter.begin(&screenShot);
-	painter.fillRect(rect, qRgb(0xE0, 0xE1, 0xE2));
+	painter.fillRect(m_hostVideo->rect(), qRgb(0xE0, 0xE1, 0xE2));
 	painter.drawImage(dstRect, m_machine->frame(), srcRect);
 	painter.end();
 
