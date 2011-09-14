@@ -26,6 +26,16 @@
 #include "psxdma.h"
 
 #ifdef __cplusplus
+
+class PsxMdec : public QObject {
+	Q_OBJECT
+public:
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+};
+
+extern PsxMdec psxMdec;
+
 extern "C" {
 #endif
 
@@ -38,7 +48,6 @@ void psxDma0(u32 madr, u32 bcr, u32 chcr);
 void psxDma1(u32 madr, u32 bcr, u32 chcr);
 void mdec0Interrupt();
 void mdec1Interrupt();
-int mdecFreeze(gzFile f, int Mode);
 
 #ifdef __cplusplus
 }

@@ -27,10 +27,6 @@
 #include "psxmem.h"
 #include "psxhw.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define btoi(b)     ((b) / 16 * 10 + (b) % 16) /* BCD to u_char */
 #define itob(i)     ((i) / 10 * 16 + (i) % 10) /* u_char to BCD */
 
@@ -41,7 +37,15 @@ extern "C" {
 
 #define SUB_FRAMESIZE			96
 
-typedef struct {
+#ifdef __cplusplus
+
+class PsxCdr : public QObject {
+	Q_OBJECT
+public:
+	void reset();
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+
 	unsigned char OCUP;
 	unsigned char Reg1Mode;
 	unsigned char Reg2;
@@ -95,13 +99,15 @@ typedef struct {
 	u8 pad;
 
 	u32 LeftVol, RightVol;
-} cdrStruct;
+};
 
-extern cdrStruct cdr;
+extern PsxCdr psxCdr;
+
+extern "C" {
+#endif
 
 void cdrDecodedBufferInterrupt();
 
-void cdrReset();
 void cdrInterrupt();
 void cdrReadInterrupt();
 void cdrRepplayInterrupt();
@@ -117,7 +123,6 @@ void cdrWrite0(unsigned char rt);
 void cdrWrite1(unsigned char rt);
 void cdrWrite2(unsigned char rt);
 void cdrWrite3(unsigned char rt);
-int cdrFreeze(gzFile f, int Mode);
 
 #ifdef __cplusplus
 }

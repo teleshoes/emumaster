@@ -179,5 +179,7 @@ void HostVideo::updateRects() {
 	qreal h = m_srcRect.height() * scale;
 	qreal x = 854.0f/2.0f-w/2.0f;
 	qreal y = 480.0f/2.0f-h/2.0f;
-	m_dstRect = QRectF(x, y, w, h);
+	// TODO keep aspect ratio option
+//	m_dstRect = QRectF(x, y, w, h);
+	m_dstRect = QRectF(QPointF(), size());
 }

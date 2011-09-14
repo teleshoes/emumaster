@@ -116,8 +116,6 @@ void SysPrintf(const char *fmt, ...) {
 #endif
 }
 
-extern void qDebugC(const char *msg);
-
 void SysMessage(const char *fmt, ...) {
 	va_list list;
 	char msg[512];
@@ -125,7 +123,7 @@ void SysMessage(const char *fmt, ...) {
 	va_start(list, fmt);
 	vsprintf(msg, fmt, list);
 	va_end(list);
-	qDebugC(msg);
+	qDebug(msg);
 #if 0
 	va_list list;
 	char msg[512];

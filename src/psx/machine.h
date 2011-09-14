@@ -17,7 +17,7 @@ public:
 	void emulateFrame(bool drawEnabled);
 	const QImage &frame() const;
 	int fillAudioBuffer(char *stream, int streamSize);
-	void setPadKey(PadKey key, bool state);
+	void setPadKeys(int pad, int keys);
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);

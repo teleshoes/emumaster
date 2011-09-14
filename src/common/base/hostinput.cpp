@@ -6,6 +6,7 @@
 HostInput::HostInput(IMachine *machine) :
 	m_machine(machine) {
 	m_quickQuitEnabled = true;
+	m_keys = 0;
 }
 
 HostInput::~HostInput() {
@@ -29,25 +30,36 @@ bool HostInput::eventFilter(QObject *o, QEvent *e) {
 	}
 }
 
+void HostInput::setKeyState(int key, bool state) {
+	if (state)
+		m_keys |=  key;
+	else
+		m_keys &= ~key;
+}
+
 void HostInput::processKey(Qt::Key key, bool state) {
+	int lastKeys = m_keys;
 	switch (key) {
-	case Qt::Key_Left:	m_machine->setPadKey(IMachine::Left_PadKey, state); break;
-	case Qt::Key_Right:	m_machine->setPadKey(IMachine::Right_PadKey, state); break;
-	case Qt::Key_Up:	m_machine->setPadKey(IMachine::Up_PadKey, state); break;
-	case Qt::Key_Down:	m_machine->setPadKey(IMachine::Down_PadKey, state); break;
-	case Qt::Key_C:		m_machine->setPadKey(IMachine::A_PadKey, state); break;
-	case Qt::Key_X:		m_machine->setPadKey(IMachine::B_PadKey, state); break;
-	case Qt::Key_S:		m_machine->setPadKey(IMachine::X_PadKey, state); break;
-	case Qt::Key_D:		m_machine->setPadKey(IMachine::Y_PadKey, state); break;
-	case Qt::Key_Q:		m_machine->setPadKey(IMachine::Start_PadKey, state); break;
-	case Qt::Key_W:		m_machine->setPadKey(IMachine::Select_PadKey, state); break;
-	case Qt::Key_Escape:emit pause(); break;
+	case Qt::Key_Left:	setKeyState(IMachine::Left_PadKey, state); break;
+	case Qt::Key_Right:	setKeyState(IMachine::Right_PadKey, state); break;
+	case Qt::Key_Up:	setKeyState(IMachine::Up_PadKey, state); break;
+	case Qt::Key_Down:	setKeyState(IMachine::Down_PadKey, state); break;
+	case Qt::Key_C:		setKeyState(IMachine::A_PadKey, state); break;
+	case Qt::Key_X:		setKeyState(IMachine::B_PadKey, state); break;
+	case Qt::Key_S:		setKeyState(IMachine::X_PadKey, state); break;
+	case Qt::Key_D:		setKeyState(IMachine::Y_PadKey, state); break;
+	case Qt::Key_Q:		setKeyState(IMachine::Start_PadKey, state); break;
+	case Qt::Key_W:		setKeyState(IMachine::Select_PadKey, state); break;
+	case Qt::Key_Escape:emit pauseClicked(); break;
 	default: break;
 	}
+	if (m_keys != lastKeys)
+		m_machine->setPadKeys(0, m_keys);
 }
 
 void HostInput::processTouch(QEvent *e) {
-	m_machine->setPadKey(IMachine::AllKeys, false);
+	int lastKeys = m_keys;
+	m_keys = 0;
 	QTouchEvent *touchEvent = static_cast<QTouchEvent *>(e);
 	QList<QTouchEvent::TouchPoint> points = touchEvent->touchPoints();
 	for (int i = 0; i < points.size(); i++) {
@@ -61,17 +73,17 @@ void HostInput::processTouch(QEvent *e) {
 				if (x < 200) {
 					y -= 480-200;
 					if (x < 70 && y >= 30 && y < 200-30)
-						m_machine->setPadKey(IMachine::Left_PadKey, true);
+						setKeyState(IMachine::Left_PadKey, true);
 					if (x >= 200-70 && y >= 30 && y < 200-30)
-						m_machine->setPadKey(IMachine::Right_PadKey, true);
+						setKeyState(IMachine::Right_PadKey, true);
 					if (y < 70 && x >= 30 && x < 200-30)
-						m_machine->setPadKey(IMachine::Up_PadKey, true);
+						setKeyState(IMachine::Up_PadKey, true);
 					if (y >= 200-70 && x >= 30 && x < 200-30)
-						m_machine->setPadKey(IMachine::Down_PadKey, true);
+						setKeyState(IMachine::Down_PadKey, true);
 				}
 			} else {
 				if (x < 70 && y >= 100 && y < 135)
-					m_machine->setPadKey(IMachine::Select_PadKey, true);
+					setKeyState(IMachine::Select_PadKey, true);
 				if (x < 60 && y < 60) {
 					if (m_quickQuitEnabled)
 						emit wantClose();
@@ -83,22 +95,24 @@ void HostInput::processTouch(QEvent *e) {
 					x -= 854-200;
 					y -= 480-200;
 					if (x < 70 && y >= 30 && y < 200-30)
-						m_machine->setPadKey(IMachine::Y_PadKey, true);
+						setKeyState(IMachine::Y_PadKey, true);
 					if (x >= 200-70 && y >= 30 && y < 200-30)
-						m_machine->setPadKey(IMachine::A_PadKey, true);
+						setKeyState(IMachine::A_PadKey, true);
 					if (y < 70 && x >= 30 && x < 200-30)
-						m_machine->setPadKey(IMachine::X_PadKey, true);
+						setKeyState(IMachine::X_PadKey, true);
 					if (y >= 200-70 && x >= 30 && x < 200-30)
-						m_machine->setPadKey(IMachine::B_PadKey, true);
+						setKeyState(IMachine::B_PadKey, true);
 				}
 			} else {
 				if (x >= 854-70 && y >= 100 && y < 135)
-					m_machine->setPadKey(IMachine::Start_PadKey, true);
+					setKeyState(IMachine::Start_PadKey, true);
 				if (x >= 854-60 && y < 60)
 					emit pauseClicked();
 			}
 		}
 	}
+	if (m_keys != lastKeys)
+		m_machine->setPadKeys(0, m_keys);
 }
 
 void HostInput::setQuickQuitEnabled(bool on)

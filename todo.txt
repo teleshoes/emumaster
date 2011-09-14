@@ -1,5 +1,10 @@
 poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
 
+ s psx selectable bios
+ s psx filter files in rom gallery
+ s dwie rundy w tekenie - w replayu start i stop ??
+ s input feedback
+ s add some more flags to compiler (as)
  s sometimes screenshot in rom gallery is overwrited
  s fps degradation on touch input
  s notify users about supported files extensions when a load error occures
@@ -13,20 +18,22 @@ poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
  s accelerometer as a controller
  s give users ability to choose their own images in ROM gallery
  s volume buttons sets volume
- - for Amiga,PSX create readme.txt about rom folders and roms name policy
- s Amiga
- s N64
- s ScummVM
- s C64
- s ZX Spectrum
- s load roms from zipped files
+ s for Amiga,PSX create readme.txt about rom folders and roms name policy
  s copy legal info
+ s bluetooth gamepad
+ s zipped savestates
+ b saves in gba tasmanian dont work
+ - Amiga
+ - N64
+ - ScummVM
+ - C64
+ - ZX Spectrum
+ s load roms from zipped files
  s pad view config, colors, xor
  s on-screen paddle controller (e.g. arkanoid)
  s on-screen zapper controller (e.g. duck hunts)
  s nesapu performance
  s 6502 in assembly
- s bluetooth gamepad
  - portrait mode in rom gallery makes titles half visible
  - mappers 72-255
  - test PAL for NES

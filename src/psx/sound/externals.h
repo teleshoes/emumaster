@@ -191,8 +191,8 @@ typedef struct
 
 // psx buffers / addresses
 
-extern unsigned short  regArea[];                        
-extern unsigned short  spuMem[];
+extern unsigned short  regArea[10*1024];
+extern unsigned short  spuMem[256*1024];
 extern unsigned char * spuMemC;
 extern unsigned char * pSpuIrq;
 

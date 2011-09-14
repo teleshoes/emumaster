@@ -25,6 +25,8 @@
 
 #include "psxbios.h"
 #include "psxhw.h"
+#include "pad.h"
+#include <zlib.h>
 
 #undef SysPrintf
 #define SysPrintf if (Config.PsxOut) printf
@@ -2611,22 +2613,19 @@ void psxBiosInit() {
 	hleSoftCall = FALSE;
 }
 
-void psxBiosShutdown() {
-}
-
-#define psxBios_PADpoll(pad) { \
-	PAD##pad##_startPoll(pad); \
-	pad_buf##pad[0] = 0; \
-	pad_buf##pad[1] = PAD##pad##_poll(0x42); \
-	if (!(pad_buf##pad[1] & 0x0f)) { \
+#define psxBios_PADpoll(padx) { \
+	pad##padx##StartPoll(padx); \
+	pad_buf##padx[0] = 0; \
+	pad_buf##padx[1] = pad##padx##Poll(0x42); \
+	if (!(pad_buf##padx[1] & 0x0f)) { \
 		bufcount = 32; \
 	} else { \
-		bufcount = (pad_buf##pad[1] & 0x0f) * 2; \
+		bufcount = (pad_buf##padx[1] & 0x0f) * 2; \
 	} \
-	PAD##pad##_poll(0); \
+	pad##padx##Poll(0); \
 	i = 2; \
 	while (bufcount--) { \
-		pad_buf##pad[i++] = PAD##pad##_poll(0); \
+		pad_buf##padx[i++] = pad##padx##Poll(0); \
 	} \
 }
 
@@ -2638,42 +2637,42 @@ void biosInterrupt() {
 			u32 *buf = (u32*)pad_buf;
 
 			if (!Config.UseNet) {
-				PAD1_startPoll(1);
-				if (PAD1_poll(0x42) == 0x23) {
-					PAD1_poll(0);
-					*buf = PAD1_poll(0) << 8;
-					*buf |= PAD1_poll(0);
-					PAD1_poll(0);
-					*buf &= ~((PAD1_poll(0) > 0x20) ? 1 << 6 : 0);
-					*buf &= ~((PAD1_poll(0) > 0x20) ? 1 << 7 : 0);
+				pad1StartPoll(1);
+				if (pad1Poll(0x42) == 0x23) {
+					pad1Poll(0);
+					*buf = pad1Poll(0) << 8;
+					*buf |= pad1Poll(0);
+					pad1Poll(0);
+					*buf &= ~((pad1Poll(0) > 0x20) ? 1 << 6 : 0);
+					*buf &= ~((pad1Poll(0) > 0x20) ? 1 << 7 : 0);
 				} else {
-					PAD1_poll(0);
-					*buf = PAD1_poll(0) << 8;
-					*buf|= PAD1_poll(0);
+					pad1Poll(0);
+					*buf = pad1Poll(0) << 8;
+					*buf|= pad1Poll(0);
 				}
 
-				PAD2_startPoll(2);
-				if (PAD2_poll(0x42) == 0x23) {
-					PAD2_poll(0);
-					*buf |= PAD2_poll(0) << 24;
-					*buf |= PAD2_poll(0) << 16;
-					PAD2_poll(0);
-					*buf &= ~((PAD2_poll(0) > 0x20) ? 1 << 22 : 0);
-					*buf &= ~((PAD2_poll(0) > 0x20) ? 1 << 23 : 0);
+				pad2StartPoll(2);
+				if (pad2Poll(0x42) == 0x23) {
+					pad2Poll(0);
+					*buf |= pad2Poll(0) << 24;
+					*buf |= pad2Poll(0) << 16;
+					pad2Poll(0);
+					*buf &= ~((pad2Poll(0) > 0x20) ? 1 << 22 : 0);
+					*buf &= ~((pad2Poll(0) > 0x20) ? 1 << 23 : 0);
 				} else {
-					PAD2_poll(0);
-					*buf |= PAD2_poll(0) << 24;
-					*buf |= PAD2_poll(0) << 16;
+					pad2Poll(0);
+					*buf |= pad2Poll(0) << 24;
+					*buf |= pad2Poll(0) << 16;
 				}
 			} else {
 #if 0 // TODO NET
 				u16 data;
 
-				PAD1_startPoll(1);
-				PAD1_poll(0x42);
-				PAD1_poll(0);
-				data = PAD1_poll(0) << 8;
-				data |= PAD1_poll(0);
+				pad1StartPoll(1);
+				pad1Poll(0x42);
+				pad1Poll(0);
+				data = pad1Poll(0) << 8;
+				data |= pad1Poll(0);
 				if (NET_sendPadData(&data, 2) == -1)
 					netError();
 

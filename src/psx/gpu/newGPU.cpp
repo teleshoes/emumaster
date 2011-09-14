@@ -14,10 +14,6 @@ BOOL activeNullGPU      = false;
 BOOL activeGPULog       = false;
 BOOL enableFullscreen   = false;
 
-#ifdef IPHONE
-extern int __compatibility;
-extern unsigned long gp2x_fps_debug;
-#endif
 ///////////////////////////////////////////////////////////////////////////////
 //  interlaced rendering
 int linesInterlace      = 0;  //  0, 1, 3, 7
@@ -26,36 +22,6 @@ int linesInterlace_user = linesInterlace;
 ///////////////////////////////////////////////////////////////////////////////
 //  GPU internal inits
 BOOL  gpuInnerInit();
-
-#if 0
-///////////////////////////////////////////////////////////////////////////////
-//  GPU registering function
-BOOL  register_NEWGPU()
-{
-  //  GPU inicialization/deinicialization functions
-  GPU_init    = NEWGPU_init;
-  GPU_done    = NEWGPU_done;
-  GPU_freeze  = NEWGPU_freeze;
-
-  //  GPU Vsinc Notification
-  GPU_vSinc = NEWGPU_vSinc;
-
-  //  GPU DMA comunication
-  GPU_dmaChain      = NEWGPU_dmaChain;
-  GPU_writeDataMem  = NEWGPU_writeDataMem;
-  GPU_readDataMem   = NEWGPU_readDataMem;
-
-  //  GPU Memory comunication
-  GPU_writeData   = NEWGPU_writeData;
-  GPU_writeStatus = NEWGPU_writeStatus;
-  GPU_readData    = NEWGPU_readData;
-#ifdef IPHONE
-  enableAbbeyHack   = __compatibility;
-  displayFrameInfo  = gp2x_fps_debug;
-#endif
-  return gpuInnerInit();
-}
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 //  GPU Global data

@@ -302,7 +302,7 @@ static void *playthread(void *param)
 			break;
 		}
 
-		if (!cdr.Muted && playing) {
+		if (!psxCdr.Muted && playing) {
 			if (cddaBigEndian) {
 				for (i = 0; i < s / 2; i++) {
 					tmp = sndbuffer[i * 2];
@@ -1261,4 +1261,36 @@ void cdrIsoInit(void) {
 
 int cdrIsoActive(void) {
 	return (cdHandle != NULL);
+}
+
+static char IsoFile[MAXPATHLEN] = "";
+static s64 cdOpenCaseTime = 0;
+
+long CDR__getStatus(struct CdrStat *stat) {
+	if (cdOpenCaseTime < 0 || cdOpenCaseTime > (s64)time(NULL))
+		stat->Status = 0x10;
+	else
+		stat->Status = 0;
+
+	return 0;
+}
+
+void SetIsoFile(const char *filename) {
+	if (filename == NULL) {
+		IsoFile[0] = '\0';
+		return;
+	}
+	strncpy(IsoFile, filename, MAXPATHLEN);
+}
+
+const char *GetIsoFile(void) {
+	return IsoFile;
+}
+
+boolean UsingIso(void) {
+	return (IsoFile[0] != '\0');
+}
+
+void SetCdOpenCaseTime(s64 time) {
+	cdOpenCaseTime = time;
 }

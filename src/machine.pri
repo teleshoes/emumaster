@@ -4,11 +4,14 @@ INCLUDEPATH += ../../include
 QT += opengl
 
 contains(CONFIG,release) {
+	QMAKE_CFLAGS_RELEASE -= -O2
+	QMAKE_CFLAGS_RELEASE_WITH_DEBUGINFO -= -O2
 	QMAKE_CXXFLAGS += \
+		-O3 \
 		-march=armv7-a \
 		-mcpu=cortex-a8 \
 		-mtune=cortex-a8 \
-		-mfpu=neon -O3 \
+		-mfpu=neon \
 		-ffast-math \
 		-ftemplate-depth-36 \
 		-fstrict-aliasing \

@@ -19,9 +19,11 @@ protected:
 private:
 	void processKey(Qt::Key key, bool state);
 	void processTouch(QEvent *e);
+	void setKeyState(int key, bool state);
 
 	IMachine *m_machine;
 	bool m_quickQuitEnabled;
+	int m_keys;
 };
 
 #endif // HOSTINPUT_H

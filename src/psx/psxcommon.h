@@ -25,11 +25,6 @@
 #ifndef __PSXCOMMON_H__
 #define __PSXCOMMON_H__
 
-#ifdef __cplusplus
-#include <imachine.h>
-extern "C" {
-#endif
-
 #include "config.h"
 
 // System includes
@@ -43,7 +38,6 @@ extern "C" {
 #include <ctype.h>
 #include <sys/types.h>
 #include <assert.h>
-#include <zlib.h>
 
 // Define types
 typedef int8_t s8;
@@ -72,10 +66,15 @@ typedef uint8_t boolean;
 #include "system.h"
 #include "debug.h"
 
-#include "gpu/gpuAPI.h"
-
 #define strnicmp strncasecmp
 #define __inline inline
+
+#include "gpu/gpuAPI.h"
+
+#ifdef __cplusplus
+#include <imachine.h>
+extern "C" {
+#endif
 
 extern FILE *emuLog;
 extern int Log;
@@ -117,11 +116,6 @@ typedef struct {
 
 extern PcsxConfig Config;
 extern boolean NetOpened;
-
-#define gzfreeze(ptr, size) { \
-	if (Mode == 1) gzwrite(f, ptr, size); \
-	if (Mode == 0) gzread(f, ptr, size); \
-}
 
 // Make the timing events trigger faster as we are currently assuming everything
 // takes one cycle, which is not the case on real hardware.

@@ -62,48 +62,8 @@ void GPU_about(void);
 void GPU_makeSnapshot(void);
 void GPU_keypressed(int);
 void GPU_displayText(char *);
-#if 0
-typedef struct {
-	uint32_t ulFreezeVersion;
-	uint32_t ulStatus;
-	uint32_t ulControl[256];
-	unsigned char psxVRam[1024*512*2];
-} GPUFreeze_t;
-long GPU_freeze(uint32_t, GPUFreeze_t *);
-#else
-typedef struct  GPUFreeze_t
-{
-	u32 ulFreezeVersion;
-	u32 GP1;
-	u32 Control[256];
-	u8  FrameBuffer[0x100000];
-	///////////////////////////////////////////////////////////////////////////////
-	//  Display status
-	s32	isPAL;
-	u32 isDisplaySet;
-	u32 DisplayArea   [8];
-	u32 DirtyArea     [4];
-	u32 LastDirtyArea [4];
-	u32 CheckArea     [4];
-	
-	///////////////////////////////////////////////////////////////////////////////
-	//  Rasterizer status
-	u32 TextureWindow [4];
-	u32 DrawingArea   [4];
-	u32 DrawingOffset [2];
-	u32 MaskU;
-	u32 MaskV;
-	
-	///////////////////////////////////////////////////////////////////////////////
-	//  Rasterizer status
-	u8  Masking;
-	u16 PixelMSB;
-  int vBlank;
-} GPUFreeze_t;
-long GPU_freeze(uint32_t, GPUFreeze_t *);
-#endif
+
 long GPU_showScreenPic(unsigned char *);
-void GPU_clearDynarec(void (*callback)(void));
 void GPU_vBlank(int);
 void GPU_registerCallback(void (*callback)(int));
 
@@ -156,71 +116,7 @@ unsigned short SPU_readDMA(void);
 void SPU_writeDMAMem(unsigned short *, int);
 void SPU_readDMAMem(unsigned short *, int);
 void SPU_playADPCMchannel(xa_decode_t *);
-/*
-typedef struct {
-	unsigned char PluginName[8];
-	uint32_t PluginVersion;
-	uint32_t Size;
-	unsigned char SPUPorts[0x200];
-	unsigned char SPURam[0x80000];
-	xa_decode_t xa;
-	unsigned char *SPUInfo;
-} SPUFreeze_t;
-*/
-/*typedef struct
-{
- char          szSPUName[8];
- unsigned long ulFreezeVersion;
- unsigned long ulFreezeSize;
- unsigned char cSPUPort[0x200];
- unsigned char cSPURam[0x80000];
- xa_decode_t   xaS;     
- u32           Addr;
-} SPUFreeze_t;*/
-typedef struct
-{
- char          szSPUName[8];
- uint32_t ulFreezeVersion;
- uint32_t ulFreezeSize;
- unsigned char cSPUPort[0x200];
- unsigned char cSPURam[0x80000];
- xa_decode_t   xaS;     
- unsigned char *SPUInfo;
-} SPUFreeze_t;
-long SPU_freeze(uint32_t, SPUFreeze_t *);
 void SPU_playCDDAchannel(short *, int);
-
-// PAD Functions
-long PAD1_configure(void);
-void PAD1_about(void);
-long PAD1_init(long);
-long PAD1_shutdown(void);	
-long PAD1_test(void);		
-long PAD1_close(void);
-long PAD1_query(void);
-long PAD1_readPort1(PadDataS*);
-long PAD1_readPort2(PadDataS*);
-long PAD1_keypressed(void);
-unsigned char PAD1_startPoll(int);
-unsigned char PAD1_poll(unsigned char);
-void PAD1_setSensitive(int);
-long PAD1_open(void);
-
-// PAD Functions
-long PAD2_configure(void);
-void PAD2_about(void);
-long PAD2_init(long);
-long PAD2_shutdown(void);	
-long PAD2_test(void);		
-long PAD2_close(void);
-long PAD2_query(void);
-long PAD2_readPort1(PadDataS*);
-long PAD2_readPort2(PadDataS*);
-long PAD2_keypressed(void);
-unsigned char PAD2_startPoll(int);
-unsigned char PAD2_poll(unsigned char);
-void PAD2_setSensitive(int);
-long PAD2_open(void);
 
 // NET Functions
 long NET_init(void);
@@ -294,10 +190,6 @@ unsigned long SIO1_readBaud32(void);
 void SIO1_registerCallback(void (*callback)(void));
 
 #endif
-
-void clearDynarec(void);
-
-void GPU_busy( int ticks );
 
 void SetIsoFile(const char *filename);
 const char *GetIsoFile(void);

@@ -28,6 +28,18 @@
 #include "psemu_plugin_defs.h"
 
 #ifdef __cplusplus
+
+#include <imachine.h>
+
+class PsxSio : public QObject {
+	Q_OBJECT
+public:
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+};
+
+extern PsxSio psxSio;
+
 extern "C" {
 #endif
 
@@ -50,7 +62,6 @@ unsigned short sioReadBaud16();
 void netError();
 
 void sioInterrupt();
-int sioFreeze(gzFile f, int Mode);
 
 void LoadMcd(int mcd, char *str);
 void LoadMcds(char *mcd1, char *mcd2);

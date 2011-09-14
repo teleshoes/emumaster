@@ -22,6 +22,8 @@
 */
 
 #include "sio.h"
+#include "pad.h"
+#include <QDataStream>
 #include <sys/stat.h>
 
 // Status Flags
@@ -90,10 +92,10 @@ void sioWrite8(unsigned char value) {
 				if (!Config.UseNet) {
 					switch (CtrlReg & 0x2002) {
 						case 0x0002:
-							buf[parp] = PAD1_poll(value);
+							buf[parp] = pad1Poll(value);
 							break;
 						case 0x2002:
-							buf[parp] = PAD2_poll(value);
+							buf[parp] = pad2Poll(value);
 							break;
 					}
 				}/* else {
@@ -127,8 +129,8 @@ void sioWrite8(unsigned char value) {
 			}*/
 			if (!Config.UseNet) {
 				switch (CtrlReg & 0x2002) {
-					case 0x0002: buf[parp] = PAD1_poll(value); break;
-					case 0x2002: buf[parp] = PAD2_poll(value); break;
+					case 0x0002: buf[parp] = pad1Poll(value); break;
+					case 0x2002: buf[parp] = pad2Poll(value); break;
 				}
 			}
 
@@ -217,26 +219,26 @@ void sioWrite8(unsigned char value) {
 
 			if (!Config.UseNet) {
 				switch (CtrlReg & 0x2002) {
-					case 0x0002: buf[0] = PAD1_startPoll(1); break;
-					case 0x2002: buf[0] = PAD2_startPoll(2); break;
+					case 0x0002: buf[0] = pad1StartPoll(1); break;
+					case 0x2002: buf[0] = pad2StartPoll(2); break;
 				}
 			} else {
 				if ((CtrlReg & 0x2002) == 0x0002) {
 					int i, j;
 
-					PAD1_startPoll(1);
+					pad1StartPoll(1);
 					buf[0] = 0;
-					buf[1] = PAD1_poll(0x42);
+					buf[1] = pad1Poll(0x42);
 					if (!(buf[1] & 0x0f)) {
 						bufcount = 32;
 					} else {
 						bufcount = (buf[1] & 0x0f) * 2;
 					}
-					buf[2] = PAD1_poll(0);
+					buf[2] = pad1Poll(0);
 					i = 3;
 					j = bufcount;
 					while (j--) {
-						buf[i++] = PAD1_poll(0);
+						buf[i++] = pad1Poll(0);
 					}
 					bufcount+= 3;
 #if 0 // TODO NET
@@ -761,19 +763,23 @@ void GetMcdBlockInfo(int mcd, int block, McdBlock *Info) {
 	strncpy(Info->Name, (char *)ptr, 16);
 }
 
-int sioFreeze(gzFile f, int Mode) {
-	gzfreeze(buf, sizeof(buf));
-	gzfreeze(&StatReg, sizeof(StatReg));
-	gzfreeze(&ModeReg, sizeof(ModeReg));
-	gzfreeze(&CtrlReg, sizeof(CtrlReg));
-	gzfreeze(&BaudReg, sizeof(BaudReg));
-	gzfreeze(&bufcount, sizeof(bufcount));
-	gzfreeze(&parp, sizeof(parp));
-	gzfreeze(&mcdst, sizeof(mcdst));
-	gzfreeze(&rdwr, sizeof(rdwr));
-	gzfreeze(&adrH, sizeof(adrH));
-	gzfreeze(&adrL, sizeof(adrL));
-	gzfreeze(&padst, sizeof(padst));
+PsxSio psxSio;
 
-	return 0;
-}
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(PsxSio, 1) \
+	STATE_SERIALIZE_ARRAY_##sl(buf, sizeof(buf)) \
+	STATE_SERIALIZE_VAR_##sl(StatReg) \
+	STATE_SERIALIZE_VAR_##sl(ModeReg) \
+	STATE_SERIALIZE_VAR_##sl(CtrlReg) \
+	STATE_SERIALIZE_VAR_##sl(BaudReg) \
+	STATE_SERIALIZE_VAR_##sl(bufcount) \
+	STATE_SERIALIZE_VAR_##sl(parp) \
+	STATE_SERIALIZE_VAR_##sl(mcdst) \
+	STATE_SERIALIZE_VAR_##sl(rdwr) \
+	STATE_SERIALIZE_VAR_##sl(adrH) \
+	STATE_SERIALIZE_VAR_##sl(adrL) \
+	STATE_SERIALIZE_VAR_##sl(padst) \
+	STATE_SERIALIZE_END_##sl(PsxSio)
+
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

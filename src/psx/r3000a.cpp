@@ -74,8 +74,6 @@ void psxReset() {
 
 void psxShutdown() {
 	psxMemShutdown();
-	psxBiosShutdown();
-
 	psxCpu->Shutdown();
 }
 

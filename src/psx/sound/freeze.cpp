@@ -27,7 +27,7 @@
 ////////////////////////////////////////////////////////////////////////
 // freeze structs
 ////////////////////////////////////////////////////////////////////////
-
+/*
 typedef struct
 {
  int            State;
@@ -88,17 +88,7 @@ typedef struct
  ADSRInfo          ADSR;                               // active ADSR settings
  ADSRInfoEx_orig   ADSRX;                              // next ADSR settings (will be moved to active on sample start)
 } SPUCHAN_orig;
-/*
-typedef struct
-{
- char          szSPUName[8];
- uint32_t ulFreezeVersion;
- uint32_t ulFreezeSize;
- unsigned char cSPUPort[0x200];
- unsigned char cSPURam[0x80000];
- xa_decode_t   xaS;     
-} SPUFreeze_t;
-*/
+
 typedef struct
 {
  unsigned short  spuIrq;
@@ -115,7 +105,6 @@ typedef struct
 ////////////////////////////////////////////////////////////////////////
 
 void LoadStateV5(SPUFreeze_t * pF);                    // newest version
-void LoadStateUnknown(SPUFreeze_t * pF);               // unknown format
 
 extern int lastch;
 
@@ -214,21 +203,8 @@ long SPU_freeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
 {
  int i;SPUOSSFreeze_t * pFO;
 
- if(!pF) return 0;                                     // first check
-
  if(ulFreezeMode)                                      // info or save?
   {//--------------------------------------------------//
-   if(ulFreezeMode==1)                                 
-    memset(pF,0,sizeof(SPUFreeze_t)+sizeof(SPUOSSFreeze_t));
-
-   strcpy(pF->szSPUName,"PBOSS");
-   pF->ulFreezeVersion=5;
-   pF->ulFreezeSize=sizeof(SPUFreeze_t)+sizeof(SPUOSSFreeze_t);
-
-   if(ulFreezeMode==2) return 1;                       // info mode? ok, bye
-                                                       // save mode:
-   RemoveTimer();                                      // stop timer
-
    memcpy(pF->cSPURam,spuMem,0x80000);                 // copy common infos
    memcpy(pF->cSPUPort,regArea,0x200);
 
@@ -258,15 +234,9 @@ long SPU_freeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
       pFO->s_chan[i].pLoop-=(unsigned long)spuMemC;
     }
 
-   SetupTimer();                                       // sound processing on again
-
    return 1;
    //--------------------------------------------------//
   }
-                                                       
- if(ulFreezeMode!=0) return 0;                         // bad mode? bye
-
- RemoveTimer();                                        // we stop processing while doing the save!
 
  memcpy(spuMem,pF->cSPURam,0x80000);                   // get ram
  memcpy(regArea,pF->cSPUPort,0x200);
@@ -275,10 +245,7 @@ long SPU_freeze(uint32_t ulFreezeMode,SPUFreeze_t * pF)
   SPU_playADPCMchannel(&pF->xaS);
 
  xapGlobal=0;
-
- if(!strcmp(pF->szSPUName,"PBOSS") && pF->ulFreezeVersion==5)
    LoadStateV5(pF);
- else LoadStateUnknown(pF);
 
  lastch = -1;
 
@@ -330,29 +297,4 @@ void LoadStateV5(SPUFreeze_t * pF)
    s_chan[i].pLoop+=(unsigned long)spuMemC;
   }
 }
-
-////////////////////////////////////////////////////////////////////////
-
-void LoadStateUnknown(SPUFreeze_t * pF)
-{
- int i;
-
- for(i=0;i<MAXCHAN;i++)
-  {
-   s_chan[i].bStop=0;
-   s_chan[i].pLoop=spuMemC;
-   s_chan[i].pStart=spuMemC;
-   s_chan[i].pLoop=spuMemC;
-  }
-
- dwNewChannel=0;
- dwChannelOn=0;
- pSpuIrq=0;
-
- for(i=0;i<0xc0;i++)
-  {
-   SPU_writeRegister(0x1f801c00+i*2,regArea[i]);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////
+*/

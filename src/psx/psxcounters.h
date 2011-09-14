@@ -26,6 +26,18 @@
 #include "plugins.h"
 
 #ifdef __cplusplus
+
+#include <imachine.h>
+
+class PsxCnt : public QObject {
+	Q_OBJECT
+public:
+	bool save(QDataStream &s);
+	bool load(QDataStream &s);
+};
+
+extern PsxCnt psxCnt;
+
 extern "C" {
 #endif
 
@@ -41,8 +53,6 @@ void psxRcntWtarget(u32 index, u32 value);
 u32 psxRcntRcount(u32 index);
 u32 psxRcntRmode(u32 index);
 u32 psxRcntRtarget(u32 index);
-
-s32 psxRcntFreeze(gzFile f, s32 Mode);
 
 #ifdef __cplusplus
 }

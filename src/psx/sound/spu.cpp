@@ -28,7 +28,7 @@
 
 // psx buffer / addresses
 
-unsigned short  regArea[10000];
+unsigned short  regArea[10*1024];
 unsigned short  spuMem[256*1024];
 unsigned char * spuMemC;
 unsigned char * pSpuIrq=0;

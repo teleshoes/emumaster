@@ -26,6 +26,7 @@ QImage MachineImageProvider::requestImage(const QString &id, QSize *size, const 
 }
 
 QImage MachineImageProvider::screenShotGrayscaled() const {
+	// TODO merge with host video
 	QRect rect(0.0f, 0.0f, 854.0f, 480.0f);
 	QRectF srcRect, dstRect;
 	srcRect = m_machine->videoSrcRect();

@@ -15,11 +15,15 @@
 #include "misc.h"
 #include "r3000a.h"
 #include "gpu/newGPU.h"
+#include "gpu.h"
+#include "mdec.h"
 
 #define CONFIG_DIR		"/home/user/MyDocs/emumaster/psx"
 
 PsxMachine psxMachine;
 PsxThread psxThread;
+
+// TODO move to gpu
 QImage gpuFrame;
 
 extern int stop;
@@ -29,10 +33,6 @@ unsigned long timeGetTime() {
  struct timeval tv;
  gettimeofday(&tv, 0);                                 // well, maybe there are better ways
  return tv.tv_sec * 1000 + tv.tv_usec/1000;            // to do that, but at least it works
-}
-
-void qDebugC(const char *msg) {
-	qDebug(msg);
 }
 
 static void emu_config() {
@@ -127,7 +127,10 @@ extern int spuFillBuffer(char *stream, int length);
 int PsxMachine::fillAudioBuffer(char *stream, int streamSize)
 { return spuFillBuffer(stream, streamSize); }
 
-void PsxMachine::setPadKey(PadKey key, bool state) {
+extern void setPadButtons(int machineKeys);
+
+void PsxMachine::setPadKeys(int pad, int keys) {
+	setPadButtons(keys);
 }
 
 void PsxThread::run() {
@@ -135,8 +138,35 @@ void PsxThread::run() {
 	SysClose();
 }
 
+// TODO spu
 #define STATE_SERIALIZE_BUILDER(sl) \
 	STATE_SERIALIZE_BEGIN_##sl(PsxMachine, 1) \
+	STATE_SERIALIZE_VAR_##sl(Config.HLE) \
+	if (STATE_SERIALIZE_TEST_TYPE_##sl) { \
+		new_dyna_save(); \
+		if (Config.HLE) \
+			psxBiosFreeze(1); \
+	} else { \
+		if (Config.HLE) \
+			psxBiosInit(); \
+	} \
+	STATE_SERIALIZE_ARRAY_##sl(psxM, 0x00200000) \
+	STATE_SERIALIZE_ARRAY_##sl(psxR, 0x00080000) \
+	STATE_SERIALIZE_ARRAY_##sl(psxH, 0x00010000) \
+	STATE_SERIALIZE_ARRAY_##sl(&psxRegs, sizeof(psxRegs)) \
+	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
+		if (Config.HLE) \
+			psxBiosFreeze(0); \
+		psxCpu->Reset(); \
+	} \
+	STATE_SERIALIZE_SUBCALL_##sl(psxSio) \
+	STATE_SERIALIZE_SUBCALL_##sl(psxCdr) \
+	STATE_SERIALIZE_SUBCALL_##sl(psxCnt) \
+	STATE_SERIALIZE_SUBCALL_##sl(psxMdec) \
+	STATE_SERIALIZE_SUBCALL_##sl(psxGpu) \
+	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
+		new_dyna_restore(); \
+	} \
 	STATE_SERIALIZE_END_##sl(PsxMachine)
 
 STATE_SERIALIZE_BUILDER(SAVE)

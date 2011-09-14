@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "mdec.h"
+#include <QDataStream>
 
 /* memory speed is 1 byte per MDEC_BIAS psx clock
  * That mean (PSXCLK / MDEC_BIAS) B/s
@@ -669,10 +670,14 @@ void mdec1Interrupt() {
 	return;
 }
 
-int mdecFreeze(gzFile f, int Mode) {
-	gzfreeze(&mdec, sizeof(mdec));
-	gzfreeze(iq_y, sizeof(iq_y));
-	gzfreeze(iq_uv, sizeof(iq_uv));
+PsxMdec psxMdec;
 
-	return 0;
-}
+// TODO move mdec to psxMdec, rewrite save/load
+
+#define STATE_SERIALIZE_BUILDER(sl) \
+	STATE_SERIALIZE_BEGIN_##sl(PsxMdec, 1) \
+	STATE_SERIALIZE_ARRAY_##sl(&mdec, sizeof(mdec)) \
+	STATE_SERIALIZE_END_##sl(PsxMdec)
+
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)

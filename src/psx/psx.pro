@@ -68,7 +68,9 @@ HEADERS += \
     sound/externals.h \
     sound/dma.h \
 	sound/adsr.h \
-	machine.h
+	machine.h \
+    pad.h \
+    gpu.h
 
 SOURCES += \
 	gpu/inner.cpp \
@@ -121,8 +123,16 @@ SOURCES += \
     new_dynarec/emu_if.c \
     new_dynarec/fpu.c \
     new_dynarec/new_dynarec.c \
-	new_dynarec/pcsxmem.c
+	new_dynarec/pcsxmem.c \
+    pad.cpp \
+    gpu.cpp
 
 OTHER_FILES += \
 	new_dynarec/assem_arm.c \
 	new_dynarec/pcsxmem_inline.c
+
+
+
+
+
+

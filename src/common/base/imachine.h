@@ -21,19 +21,20 @@ class BASE_EXPORT IMachine : public QObject {
 	Q_OBJECT
 public:
 	enum PadKey {
-		Left_PadKey = 1,
-		Right_PadKey,
-		Up_PadKey,
-		Down_PadKey,
-		A_PadKey,
-		B_PadKey,
-		X_PadKey,
-		Y_PadKey,
-		L_PadKey,
-		R_PadKey,
-		Start_PadKey,
-		Select_PadKey,
-		AllKeys
+		Left_PadKey		= (1 <<  0),
+		Right_PadKey	= (1 <<  1),
+		Up_PadKey		= (1 <<  2),
+		Down_PadKey		= (1 <<  3),
+		A_PadKey		= (1 <<  4),
+		B_PadKey		= (1 <<  5),
+		X_PadKey		= (1 <<  6),
+		Y_PadKey		= (1 <<  7),
+		L_PadKey		= (1 <<  8),
+		R_PadKey		= (1 <<  9),
+		L2_PadKey		= (1 <<  8),
+		R2_PadKey		= (1 <<  9),
+		Start_PadKey	= (1 << 10),
+		Select_PadKey	= (1 << 11)
 	};
 	static QString installationDirPath();
 	static QString userDataDirPath();
@@ -56,7 +57,7 @@ public:
 	virtual void emulateFrame(bool drawEnabled) = 0;
 	virtual const QImage &frame() const = 0;
 	virtual int fillAudioBuffer(char *stream, int streamSize) = 0;
-	virtual void setPadKey(PadKey key, bool state) = 0;
+	virtual void setPadKeys(int pad, int keys) = 0;
 
 	virtual bool save(QDataStream &s) = 0;
 	virtual bool load(QDataStream &s) = 0;
@@ -102,7 +103,8 @@ inline QRectF IMachine::videoSrcRect() const
 			return false; \
 		int version__; \
 		s >> version__; \
-		Q_UNUSED(version__)
+		if (version__ > version_) \
+			return false;
 
 #define STATE_SERIALIZE_VERSION version__
 

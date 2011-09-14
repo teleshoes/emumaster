@@ -32,7 +32,7 @@ void psxHwReset() {
 	memset(psxH, 0, 0x10000);
 
 	mdecInit(); // initialize mdec decoder
-	cdrReset();
+	psxCdr.reset();
 	psxRcntInit();
 }
 
@@ -745,8 +745,4 @@ void psxHwWrite32(u32 add, u32 value) {
 #ifdef PSXHW_LOG
 	PSXHW_LOG("*Known 32bit write at address %x value %x\n", add, value);
 #endif
-}
-
-int psxHwFreeze(gzFile f, int Mode) {
-	return 0;
 }
