@@ -14,7 +14,6 @@ HostVideo::HostVideo(IMachine *machine, MachineThread *thread) :
 	m_machine(machine),
 	m_thread(thread) {
 
-	updateRects();
 	QObject::connect(machine, SIGNAL(videoSrcRectChanged()), SLOT(updateRects()));
 
 	setAttribute(Qt::WA_NoSystemBackground);

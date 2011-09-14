@@ -65,7 +65,7 @@ void psxDma4(u32 madr, u32 bcr, u32 chcr) { // SPU
 			}
 			size = (bcr >> 16) * (bcr & 0xffff) * 2;
 			SPU_readDMAMem(ptr, size);
-			psxCpu->Clear(madr, size);
+			psxCpu.clear(madr, size);
 			break;
 
 #ifdef PSXDMA_LOG
@@ -138,7 +138,7 @@ void psxDma2(u32 madr, u32 bcr, u32 chcr) { // GPU
 			// BA blocks * BS words (word = 32-bits)
 			size = (bcr >> 16) * (bcr & 0xffff);
 			GPU_readDataMem(ptr, size);
-			psxCpu->Clear(madr, size);
+			psxCpu.clear(madr, size);
 
 			// already 32-bit word size ((size * 4) / 4)
 			GPUDMA_INT(size / 4);

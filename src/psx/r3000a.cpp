@@ -26,28 +26,20 @@
 #include "mdec.h"
 #include "gte.h"
 
-// TODO change to be static not on heap
-R3000Acpu *psxCpu = NULL;
+R3000Acpu psxCpu;
 //psxRegisters psxRegs;
 
-int psxInit() {
-	SysPrintf("Running PCSX Version %s (%s).\n", PACKAGE_VERSION, __DATE__);
-
-#ifdef DYNAREC
-	psxCpu = &psxRec;
-#else
-	psxCpu = &psxInt;
-#endif
-
+bool psxInit() {
 	Log = 0;
 
-	if (psxMemInit() == -1) return -1;
-
-	return psxCpu->Init();
+	if (!psxMemInit())
+		return false;
+	psxCpu.init();
+	return true;
 }
 
 void psxReset() {
-	psxCpu->Reset();
+	psxCpu.reset();
 
 	psxMemReset();
 
@@ -72,7 +64,7 @@ void psxReset() {
 
 void psxShutdown() {
 	psxMemShutdown();
-	psxCpu->Shutdown();
+	psxCpu.shutdown();
 }
 
 void psxException(u32 code, u32 bd) {
@@ -224,6 +216,6 @@ void psxJumpTest() {
 
 void psxExecuteBios() {
 	while (psxRegs.pc != 0x80030000)
-		psxCpu->ExecuteBlock();
+		psxCpu.executeBlock();
 }
 

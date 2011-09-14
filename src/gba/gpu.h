@@ -17,22 +17,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef GBAVIDEO_H
-#define GBAVIDEO_H
+#ifndef GBAGPU_H
+#define GBAGPU_H
 
 #include "common.h"
 
 #if defined(__cplusplus)
-
-#include <QObject>
-
-class GbaVideo : public QObject {
+class GbaGpu : public QObject {
 	Q_OBJECT
 public:
-	explicit GbaVideo(QObject *parent = 0);
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 };
+
+extern GbaGpu gbaGpu;
 
 extern "C" {
 #endif
@@ -74,4 +72,4 @@ typedef struct
 }
 #endif
 
-#endif // GBAVIDEO_H
+#endif // GBAGPU_H

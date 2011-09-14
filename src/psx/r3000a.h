@@ -26,23 +26,22 @@
 #include "psxbios.h"
 
 #ifdef __cplusplus
+
+class R3000Acpu {
+public:
+	void init();
+	void reset();
+	void execute();			/* executes up to a break */
+	void executeBlock();	/* executes up to a jump */
+	void clear(u32 address, u32 size);
+	void shutdown();
+};
+
+extern R3000Acpu psxCpu;
+
+bool psxInit();
+
 extern "C" {
-#endif
-
-typedef struct {
-	int  (*Init)();
-	void (*Reset)();
-	void (*Execute)();		/* executes up to a break */
-	void (*ExecuteBlock)();	/* executes up to a jump */
-	void (*Clear)(u32 Addr, u32 Size);
-	void (*Shutdown)();
-} R3000Acpu;
-
-extern R3000Acpu *psxCpu;
-#if defined(DYNAREC)
-extern R3000Acpu psxRec;
-#else
-extern R3000Acpu psxInt;
 #endif
 
 typedef union {
@@ -265,7 +264,6 @@ void new_dyna_restore(void);
 
 #define _SetLink(x)     psxRegs.GPR.r[x] = _PC_ + 4;       // Sets the return address in the link register
 
-int  psxInit();
 void psxReset();
 void psxShutdown();
 void psxException(u32 code, u32 bd);

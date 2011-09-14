@@ -102,6 +102,7 @@ MachineView::~MachineView() {
 	delete m_hostVideo;
 	delete m_hostAudio;
 	delete m_hostInput;
+	m_machine->shutdown();
 }
 
 void MachineView::showError(const QString &text) {

@@ -17,8 +17,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef GBAMEMORY_H
-#define GBAMEMORY_H
+#ifndef GBAMEM_H
+#define GBAMEM_H
 
 #include "common.h"
 #include "cpu.h"
@@ -161,10 +161,9 @@ typedef enum
 #include <QObject>
 #include <QPair>
 
-class GbaMemory : public QObject {
+class GbaMem : public QObject {
 	Q_OBJECT
 public:
-	explicit GbaMemory(QObject *parent = 0);
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 	bool loadGamePack(const QString &fileName);
@@ -177,6 +176,8 @@ private:
 	QString m_gamePackCode;
 	QString m_gamePackMaker;
 };
+
+extern GbaMem gbaMem;
 
 extern "C" {
 #endif
@@ -234,4 +235,4 @@ extern u32 flash_device_id;
 }
 #endif
 
-#endif // GBAMEMORY_H
+#endif // GBAMEM_H

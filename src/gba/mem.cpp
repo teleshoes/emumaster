@@ -19,9 +19,9 @@
 
 #include <imachine.h>
 #include <QDataStream>
-#include "memory.h"
-#include "video.h"
-#include "sound.h"
+#include "mem.h"
+#include "gpu.h"
+#include "spu.h"
 #include "machine.h"
 #include <QFile>
 
@@ -2724,11 +2724,9 @@ u8 *load_gamepak_page(u32 physical_index) {
 	return swap_location;
 }
 
-GbaMemory::GbaMemory(QObject *parent) :
-	QObject(parent) {
-}
+GbaMem gbaMem;
 
-bool GbaMemory::loadGamePack(const QString &fileName) {
+bool GbaMem::loadGamePack(const QString &fileName) {
 	gamepack_file.close();
 	gamepack_file.setFileName(fileName);
 	if (!gamepack_file.open(QIODevice::ReadOnly))
@@ -2751,7 +2749,7 @@ bool GbaMemory::loadGamePack(const QString &fileName) {
 	return -1;
 }
 
-QPair<QString, QString> GbaMemory::parseLine(const QString &line) {
+QPair<QString, QString> GbaMem::parseLine(const QString &line) {
 	QPair<QString, QString> result;
 	if (line.at(0) == '\0' || line.at(0) == '#')
 		return result;
@@ -2772,7 +2770,7 @@ QPair<QString, QString> GbaMemory::parseLine(const QString &line) {
 	return result;
 }
 
-void GbaMemory::loadConfig() {
+void GbaMem::loadConfig() {
 	idle_loop_target_pc = 0xFFFFFFFF;
 	iwram_stack_optimize = 1;
 	bios_rom[0x39] = 0x00;
@@ -2783,7 +2781,7 @@ void GbaMemory::loadConfig() {
 	QString path = IMachine::installationDirPath() + "/data/gba_game_config.txt";
 	QFile f(path);
 	if (!f.open(QIODevice::ReadOnly)) {
-		qDebug("could not load gba_game_config.txt");
+		printf("could not load gba_game_config.txt");
 		return;
 	}
 	while (!f.atEnd()) {
@@ -2824,7 +2822,7 @@ void GbaMemory::loadConfig() {
 	}
 }
 
-void GbaMemory::invalidate() {
+void GbaMem::invalidate() {
 	flush_translation_cache_ram();
 	flush_translation_cache_rom();
 	flush_translation_cache_bios();
@@ -2846,11 +2844,8 @@ void GbaMemory::invalidate() {
 	reg[CHANGED_PC_STATUS] = 1;
 }
 
-#define SAVE_SAVE true
-#define SAVE_LOAD false
-
 #define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(GbaMemory, 1) \
+STATE_SERIALIZE_BEGIN_##sl(GbaMem, 1) \
 	int flash_bank_ptr_offset = flash_bank_ptr - gamepak_backup; \
 	STATE_SERIALIZE_VAR_##sl(backup_type) \
 	STATE_SERIALIZE_VAR_##sl(sram_size) \
@@ -2884,9 +2879,10 @@ STATE_SERIALIZE_BEGIN_##sl(GbaMemory, 1) \
 	STATE_SERIALIZE_ARRAY_##sl(palette_ram, 0x400) \
 	STATE_SERIALIZE_ARRAY_##sl(io_registers, 0x8000) \
 	flash_bank_ptr = gamepak_backup + flash_bank_ptr_offset; \
-	if (!SAVE_##sl) \
+	if (!STATE_SERIALIZE_TEST_TYPE_##sl) {\
 		invalidate(); \
-STATE_SERIALIZE_END_##sl(GbaMemory)
+	} \
+STATE_SERIALIZE_END_##sl(GbaMem)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

@@ -19,8 +19,8 @@
 
 #include <imachine.h>
 #include <QDataStream>
-#include "video.h"
-#include "memory.h"
+#include "gpu.h"
+#include "mem.h"
 #include "machine.h"
 
 u16 *screen_pixels_ptr = 0;
@@ -3132,15 +3132,13 @@ void debug_screen_printl(const char *format, ...)
   va_end(ap);
 }
 
-GbaVideo::GbaVideo(QObject *parent) :
-	QObject(parent) {
-}
+GbaGpu gbaGpu;
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(GbaVideo, 1) \
+STATE_SERIALIZE_BEGIN_##sl(GbaGpu, 1) \
 	STATE_SERIALIZE_ARRAY_##sl(affine_reference_x, sizeof(affine_reference_x)) \
 	STATE_SERIALIZE_ARRAY_##sl(affine_reference_y, sizeof(affine_reference_y)) \
-STATE_SERIALIZE_END_##sl(GbaVideo)
+STATE_SERIALIZE_END_##sl(GbaGpu)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

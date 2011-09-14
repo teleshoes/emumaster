@@ -1,5 +1,6 @@
 #include "hostaudio.h"
 #include "imachine.h"
+#include <stdio.h>
 
 static void contextStreamCallback(pa_context *context, void *userdata) {
 	 if (!context || !userdata)
@@ -35,7 +36,7 @@ HostAudio::~HostAudio() {
 void HostAudio::open(int sampleRate) {
 	m_mainloop = pa_threaded_mainloop_new();
 	if (!m_mainloop) {
-		qDebug("Could not acquire PulseAudio main loop");
+		printf("Could not acquire PulseAudio main loop");
 		return;
 	}
 	m_api = pa_threaded_mainloop_get_api(m_mainloop);
@@ -43,17 +44,17 @@ void HostAudio::open(int sampleRate) {
 	pa_context_set_state_callback(m_context, contextStreamCallback, this);
 
 	if (!m_context) {
-		qDebug("Could not acquire PulseAudio device context");
+		printf("Could not acquire PulseAudio device context");
 		return;
 	}
 	if (pa_context_connect(m_context, 0, PA_CONTEXT_NOFLAGS, 0) < 0) {
 		int error = pa_context_errno(m_context);
-		qDebug("Could not connect to PulseAudio server: %s", pa_strerror(error));
+		printf("Could not connect to PulseAudio server: %s", pa_strerror(error));
 		return;
 	}
 	pa_threaded_mainloop_lock(m_mainloop);
 	if (pa_threaded_mainloop_start(m_mainloop) < 0) {
-		qDebug("Could not start mainloop");
+		printf("Could not start mainloop");
 		return;
 	}
 
@@ -73,14 +74,14 @@ void HostAudio::open(int sampleRate) {
 	m_stream = pa_stream_new(m_context, "emumaster", &fmt, 0);
 	if (!m_stream) {
 		int error = pa_context_errno(m_context);
-		qDebug("Could not acquire new PulseAudio stream: %s", pa_strerror(error));
+		printf("Could not acquire new PulseAudio stream: %s", pa_strerror(error));
 		return;
 	}
 	pa_stream_flags_t flags = (pa_stream_flags_t)(PA_STREAM_ADJUST_LATENCY | PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_AUTO_TIMING_UPDATE);
 //	pa_stream_flags_t flags = (pa_stream_flags_t) (PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_EARLY_REQUESTS);
 	if (pa_stream_connect_playback(m_stream, 0, &buffer_attributes, flags, 0, 0) < 0) {
 		int error = pa_context_errno(m_context);
-		qDebug("Could not connect for playback: %s", pa_strerror(error));
+		printf("Could not connect for playback: %s", pa_strerror(error));
 		return;
 	}
 
@@ -131,12 +132,12 @@ void HostAudio::waitForStreamReady() {
 		context_state = pa_context_get_state(m_context);
 		if (!PA_CONTEXT_IS_GOOD(context_state)) {
 			int error = pa_context_errno(m_context);
-			qDebug("Context state is not good: %s", pa_strerror(error));
+			printf("Context state is not good: %s", pa_strerror(error));
 			return;
 		} else if (context_state == PA_CONTEXT_READY) {
 			break;
 		} else {
-			//qDebug("PulseAudio context state is %d", context_state);
+			//printf("PulseAudio context state is %d", context_state);
 		}
 		pa_threaded_mainloop_wait(m_mainloop);
 	}

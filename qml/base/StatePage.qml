@@ -8,7 +8,7 @@ Page {
 		anchors.fill: parent
 		model: stateListModel
 		delegate: CoverFlowDelegate {
-			imageSource: "image://machine/" + title + "*nes" + screenShotUpdate
+			imageSource: "image://machine/" + title + "*" + screenShotUpdate
 
 			Label {
 				anchors.top: parent.bottom
@@ -45,6 +45,8 @@ Page {
 			onClicked: {
 				if (!stateListModel.saveState(-1))
 					errorDialog.open()
+				else
+					coverFlow.currentIndex = coverFlow.count-1
 			}
 		}
 		Button {

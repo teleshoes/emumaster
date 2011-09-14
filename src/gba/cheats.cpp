@@ -1,5 +1,5 @@
 #include "cheats.h"
-#include "memory.h"
+#include "mem.h"
 
 // TODO add cheats code from VBA-M
 

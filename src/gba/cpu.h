@@ -114,10 +114,11 @@ typedef enum
 class GbaCpu : public QObject {
 	Q_OBJECT
 public:
-	explicit GbaCpu(QObject *parent = 0);
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 };
+
+extern GbaCpu gbaCpu;
 
 extern "C" {
 #endif

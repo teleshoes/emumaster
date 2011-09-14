@@ -17,8 +17,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef GBASOUND_H
-#define GBASOUND_H
+#ifndef GBASPU_H
+#define GBASPU_H
 
 #include "common.h"
 
@@ -94,17 +94,16 @@ typedef struct
 
 #if defined(__cplusplus)
 
-#include <QObject>
-
-class GbaSound : public QObject {
+class GbaSpu : public QObject {
 	Q_OBJECT
 public:
-	explicit GbaSound(QObject *parent = 0);
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 	int fillBuffer(char *stream, int streamSize);
 	void setEnabled(bool on);
 };
+
+extern GbaSpu gbaSpu;
 
 extern "C" {
 #endif
@@ -327,4 +326,4 @@ void reset_sound();
 }
 #endif
 
-#endif // GBASOUND_H
+#endif // GBASPU_H

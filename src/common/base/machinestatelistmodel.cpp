@@ -75,7 +75,6 @@ bool MachineStateListModel::saveState(int i) {
 	QDataStream s(&data, QIODevice::WriteOnly);
 	s.setByteOrder(QDataStream::LittleEndian);
 	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
-	s << m_machine->frame();
 	if (!m_machine->save(s))
 		return false;
 
@@ -83,6 +82,8 @@ bool MachineStateListModel::saveState(int i) {
 	QFile file(m_dir.filePath(name));
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
 		return false;
+	s.setDevice(&file);
+	s << m_machine->frame();
 	QByteArray compressed = qCompress(data);
 	bool ok = (file.write(compressed) == compressed.size());
 	file.close();
@@ -108,18 +109,17 @@ bool MachineStateListModel::loadState(int i) {
 	if (i == -2) {
 		if (m_list.size() <= 0)
 			return false;
-		QDateTime lastTime = QDateTime::fromMSecsSinceEpoch(0);
-		for (int l = 0; l < m_list.size(); l++) {
-			if (lastTime < m_list.at(l).lastModified()) {
-				lastTime = m_list.at(l).lastModified();
-				i = m_list.at(l).fileName().toInt();
-			}
-		}
+		i = m_list.at(0).fileName().toInt();
 	}
 	QString name = QString::number(i);
 	QFile file(m_dir.filePath(name));
 	if (!file.open(QIODevice::ReadOnly))
 		return false;
+	QDataStream sOmit(&file);
+	sOmit.setByteOrder(QDataStream::LittleEndian);
+	sOmit.setFloatingPointPrecision(QDataStream::SinglePrecision);
+	QImage omitFrame;
+	sOmit >> omitFrame;
 
 	QByteArray compressed = file.readAll();
 	QByteArray data = qUncompress(compressed);
@@ -129,8 +129,6 @@ bool MachineStateListModel::loadState(int i) {
 	QDataStream s(&data, QIODevice::ReadOnly);
 	s.setByteOrder(QDataStream::LittleEndian);
 	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
-	QImage omitFrame;
-	s >> omitFrame;
 	return m_machine->load(s);
 }
 

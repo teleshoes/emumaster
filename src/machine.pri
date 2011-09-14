@@ -3,21 +3,21 @@ LIBS += -L../../lib -lbase
 INCLUDEPATH += ../../include
 QT += opengl
 
-contains(CONFIG,release) {
-	QMAKE_CFLAGS_RELEASE -= -O2
-	QMAKE_CFLAGS_RELEASE_WITH_DEBUGINFO -= -O2
-	QMAKE_CXXFLAGS += \
-		-O3 \
-		-march=armv7-a \
-		-mcpu=cortex-a8 \
-		-mtune=cortex-a8 \
-		-mfpu=neon \
-		-ffast-math \
-		-ftemplate-depth-36 \
-		-fstrict-aliasing \
-		-mstructure-size-boundary=32 \
-		-falign-functions=32
-}
+#contains(CONFIG,release) {
+#	QMAKE_CFLAGS_RELEASE -= -O2
+#	QMAKE_CFLAGS_RELEASE_WITH_DEBUGINFO -= -O2
+#	QMAKE_CXXFLAGS += \
+#		-O3 \
+#		-march=armv7-a \
+#		-mcpu=cortex-a8 \
+#		-mtune=cortex-a8 \
+#		-mfpu=neon \
+#		-ffast-math \
+#		-ftemplate-depth-36 \
+#		-fstrict-aliasing \
+#		-mstructure-size-boundary=32 \
+#		-falign-functions=32
+#}
 
 linux-g++-maemo {
 	MEEGO_VERSION_MAJOR     = 1

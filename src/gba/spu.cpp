@@ -19,8 +19,8 @@
 
 #include <imachine.h>
 #include <QDataStream>
-#include "sound.h"
-#include "memory.h"
+#include "spu.h"
+#include "mem.h"
 
 u32 sound_frequency = 44100;
 
@@ -493,11 +493,9 @@ void init_sound() {
 	reset_sound();
 }
 
-GbaSound::GbaSound(QObject *parent) :
-	QObject(parent) {
-}
+GbaSpu gbaSpu;
 
-void GbaSound::setEnabled(bool on) {
+void GbaSpu::setEnabled(bool on) {
 	if (on)
 		memset(sound_buffer, 0, sizeof(sound_buffer));
 }
@@ -514,7 +512,7 @@ static inline void sound_copy(s16 *stream_base, int length) {
 	}
 }
 
-int GbaSound::fillBuffer(char *stream, int length) {
+int GbaSpu::fillBuffer(char *stream, int length) {
 	int sample_length = (gbc_sound_buffer_index - sound_buffer_base + SOUND_BUFFER_SIZE) % SOUND_BUFFER_SIZE;
 	if (sample_length > length / 2)
 		sample_length = length / 2;
@@ -533,7 +531,7 @@ int GbaSound::fillBuffer(char *stream, int length) {
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(GbaSound, 1) \
+STATE_SERIALIZE_BEGIN_##sl(GbaSpu, 1) \
 	STATE_SERIALIZE_VAR_##sl(sound_on) \
 	STATE_SERIALIZE_VAR_##sl(sound_buffer_base) \
 	STATE_SERIALIZE_VAR_##sl(sound_last_cpu_ticks) \
@@ -546,7 +544,7 @@ STATE_SERIALIZE_BEGIN_##sl(GbaSound, 1) \
 	STATE_SERIALIZE_ARRAY_##sl(wave_samples, sizeof(wave_samples)) \
 	STATE_SERIALIZE_ARRAY_##sl(direct_sound_channel, sizeof(direct_sound_channel)) \
 	STATE_SERIALIZE_ARRAY_##sl(gbc_sound_channel, sizeof(gbc_sound_channel)) \
-STATE_SERIALIZE_END_##sl(GbaSound)
+STATE_SERIALIZE_END_##sl(GbaSpu)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

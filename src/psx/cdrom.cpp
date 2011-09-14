@@ -1983,7 +1983,7 @@ void psxDma3(u32 madr, u32 bcr, u32 chcr) {
 				memcpy(ptr, psxCdr.pTransfer, cdsize);
 			}
 
-			psxCpu->Clear(madr, cdsize / 4);
+			psxCpu.clear(madr, cdsize / 4);
 			psxCdr.pTransfer += cdsize;
 
 

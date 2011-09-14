@@ -2,12 +2,6 @@
 #define GBAMACHINE_H
 
 #if defined(__cplusplus)
-class GbaCpu;
-class GbaMemory;
-class GbaSound;
-class GbaVideo;
-class GbaPad;
-class GbaMachine;
 #include "common.h"
 #include <QImage>
 #include <QThread>
@@ -22,21 +16,22 @@ protected:
 class GbaMachine : public IMachine {
 	Q_OBJECT
 public:
-	explicit GbaMachine(QObject *parent = 0);
-	~GbaMachine();
+	GbaMachine();
+	QString init();
+	void shutdown();
 	void reset();
 
 	QString setDisk(const QString &path);
 	void emulateFrame(bool drawEnabled);
 	const QImage &frame() const;
-	int audioPendingSize() const;
 	int fillAudioBuffer(char *stream, int streamSize);
-	void setPadKey(PadKey key, bool state);
+	void setPadKeys(int pad, int keys);
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 
-	volatile bool m_quit;
+	void sync();
+
 	QSemaphore m_prodSem;
 	QSemaphore m_consSem;
 protected:
@@ -45,14 +40,12 @@ protected:
 private:
 	void loadBios();
 
-	GbaCpu *m_cpu;
-	GbaMemory *m_memory;
-	GbaSound *m_sound;
-	GbaVideo *m_video;
-	GbaPad *m_pad;
 	QString m_biosError;
 	QImage m_frame;
+	volatile bool m_quit;
 };
+
+extern GbaMachine gbaMachine;
 #endif
 
 typedef enum

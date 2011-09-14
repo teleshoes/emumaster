@@ -37,18 +37,6 @@ static void schedule_timeslice(void)
 			min = dif;
 	}
 	next_interupt = c + min;
-
-#if 0
-	static u32 cnt, last_cycle;
-	static u64 sum;
-	if (last_cycle) {
-		cnt++;
-		sum += psxRegs.cycle - last_cycle;
-		if ((cnt & 0xff) == 0)
-			printf("%u\n", (u32)(sum / cnt));
-	}
-	last_cycle = psxRegs.cycle;
-#endif
 }
 
 typedef void (irq_func)();
@@ -152,8 +140,7 @@ const char gte_cycletab[64] = {
 	23,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  5,  5, 39,
 };
 
-static int ari64_init()
-{
+void R3000Acpu::init() {
 	extern void (*psxCP2[64])();
 	extern void psxNULL();
 	size_t i;
@@ -171,12 +158,9 @@ static int ari64_init()
 	gte_handlers[0x06] = (void *)gteNCLIP_neon;
 #endif
 	psxH_ptr = psxH;
-
-	return 0;
 }
 
-static void ari64_reset()
-{
+void R3000Acpu::reset() {
 	printf("ari64_reset\n");
 	new_dyna_pcsx_mem_reset();
 	invalidate_all_pages();
@@ -186,8 +170,7 @@ static void ari64_reset()
 
 // execute until predefined leave points
 // (HLE softcall exit and BIOS fastboot end)
-static void ari64_execute_until()
-{
+void R3000Acpu::executeBlock() {
 	schedule_timeslice();
 
 	evprintf("ari64_execute %08x, %u->%u (%d)\n", psxRegs.pc,
@@ -199,16 +182,14 @@ static void ari64_execute_until()
 		psxRegs.cycle, next_interupt, next_interupt - psxRegs.cycle);
 }
 
-static void ari64_execute()
-{
+void R3000Acpu::execute() {
 	while (!stop) {
-		ari64_execute_until();
+		executeBlock();
 		evprintf("drc left @%08x\n", psxRegs.pc);
 	}
 }
 
-static void ari64_clear(u32 addr, u32 size)
-{
+void R3000Acpu::clear(u32 addr, u32 size) {
 	u32 start, end, main_ram;
 
 	size *= 4; /* PCSX uses DMA units */
@@ -226,8 +207,7 @@ static void ari64_clear(u32 addr, u32 size)
 			invalidate_block(start);
 }
 
-static void ari64_shutdown()
-{
+void R3000Acpu::shutdown() {
 	new_dynarec_cleanup();
 }
 
@@ -240,41 +220,10 @@ extern void intExecuteBlockT();
 #define intExecuteBlockT intExecuteBlock
 #endif
 
-R3000Acpu psxRec = {
-	ari64_init,
-	ari64_reset,
-#if defined(__arm__)
-	ari64_execute,
-	ari64_execute_until,
-#else
-	intExecuteT,
-	intExecuteBlockT,
-#endif
-	ari64_clear,
-	ari64_shutdown
-};
-
 // TODO: rm
 #ifndef DRC_DBG
 void do_insn_trace() {}
 void do_insn_cmp() {}
-#endif
-
-#if defined(__x86_64__) || defined(__i386__)
-unsigned int address, readmem_word, word;
-unsigned short hword;
-unsigned char byte;
-int pending_exception, stop;
-unsigned int next_interupt;
-void *psxH_ptr;
-void new_dynarec_init() {}
-void new_dyna_start() {}
-void new_dynarec_cleanup() {}
-void new_dynarec_clear_full() {}
-void invalidate_all_pages() {}
-void invalidate_block(unsigned int block) {}
-void new_dyna_pcsx_mem_init(void) {}
-void new_dyna_pcsx_mem_reset(void) {}
 #endif
 
 #ifdef DRC_DBG

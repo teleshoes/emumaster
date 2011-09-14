@@ -31,11 +31,8 @@ int SysInit() {
 	setvbuf(emuLog, NULL, _IONBF, 0);
 #endif
 
-	if (psxInit() == -1) {
-		printf("PSX emulator couldn't be initialized.\n");
+	if (!psxInit())
 		return -1;
-	}
-
 	LoadMcds(Config.Mcd1, Config.Mcd2);	/* TODO Do we need to have this here, or in the calling main() function?? */
 
 	if (Config.Debug) {

@@ -1,13 +1,11 @@
 #include "machineview.h"
 #include <QFile>
 #include <QApplication>
-#include <QThread>
 #include "common.h"
-#include "pad.h"
 #include "cpu.h"
-#include "memory.h"
-#include "video.h"
-#include "sound.h"
+#include "mem.h"
+#include "gpu.h"
+#include "spu.h"
 #include "machine.h"
 #include "cheats.h"
 
@@ -43,35 +41,24 @@ u32 oam_update_count = 0;
 
 extern "C" u16 *screen_pixels_ptr;
 
-static GbaMachine *gbaMachine = 0;
+GbaMachine gbaMachine;
 
-void synchronize_machine() {
-	gbaMachine->m_consSem.release();
-	if (gbaMachine->m_quit) {
-		gbaMachine->m_quit = false;
-		QThread::currentThread()->terminate();
-	}
-	gbaMachine->m_prodSem.acquire();
+GbaMachine::GbaMachine() :
+	IMachine("gba") {
 }
 
-GbaMachine::GbaMachine(QObject *parent) :
-	IMachine("gba", parent),
-	m_frame(240, 160, QImage::Format_RGB16) {
+QString GbaMachine::init() {
+	m_frame = QImage(240, 160, QImage::Format_RGB16);
+	setVideoSrcRect(m_frame.rect());
 	setFrameRate(60);
-	setVideoSrcRect(QRectF(0.0f, 0.0f, 240.0f, 160.f));
-	m_cpu = new GbaCpu(this);
-	m_memory = new GbaMemory(this);
-	m_sound = new GbaSound(this);
-	m_video = new GbaVideo(this);
-	m_pad = new GbaPad(this);
 
 	screen_pixels_ptr = (quint16 *)m_frame.bits();
 	loadBios();
-	gbaMachine = this;
 	m_quit = false;
+	return QString();
 }
 
-GbaMachine::~GbaMachine() {
+void GbaMachine::shutdown() {
 	m_quit = true;
 	while (m_quit)
 		emulateFrame(false);
@@ -139,7 +126,7 @@ QString GbaMachine::setDisk(const QString &path) {
 	if (!m_biosError.isEmpty())
 		return m_biosError;
 	init_gamepak_buffer();
-	if (!m_memory->loadGamePack(path+".gba"))
+	if (!gbaMem.loadGamePack(path+".gba"))
 		return "Could not load ROM";
 	reset();
 	skip_next_frame = 1;
@@ -161,37 +148,45 @@ void GbaMachine::emulateFrame(bool drawEnabled) {
 	m_consSem.acquire();
 }
 
-void GbaMachine::setPadKey(PadKey key, bool state) {
-	switch (key) {
-	case Left_PadKey:	m_pad->setKey(GbaPad::Left_PadKey, state); break;
-	case Right_PadKey:	m_pad->setKey(GbaPad::Right_PadKey, state); break;
-	case Up_PadKey:		m_pad->setKey(GbaPad::Up_PadKey, state); break;
-	case Down_PadKey:	m_pad->setKey(GbaPad::Down_PadKey, state); break;
-	case A_PadKey:		m_pad->setKey(GbaPad::A_PadKey, state); break;
-	case B_PadKey:		m_pad->setKey(GbaPad::B_PadKey, state); break;
-	case L_PadKey:		m_pad->setKey(GbaPad::L_PadKey, state); break;
-	case R_PadKey:		m_pad->setKey(GbaPad::R_PadKey, state); break;
-	case Start_PadKey:	m_pad->setKey(GbaPad::Start_PadKey, state); break;
-	case Select_PadKey:	m_pad->setKey(GbaPad::Select_PadKey, state); break;
-	case AllKeys:		m_pad->setKey(GbaPad::All_PadKeys, state); break;
-	default: break;
+void GbaMachine::sync() {
+	m_consSem.release();
+	if (m_quit) {
+		m_quit = false;
+		QThread::currentThread()->terminate();
 	}
+	m_prodSem.acquire();
+}
+
+static const int keyMapping[10] = {
+	IMachine::A_PadKey,
+	IMachine::B_PadKey,
+	IMachine::Select_PadKey,
+	IMachine::Start_PadKey,
+	IMachine::Right_PadKey,
+	IMachine::Left_PadKey,
+	IMachine::Up_PadKey,
+	IMachine::Down_PadKey,
+	IMachine::R_PadKey,
+	IMachine::L_PadKey
+};
+
+void GbaMachine::setPadKeys(int pad, int keys) {
+	if (pad)
+		return;
+	int gbaKeys = 0x3FF;
+	for (int i = 0; i < 10; i++) {
+		if (keys & keyMapping[i])
+			gbaKeys &= ~(1 << i);
+	}
+	io_registers[REG_P1] = gbaKeys;
 }
 
 int GbaMachine::fillAudioBuffer(char *stream, int streamSize)
-{ return m_sound->fillBuffer(stream, streamSize); }
+{ return gbaSpu.fillBuffer(stream, streamSize); }
 void GbaMachine::setAudioEnabled(bool on)
-{ m_sound->setEnabled(on); }
+{ gbaSpu.setEnabled(on); }
 void GbaMachine::setAudioSampleRate(int sampleRate)
 { sound_frequency = sampleRate; }
-
-int main(int argc, char *argv[]) {
-	if (argc < 2)
-		return -1;
-	QApplication app(argc, argv);
-	MachineView view(new GbaMachine(), argv[1]);
-	return app.exec();
-}
 
 void GbaThread::run() {
 	execute_arm_translate(execute_cycles);
@@ -293,7 +288,7 @@ u32 update_gba() {
 					update_gbc_sound(cpu_ticks);
 					process_cheats();
 					vcount = 0;
-					synchronize_machine();
+					gbaMachine.sync();
 				}
 				if (vcount == (dispstat >> 8)) {
 					// vcount trigger
@@ -325,11 +320,19 @@ STATE_SERIALIZE_BEGIN_##sl(GbaMachine, 1) \
 	STATE_SERIALIZE_VAR_##sl(execute_cycles) \
 	STATE_SERIALIZE_VAR_##sl(video_count) \
 	STATE_SERIALIZE_ARRAY_##sl(timer, sizeof(timer)) \
-	STATE_SERIALIZE_SUBCALL_PTR_##sl(m_cpu) \
-	STATE_SERIALIZE_SUBCALL_PTR_##sl(m_sound) \
-	STATE_SERIALIZE_SUBCALL_PTR_##sl(m_video) \
-	STATE_SERIALIZE_SUBCALL_PTR_##sl(m_memory) \
+	STATE_SERIALIZE_SUBCALL_##sl(gbaCpu) \
+	STATE_SERIALIZE_SUBCALL_##sl(gbaSpu) \
+	STATE_SERIALIZE_SUBCALL_##sl(gbaGpu) \
+	STATE_SERIALIZE_SUBCALL_##sl(gbaMem) \
 STATE_SERIALIZE_END_##sl(GbaMachine)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)
+
+int main(int argc, char *argv[]) {
+	if (argc < 2)
+		return -1;
+	QApplication app(argc, argv);
+	MachineView view(&gbaMachine, argv[1]);
+	return app.exec();
+}

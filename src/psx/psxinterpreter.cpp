@@ -941,6 +941,7 @@ void execI() {
 	psxBSC[psxRegs.code >> 26]();
 }
 
+#if !defined(DYNAREC)
 R3000Acpu psxInt = {
 	intInit,
 	intReset,
@@ -949,3 +950,4 @@ R3000Acpu psxInt = {
 	intClear,
 	intShutdown
 };
+#endif

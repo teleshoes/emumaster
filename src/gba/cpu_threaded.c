@@ -31,7 +31,7 @@ typedef signed long long s64;
 typedef unsigned long long u64;
 
 #include "common.h"
-#include "memory.h"
+#include "mem.h"
 #include "machine.h"
 
 u8 rom_translation_cache[ROM_TRANSLATION_CACHE_SIZE];

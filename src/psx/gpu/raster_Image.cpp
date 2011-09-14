@@ -64,7 +64,7 @@ void gpuStoreImage(void)
 ///////////////////////////////////////////////////////////////////////////////
 extern "C" void ARM_MoveImage( unsigned char* src, unsigned char* dst, unsigned long src_advance, unsigned long w0, unsigned long h1 );
 
-#if 0 //!defined(GP2X) && !defined(ZAURUS) && !defined(IPHONE) && !defined(ANDROID) && !defined(PANDORA)
+#if 1 //!defined(GP2X) && !defined(ZAURUS) && !defined(IPHONE) && !defined(ANDROID) && !defined(PANDORA)
 ///////////////////////////////////////////////////////////////////////////////
 void gpuMoveImage(void)
 {
@@ -135,7 +135,7 @@ void gpuMoveImage(void)
 extern "C" void ARM_ClearImage_Fast ( unsigned char* dst, unsigned long src_advance, unsigned long rgb, unsigned long w0, unsigned long h1 );
 extern "C" void ARM_ClearImage      ( unsigned char* dst, unsigned long src_advance, unsigned long rgb, unsigned long w0, unsigned long h1 );
 
-#if 0 //!defined(GP2X) && !defined(ZAURUS) && !defined(IPHONE)
+#if 1 //!defined(GP2X) && !defined(ZAURUS) && !defined(IPHONE)
 ///////////////////////////////////////////////////////////////////////////////
 void gpuClearImage(void)
 {

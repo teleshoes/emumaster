@@ -40,6 +40,8 @@ inline void PsxMem::setBiosName(const QString &name)
 
 extern PsxMem psxMem;
 
+bool psxMemInit();
+
 extern "C" {
 #endif
 
@@ -139,7 +141,6 @@ extern u8 **psxMemRLUT;
 
 #define PSXMu32ref(mem)	(*(u32 *)PSXM(mem))
 
-int psxMemInit();
 void psxMemReset();
 void psxMemShutdown();
 

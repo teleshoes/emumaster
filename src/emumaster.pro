@@ -3,7 +3,7 @@ TEMPLATE = subdirs
 SUBDIRS += \
 	common \
 	romgallery \
-	psx
+	gba
 
 OTHER_FILES += \
 	../todo.txt \

@@ -3,29 +3,29 @@ poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
  s start button misplaced
  s psx selectable bios
  s psx filter files in rom gallery
- s dwie rundy w tekenie - w replayu start i stop ??
- s input feedback
  s add some more flags to compiler (as)
  s sometimes screenshot in rom gallery is overwrited
- s fps degradation on touch input
  s notify users about supported files extensions when a load error occures
  s update model in emulations : static objects instead of on heap
- s saves do not work in yoshi
  s snes fix different resolutions
- s state in state gallery must become currently selected without clicking
  s L,R buttons
  s add "more" icon in rom gallery, hide trash,homescreen and "play" in machine selection view
  x make icons in home screen removable
  s accelerometer as a controller
  s give users ability to choose their own images in ROM gallery
- s volume buttons sets volume
  s for Amiga,PSX create readme.txt about rom folders and roms name policy
  s copy legal info
  s bluetooth gamepad
- s zipped savestates
+ s volume buttons sets volume
+ s save sound in psx
+ b dwie rundy w tekenie - w replayu start i stop ??
+ b saves do not work in yoshi
  b saves in gba tasmanian dont work
  b kula world save/load dont work with bios
  s remove last state option
+ s exit from gba thread
+ - input feedback
+ - fps degradation on touch input
  - Amiga
  - N64
  - ScummVM

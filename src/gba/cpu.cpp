@@ -22,8 +22,8 @@
 // - block memory needs psr swapping and user mode reg swapping
 
 #include "cpu.h"
-#include "video.h"
-#include "memory.h"
+#include "gpu.h"
+#include "mem.h"
 #include "machine.h"
 
 u32 memory_region_access_read_u8[16];
@@ -4397,9 +4397,7 @@ void move_reg(u32 *new_reg) {
 	reg = new_reg;
 }
 
-GbaCpu::GbaCpu(QObject *parent) :
-	QObject(parent) {
-}
+GbaCpu gbaCpu;
 
 #define STATE_SERIALIZE_BUILDER(sl) \
 STATE_SERIALIZE_BEGIN_##sl(GbaCpu, 1) \

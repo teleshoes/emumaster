@@ -13,24 +13,22 @@ HEADERS += \
     arm/arm_emit.h \
     arm/arm_dpimacros.h \
     arm/arm_codegen.h \
-    video.h \
-    sound.h \
-    pad.h \
-    memory.h \
     machine.h \
     cpu.h \
     common.h \
-    cheats.h
+    cheats.h \
+    mem.h \
+    spu.h \
+    gpu.h
 
 SOURCES += \
     cheats.cpp \
     cpu.cpp \
     cpu_threaded.c \
     machine.cpp \
-    memory.cpp \
-    pad.cpp \
-    sound.cpp \
-    video.cpp
+    mem.cpp \
+    spu.cpp \
+    gpu.cpp
 
 QMAKE_CFLAGS += -std=c99
 
@@ -46,6 +44,20 @@ unix {
 
 	INSTALLS += qml game_config
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

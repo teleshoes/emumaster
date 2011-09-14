@@ -60,7 +60,7 @@ u8 **psxMemRLUT = NULL;
 0xbfc0_0000-0xbfc7_ffff		BIOS Mirror (512K) Uncached
 */
 
-int psxMemInit() {
+bool psxMemInit() {
 	int i;
 
 	psxMemRLUT = (u8 **)malloc(0x10000 * sizeof(void *));
@@ -79,7 +79,7 @@ int psxMemInit() {
 		psxM != (void *)0x80000000 || psxR != (void *)0x9fc00000 ||
 		psxP == NULL || psxH == NULL) {
 		SysMessage("Error allocating memory!");
-		return -1;
+		return false;
 	}
 
 // MemR
@@ -105,7 +105,7 @@ int psxMemInit() {
 	psxMemWLUT[0x1f00] = (u8 *)psxP;
 	psxMemWLUT[0x1f80] = (u8 *)psxH;
 
-	return 0;
+	return true;
 }
 
 void psxMemReset() {
@@ -221,7 +221,7 @@ void psxMemWrite8(u32 mem, u8 value) {
 				DebugCheckBP((mem & 0xffffff) | 0x80000000, W1);
 			*(u8 *)(p + (mem & 0xffff)) = value;
 #ifdef DYNAREC
-			psxCpu->Clear((mem & (~3)), 1);
+			psxCpu.clear((mem & (~3)), 1);
 #endif
 		} else {
 #ifdef PSXMEM_LOG
@@ -248,7 +248,7 @@ void psxMemWrite16(u32 mem, u16 value) {
 				DebugCheckBP((mem & 0xffffff) | 0x80000000, W2);
 			*(u16 *)(p + (mem & 0xffff)) = SWAPu16(value);
 #ifdef DYNAREC
-			psxCpu->Clear((mem & (~3)), 1);
+			psxCpu.clear((mem & (~3)), 1);
 #endif
 		} else {
 #ifdef PSXMEM_LOG
@@ -276,13 +276,13 @@ void psxMemWrite32(u32 mem, u32 value) {
 				DebugCheckBP((mem & 0xffffff) | 0x80000000, W4);
 			*(u32 *)(p + (mem & 0xffff)) = SWAPu32(value);
 #ifdef DYNAREC
-			psxCpu->Clear(mem, 1);
+			psxCpu.clear(mem, 1);
 #endif
 		} else {
 			if (mem != 0xfffe0130) {
 #ifdef DYNAREC
 				if (!writeok)
-					psxCpu->Clear(mem, 1);
+					psxCpu.clear(mem, 1);
 #endif
 
 #ifdef PSXMEM_LOG

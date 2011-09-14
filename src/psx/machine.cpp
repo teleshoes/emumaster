@@ -132,7 +132,7 @@ void PsxMachine::setPadKeys(int pad, int keys) {
 }
 
 void PsxThread::run() {
-	psxCpu->Execute();
+	psxCpu.execute();
 	SysClose();
 }
 
@@ -155,7 +155,7 @@ STATE_SERIALIZE_BEGIN_##sl(PsxMachine, 1) \
 	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
 		if (Config.HLE) \
 			psxBiosFreeze(0); \
-		psxCpu->Reset(); \
+		psxCpu.reset(); \
 	} \
 	STATE_SERIALIZE_SUBCALL_##sl(psxSio) \
 	STATE_SERIALIZE_SUBCALL_##sl(psxCdr) \
