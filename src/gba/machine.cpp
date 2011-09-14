@@ -41,6 +41,8 @@ u32 oam_update_count = 0;
 
 extern "C" u16 *screen_pixels_ptr;
 
+static QImage gpuFrame;
+
 GbaMachine gbaMachine;
 
 GbaMachine::GbaMachine() :
@@ -48,14 +50,13 @@ GbaMachine::GbaMachine() :
 }
 
 QString GbaMachine::init() {
-	m_frame = QImage(240, 160, QImage::Format_RGB16);
-	setVideoSrcRect(m_frame.rect());
+	gpuFrame = QImage(240, 160, QImage::Format_RGB16);
+	setVideoSrcRect(gpuFrame.rect());
 	setFrameRate(60);
 
-	screen_pixels_ptr = (quint16 *)m_frame.bits();
-	loadBios();
+	screen_pixels_ptr = (quint16 *)gpuFrame.bits();
 	m_quit = false;
-	return QString();
+	return loadBios();
 }
 
 void GbaMachine::shutdown() {
@@ -83,17 +84,17 @@ void GbaMachine::reset() {
 	execute_cycles = 960;
 	video_count = 960;
 
-	flush_translation_cache_rom();
-	flush_translation_cache_ram();
-	flush_translation_cache_bios();
-
 	init_memory();
 	init_cpu();
 	reset_sound();
 	reg[CHANGED_PC_STATUS] = 1;
+
+	flush_translation_cache_rom();
+	flush_translation_cache_ram();
+	flush_translation_cache_bios();
 }
 
-void GbaMachine::loadBios() {
+QString GbaMachine::loadBios() {
 	QString path = diskDirPath() + "/gba_bios.bin";
 	QFile biosFile(path);
 
@@ -106,7 +107,7 @@ void GbaMachine::loadBios() {
 		}
 	}
 	if (!loaded) {
-		m_biosError =
+		return
 				"Sorry, but emulator requires a Gameboy Advance BIOS\n"
 				"image to run correctly. Make sure to get an        \n"
 				"authentic one, it'll be exactly 16384 bytes large  \n"
@@ -118,13 +119,12 @@ void GbaMachine::loadBios() {
 				"in the \"emumaster/gba\" directory.                ";
 
 	} else if (!supported) {
-		m_biosError = "You have an incorrect BIOS image.";
+		return "You have an incorrect BIOS image.";
 	}
+	return QString();
 }
 
 QString GbaMachine::setDisk(const QString &path) {
-	if (!m_biosError.isEmpty())
-		return m_biosError;
 	init_gamepak_buffer();
 	if (!gbaMem.loadGamePack(path+".gba"))
 		return "Could not load ROM";
@@ -139,11 +139,11 @@ QString GbaMachine::setDisk(const QString &path) {
 }
 
 const QImage &GbaMachine::frame() const
-{ return m_frame; }
+{ return gpuFrame; }
 
 void GbaMachine::emulateFrame(bool drawEnabled) {
 	skip_next_frame = !drawEnabled;
-	screen_pixels_ptr = (quint16 *)m_frame.bits();
+	screen_pixels_ptr = (quint16 *)gpuFrame.bits();
 	m_prodSem.release();
 	m_consSem.acquire();
 }

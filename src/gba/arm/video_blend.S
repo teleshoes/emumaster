@@ -1,7 +1,7 @@
 .align 4
 
 .global expand_blend
-.global expand_normals
+.global expand_normal
 
 @ Input:
 @   r0 = screen_src_ptr
@@ -10,15 +10,15 @@
 @   r3 = end
 
 6:
-  .long io_registers
-  .long palette_ram_converted
-  .long 0x04000200                @ combine test mask
-  .long 0x07E0F81F                @ clamp mask
-  .long 0x000003FE                @ palette index mask
-  .long 0x08010020                @ saturation mask
+  .word io_registers
+  .word palette_ram_converted
+  .word 0x04000200                @ combine test mask
+  .word 0x07E0F81F                @ clamp mask
+  .word 0x000003FE                @ palette index mask
+  .word 0x08010020                @ saturation mask
 
 expand_blend:
-  stmdb sp!, { r4, r5, r6, r8, r10, r11, r14 }
+  stmdb sp!, { r4, r5, r6, r9, r10, r11, r14 }
 
   add r0, r0, r2, lsl #2          @ screen_src_ptr += start
   add r1, r1, r2, lsl #1          @ screen_dest_ptr += start
@@ -70,7 +70,7 @@ expand_blend:
   subs r2, r2, #1                 @ counter--
   bne 1b                          @ go again
 
-  ldmia sp!, { r4, r5, r6, r8, r10, r11, pc }
+  ldmia sp!, { r4, r5, r6, r9, r10, r11, pc }
 
 2:
   and r5, r10, r5, lsl #1         @ r5 = (pixel_pair & 0x1FF) << 1
@@ -80,12 +80,12 @@ expand_blend:
   subs r2, r2, #1                 @ counter--
   bne 1b                          @ go again
 
-  ldmia sp!, { r4, r5, r6, r8, r10, r11, pc }
+  ldmia sp!, { r4, r5, r6, r9, r10, r11, pc }
 
 @ loop w/saturation
 
 3:
-  ldr r8, 6b + 20                 @ r8 = 0x08010020
+  ldr r9, 6b + 20                 @ r9 = 0x08010020
 
 4:
   ldr r5, [r0], #4                @ r5 = pixel_pair, screen_src_ptr++
@@ -106,7 +106,7 @@ expand_blend:
   mul r5, r4, r5                  @ r5 = pixel_bottom * blend_b = bottom_mul
   mla r5, r3, r6, r5              @ r5 = (pixel_top * blend_a) + bottom_mul
 
-  and r6, r8, r5, lsr #4          @ r6 = saturation bits
+  and r6, r9, r5, lsr #4          @ r6 = saturation bits
   orr r6, r6, r6, lsr #1          @ propogate saturation down msb
   orr r6, r6, r6, lsr #2          @ propogate down next two bits
   orr r6, r6, r6, lsr #3          @ propogate down next three bits
@@ -119,7 +119,7 @@ expand_blend:
   subs r2, r2, #1                 @ counter--
   bne 4b                          @ go again
 
-  ldmia sp!, { r4, r5, r6, r8, r10, r11, pc }
+  ldmia sp!, { r4, r5, r6, r9, r10, r11, pc }
 
 5:
   and r5, r10, r5, lsl #1         @ r5 = (pixel_pair & 0x1FF) << 1
@@ -129,7 +129,7 @@ expand_blend:
   subs r2, r2, #1                 @ counter--
   bne 4b                          @ go again
 
-  ldmia sp!, { r4, r5, r6, r8, r10, r11, pc }
+  ldmia sp!, { r4, r5, r6, r9, r10, r11, pc }
 
 
 
@@ -153,10 +153,10 @@ expand_blend:
 @   r2 = end
 
 1:
-  .long palette_ram_converted
-  .long 0x3FE
+  .word palette_ram_converted
+  .word 0x3FE
 
-expand_normala:
+expand_normal:
   stmdb sp!, { r4, r5, r6, r7, r14 }
 
   add r0, r0, r1, lsl #1          @ screen_ptr += start

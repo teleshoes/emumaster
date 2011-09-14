@@ -38,10 +38,9 @@ protected:
 	void setAudioEnabled(bool on);
 	void setAudioSampleRate(int sampleRate);
 private:
-	void loadBios();
+	QString loadBios();
 
 	QString m_biosError;
-	QImage m_frame;
 	volatile bool m_quit;
 };
 

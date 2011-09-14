@@ -38,8 +38,26 @@ static void render_scanline_conditional_bitmap(u32 start, u32 end, u16 *scanline
 // transparently or the ABGR 1555 format is being used natively. The direct
 // version (without conversion) is much faster.
 
+#define tile_lookup_palette_full(palette, source)                             \
+  current_pixel = palette[source];                                            \
+  convert_palette(current_pixel)                                              \
+
+#define tile_lookup_palette(palette, source)                                  \
+  current_pixel = palette[source];                                            \
+
+
+#ifdef RENDER_COLOR16_NORMAL
+
 #define tile_expand_base_normal(index)                                        \
   tile_expand_base_color16(index)                                             \
+
+#else
+
+#define tile_expand_base_normal(index)                                        \
+  tile_lookup_palette(palette, current_pixel);                                \
+  dest_ptr[index] = current_pixel                                             \
+
+#endif
 
 #define tile_expand_transparent_normal(index)                                 \
   tile_expand_base_normal(index)                                              \
@@ -485,9 +503,20 @@ static void render_scanline_conditional_bitmap(u32 start, u32 end, u16 *scanline
 // Draws eight background pixels for the normal renderer, just a bunch of
 // zeros.
 
+#ifdef RENDER_COLOR16_NORMAL
+
 #define tile_4bpp_draw_eight_base_zero_normal()                               \
   current_pixel = 0;                                                          \
   tile_4bpp_draw_eight_base_zero(current_pixel)                               \
+
+#else
+
+#define tile_4bpp_draw_eight_base_zero_normal()                               \
+  current_pixel = palette[0];                                                 \
+  tile_4bpp_draw_eight_base_zero(current_pixel)                               \
+
+#endif
+
 
 // Draws eight 4bpp pixels.
 
@@ -829,8 +858,19 @@ static void render_scanline_conditional_bitmap(u32 start, u32 end, u16 *scanline
 	return;                                                                   \
   }                                                                           \
 
+
+#ifdef RENDER_COLOR16_NORMAL
+
 #define render_scanline_extra_variables_base_normal(bg_type)                  \
   const u32 pixel_combine = 0                                                 \
+
+#else
+
+#define render_scanline_extra_variables_base_normal(bg_type)                  \
+  u16 *palette = palette_ram_converted                                        \
+
+#endif
+
 
 #define render_scanline_extra_variables_base_alpha(bg_type)                   \
   u32 bg_combine = color_combine_mask(5);                                     \
@@ -1300,6 +1340,9 @@ render_scanline_affine_builder(transparent, alpha);
   else                                                                        \
 	src_ptr = (u16 *)vram                                                     \
 
+
+#ifdef RENDER_COLOR16_NORMAL
+
 #define render_scanline_vram_setup_mode4()                                    \
   const u32 pixel_combine = 0;                                                \
   u8 *src_ptr;                                                                \
@@ -1307,6 +1350,21 @@ render_scanline_affine_builder(transparent, alpha);
 	src_ptr = vram + 0xA000;                                                  \
   else                                                                        \
 	src_ptr = vram                                                            \
+
+
+#else
+
+#define render_scanline_vram_setup_mode4()                                    \
+  u16 *palette = palette_ram_converted;                                       \
+  u8 *src_ptr;                                                                \
+  if(io_registers[REG_DISPCNT] & 0x10)                                        \
+    src_ptr = vram + 0xA000;                                                  \
+  else                                                                        \
+    src_ptr = vram                                                            \
+
+#endif
+
+
 
 // Build bitmap scanline rendering functions.
 
@@ -1754,8 +1812,18 @@ static u32 obj_alpha_count[160];
 
 // Build obj rendering functions
 
+#ifdef RENDER_COLOR16_NORMAL
+
 #define render_scanline_obj_extra_variables_normal(bg_type)                   \
   const u32 pixel_combine = (1 << 8)                                          \
+
+#else
+
+#define render_scanline_obj_extra_variables_normal(bg_type)                   \
+  u16 *palette = palette_ram_converted + 256                                  \
+
+#endif
+
 
 #define render_scanline_obj_extra_variables_color()                           \
   u32 pixel_combine = color_combine_mask(4) | (1 << 8)                        \
@@ -2226,24 +2294,7 @@ fill_line_builder(color32);
 	expand_loop_partial_alpha(blend, expand_type);                            \
   }                                                                           \
 
-// TODO
-//#if !defined(USE_ASM_VIDEO_EXPAND)
-
-void expand_normal(u16 *screen_ptr, u32 start, u32 end)
-{
-  u32 i, pixel_source;
-  screen_ptr += start;
-
-  end -= start;
-
-  for(i = 0; i < end; i++)
-  {
-	pixel_source = *screen_ptr;
-	*screen_ptr = palette_ram_converted[pixel_source];
-
-	screen_ptr++;
-  }
-}
+#define expand_normal(screen_ptr, start, end)
 
 #if !defined(USE_ASM_VIDEO_EXPAND)
 void expand_blend(u32 *screen_src_ptr, u16 *screen_dest_ptr, u32 start, u32 end)
@@ -2272,7 +2323,6 @@ void expand_blend(u32 *screen_src_ptr, u16 *screen_dest_ptr, u32 start, u32 end)
 	expand_loop(blend, effect_condition_alpha, pixel_pair);
   }
 }
-
 #endif
 
 // Blend scanline with white.
@@ -3084,21 +3134,19 @@ void update_scanline()
   {
 	if(video_mode < 3)
 	{
-	  if(dispcnt >> 13)
-	  {
+	  if(dispcnt >> 13) {
 		render_scanline_window_tile(screen_offset, dispcnt);
-	  }
-	  else
-	  {
+	  } else {
 		render_scanline_tile(screen_offset, dispcnt);
 	  }
 	}
 	else
 	{
-	  if(dispcnt >> 13)
+	  if(dispcnt >> 13) {
 		render_scanline_window_bitmap(screen_offset, dispcnt);
-	  else
+	  } else {
 		render_scanline_bitmap(screen_offset, dispcnt);
+	  }
 	}
   }
 

@@ -33,9 +33,6 @@
   #define function_cc
 #endif
 
-#define convert_palette(value)                                              \
-  value = ((value & 0x1F) << 11) | ((value & 0x03E0) << 1) | (value >> 10)  \
-
 typedef u32 fixed16_16;
 
 #define float_to_fp16_16(value)                                               \
@@ -64,6 +61,9 @@ typedef u32 fixed16_16;
 
 #define address32(base, offset)                                               \
   *((u32 *)((u8 *)base + (offset)))                                           \
+
+#define convert_palette(value)                                              \
+  value = ((value & 0x1F) << 11) | ((value & 0x03E0) << 1) | (value >> 10)  \
 
 #include <unistd.h>
 #include <time.h>
