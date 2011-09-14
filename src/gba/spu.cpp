@@ -513,7 +513,14 @@ static inline void sound_copy(s16 *stream_base, int length) {
 }
 
 int GbaSpu::fillBuffer(char *stream, int length) {
+	const int perFrame = 44100/60;
+	length = (length / perFrame) * perFrame;
+	if (!length)
+		return 0;
 	int sample_length = (gbc_sound_buffer_index - sound_buffer_base + SOUND_BUFFER_SIZE) % SOUND_BUFFER_SIZE;
+	sample_length = (sample_length / perFrame) * perFrame;
+	if (!sample_length)
+		return 0;
 	if (sample_length > length / 2)
 		sample_length = length / 2;
 	if ((sound_buffer_base + sample_length) >= SOUND_BUFFER_SIZE) {

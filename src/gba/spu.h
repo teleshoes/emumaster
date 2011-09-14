@@ -22,7 +22,7 @@
 
 #include "common.h"
 
-#define SOUND_BUFFER_SIZE 8192
+#define SOUND_BUFFER_SIZE 16384
 
 typedef enum
 {
