@@ -7,7 +7,10 @@ unix {
 		../../qml/snes/MainPage.qml \
 		../../qml/snes/SettingsPage.qml
 
-	INSTALLS += qml game_config
+	gameclassify.path = /usr/share/policy/etc/syspart.conf.d
+	gameclassify.files += $${TARGET}.conf
+
+	INSTALLS += qml game_config gameclassify
 }
 
 ASM_SOURCES = \

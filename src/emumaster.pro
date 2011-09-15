@@ -3,7 +3,7 @@ TEMPLATE = subdirs
 SUBDIRS += \
 	common \
 	romgallery \
-	gba
+	snes
 
 OTHER_FILES += \
 	../todo.txt \
@@ -15,7 +15,3 @@ OTHER_FILES += \
     qtc_packaging/debian_harmattan/compat \
     qtc_packaging/debian_harmattan/changelog \
     ../wiki.txt
-
-
-
-

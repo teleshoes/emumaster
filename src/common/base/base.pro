@@ -1,6 +1,8 @@
 include(../common.pri)
 QT += declarative opengl network
 LIBS += -lpulse
+CONFIG += mobility
+MOBILITY += sensors
 
 DEFINES += BASE_PROJECT
 

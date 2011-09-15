@@ -31,6 +31,7 @@ public:
 	Q_INVOKABLE QString getAlphabet(int i) const;
 	Q_INVOKABLE int getScreenShotUpdate(int i) const;
 	Q_INVOKABLE void trash(int i);
+	Q_INVOKABLE void setDiskCover(int i, const QUrl &coverUrl);
 signals:
 	void machineNameChanged();
 private slots:

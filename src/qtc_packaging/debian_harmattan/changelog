@@ -4,11 +4,14 @@ emumaster (0.0.2) unstable; urgency=low
   * added snes emulation
   * added gba emulation
   * added page to select the console
+  * user can select his own cover in disk gallery
   * states are compressed now
   * settings look refreshed
-  * button to remove rom
+  * button to remove disk
   * added keep aspect ratio option
   * asynchronous audio
+  * accelerometer support
+  * volume buttons now works correctly
   * redesigned architecture to speed up things
   * optional button to exit in top left corner
   * fixed bug in pad: when you touch on edge pad didn't work

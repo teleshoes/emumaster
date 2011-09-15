@@ -51,6 +51,7 @@ void IMachine::buildLocalDirTree() {
 	dir.cd("MyDocs");
 	dir.mkdir("emumaster");
 	dir.cd("emumaster");
+	dir.mkdir("covers");
 	dir.mkdir("nes");
 	dir.mkdir("gba");
 	dir.mkdir("snes");

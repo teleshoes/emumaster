@@ -42,8 +42,12 @@ unix {
 	game_config.path = /opt/emumaster/data
 	game_config.files = gba_game_config.txt
 
-	INSTALLS += qml game_config
+	gameclassify.path = /usr/share/policy/etc/syspart.conf.d
+	gameclassify.files += $${TARGET}.conf
+
+	INSTALLS += qml game_config gameclassify
 }
+
 
 
 

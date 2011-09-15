@@ -1,25 +1,20 @@
 poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
 
- s add "more" icon in rom gallery, hide trash,homescreen and "play" in machine selection view
- s give users ability to choose their own images in ROM gallery
- s sometimes screenshot in rom gallery is overwrited
  s L,R buttons
  s start button misplaced
- s psx selectable bios
- s psx filter files in rom gallery
- s notify users about supported files extensions when a load error occures
  s update model in emulations : static objects instead of on heap
  s snes fix different resolutions
- s accelerometer as a controller
+ b saves do not work in yoshi - snes
  s for Amiga,PSX create readme.txt about rom folders and roms name policy
  s copy legal info
  s bluetooth gamepad
- s volume buttons sets volume
  s save sound in psx
  b dwie rundy w tekenie - w replayu start i stop ??
- b saves do not work in yoshi - snes
  b saves in gba tasmanian dont work
+ s psx selectable bios
+ s psx filter files in rom gallery
  b kula world save/load dont work with bios
+ b QPixmap coś tam - spowodowane model statycznym
  s remove last state option
  s exit from gba thread
  s add some more flags to compiler (as)

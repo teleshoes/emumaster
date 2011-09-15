@@ -211,5 +211,9 @@ unix {
 		../../qml/nes/SettingsPage.qml \
 		../../qml/nes/CheatPage.qml \
 		../../qml/nes/MachineInfoSheet.qml
-	INSTALLS += qml
+
+	gameclassify.path = /usr/share/policy/etc/syspart.conf.d
+	gameclassify.files += $${TARGET}.conf
+
+	INSTALLS += qml gameclassify
 }

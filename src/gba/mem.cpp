@@ -2552,7 +2552,6 @@ void init_memory_gamepak()
 
 void init_gamepak_buffer()
 {
-	// TODO
   // Try to initialize 32MB (this is mainly for non-PSP platforms)
   gamepak_rom = NULL;
 

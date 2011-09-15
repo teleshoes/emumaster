@@ -5,8 +5,14 @@ Page {
 	id: romChooserPage
 	property int currentRomIndex: -1
 	property bool coverFlowEnabled: true
+	property bool isDiskVisibleAndSelected: currentRomIndex >= 0 && tabGroup.currentTab !== machineTypeTab
 
 	tools: ToolBarLayout {
+		ToolIcon {
+			iconId: "toolbar-mediacontrol-play"
+			visible: isDiskVisibleAndSelected
+			onClicked: romGallery.launch(romListModel.get(currentRomIndex))
+		}
 		ButtonRow {
 			platformStyle: TabButtonStyle { }
 			TabButton {
@@ -23,34 +29,37 @@ Page {
 			}
 		}
 		ToolIcon {
-			iconId: "toolbar-contact"
-			onClicked: aboutSheet.open()
+			iconId: "toolbar-view-menu"
+			onClicked: mainMenu.open()
 		}
-		ToolIcon {
-			iconId: "toolbar-delete"
-			visible: currentRomIndex >= 0
-			onClicked: removeRomDialog.open()
-		}
-		ToolIcon {
-			iconId: "toolbar-home"
-			visible: currentRomIndex >= 0
-			onClicked: {
-				if (romListModel.getScreenShotUpdate(currentRomIndex) < 0) {
-					errorDialog.message = "You need to make screenshot first!"
-					errorDialog.open()
-				} else {
-					saveIconSheet.imgScale = 1.0
-					saveIconSheet.iconX = 0
-					saveIconSheet.iconY = 0
-					saveIconSheet.imgSource = "image://rom/" + romListModel.machineName + "_" + romListModel.get(currentRomIndex) + "*" + romListModel.getScreenShotUpdate(currentRomIndex)
-					saveIconSheet.open()
+	}
+
+	Menu {
+		id: mainMenu
+		MenuLayout {
+			MenuItem {
+				text: qsTr("Select Cover")
+				onClicked: {
+					coverSelectorSheet.open()
+					coverSelectorSheet.displayHelp()
 				}
+				visible: romChooserPage.isDiskVisibleAndSelected
 			}
-		}
-		ToolIcon {
-			iconId: "toolbar-mediacontrol-play"
-			visible: currentRomIndex >= 0
-			onClicked: romGallery.launch(romListModel.get(currentRomIndex))
+			MenuItem {
+				// TODO or remove icon
+				text: qsTr("Place Icon in Homescreen")
+				onClicked: romChooserPage.homescreenIcon()
+				visible: romChooserPage.isDiskVisibleAndSelected
+			}
+			MenuItem {
+				text: qsTr("Remove Disk")
+				onClicked: removeRomDialog.open()
+				visible: romChooserPage.isDiskVisibleAndSelected
+			}
+			MenuItem {
+				text: qsTr("About EmuMaster ...")
+				onClicked: aboutSheet.open()
+			}
 		}
 	}
 
@@ -66,6 +75,11 @@ Page {
 	}
 
 	HomeScreenIconSheet { id: saveIconSheet }
+
+	CoverSelectorSheet {
+		id: coverSelectorSheet
+		onAccepted: romListModel.setDiskCover(currentRomIndex, selectedPath)
+	}
 
 	QueryDialog {
 		id: errorDialog
@@ -120,5 +134,18 @@ Page {
 			howToInstallRomDialog.open()
 		}
 		listTab.update()
+	}
+
+	function homescreenIcon() {
+		if (romListModel.getScreenShotUpdate(currentRomIndex) < 0) {
+			errorDialog.message = "You need to make screenshot first!"
+			errorDialog.open()
+		} else {
+			saveIconSheet.imgScale = 1.0
+			saveIconSheet.iconX = 0
+			saveIconSheet.iconY = 0
+			saveIconSheet.imgSource = "image://rom/" + romListModel.machineName + "_" + romListModel.get(currentRomIndex) + "*" + romListModel.getScreenShotUpdate(currentRomIndex)
+			saveIconSheet.open()
+		}
 	}
 }

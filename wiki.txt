@@ -10,3 +10,6 @@ you can push two buttons on the pad with one finger (e.g. A and B)
 
 it is strongly recommended to name games/disks as you would before you use them,
 because program use name of the disk to store screenshots,states and others
+
+files extensions case sensitivity
+patterns scph*.bin for psx bios

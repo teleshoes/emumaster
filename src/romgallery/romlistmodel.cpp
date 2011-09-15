@@ -2,6 +2,7 @@
 #include "imachine.h"
 #include <QFileInfo>
 #include <QSettings>
+#include <QUrl>
 
 RomListModel::RomListModel(QObject *parent) :
 	QAbstractListModel(parent),
@@ -45,7 +46,10 @@ void RomListModel::setMachineName(const QString &name) {
 	if (name == "gba") {
 		excluded << "gba_bios.bin";
 	}
+	QRegExp psxBiosRx("scph*.bin", Qt::CaseSensitive, QRegExp::Wildcard);
 	for (int i = 0; i < infoList.size(); i++) {
+		if (psxBiosRx.exactMatch(infoList.at(i).fileName()))
+			continue;
 		if (!excluded.contains(infoList.at(i).fileName()))
 			m_list.append(infoList.at(i).completeBaseName());
 	}
@@ -134,4 +138,20 @@ void RomListModel::receiveDatagram() {
 	QString name;
 	s >> name;
 	updateScreenShot(name);
+}
+
+void RomListModel::setDiskCover(int i, const QUrl &coverUrl) {
+	if (i < 0)
+		return;
+	QString path = QString("%1/screenshot/%2_%3.jpg")
+			.arg(IMachine::userDataDirPath())
+			.arg(m_machineName)
+			.arg(m_list.at(i));
+	QString coverPath = coverUrl.toLocalFile();
+	if (!QFile::exists(coverPath))
+		return;
+	QFile::remove(path);
+	QFile::copy(coverPath, path);
+	m_screenShotUpdateCounter++;
+	emit dataChanged(index(i), index(i));
 }

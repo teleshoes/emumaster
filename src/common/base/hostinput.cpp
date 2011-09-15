@@ -7,6 +7,7 @@ HostInput::HostInput(IMachine *machine) :
 	m_machine(machine) {
 	m_quickQuitEnabled = true;
 	m_keys = 0;
+	m_accelerometer = 0;
 }
 
 HostInput::~HostInput() {
@@ -117,3 +118,34 @@ void HostInput::processTouch(QEvent *e) {
 
 void HostInput::setQuickQuitEnabled(bool on)
 { m_quickQuitEnabled = on; }
+
+bool HostInput::isAccelerometerEnabled() const
+{ return m_accelerometer != 0; }
+
+void HostInput::setAccelerometerEnabled(bool on) {
+	if (on && m_accelerometer != 0)
+		return;
+	if (!on) {
+		delete m_accelerometer;
+		m_accelerometer = 0;
+	} else {
+		m_accelerometer = new QAccelerometer(this);
+		QObject::connect(m_accelerometer, SIGNAL(readingChanged()), SLOT(accelerometerUpdated()));
+		m_accelerometer->start();
+	}
+}
+
+void HostInput::accelerometerUpdated() {
+	QAccelerometerReading *reading = m_accelerometer->reading();
+	qreal y = reading->y();
+	qreal z = reading->z();
+	int lastKeys = m_keys;
+	setKeyState(IMachine::Up_PadKey, z > 9.8f/3);
+	setKeyState(IMachine::Down_PadKey, z < -9.8f/3);
+
+	setKeyState(IMachine::Right_PadKey, y > 9.8f/3);
+	setKeyState(IMachine::Left_PadKey, y < -9.8f/3);
+
+	if (m_keys != lastKeys)
+		m_machine->setPadKeys(0, m_keys);
+}

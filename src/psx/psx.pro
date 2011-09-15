@@ -9,7 +9,10 @@ unix {
 		../../qml/psx/MainPage.qml \
 		../../qml/psx/SettingsPage.qml
 
-	INSTALLS += qml
+	gameclassify.path = /usr/share/policy/etc/syspart.conf.d
+	gameclassify.files += $${TARGET}.conf
+
+	INSTALLS += qml gameclassify
 }
 
 HEADERS += \

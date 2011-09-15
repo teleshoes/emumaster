@@ -70,7 +70,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 	m_machine->moveToThread(m_thread);
 
 	if (error.isEmpty()) {
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 60; i++)
 			m_machine->emulateFrame(false);
 		if (m_autoLoadOnStart)
 			m_stateListModel->loadState(-2);
@@ -203,6 +203,22 @@ void MachineView::saveSettings() {
 
 	s.setValue("quickQuit", m_hostVideo->isQuickQuitVisible());
 
+	QStringList accelDisks = s.value("accelerometerEnabledDisks", QStringList()).toStringList();
+	bool accelDisksChanged = false;
+	if (m_hostInput->isAccelerometerEnabled()) {
+		if (!accelDisks.contains(m_diskName)) {
+			accelDisks.append(m_diskName);
+			accelDisksChanged = true;
+		}
+	} else {
+		if (accelDisks.contains(m_diskName)) {
+			accelDisks.removeOne(m_diskName);
+			accelDisksChanged = true;
+		}
+	}
+	if (accelDisksChanged)
+		s.setValue("accelerometerEnabledDisks", accelDisks);
+
 	s.beginGroup(m_machine->name());
 	s.setValue("frameSkip", m_thread->frameSkip());
 	m_machine->saveSettings(s);
@@ -224,6 +240,10 @@ void MachineView::loadSettings() {
 	bool quickQuit = s.value("quickQuit", true).toBool();
 	m_hostVideo->setQuickQuitVisible(quickQuit);
 	m_hostInput->setQuickQuitEnabled(quickQuit);
+
+	QStringList accelDisks = s.value("accelerometerEnabledDisks", QStringList()).toStringList();
+	if (accelDisks.contains(m_diskName))
+		m_hostInput->setAccelerometerEnabled(true);
 
 	s.beginGroup(m_machine->name());
 	m_thread->setFrameSkip(s.value("frameSkip", 1).toInt());
@@ -254,6 +274,8 @@ bool MachineView::isQuickQuitEnabled() const
 { return m_hostVideo->isQuickQuitVisible(); }
 bool MachineView::keepAspectRatio() const
 { return m_hostVideo->keepApsectRatio(); }
+bool MachineView::isAccelerometerEnabled() const
+{ return m_hostInput->isAccelerometerEnabled(); }
 
 void MachineView::setFpsVisible(bool on) {
 	if (m_hostVideo->isFpsVisible() != on) {
@@ -316,3 +338,10 @@ void MachineView::setKeepAspectRatio(bool on) {
 
 QDeclarativeView *MachineView::settingsView() const
 { return m_settingsView; }
+
+void MachineView::setAccelerometerEnabled(bool on) {
+	if (m_hostInput->isAccelerometerEnabled() != on) {
+		m_hostInput->setAccelerometerEnabled(on);
+		emit accelerometerEnableChanged();
+	}
+}

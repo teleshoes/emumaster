@@ -44,16 +44,20 @@ Column {
 		checked: machineView.fpsVisible; onCheckedChanged: machineView.fpsVisible = checked
 	}
 	EMSwitchOption {
-		text: qsTr("Exit Button")
-		checked: machineView.quickQuitEnable; onCheckedChanged: machineView.quickQuitEnable = checked
+		text: qsTr("Keep Aspect Ratio")
+		checked: machineView.keepAspectRatio; onCheckedChanged: machineView.keepAspectRatio = checked
 	}
 	EMSwitchOption {
 		text: qsTr("Audio Enabled")
 		checked: machineView.audioEnable; onCheckedChanged: machineView.audioEnable = checked
 	}
 	EMSwitchOption {
-		text: qsTr("Keep Aspect Ratio")
-		checked: machineView.keepAspectRatio; onCheckedChanged: machineView.keepAspectRatio = checked
+		text: qsTr("Use Accelerometer")
+		checked: machineView.accelerometerEnable; onCheckedChanged: machineView.accelerometerEnable = checked
+	}
+	EMSwitchOption {
+		text: qsTr("Exit Button")
+		checked: machineView.quickQuitEnable; onCheckedChanged: machineView.quickQuitEnable = checked
 	}
 	EMButtonOption {
 		labelText: qsTr("Overwirte Image in Gallery")

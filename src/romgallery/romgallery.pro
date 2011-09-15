@@ -34,7 +34,8 @@ unix {
 		../../qml/gallery/AboutSheet.qml \
 		../../qml/gallery/HomeScreenIconSheet.qml \
 		../../qml/gallery/MachineTypePage.qml \
-		../../qml/gallery/MachineTypeButton.qml
+		../../qml/gallery/MachineTypeButton.qml \
+		../../qml/gallery/CoverSelectorSheet.qml
 
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = \
@@ -62,3 +63,5 @@ contains(MEEGO_EDITION,harmattan) {
     desktopfile.path = /usr/share/applications
     INSTALLS += desktopfile
 }
+
+
