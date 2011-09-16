@@ -256,7 +256,7 @@ int SnesMachine::fillAudioBuffer(char *stream, int streamSize) {
 	return count * 2;
 }
 
-static int keyMapping[16] = {
+static const int keyMapping[16] = {
 	0,
 	0,
 	0,
@@ -300,6 +300,7 @@ STATE_SERIALIZE_BEGIN_##sl(SnesMachine, 1) \
 	STATE_SERIALIZE_SUBCALL_##sl(snesSound) \
 	STATE_SERIALIZE_SUBCALL_##sl(snesSpu) \
 	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
+		S9xFixSoundAfterSnapshotLoad(); \
 		S9xSetPCBase(ICPU.ShiftedPB + Registers.PC); \
 		S9xReschedule(); \
 		S9xSRTCPostLoadState(); \

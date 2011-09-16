@@ -1,6 +1,6 @@
 #include "mapper005.h"
-#include "nesdisk.h"
-#include "nesppu.h"
+#include "disk.h"
+#include "ppu.h"
 #include <QDataStream>
 
 void Mapper005::reset() {
@@ -92,7 +92,7 @@ void Mapper005::reset() {
 	setVrom8KBank(0);
 
 	for (int i = 0; i < 8; i++) {
-		BG_MEM_BANK[i] = m_vrom+0x0400*i;
+		BG_MEM_BANK[i] = nesVrom+0x0400*i;
 	}
 }
 
@@ -120,7 +120,7 @@ quint8 Mapper005::readLow(quint16 address) {
 
 	if (address >= 0x5C00 && address <= 0x5FFF) {
 		if (graphic_mode >= 2) { // ExRAM mode
-			data = m_vram[0x0800+(address&0x3FF)];
+			data = nesVram[0x0800+(address&0x3FF)];
 		}
 	} else if (address >= 0x6000 && address <= 0x7FFF) {
 		data = NesMapper::readLow(address);
@@ -228,12 +228,12 @@ void Mapper005::writeLow(quint16 address, quint8 data) {
 			// TODO ex apu nes->apu->ExWrite( address, data);
 		} else if (address >= 0x5C00 && address <= 0x5FFF) {
 			if (graphic_mode == 2) {		// ExRAM
-				m_vram[0x0800+(address&0x3FF)] = data;
+				nesVram[0x0800+(address&0x3FF)] = data;
 			} else if (graphic_mode != 3) {	// Split,ExGraphic
 				if (irq_status&0x40) {
-					m_vram[0x0800+(address&0x3FF)] = data;
+					nesVram[0x0800+(address&0x3FF)] = data;
 				} else {
-					m_vram[0x0800+(address&0x3FF)] = 0;
+					nesVram[0x0800+(address&0x3FF)] = 0;
 				}
 			}
 		} else if (address >= 0x6000 && address <= 0x7FFF) {
@@ -366,26 +366,26 @@ void Mapper005::updatePpuBanks() {
 		switch (chr_size) {
 		case 0:
 			for (int i = 0; i < 8; i++) {
-				BG_MEM_BANK[i] = m_vrom+0x2000*(chr_page[1][7]%vromSize8KB())+0x0400*i;
+				BG_MEM_BANK[i] = nesVrom+0x2000*(chr_page[1][7]%vromSize8KB())+0x0400*i;
 			}
 			break;
 		case 1:
 			for (int i = 0; i < 4; i++) {
-				BG_MEM_BANK[i+0] = m_vrom+0x1000*(chr_page[1][3]%vromSize4KB())+0x0400*i;
-				BG_MEM_BANK[i+4] = m_vrom+0x1000*(chr_page[1][7]%vromSize4KB())+0x0400*i;
+				BG_MEM_BANK[i+0] = nesVrom+0x1000*(chr_page[1][3]%vromSize4KB())+0x0400*i;
+				BG_MEM_BANK[i+4] = nesVrom+0x1000*(chr_page[1][7]%vromSize4KB())+0x0400*i;
 			}
 			break;
 		case 2:
 			for (int i = 0; i < 2; i++) {
-				BG_MEM_BANK[i+0] = m_vrom+0x0800*(chr_page[1][1]%vromSize2KB())+0x0400*i;
-				BG_MEM_BANK[i+2] = m_vrom+0x0800*(chr_page[1][3]%vromSize2KB())+0x0400*i;
-				BG_MEM_BANK[i+4] = m_vrom+0x0800*(chr_page[1][5]%vromSize2KB())+0x0400*i;
-				BG_MEM_BANK[i+6] = m_vrom+0x0800*(chr_page[1][7]%vromSize2KB())+0x0400*i;
+				BG_MEM_BANK[i+0] = nesVrom+0x0800*(chr_page[1][1]%vromSize2KB())+0x0400*i;
+				BG_MEM_BANK[i+2] = nesVrom+0x0800*(chr_page[1][3]%vromSize2KB())+0x0400*i;
+				BG_MEM_BANK[i+4] = nesVrom+0x0800*(chr_page[1][5]%vromSize2KB())+0x0400*i;
+				BG_MEM_BANK[i+6] = nesVrom+0x0800*(chr_page[1][7]%vromSize2KB())+0x0400*i;
 			}
 			break;
 		case 3:
 			for (int i = 0; i < 8; i++) {
-				BG_MEM_BANK[i] = m_vrom+0x0400*(chr_page[1][i]%vromSize1KB());
+				BG_MEM_BANK[i] = nesVrom+0x0400*(chr_page[1][i]%vromSize1KB());
 			}
 			break;
 		}
@@ -483,12 +483,12 @@ void Mapper005::extensionLatch(quint16 address, quint8 *plane1, quint8 *plane2, 
 				// Get Nametable
 				tileadr = fill_chr*0x10+tile_yofs;
 				// Get TileBank
-				tilebank = 0x1000*((m_vram[0x0800+(ntbladr&0x03FF)]&0x3F)%vromSize4KB());
+				tilebank = 0x1000*((nesVram[0x0800+(ntbladr&0x03FF)]&0x3F)%vromSize4KB());
 				// Attribute
 				*attribute = (fill_pal<<2)&0x0C;
 				// Get Pattern
-				*plane1 = m_vrom[tilebank+tileadr  ];
-				*plane2 = m_vrom[tilebank+tileadr+8];
+				*plane1 = nesVrom[tilebank+tileadr  ];
+				*plane2 = nesVrom[tilebank+tileadr+8];
 			} else {
 				// Normal
 				tileofs = ppu()->tilePageOffset();
@@ -509,12 +509,12 @@ void Mapper005::extensionLatch(quint16 address, quint8 *plane1, quint8 *plane2, 
 			// Get Nametable
 			tileadr = (quint16)read(ntbladr)*0x10+tile_yofs;
 			// Get TileBank
-			tilebank = 0x1000*((m_vram[0x0800+(ntbladr&0x03FF)]&0x3F)%vromSize4KB());
+			tilebank = 0x1000*((nesVram[0x0800+(ntbladr&0x03FF)]&0x3F)%vromSize4KB());
 			// Get Attribute
-			*attribute = (m_vram[0x0800+(ntbladr&0x03FF)]&0xC0)>>4;
+			*attribute = (nesVram[0x0800+(ntbladr&0x03FF)]&0xC0)>>4;
 			// Get Pattern
-			*plane1 = m_vrom[tilebank+tileadr  ];
-			*plane2 = m_vrom[tilebank+tileadr+8];
+			*plane1 = nesVrom[tilebank+tileadr  ];
+			*plane2 = nesVrom[tilebank+tileadr+8];
 		} else {
 			// Normal or ExVRAM
 			tileofs = ppu()->tilePageOffset();
@@ -540,21 +540,21 @@ void Mapper005::extensionLatch(quint16 address, quint8 *plane1, quint8 *plane2, 
 		ntbladr = ((split_addr&0x03E0)|(split_x&0x1F))&0x03FF;
 		// Get Split TileBank
 		tilebank = 0x1000*((int)split_page%vromSize4KB());
-		tileadr  = (quint16)m_vram[0x0800+ntbladr]*0x10+split_yofs;
+		tileadr  = (quint16)nesVram[0x0800+ntbladr]*0x10+split_yofs;
 		// Get Attribute
 		attradr = 0x03C0+((ntbladr&0x0380)>>4)+((ntbladr&0x001C)>>2);
-		*attribute = m_vram[0x0800+attradr];
+		*attribute = nesVram[0x0800+attradr];
 		if (ntbladr & 0x0002) *attribute >>= 2;
 		if (ntbladr & 0x0040) *attribute >>= 4;
 		*attribute = (*attribute&0x03)<<2;
 		// Get Pattern
-		*plane1 = m_vrom[tilebank+tileadr  ];
-		*plane2 = m_vrom[tilebank+tileadr+8];
+		*plane1 = nesVrom[tilebank+tileadr  ];
+		*plane2 = nesVrom[tilebank+tileadr+8];
 	}
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(Mapper005) \
+STATE_SERIALIZE_BEGIN_##sl(Mapper005, 1) \
 	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
 	STATE_SERIALIZE_VAR_##sl(prg_size) \
 	STATE_SERIALIZE_VAR_##sl(chr_size) \
@@ -588,7 +588,7 @@ void Mapper005::extensionLatch(quint16 address, quint8 *plane1, quint8 *plane2, 
 	for (int i = 0; i < 8; i++) \
 		STATE_SERIALIZE_VAR_##sl(cpu_bank_wren[i]) \
 	updatePpuBanks(); \
-	STATE_SERIALIZE_END(Mapper005)
+STATE_SERIALIZE_END_##sl(Mapper005)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

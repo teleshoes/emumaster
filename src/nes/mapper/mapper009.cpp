@@ -1,6 +1,6 @@
 #include "mapper009.h"
-#include "nesppu.h"
-#include "nesdisk.h"
+#include "ppu.h"
+#include "disk.h"
 #include <QDataStream>
 
 void Mapper009::reset() {
@@ -72,12 +72,12 @@ void Mapper009::characterLatch(quint16 address) {
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(Mapper009) \
+STATE_SERIALIZE_BEGIN_##sl(Mapper009, 1) \
 	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
 	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
 	STATE_SERIALIZE_VAR_##sl(latch_a) \
 	STATE_SERIALIZE_VAR_##sl(latch_b) \
-	STATE_SERIALIZE_END(Mapper009)
+STATE_SERIALIZE_END_##sl(Mapper009)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

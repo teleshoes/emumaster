@@ -1,6 +1,6 @@
 #include "mapper222.h"
-#include "nesppu.h"
-#include "nesdisk.h"
+#include "ppu.h"
+#include "disk.h"
 
 void Mapper222::reset() {
 	NesMapper::reset();

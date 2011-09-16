@@ -1,6 +1,6 @@
 #include "mapper251.h"
-#include "nesppu.h"
-#include "nesdisk.h"
+#include "ppu.h"
+#include "disk.h"
 #include <imachine.h>
 #include <QDataStream>
 
@@ -87,11 +87,11 @@ void Mapper251::setBank() {
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(Mapper251) \
+STATE_SERIALIZE_BEGIN_##sl(Mapper251, 1) \
 	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
 	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
 	STATE_SERIALIZE_ARRAY_##sl(breg, sizeof(breg)) \
-	STATE_SERIALIZE_END(Mapper251)
+STATE_SERIALIZE_END_##sl(Mapper251)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

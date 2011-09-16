@@ -1,5 +1,5 @@
 #include "mapper002.h"
-#include "nesdisk.h"
+#include "disk.h"
 
 void Mapper002::reset() {
 	NesMapper::reset();

@@ -1,6 +1,6 @@
 #include "mapper012.h"
-#include "nesppu.h"
-#include "nesdisk.h"
+#include "ppu.h"
+#include "disk.h"
 
 void Mapper012::reset() {
 	NesMapper::reset();
@@ -179,7 +179,7 @@ void Mapper012::updatePpuBanks() {
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(Mapper012) \
+STATE_SERIALIZE_BEGIN_##sl(Mapper012, 1) \
 	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
 	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
 	STATE_SERIALIZE_VAR_##sl(prg0) \
@@ -198,7 +198,7 @@ void Mapper012::updatePpuBanks() {
 	STATE_SERIALIZE_VAR_##sl(irq_preset_vbl) \
 	STATE_SERIALIZE_VAR_##sl(vb0) \
 	STATE_SERIALIZE_VAR_##sl(vb1) \
-	STATE_SERIALIZE_END(Mapper012)
+STATE_SERIALIZE_END_##sl(Mapper012)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

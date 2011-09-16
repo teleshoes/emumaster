@@ -1,7 +1,7 @@
 #ifndef MAPPER058_H
 #define MAPPER058_H
 
-#include "../nesmapper.h"
+#include "../mapper.h"
 
 class Mapper058 : public NesMapper {
 	Q_OBJECT

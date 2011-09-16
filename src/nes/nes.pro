@@ -3,27 +3,9 @@ LIBS += -lcrc32
 QT += opengl declarative
 
 HEADERS += \
-    nesdisk.h \
-    nespad.h \
-    nesmachine.h \
-    nesmapper.h \
-	nesapu.h \
-    nesapunoisechannel.h \
-    nesapuchannel.h \
-    nesapurectanglechannel.h \
-    nesaputrianglechannel.h \
-    nesapudmchannel.h \
-    nescpu.h \
-    nesppu.h \
-    nesppusprite.h \
-    nesppuregisters.h \
-    nesppupalette.h \
-    nesdisk_p.h \
-    nesmappereeprom.h \
     gamegeniecodelistmodel.h \
     gamegeniecode.h \
     mapper/mapper000.h \
-    m6502.h \
     mapper/mapper255.h \
     mapper/mapper254.h \
     mapper/mapper252.h \
@@ -100,108 +82,48 @@ HEADERS += \
     mapper/mapper004.h \
     mapper/mapper003.h \
     mapper/mapper002.h \
-    mapper/mapper001.h
+    mapper/mapper001.h \
+    apu.h \
+    apuchannel.h \
+    apudmchannel.h \
+    apunoisechannel.h \
+    apurectanglechannel.h \
+    aputrianglechannel.h \
+    cpu.h \
+    disk.h \
+    pad.h \
+    machine.h \
+    mapper.h \
+    ppu.h \
+    eeprom.h
 
 SOURCES += \
-	nesdisk.cpp \
-    nespad.cpp \
-    nesmachine.cpp \
-    nesmapper.cpp \
-	nesapu.cpp \
-    nesapunoisechannel.cpp \
-    nesapuchannel.cpp \
-    nesapurectanglechannel.cpp \
-    nesaputrianglechannel.cpp \
-    nesapudmchannel.cpp \
-    nescpu.cpp \
-    nesppu.cpp \
-    nesppuregisters.cpp \
-    nesppupalette.cpp \
-    nesdisk_patch.cpp \
-    nesmappereeprom.cpp \
     gamegeniecodelistmodel.cpp \
     gamegeniecode.cpp \
     mapper/mapper000.cpp \
-    m6502_tables.cpp \
-    m6502_opcodes.cpp \
-    m6502.cpp \
-    mapper/mapper255.cpp \
-    mapper/mapper254.cpp \
-    mapper/mapper252.cpp \
-    mapper/mapper251.cpp \
-    mapper/mapper246.cpp \
-    mapper/mapper244.cpp \
-    mapper/mapper243.cpp \
-    mapper/mapper242.cpp \
-    mapper/mapper241.cpp \
-    mapper/mapper240.cpp \
-    mapper/mapper236.cpp \
-    mapper/mapper235.cpp \
-    mapper/mapper233.cpp \
-    mapper/mapper232.cpp \
-    mapper/mapper231.cpp \
-    mapper/mapper230.cpp \
-    mapper/mapper229.cpp \
-    mapper/mapper228.cpp \
-    mapper/mapper227.cpp \
-    mapper/mapper226.cpp \
-    mapper/mapper225.cpp \
-    mapper/mapper222.cpp \
-    mapper/mapper202.cpp \
-    mapper/mapper201.cpp \
-    mapper/mapper200.cpp \
-    mapper/mapper071.cpp \
-    mapper/mapper070.cpp \
-    mapper/mapper069.cpp \
-    mapper/mapper068.cpp \
-    mapper/mapper067.cpp \
-    mapper/mapper066.cpp \
-    mapper/mapper065.cpp \
-    mapper/mapper064.cpp \
-    mapper/mapper062.cpp \
-    mapper/mapper061.cpp \
-    mapper/mapper060.cpp \
-    mapper/mapper058.cpp \
-    mapper/mapper057.cpp \
-    mapper/mapper051.cpp \
-    mapper/mapper050.cpp \
-    mapper/mapper048.cpp \
-    mapper/mapper047.cpp \
-    mapper/mapper046.cpp \
-    mapper/mapper045.cpp \
-    mapper/mapper044.cpp \
-    mapper/mapper043.cpp \
-    mapper/mapper042.cpp \
-    mapper/mapper041.cpp \
-    mapper/mapper040.cpp \
-    mapper/mapper034.cpp \
-    mapper/mapper033.cpp \
-    mapper/mapper032.cpp \
-    mapper/mapper027.cpp \
-    mapper/mapper026.cpp \
-    mapper/mapper025.cpp \
-    mapper/mapper024.cpp \
-    mapper/mapper023.cpp \
-    mapper/mapper022.cpp \
-    mapper/mapper021.cpp \
-    mapper/mapper019.cpp \
-    mapper/mapper018.cpp \
-    mapper/mapper017.cpp \
-    mapper/mapper016.cpp \
-    mapper/mapper015.cpp \
-    mapper/mapper013.cpp \
-    mapper/mapper012.cpp \
-    mapper/mapper011.cpp \
-    mapper/mapper010.cpp \
-    mapper/mapper009.cpp \
-    mapper/mapper008.cpp \
     mapper/mapper007.cpp \
     mapper/mapper006.cpp \
     mapper/mapper005.cpp \
     mapper/mapper004.cpp \
     mapper/mapper003.cpp \
     mapper/mapper002.cpp \
-    mapper/mapper001.cpp
+    mapper/mapper001.cpp \
+    ppuregisters.cpp \
+    ppupalette.cpp \
+    ppu.cpp \
+    pad.cpp \
+    mapper.cpp \
+    machine.cpp \
+    disk.cpp \
+    cpu.cpp \
+    apu.cpp \
+    apuchannel.cpp \
+    apudmchannel.cpp \
+    apunoisechannel.cpp \
+    apurectanglechannel.cpp \
+    aputrianglechannel.cpp \
+    cpu_tables.cpp \
+    eeprom.cpp
 
 unix {
 	qml.path = /opt/emumaster/qml/nes
@@ -209,11 +131,92 @@ unix {
 		../../qml/nes/main.qml \
 		../../qml/nes/MainPage.qml \
 		../../qml/nes/SettingsPage.qml \
-		../../qml/nes/CheatPage.qml \
-		../../qml/nes/MachineInfoSheet.qml
+		../../qml/nes/CheatPage.qml
 
 	gameclassify.path = /usr/share/policy/etc/syspart.conf.d
 	gameclassify.files += $${TARGET}.conf
 
 	INSTALLS += qml gameclassify
 }
+#    mapper/mapper255.cpp \
+#    mapper/mapper254.cpp \
+#    mapper/mapper252.cpp \
+#    mapper/mapper251.cpp \
+#    mapper/mapper246.cpp \
+#    mapper/mapper244.cpp \
+#    mapper/mapper243.cpp \
+#    mapper/mapper242.cpp \
+#    mapper/mapper241.cpp \
+#    mapper/mapper240.cpp \
+#    mapper/mapper236.cpp \
+#    mapper/mapper235.cpp \
+#    mapper/mapper233.cpp \
+#    mapper/mapper232.cpp \
+#    mapper/mapper231.cpp \
+#    mapper/mapper230.cpp \
+#    mapper/mapper229.cpp \
+#    mapper/mapper228.cpp \
+#    mapper/mapper227.cpp \
+#    mapper/mapper226.cpp \
+#    mapper/mapper225.cpp \
+#    mapper/mapper222.cpp \
+#    mapper/mapper202.cpp \
+#    mapper/mapper201.cpp \
+#    mapper/mapper200.cpp \
+#    mapper/mapper071.cpp \
+#    mapper/mapper070.cpp \
+#    mapper/mapper069.cpp \
+#    mapper/mapper068.cpp \
+#    mapper/mapper067.cpp \
+#    mapper/mapper066.cpp \
+#    mapper/mapper065.cpp \
+#    mapper/mapper064.cpp \
+#    mapper/mapper062.cpp \
+#    mapper/mapper061.cpp \
+#    mapper/mapper060.cpp \
+#    mapper/mapper058.cpp \
+#    mapper/mapper057.cpp \
+#    mapper/mapper051.cpp \
+#    mapper/mapper050.cpp \
+#    mapper/mapper048.cpp \
+#    mapper/mapper047.cpp \
+#    mapper/mapper046.cpp \
+#    mapper/mapper045.cpp \
+#    mapper/mapper044.cpp \
+#    mapper/mapper043.cpp \
+#    mapper/mapper042.cpp \
+#    mapper/mapper041.cpp \
+#    mapper/mapper040.cpp \
+#    mapper/mapper034.cpp \
+#    mapper/mapper033.cpp \
+#    mapper/mapper032.cpp \
+#    mapper/mapper027.cpp \
+#    mapper/mapper026.cpp \
+#    mapper/mapper025.cpp \
+#    mapper/mapper024.cpp \
+#    mapper/mapper023.cpp \
+#    mapper/mapper022.cpp \
+#    mapper/mapper021.cpp \
+#    mapper/mapper019.cpp \
+#    mapper/mapper018.cpp \
+#    mapper/mapper017.cpp \
+#    mapper/mapper016.cpp \
+#    mapper/mapper015.cpp \
+#    mapper/mapper013.cpp \
+#    mapper/mapper012.cpp \
+#    mapper/mapper011.cpp \
+#    mapper/mapper010.cpp \
+#    mapper/mapper009.cpp \
+#    mapper/mapper008.cpp \
+
+
+
+
+
+
+
+
+
+
+
+

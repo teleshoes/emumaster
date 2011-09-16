@@ -129,7 +129,10 @@ bool MachineStateListModel::loadState(int i) {
 	QDataStream s(&data, QIODevice::ReadOnly);
 	s.setByteOrder(QDataStream::LittleEndian);
 	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
-	return m_machine->load(s);
+	bool ok = m_machine->load(s);
+	if (!ok)
+		m_machine->reset();
+	return ok;
 }
 
 void MachineStateListModel::removeState(int i) {

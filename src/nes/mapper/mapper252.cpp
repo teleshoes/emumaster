@@ -1,6 +1,6 @@
 #include "mapper252.h"
-#include "nesppu.h"
-#include "nesdisk.h"
+#include "ppu.h"
+#include "disk.h"
 #include <imachine.h>
 #include <QDataStream>
 
@@ -146,7 +146,7 @@ void Mapper252::clock(uint cycles) {
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(Mapper252) \
+STATE_SERIALIZE_BEGIN_##sl(Mapper252, 1) \
 	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
 	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
 	STATE_SERIALIZE_VAR_##sl(irq_enable) \
@@ -154,7 +154,7 @@ void Mapper252::clock(uint cycles) {
 	STATE_SERIALIZE_VAR_##sl(irq_latch) \
 	STATE_SERIALIZE_VAR_##sl(irq_occur) \
 	STATE_SERIALIZE_VAR_##sl(irq_clock) \
-	STATE_SERIALIZE_END(Mapper252)
+STATE_SERIALIZE_END_##sl(Mapper252)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

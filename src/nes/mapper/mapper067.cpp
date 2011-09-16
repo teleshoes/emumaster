@@ -1,6 +1,6 @@
 #include "mapper067.h"
-#include "nesdisk.h"
-#include "nesppu.h"
+#include "disk.h"
+#include "ppu.h"
 #include <QDataStream>
 
 void Mapper067::reset() {
@@ -72,12 +72,12 @@ void Mapper067::clock(uint cycles) {
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(Mapper067) \
+STATE_SERIALIZE_BEGIN_##sl(Mapper067, 1) \
 	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
 	STATE_SERIALIZE_VAR_##sl(irq_enable) \
 	STATE_SERIALIZE_VAR_##sl(irq_counter) \
 	STATE_SERIALIZE_VAR_##sl(irq_toggle) \
-	STATE_SERIALIZE_END(Mapper067)
+STATE_SERIALIZE_END_##sl(Mapper067)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

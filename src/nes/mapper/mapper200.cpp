@@ -1,6 +1,6 @@
 #include "mapper200.h"
-#include "nesppu.h"
-#include "nesdisk.h"
+#include "ppu.h"
+#include "disk.h"
 #include <QDataStream>
 
 void Mapper200::reset() {

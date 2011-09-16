@@ -1,6 +1,6 @@
 #include "mapper004.h"
-#include "nesppu.h"
-#include "nesdisk.h"
+#include "ppu.h"
+#include "disk.h"
 #include <imachine.h>
 
 void Mapper004::reset() {
@@ -127,7 +127,7 @@ void Mapper004::reset() {
 quint8 Mapper004::readLow(quint16 address) {
 	if (!vs_patch) {
 		if (address >= 0x5000 && address < 0x6000)
-			return m_xram[address - 0x4000];
+			return nesXram[address - 0x4000];
 	} else {
 		if (vs_patch == 1) {
 			// VS TKO Boxing Security
@@ -190,7 +190,7 @@ quint8 Mapper004::readLow(quint16 address) {
 
 void Mapper004::writeLow(quint16 address, quint8 data) {
 	if (address >= 0x5000 && address < 0x6000)
-		m_xram[address - 0x4000] = data;
+		nesXram[address - 0x4000] = data;
 	else
 		NesMapper::writeLow(address, data);
 }
@@ -217,11 +217,11 @@ void Mapper004::writeHigh(quint16 address, quint8 data) {
 		break;
 	case 0xA000:
 		reg[2] = data;
-		if (disk()->mirroring() != FourScreen) {
+		if (disk()->mirroring() != FourScreenMirroring) {
 			if (data & 0x01)
-				setMirroring(Horizontal);
+				setMirroring(HorizontalMirroring);
 			else
-				setMirroring(Vertical);
+				setMirroring(VerticalMirroring);
 		}
 		break;
 	case 0xA001:
@@ -368,7 +368,7 @@ void Mapper004::updatePpuBanks() {
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(Mapper004) \
+STATE_SERIALIZE_BEGIN_##sl(Mapper004, 1) \
 	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
 	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
 	STATE_SERIALIZE_VAR_##sl(prg0) \
@@ -385,7 +385,7 @@ void Mapper004::updatePpuBanks() {
 	STATE_SERIALIZE_VAR_##sl(irq_request) \
 	STATE_SERIALIZE_VAR_##sl(irq_preset) \
 	STATE_SERIALIZE_VAR_##sl(irq_preset_vbl) \
-	STATE_SERIALIZE_END(Mapper004)
+STATE_SERIALIZE_END_##sl(Mapper004)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

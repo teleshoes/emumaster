@@ -16,7 +16,7 @@
 // ANALOG CONTROLLER SCPH-1150
 #define PSE_PAD_TYPE_ANALOGPAD		7
 
-static int mapping[16] = {
+static const int mapping[16] = {
 	IMachine::Select_PadKey,
 	0,
 	0,

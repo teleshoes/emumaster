@@ -1,6 +1,6 @@
 #include "mapper243.h"
-#include "nesppu.h"
-#include "nesdisk.h"
+#include "ppu.h"
+#include "disk.h"
 
 void Mapper243::reset() {
 	NesMapper::reset();
@@ -54,10 +54,10 @@ void Mapper243::writeLow(quint16 address, quint8 data) {
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(Mapper243) \
+STATE_SERIALIZE_BEGIN_##sl(Mapper243, 1) \
 	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
 	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
-	STATE_SERIALIZE_END(Mapper243)
+STATE_SERIALIZE_END_##sl(Mapper243)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

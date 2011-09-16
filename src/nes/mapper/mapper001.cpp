@@ -1,6 +1,6 @@
 #include "mapper001.h"
-#include "nesdisk.h"
-#include "nesppu.h"
+#include "disk.h"
+#include "ppu.h"
 #include <imachine.h>
 #include <QDataStream>
 
@@ -195,14 +195,14 @@ NesMapper::Mirroring Mapper001::mirroringFromRegs() const {
 	switch (reg[0] & 3) {
 	case 0: return SingleLow; break;
 	case 1: return SingleHigh; break;
-	case 2: return Vertical; break;
-	case 3: return Horizontal; break;
+	case 2: return VerticalMirroring; break;
+	case 3: return HorizontalMirroring; break;
 	default: Q_ASSERT(false); return SingleLow; break;
 	}
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(Mapper001) \
+STATE_SERIALIZE_BEGIN_##sl(Mapper001, 1) \
 	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
 	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
 	STATE_SERIALIZE_VAR_##sl(shift) \
@@ -210,7 +210,7 @@ NesMapper::Mirroring Mapper001::mirroringFromRegs() const {
 	STATE_SERIALIZE_VAR_##sl(wram_bank) \
 	STATE_SERIALIZE_VAR_##sl(wram_count) \
 	STATE_SERIALIZE_VAR_##sl(last_addr) \
-	STATE_SERIALIZE_END(Mapper001)
+STATE_SERIALIZE_END_##sl(Mapper001)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

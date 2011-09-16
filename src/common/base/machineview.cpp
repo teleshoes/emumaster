@@ -67,8 +67,6 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 	if (!error.isEmpty())
 		showError(error);
 
-	m_machine->moveToThread(m_thread);
-
 	if (error.isEmpty()) {
 		for (int i = 0; i < 60; i++)
 			m_machine->emulateFrame(false);

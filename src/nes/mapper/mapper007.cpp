@@ -1,6 +1,6 @@
 #include "mapper007.h"
-#include "nesppu.h"
-#include "nesdisk.h"
+#include "ppu.h"
+#include "disk.h"
 
 void Mapper007::reset() {
 	NesMapper::reset();
@@ -10,7 +10,7 @@ void Mapper007::reset() {
 
 	quint32 crc = disk()->crc();
 	if( crc == 0x3c9fe649 ) {	// WWF Wrestlemania Challenge(U)
-		setMirroring(Vertical);
+		setMirroring(VerticalMirroring);
 		patch = 1;
 	}
 	if( crc == 0x09874777 ) {	// Marble Madness(U)
@@ -20,7 +20,7 @@ void Mapper007::reset() {
 	if( crc == 0x279710DC		// Battletoads (U)
 	 || crc == 0xCEB65B06 ) {	// Battletoads Double Dragon (U)
 		ppu()->setRenderMethod(NesPpu::PreAllRender);
-		qMemSet(m_wram, 0, sizeof(m_wram));
+		qMemSet(nesWram, 0, sizeof(nesWram));
 	}
 }
 

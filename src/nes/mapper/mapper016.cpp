@@ -1,6 +1,6 @@
 #include "mapper016.h"
-#include "nesdisk.h"
-#include "nesppu.h"
+#include "disk.h"
+#include "ppu.h"
 
 void Mapper016::reset() {
 	NesMapper::reset();
@@ -253,7 +253,7 @@ void Mapper016::horizontalSync(int scanline) {
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(Mapper016) \
+STATE_SERIALIZE_BEGIN_##sl(Mapper016, 1) \
 	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
 	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
 	STATE_SERIALIZE_SUBCALL_##sl(x24c01) \
@@ -261,7 +261,7 @@ void Mapper016::horizontalSync(int scanline) {
 	STATE_SERIALIZE_VAR_##sl(irq_enable) \
 	STATE_SERIALIZE_VAR_##sl(irq_counter) \
 	STATE_SERIALIZE_VAR_##sl(irq_latch) \
-	STATE_SERIALIZE_END(Mapper016)
+STATE_SERIALIZE_END_##sl(Mapper016)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

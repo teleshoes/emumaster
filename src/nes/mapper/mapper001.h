@@ -1,7 +1,7 @@
 #ifndef MAPPER001_H
 #define MAPPER001_H
 
-#include "../nesmapper.h"
+#include "../mapper.h"
 
 class Mapper001 : public NesMapper {
 	Q_OBJECT
@@ -12,7 +12,7 @@ public:
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 private:
-	Mirroring mirroringFromRegs() const;
+	NesMirroring mirroringFromRegs() const;
 
 	quint8 patch;
 	quint8 wram_patch;

@@ -1,6 +1,6 @@
 #include "gamegeniecodelistmodel.h"
-#include "nesmachine.h"
-#include "nesdisk.h"
+#include "machine.h"
+#include "disk.h"
 #include "gamegeniecode.h"
 #include <QFile>
 

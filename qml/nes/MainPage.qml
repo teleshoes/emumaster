@@ -28,20 +28,7 @@ Page {
 		currentTab: settingsTab
 
 		SettingsPage { id: settingsTab }
-		StatePage {
-			id: stateTab
-
-			Button {
-				anchors.right: parent.right
-				anchors.rightMargin: 10
-				anchors.bottom: parent.bottom
-				anchors.bottomMargin: 10
-				width: 50
-				iconSource: "image://theme/icon-s-music-video-description"
-				onClicked: infoSheet.open()
-			}
-			MachineInfoSheet { id: infoSheet }
-		}
+		StatePage { id: stateTab }
 		CheatPage { id: cheatTab }
 	}
 
