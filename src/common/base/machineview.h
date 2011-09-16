@@ -21,7 +21,7 @@ class BASE_EXPORT MachineView : public QObject {
 	Q_PROPERTY(bool audioEnable READ isAudioEnabled WRITE setAudioEnabled NOTIFY audioEnableChanged)
 	Q_PROPERTY(int audioSampleRate READ audioSampleRate WRITE setAudioSampleRate NOTIFY audioSampleRateChanged)
 	Q_PROPERTY(bool swipeEnable READ isSwipeEnabled WRITE setSwipeEnabled NOTIFY swipeEnableChanged)
-	Q_PROPERTY(bool padVisible READ isPadVisible WRITE setPadVisible NOTIFY padVisibleChanged)
+	Q_PROPERTY(qreal padOpacity READ padOpacity WRITE setPadOpacity NOTIFY padOpacityChanged)
 	Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged)
 	Q_PROPERTY(bool accelerometerEnable READ isAccelerometerEnabled WRITE setAccelerometerEnabled NOTIFY accelerometerEnableChanged)
 public:
@@ -43,8 +43,8 @@ public:
 	void setAudioSampleRate(int rate);
 	bool isSwipeEnabled() const;
 	void setSwipeEnabled(bool on);
-	bool isPadVisible() const;
-	void setPadVisible(bool visible);
+	qreal padOpacity() const;
+	void setPadOpacity(qreal opacity);
 	bool keepAspectRatio() const;
 	void setKeepAspectRatio(bool on);
 	bool isAccelerometerEnabled() const;
@@ -63,7 +63,7 @@ signals:
 	void audioEnableChanged();
 	void audioSampleRateChanged();
 	void swipeEnableChanged();
-	void padVisibleChanged();
+	void padOpacityChanged();
 	void keepAspectRatioChanged();
 	void accelerometerEnableChanged();
 private slots:

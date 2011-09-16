@@ -15,8 +15,8 @@ public:
 	bool isFpsVisible() const;
 	void setFpsVisible(bool on);
 
-	bool isPadVisible() const;
-	void setPadVisible(bool on);
+	qreal padOpacity() const;
+	void setPadOpacity(qreal opacity);
 
 	bool isSwipeEnabled() const;
 	void setSwipeEnabled(bool on);
@@ -52,7 +52,7 @@ private:
 	int m_fpsCounter;
 	QTime m_fpsCounterTime;
 
-	bool m_padVisible;
+	qreal m_padOpacity;
 	QImage m_padLeftImage;
 	QImage m_padRightImage;
 
@@ -66,8 +66,8 @@ inline QRectF HostVideo::dstRect() const
 { return m_dstRect; }
 inline bool HostVideo::isFpsVisible() const
 { return m_fpsVisible; }
-inline bool HostVideo::isPadVisible() const
-{ return m_padVisible; }
+inline qreal HostVideo::padOpacity() const
+{ return m_padOpacity; }
 inline bool HostVideo::isSwipeEnabled() const
 { return m_swipeEnabled; }
 inline bool HostVideo::keepApsectRatio() const

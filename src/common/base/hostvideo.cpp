@@ -26,7 +26,7 @@ HostVideo::HostVideo(IMachine *machine, MachineThread *thread) :
 	m_fpsCounter = 0;
 	m_fpsCounterTime.start();
 
-	m_padVisible = true;
+	m_padOpacity = 0.45f;
 	QString dirPath = QString("%1/data").arg(IMachine::installationDirPath());
 
 	m_padLeftImage.load(dirPath + "/pad-left.png");
@@ -76,8 +76,8 @@ void HostVideo::paintEvent(QPaintEvent *) {
 								 QString("%1 FPS").arg(m_fpsCount));
 			}
 		}
-		if (m_padVisible) {
-			painter.setOpacity(0.45f);
+		if (m_padOpacity != 0.0f) {
+			painter.setOpacity(m_padOpacity);
 			painter.drawImage(QPoint(), m_padLeftImage);
 			painter.drawImage(QPoint(854-240, 0), m_padRightImage);
 		}
@@ -87,8 +87,8 @@ void HostVideo::paintEvent(QPaintEvent *) {
 
 void HostVideo::setFpsVisible(bool on)
 { m_fpsVisible = on; }
-void HostVideo::setPadVisible(bool on)
-{ m_padVisible = on; }
+void HostVideo::setPadOpacity(qreal opacity)
+{ m_padOpacity = opacity; }
 
 void HostVideo::setSwipeEnabled(bool on) {
 #if defined(MEEGO_EDITION_HARMATTAN)

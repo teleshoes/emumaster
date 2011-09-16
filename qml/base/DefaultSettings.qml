@@ -55,9 +55,27 @@ Column {
 		text: qsTr("Use Accelerometer")
 		checked: machineView.accelerometerEnable; onCheckedChanged: machineView.accelerometerEnable = checked
 	}
-	EMSwitchOption {
-		text: qsTr("Pad Visible")
-		checked: machineView.padVisible; onCheckedChanged: machineView.padVisible = checked
+	Item {
+		id: padOpacityItem
+		width: parent.width
+		Label {
+			id: padOpacityLabel
+			anchors.verticalCenter: parent.verticalCenter
+			text: qsTr("Pad Opacity")
+			font.bold: true
+		}
+		Slider {
+			id: padOpacitySlider
+			anchors.verticalCenter: parent.verticalCenter
+			anchors.right: parent.right
+			minimumValue: 0.0
+			maximumValue: 1.0
+			value: machineView.padOpacity
+			onValueChanged: machineView.padOpacity = value
+			stepSize: 0.05
+			valueIndicatorVisible: true
+		}
+		Component.onCompleted: padOpacityItem.height = Math.max(padOpacityLabel.height, padOpacitySlider.height)
 	}
 	EMButtonOption {
 		labelText: qsTr("Overwirte Image in Gallery")

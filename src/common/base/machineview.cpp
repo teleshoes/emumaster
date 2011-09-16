@@ -197,6 +197,10 @@ void MachineView::saveSettings() {
 
 	s.setValue("fpsVisible", m_hostVideo->isFpsVisible());
 	s.setValue("keepAspectRatio", m_hostVideo->keepApsectRatio());
+	s.setValue("padOpacity", padOpacity());
+
+	s.beginGroup(m_machine->name());
+	s.setValue("frameSkip", m_thread->frameSkip());
 
 	QStringList accelDisks = s.value("accelerometerEnabledDisks", QStringList()).toStringList();
 	bool accelDisksChanged = false;
@@ -214,8 +218,6 @@ void MachineView::saveSettings() {
 	if (accelDisksChanged)
 		s.setValue("accelerometerEnabledDisks", accelDisks);
 
-	s.beginGroup(m_machine->name());
-	s.setValue("frameSkip", m_thread->frameSkip());
 	m_machine->saveSettings(s);
 	s.endGroup();
 }
@@ -231,13 +233,15 @@ void MachineView::loadSettings() {
 
 	m_hostVideo->setFpsVisible(s.value("fpsVisible", false).toBool());
 	m_hostVideo->setKeepAspectRatio(s.value("keepAspectRatio", false).toBool());
+	m_hostVideo->setPadOpacity(s.value("padOpacity", 0.45f).toReal());
+
+	s.beginGroup(m_machine->name());
+	m_thread->setFrameSkip(s.value("frameSkip", 1).toInt());
 
 	QStringList accelDisks = s.value("accelerometerEnabledDisks", QStringList()).toStringList();
 	if (accelDisks.contains(m_diskName))
 		m_hostInput->setAccelerometerEnabled(true);
 
-	s.beginGroup(m_machine->name());
-	m_thread->setFrameSkip(s.value("frameSkip", 1).toInt());
 	m_machine->loadSettings(s);
 	s.endGroup();
 }
@@ -259,8 +263,8 @@ int MachineView::audioSampleRate() const
 { return m_audioSampleRate; }
 bool MachineView::isSwipeEnabled() const
 { return m_hostVideo->isSwipeEnabled(); }
-bool MachineView::isPadVisible() const
-{ return m_hostVideo->isPadVisible(); }
+qreal MachineView::padOpacity() const
+{ return m_hostVideo->padOpacity(); }
 bool MachineView::keepAspectRatio() const
 { return m_hostVideo->keepApsectRatio(); }
 bool MachineView::isAccelerometerEnabled() const
@@ -303,10 +307,10 @@ void MachineView::setSwipeEnabled(bool on) {
 	}
 }
 
-void MachineView::setPadVisible(bool visible) {
-	if (m_hostVideo->isPadVisible() != visible) {
-		m_hostVideo->setPadVisible(visible);
-		emit padVisibleChanged();
+void MachineView::setPadOpacity(qreal opacity) {
+	if (m_hostVideo->padOpacity() != opacity) {
+		m_hostVideo->setPadOpacity(opacity);
+		emit padOpacityChanged();
 	}
 }
 
