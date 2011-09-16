@@ -43,10 +43,12 @@ Page {
 		Button {
 			text: "Save"
 			onClicked: {
-				if (!stateListModel.saveState(-1))
+				if (!stateListModel.saveState(-1)) {
+					errorDialog.message = "Save Error: Could not save."
 					errorDialog.open()
-				else
+				} else {
 					coverFlow.currentIndex = coverFlow.count-1
+				}
 			}
 		}
 		Button {
@@ -68,7 +70,7 @@ Page {
 			enabled: coverFlow.currentIndex >= 0
 			onClicked: {
 				if (!stateListModel.loadState(stateListModel.get(coverFlow.currentIndex))) {
-					condole.log("load error")
+					errorDialog.message = "Load Error (data corrupted or different version)."
 					errorDialog.open()
 				}
 			}
@@ -82,8 +84,10 @@ Page {
 		acceptButtonText: "Yes"
 		rejectButtonText: "No"
 		onAccepted: {
-			if (!stateListModel.saveState(stateListModel.get(coverFlow.currentIndex)))
+			if (!stateListModel.saveState(stateListModel.get(coverFlow.currentIndex))) {
+				errorDialog.message = "Save Error: Could not save."
 				errorDialog.open()
+			}
 		}
 	}
 

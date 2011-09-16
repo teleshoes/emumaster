@@ -240,6 +240,7 @@ QString SnesMachine::setDisk(const QString &path) {
 void SnesMachine::emulateFrame(bool drawEnabled) {
 	if (drawEnabled)
 		GFX.Screen = (u8 *)m_frame.bits();
+	IPPU.RenderThisFrame = drawEnabled;
 	rendered = false;
 	while (!rendered)
 		S9xMainLoop();

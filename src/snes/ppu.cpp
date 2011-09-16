@@ -2347,7 +2347,7 @@ void S9xResetPPU ()
     IPPU.RenderedScreenHeight = SNES_HEIGHT;
     IPPU.XB = NULL;
     for (c = 0; c < 256; c++)
-	IPPU.ScreenColors [c] = c;
+		IPPU.ScreenColors [c] = c;
     S9xFixColourBrightness ();
     IPPU.PreviousLine = IPPU.CurrentLine = 0;
     IPPU.Joypads[0] = IPPU.Joypads[1] = IPPU.Joypads[2] = 0;
