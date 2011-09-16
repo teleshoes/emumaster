@@ -89,7 +89,7 @@
 #include <stdio.h>
 #include "port.h"
 #include "seta.h"
-#include "memmap.h"
+#include "mem.h"
 
 ST011_Regs ST011;
 

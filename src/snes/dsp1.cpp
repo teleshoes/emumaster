@@ -75,7 +75,7 @@
 #include "snes9x.h"
 #include "dsp1.h"
 #include "missing.h"
-#include "memmap.h"
+#include "mem.h"
 #include <math.h>
 
 #include "dsp1emu.c"

@@ -41,7 +41,7 @@
 #ifndef _sa1_h_
 #define _sa1_h_
 
-#include "memmap.h"
+#include "mem.h"
 
 struct SSA1Registers {
 	u8   PB;

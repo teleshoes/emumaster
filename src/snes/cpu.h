@@ -41,7 +41,7 @@
 #ifndef SNESCPU_H
 #define SNESCPU_H
 #include "ppu.h"
-#include "memmap.h"
+#include "mem.h"
 #include "65c816.h"
 #include <imachine.h>
 

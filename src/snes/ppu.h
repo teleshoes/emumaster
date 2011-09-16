@@ -272,7 +272,7 @@ extern struct InternalPPU IPPU;
 END_EXTERN_C
 
 #include "gfx.h"
-#include "memmap.h"
+#include "mem.h"
 
 STATIC inline u8 REGISTER_4212()
 {

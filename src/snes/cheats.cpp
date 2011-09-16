@@ -43,7 +43,7 @@
 #include <string.h>
 #include "snes9x.h"
 #include "cheats.h"
-#include "memmap.h"
+#include "mem.h"
 
 static bool8 S9xAllHex (const char *code, int len)
 {

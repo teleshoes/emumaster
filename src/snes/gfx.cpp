@@ -43,7 +43,7 @@
 //#include <e32cmn.h>    
 #include "snes9x.h"
 
-#include "memmap.h"
+#include "mem.h"
 #include "ppu.h"
 #include "cpu.h"
 #include "display.h"
@@ -659,25 +659,6 @@ void S9xEndScreenRefresh ()
 	}
     }
 #endif
-/*
-	SRAM autosaves cause too noticeable slowdown in Symbian..
-	if (CPU.SRAMModified)
-    {
-		if (!CPU.AutoSaveTimer)
-		{
-			if (!(CPU.AutoSaveTimer = Settings.AutoSaveDelay * Memory.ROMFramesPerSecond))
-			CPU.SRAMModified = FALSE;
-		}
-		else
-		{
-			if (!--CPU.AutoSaveTimer)
-			{
-				S9xAutoSaveSRAM ();
-				CPU.SRAMModified = FALSE;
-			}
-		}
-    }
-*/
 }
 
 void S9xSetInfoString (const char *string)

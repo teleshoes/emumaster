@@ -87,7 +87,7 @@
   Nintendo Co., Limited and its subsidiary companies.
 *******************************************************************************/
 //#include "port.h"
-#include "memmap.h"
+#include "mem.h"
 #include "seta.h"
 
 // Mode 7 scaling constants for all raster lines

@@ -36,7 +36,6 @@ HEADERS += \
     fxinst.h \
     fxemu.h \
     os9x_asm_cpu.h \
-    memmap.h \
     ppu.h \
     tile.h \
     srtc.h \
@@ -61,7 +60,8 @@ HEADERS += \
     getset.h \
     display.h \
     debug.h \
-    spu.h
+    spu.h \
+    mem.h
 
 SOURCES += \
     sdd1emu.cpp \
@@ -85,6 +85,10 @@ SOURCES += \
     c4emu.cpp \
     c4.cpp \
     sdd1.cpp
+
+
+
+
 
 
 

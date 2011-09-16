@@ -41,7 +41,7 @@
 //#include <string.h>
 #include "snes9x.h"
 #include "srtc.h"
-#include "memmap.h"
+#include "mem.h"
 
 /***   The format of the rtc_data structure is:
 

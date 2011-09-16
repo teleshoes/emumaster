@@ -1,6 +1,6 @@
 #include "machine.h"
 #include "snes9x.h"
-#include "memmap.h"
+#include "mem.h"
 #include "spu.h"
 #include "gfx.h"
 #include "soundux.h"

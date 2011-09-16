@@ -43,7 +43,7 @@
 #include <stdio.h>
 
 #include "snes9x.h"
-#include "memmap.h"
+#include "mem.h"
 #include "cpu.h"
 #include "ppu.h"
 #include "display.h"
@@ -963,80 +963,6 @@ void CMemory::InitROM (bool8_32 Interleaved)
 
     S9xMessage (S9X_INFO, S9X_ROM_INFO, String);
   
-}
-
-bool8_32 CMemory::LoadSRAM (const char *filename)
-{
-    int size = Memory.SRAMSize ?
-	       (1 << (Memory.SRAMSize + 3)) * 128 : 0;
-
-    memset (SRAM, SNESGameFixes.SRAMInitialValue, 0x20000);
-
-    if (size > 0x20000)
-	size = 0x20000;
-    
-    if (size)
-    {
-	FILE *file;
-	if ((file = fopen(filename, "rb")))
-	{
-	    int len = fread ((char*) ::SRAM, 1, 0x20000, file);
-	    fclose (file);
-	    if (len - size == 512)
-	    {
-		// S-RAM file has a header - remove it
-		memmove (::SRAM, ::SRAM + 512, size);
-	    }
-	    if (len == size + SRTC_SRAM_PAD)
-	    {
-		S9xSRTCPostLoadState ();
-		S9xResetSRTC ();
-		rtc.index = -1;
-		rtc.mode = MODE_READ;
-	    }
-	    else
-		S9xHardResetSRTC ();
-			return (TRUE);
-		}
-		S9xHardResetSRTC ();
-		return (FALSE);
-    }
-//  TODO  if (Settings.SDD1)
-//	S9xSDD1LoadLoggedData ();
-
-    return (TRUE);
-}
-
-bool8_32 CMemory::SaveSRAM (const char *filename)
-{
-    int size = Memory.SRAMSize ?
-	       (1 << (Memory.SRAMSize + 3)) * 128 : 0;
-    if (Settings.SRTC)
-    {
-	size += SRTC_SRAM_PAD;
-	S9xSRTCPreSaveState ();
-    }
-
-// TODO    if (Settings.SDD1)
-//	S9xSDD1SaveLoggedData ();
-
-    if (size > 0x20000)
-	size = 0x20000;
-
-    if (size && *Memory.ROMFilename)
-    {
-	FILE *file;
-	if ((file = fopen (filename, "wb")))
-	{
-	    fwrite ((char *) ::SRAM, size, 1, file);
-	    fclose (file);
-#if defined(__linux)
-		    chown (filename, getuid (), getgid ());
-#endif
-		    return (TRUE);
-		}
-    }
-    return (FALSE);
 }
 
 void CMemory::FixROMSpeed ()

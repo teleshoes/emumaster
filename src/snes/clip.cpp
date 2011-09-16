@@ -41,7 +41,7 @@
 #include <stdlib.h>
 
 #include "snes9x.h"
-#include "memmap.h"
+#include "mem.h"
 #include "ppu.h"
 
 struct Band

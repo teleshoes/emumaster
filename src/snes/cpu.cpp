@@ -39,7 +39,7 @@
  * Nintendo Co., Limited and its subsidiary companies.
  */
 #include "snes9x.h"
-#include "memmap.h"
+#include "mem.h"
 #include "ppu.h"
 #include "dsp1.h"
 #include "cpu.h"

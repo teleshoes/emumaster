@@ -1,6 +1,5 @@
 poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
 
- s for Amiga,PSX create readme.txt about rom folders and roms name policy
  b QPixmap coś tam - spowodowane modelem statycznym
  s update nes emulation
  s pause when call is coming or device is going to sleep

@@ -99,7 +99,7 @@ if ((v) > 127) \
 #include "snes9x.h"
 #include "soundux.h"
 #include "spu.h"
-#include "memmap.h"
+#include "mem.h"
 #include "cpu.h"
 #include <QDataStream>
 

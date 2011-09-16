@@ -43,7 +43,7 @@
 #include <string.h>
 #include "snes9x.h"
 #include "cheats.h"
-#include "memmap.h"
+#include "mem.h"
 
 extern SCheatData Cheat;
 

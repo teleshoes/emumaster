@@ -86,7 +86,7 @@
   Super NES and Super Nintendo Entertainment System are trademarks of
   Nintendo Co., Limited and its subsidiary companies.
 *******************************************************************************/
-#include "memmap.h"
+#include "mem.h"
 #include "seta.h"
 //#include "port.h"
 
