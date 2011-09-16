@@ -92,6 +92,7 @@ QString SnesMachine::init() {
 }
 
 void SnesMachine::shutdown() {
+	m_frame = QImage();
 }
 
 void SnesMachine::reset() {

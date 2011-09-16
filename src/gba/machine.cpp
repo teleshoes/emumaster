@@ -63,6 +63,7 @@ void GbaMachine::shutdown() {
 	m_quit = true;
 	while (m_quit)
 		emulateFrame(false);
+	gpuFrame = QImage();
 }
 
 void GbaMachine::reset() {

@@ -3,12 +3,12 @@ poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
  b QPixmap coś tam - spowodowane modelem statycznym
  s update nes emulation
  s pause when call is coming or device is going to sleep
+ s exit from gba thread
+ s timer for games that don't work at all
  s load roms from dir in psx (menu in qml)
  s save sound in psx
  s psx selectable bios
  s psx filter files in rom gallery
- s exit from gba thread
- s timer for games that don't work at all
  b dwie rundy w tekenie - w replayu start i stop ??
  b kula world save/load dont work with bios
  s copy legal info

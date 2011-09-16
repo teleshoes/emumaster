@@ -52,6 +52,7 @@ static void emu_config() {
 	Config.Sio = 0;
 	Config.SpuIrq = 0;
 	Config.VSyncWA = 0;
+	// TODO give user ability to choose his bios
 	psxMem.setBiosName("scph1001.bin");
 }
 
@@ -70,6 +71,7 @@ QString PsxMachine::init() {
 }
 
 void PsxMachine::shutdown() {
+	gpuFrame = QImage();
 }
 
 void PsxMachine::reset() {
