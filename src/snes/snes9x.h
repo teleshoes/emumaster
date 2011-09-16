@@ -261,16 +261,11 @@ struct SSettings{
 
     // Joystick options
     bool8  SwapJoypads;
-    bool8  JoystickEnabled;
 
     // ROM timing options (see also H_Max above)
     bool8  ForcePAL;
     bool8  ForceNTSC;
     bool8  PAL;
-	u32 FrameTimePAL;
-	u32 FrameTimeNTSC;
-	u32 FrameTime;
-	u32 SkipFrames;
 
     // ROM image options
     bool8  ForceLoROM;
@@ -311,22 +306,13 @@ struct SSettings{
     // Sound options
 	u32 SoundPlaybackRate;
     bool8  TraceSoundDSP;
-    bool8  Stereo;
-    bool8  ReverseStereo;
     bool8  SixteenBitSound;
-    int    SoundBufferSize;
     int    SoundMixInterval;
     bool8  SoundEnvelopeHeightReading;
     bool8  DisableSoundEcho;
-    bool8  DisableSampleCaching;
     bool8  DisableMasterVolume;
-    bool8  SoundSync;
     bool8  InterpolatedSound;
-    bool8  ThreadSound;
     bool8  Mute;
-//    bool8  NextAPUEnabled;
-	u8  AltSampleDecode;
-    bool8  FixFrequency;
     
     // Graphics options
     bool8  SixteenBit;
@@ -337,9 +323,7 @@ struct SSettings{
     // SNES graphics options
     bool8  BGLayering;
     bool8  DisableGraphicWindows;
-    bool8  ForceTransparency;
-    bool8  ForceNoTransparency;
-    bool8  DisableHDMA;
+	bool8  DisableHDMA;
 
     // Others
     bool8  NetPlay;
@@ -350,9 +334,6 @@ struct SSettings{
     bool8  OpenGLEnable;
 	s32  AutoSaveDelay; // Time in seconds before S-RAM auto-saved if modified.
     bool8  ApplyCheats;
-    bool8  TurboMode;
-	u32 TurboSkipFrames;
-	u32 AutoMaxSkipFrames;
 	u32 os9x_hack;
     
 // Fixes for individual games

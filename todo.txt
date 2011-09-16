@@ -1,24 +1,32 @@
 poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
 
- s L,R buttons
- s start button misplaced
- s update model in emulations : static objects instead of on heap
- s snes fix different resolutions
- b saves do not work in yoshi - snes
+ s pad opacity option
+ s catch load/save errors
  s for Amiga,PSX create readme.txt about rom folders and roms name policy
- s copy legal info
- s bluetooth gamepad
+ b QPixmap coś tam - spowodowane modelem statycznym
+ s update nes emulation
+ s pause when call is coming or device is going to sleep
+ s load roms from dir in psx (menu in qml)
  s save sound in psx
- b dwie rundy w tekenie - w replayu start i stop ??
- b saves in gba tasmanian dont work
  s psx selectable bios
  s psx filter files in rom gallery
- b kula world save/load dont work with bios
- b QPixmap coś tam - spowodowane model statycznym
- s remove last state option
  s exit from gba thread
+ s timer for games that don't work at all
+ b dwie rundy w tekenie - w replayu start i stop ??
+ b kula world save/load dont work with bios
+ s copy legal info
+
+ s bluetooth gamepad
+ s remove last state option
  s add some more flags to compiler (as)
  x make icons in home screen removable
+ b saves in gba tasmanian dont work
+ s load roms from zipped files
+ s pad view config, colors, xor
+ s on-screen paddle controller (e.g. arkanoid)
+ s on-screen zapper controller (e.g. duck hunts)
+ s nesapu performance
+ s 6502 in assembly
  - input feedback
  - fps degradation on touch input
  - Amiga
@@ -26,16 +34,9 @@ poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
  - ScummVM
  - C64
  - ZX Spectrum
- s load roms from zipped files
- s pad view config, colors, xor
- s on-screen paddle controller (e.g. arkanoid)
- s on-screen zapper controller (e.g. duck hunts)
- s nesapu performance
- s 6502 in assembly
  - portrait mode in rom gallery makes titles half visible
  - mappers 72-255
  - test PAL for NES
- - catch load/save errors
  - make better documentation:
    - input - pressing 2 keys at the time
    - howto make icon in the homescreen
@@ -45,8 +46,6 @@ poll: Amiga N64 NDS Bluetooth-Gamepad NETplay ROMs-from-zipped-files
    - howto donate
  - netplay
  - remove the hack in .pri files needed for harmattan when sdk will support this
- - Meegotouch Control Panel http://www.developer.nokia.com/Community/Wiki/SettingsApplet
- - support for debugging
  - translations
 
 issues:

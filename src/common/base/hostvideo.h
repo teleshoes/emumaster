@@ -21,9 +21,6 @@ public:
 	bool isSwipeEnabled() const;
 	void setSwipeEnabled(bool on);
 
-	bool isQuickQuitVisible() const;
-	void setQuickQuitVisible(bool on);
-
 	bool keepApsectRatio() const;
 	void setKeepAspectRatio(bool on);
 
@@ -56,15 +53,10 @@ private:
 	QTime m_fpsCounterTime;
 
 	bool m_padVisible;
-	QImage m_padArrowsImage;
-	QImage m_padButtonsImage;
-	QImage m_selectButtonImage;
-	QImage m_startButtonImage;
-	QImage m_pauseButtonImage;
-	QImage m_quitButtonImage;
+	QImage m_padLeftImage;
+	QImage m_padRightImage;
 
 	bool m_swipeEnabled;
-	bool m_quickQuitVisible;
 	bool m_keepAspectRatio;
 
 	friend class MachineView;
@@ -78,8 +70,6 @@ inline bool HostVideo::isPadVisible() const
 { return m_padVisible; }
 inline bool HostVideo::isSwipeEnabled() const
 { return m_swipeEnabled; }
-inline bool HostVideo::isQuickQuitVisible() const
-{ return m_quickQuitVisible; }
 inline bool HostVideo::keepApsectRatio() const
 { return m_keepAspectRatio; }
 

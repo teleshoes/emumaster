@@ -45,7 +45,7 @@
 #include "missing.h"
 #include "cpu.h"
 #include "debug.h"
-#include "apu.h"
+#include "spu.h"
 #include "dma.h"
 #include "gfx.h"
 #include "soundux.h"

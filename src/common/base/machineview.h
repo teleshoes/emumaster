@@ -22,7 +22,6 @@ class BASE_EXPORT MachineView : public QObject {
 	Q_PROPERTY(int audioSampleRate READ audioSampleRate WRITE setAudioSampleRate NOTIFY audioSampleRateChanged)
 	Q_PROPERTY(bool swipeEnable READ isSwipeEnabled WRITE setSwipeEnabled NOTIFY swipeEnableChanged)
 	Q_PROPERTY(bool padVisible READ isPadVisible WRITE setPadVisible NOTIFY padVisibleChanged)
-	Q_PROPERTY(bool quickQuitEnable READ isQuickQuitEnabled WRITE setQuickQuitEnabled NOTIFY quickQuitEnableChanged)
 	Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged)
 	Q_PROPERTY(bool accelerometerEnable READ isAccelerometerEnabled WRITE setAccelerometerEnabled NOTIFY accelerometerEnableChanged)
 public:
@@ -46,8 +45,6 @@ public:
 	void setSwipeEnabled(bool on);
 	bool isPadVisible() const;
 	void setPadVisible(bool visible);
-	bool isQuickQuitEnabled() const;
-	void setQuickQuitEnabled(bool on);
 	bool keepAspectRatio() const;
 	void setKeepAspectRatio(bool on);
 	bool isAccelerometerEnabled() const;
@@ -67,7 +64,6 @@ signals:
 	void audioSampleRateChanged();
 	void swipeEnableChanged();
 	void padVisibleChanged();
-	void quickQuitEnableChanged();
 	void keepAspectRatioChanged();
 	void accelerometerEnableChanged();
 private slots:

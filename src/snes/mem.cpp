@@ -48,7 +48,7 @@
 #include "ppu.h"
 #include "display.h"
 #include "cheats.h"
-#include "apu.h"
+#include "spu.h"
 #include "sa1.h"
 #include "srtc.h"
 #include "sdd1.h"
@@ -910,12 +910,10 @@ void CMemory::InitROM (bool8_32 Interleaved)
     
     if (Settings.PAL)
     {
-	Settings.FrameTime = Settings.FrameTimePAL;
 	Memory.ROMFramesPerSecond = 50;
     }
     else
     {
-	Settings.FrameTime = Settings.FrameTimeNTSC;
 	Memory.ROMFramesPerSecond = 60;
     }
 	
@@ -2490,7 +2488,6 @@ void CMemory::ApplyROMFixes ()
 	if (!Settings.ForceNTSC && !Settings.ForcePAL)
 	{
 	    Settings.PAL = FALSE;
-	    Settings.FrameTime = Settings.FrameTimeNTSC;
 	    Memory.ROMFramesPerSecond = 60;
 	}
     }
@@ -2671,7 +2668,7 @@ err_eof:
 #include "getset.h"
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-	STATE_SERIALIZE_BEGIN_##sl(SnesMemory, 1) \
+	STATE_SERIALIZE_BEGIN_##sl(SnesMem, 1) \
 	STATE_SERIALIZE_ARRAY_##sl(Memory.RAM, 0x20000) \
 	STATE_SERIALIZE_ARRAY_##sl(Memory.VRAM, 0x10000) \
 	STATE_SERIALIZE_ARRAY_##sl(Memory.SRAM, 0x20000) \
@@ -2679,7 +2676,7 @@ err_eof:
 	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
 		Memory.FixROMSpeed(); \
 	} \
-	STATE_SERIALIZE_END_##sl(SnesMemory)
+	STATE_SERIALIZE_END_##sl(SnesMem)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)

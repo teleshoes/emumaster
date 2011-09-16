@@ -178,7 +178,7 @@ void S9xSetPlaybackRate (u32 rate);
 EXTERN_C bool8 S9xInitSound (void);
 
 // notaz: some stuff from soundux.cpp to enable their inlining
-#include "apu.h"
+#include "spu.h"
 //#define DEBUG
 //#include <dprintf.h>
 
@@ -332,12 +332,6 @@ static inline void S9xSetSoundFrequency (int channel, int hertz) // hertz [0~64K
 #else
 		SoundData.channels[channel].frequency = (hertz * so.freqbase) >> 11;
 #endif
-
-	/*	if (Settings.FixFrequency)
-		{
-			SoundData.channels[channel].frequency = 
-			(unsigned long) ((double)  SoundData.channels[channel].frequency * 0.980);
-		}*/
 	}
 }
 

@@ -29,16 +29,13 @@ HostVideo::HostVideo(IMachine *machine, MachineThread *thread) :
 	m_padVisible = true;
 	QString dirPath = QString("%1/data").arg(IMachine::installationDirPath());
 
-	m_padArrowsImage.load(dirPath + "/pad_arrows.png");
-	m_padButtonsImage.load(dirPath + "/pad_buttons.png");
-
-	m_selectButtonImage.load(dirPath + "/pad_select.png");
-	m_startButtonImage.load(dirPath + "/pad_start.png");
-	m_pauseButtonImage.load(dirPath + "/pause.png");
-	m_quitButtonImage.load(dirPath + "/quit.png");
+	m_padLeftImage.load(dirPath + "/pad-left.png");
+	if (machine->name() == "psx")
+		m_padRightImage.load(dirPath + "/pad-right-psx.png");
+	else
+		m_padRightImage.load(dirPath + "/pad-right-abxy.png");
 
 	m_swipeEnabled = true;
-	m_quickQuitVisible = false;
 	m_keepAspectRatio = false;
 }
 
@@ -61,34 +58,30 @@ void HostVideo::paintEvent(QPaintEvent *) {
 		painter.setPen(Qt::red);
 		painter.drawText(rect(), Qt::AlignCenter, m_error);
 	} else {
-		if (!m_thread->m_inFrameGenerated)
-			return;
-		painter.drawImage(m_dstRect, m_machine->frame(), m_srcRect);
-		if (m_fpsVisible) {
-			m_fpsCounter++;
-			if (m_fpsCounterTime.elapsed() >= 1000) {
-				m_fpsCounterTime.restart();
-				m_fpsCount = m_fpsCounter;
-				m_fpsCounter = 0;
+		if (m_thread->m_inFrameGenerated) {
+			painter.drawImage(m_dstRect, m_machine->frame(), m_srcRect);
+			if (m_fpsVisible) {
+				m_fpsCounter++;
+				if (m_fpsCounterTime.elapsed() >= 1000) {
+					m_fpsCounterTime.restart();
+					m_fpsCount = m_fpsCounter;
+					m_fpsCounter = 0;
+				}
+				QFont font = painter.font();
+				font.setPointSize(12);
+				painter.setFont(font);
+				painter.setPen(Qt::white);
+				painter.drawText(QRectF(0.0f, 0.0f, 100.0f, 40.0f),
+								 Qt::AlignCenter,
+								 QString("%1 FPS").arg(m_fpsCount));
 			}
-			QFont font = painter.font();
-			font.setPointSize(12);
-			painter.setFont(font);
-			painter.setPen(Qt::white);
-			painter.drawText(QRectF(0.0f, 0.0f, 100.0f, 40.0f),
-							 Qt::AlignCenter,
-							 QString("%1 FPS").arg(m_fpsCount));
 		}
 		if (m_padVisible) {
-			painter.drawImage(QPoint(0, 480-200), m_padArrowsImage);
-			painter.drawImage(QPoint(854-200, 480-200), m_padButtonsImage);
-			painter.drawImage(QPoint(0, 100), m_selectButtonImage);
-			painter.drawImage(QPoint(854-75, 100), m_startButtonImage);
+			painter.setOpacity(0.45f);
+			painter.drawImage(QPoint(), m_padLeftImage);
+			painter.drawImage(QPoint(854-240, 0), m_padRightImage);
 		}
 	}
-	painter.drawImage(QPoint(854-32-20, 20), m_pauseButtonImage);
-	if (m_quickQuitVisible)
-		painter.drawImage(QPoint(20, 20), m_quitButtonImage);
 	painter.end();
 }
 
@@ -96,29 +89,9 @@ void HostVideo::setFpsVisible(bool on)
 { m_fpsVisible = on; }
 void HostVideo::setPadVisible(bool on)
 { m_padVisible = on; }
-void HostVideo::setQuickQuitVisible(bool on)
-{ m_quickQuitVisible = on; }
 
 void HostVideo::setSwipeEnabled(bool on) {
 #if defined(MEEGO_EDITION_HARMATTAN)
-/*	implementation below don't work for now - when you touch on the edge the screen is blocked
-	Display *dpy = QX11Info::display();
-	Window w = effectiveWinId();
-
-	unsigned long val = (on ? 0 : 1);
-	Atom atom = XInternAtom(dpy, "_MEEGOTOUCH_CANNOT_MINIMIZE", false);
-	if (!atom) {
-		qWarning("Unable to obtain _MEEGOTOUCH_CANNOT_MINIMIZE.");
-		return;
-	}
-	XChangeProperty(dpy,
-					w,
-					atom,
-					XA_CARDINAL,
-					32,
-					PropModeReplace,
-					reinterpret_cast<unsigned char *>(&val),
-					1);*/
 	if (m_swipeEnabled == on)
 		return;
 	m_swipeEnabled = on;

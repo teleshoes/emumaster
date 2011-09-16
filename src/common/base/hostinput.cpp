@@ -5,7 +5,6 @@
 
 HostInput::HostInput(IMachine *machine) :
 	m_machine(machine) {
-	m_quickQuitEnabled = true;
 	m_keys = 0;
 	m_accelerometer = 0;
 }
@@ -69,55 +68,104 @@ void HostInput::processTouch(QEvent *e) {
 			continue;
 		int x = point.pos().x();
 		int y = point.pos().y();
-		if (x < 854/2) {
-			if (y >= 480-200) {
-				if (x < 200) {
-					y -= 480-200;
-					if (x < 70 && y >= 30 && y < 200-30)
-						setKeyState(IMachine::Left_PadKey, true);
-					if (x >= 200-70 && y >= 30 && y < 200-30)
-						setKeyState(IMachine::Right_PadKey, true);
-					if (y < 70 && x >= 30 && x < 200-30)
+		if (x < 240) {
+			if (y >= 240) {
+				y -= 240;
+				if (x < 60) {
+					setKeyState(IMachine::Left_PadKey, true);
+					if (y < 60)
 						setKeyState(IMachine::Up_PadKey, true);
-					if (y >= 200-70 && x >= 30 && x < 200-30)
+					else if (y >= 180)
 						setKeyState(IMachine::Down_PadKey, true);
+				} else if (x >= 180) {
+					setKeyState(IMachine::Right_PadKey, true);
+					if (y < 60)
+						setKeyState(IMachine::Up_PadKey, true);
+					else if (y >= 180)
+						setKeyState(IMachine::Down_PadKey, true);
+				} else {
+					if (y < 60)
+						setKeyState(IMachine::Up_PadKey, true);
+					else if (y >= 180)
+						setKeyState(IMachine::Down_PadKey, true);
+					else {
+						x -= 120;
+						y -= 120;
+						if (qAbs(x) > qAbs(y)) {
+							if (x > 0)
+								setKeyState(IMachine::Right_PadKey, true);
+							else
+								setKeyState(IMachine::Left_PadKey, true);
+						} else {
+							if (y > 0)
+								setKeyState(IMachine::Up_PadKey, true);
+							else
+								setKeyState(IMachine::Down_PadKey, true);
+						}
+					}
 				}
 			} else {
-				if (x < 70 && y >= 100 && y < 135)
-					setKeyState(IMachine::Select_PadKey, true);
-				if (x < 60 && y < 60) {
-					if (m_quickQuitEnabled)
-						emit wantClose();
+				if (x < 90) {
+					if (y < 40)
+						setKeyState(IMachine::Select_PadKey, true);
+					else if (y >= 110 && y < 170)
+						setKeyState(IMachine::L_PadKey, true);
+				} else if (x >= 150 && y < 40) {
+					emit wantClose();
 				}
 			}
-		} else {
-			if (y >= 480-200) {
-				if (x >= 854-200) {
-					x -= 854-200;
-					y -= 480-200;
-					if (x < 70 && y >= 30 && y < 200-30)
+		} else if (x >= 854-240) {
+			x -= 854-240;
+			if (y >= 240) {
+				y -= 240;
+				if (x < 60) {
+					setKeyState(IMachine::X_PadKey, true);
+					if (y < 60)
 						setKeyState(IMachine::Y_PadKey, true);
-					if (x >= 200-70 && y >= 30 && y < 200-30)
-						setKeyState(IMachine::A_PadKey, true);
-					if (y < 70 && x >= 30 && x < 200-30)
-						setKeyState(IMachine::X_PadKey, true);
-					if (y >= 200-70 && x >= 30 && x < 200-30)
+					else if (y >= 180)
 						setKeyState(IMachine::B_PadKey, true);
+				} else if (x >= 180) {
+					setKeyState(IMachine::A_PadKey, true);
+					if (y < 60)
+						setKeyState(IMachine::Y_PadKey, true);
+					else if (y >= 180)
+						setKeyState(IMachine::B_PadKey, true);
+				} else {
+					if (y < 60)
+						setKeyState(IMachine::Y_PadKey, true);
+					else if (y >= 180)
+						setKeyState(IMachine::B_PadKey, true);
+					else {
+						x -= 120;
+						y -= 120;
+						if (qAbs(x) > qAbs(y)) {
+							if (x > 0)
+								setKeyState(IMachine::A_PadKey, true);
+							else
+								setKeyState(IMachine::X_PadKey, true);
+						} else {
+							if (y > 0)
+								setKeyState(IMachine::Y_PadKey, true);
+							else
+								setKeyState(IMachine::B_PadKey, true);
+						}
+					}
 				}
 			} else {
-				if (x >= 854-70 && y >= 100 && y < 135)
-					setKeyState(IMachine::Start_PadKey, true);
-				if (x >= 854-60 && y < 60)
+				if (x >= 150) {
+					if (y < 40)
+						setKeyState(IMachine::Start_PadKey, true);
+					else if (y >= 110 && y < 170)
+						setKeyState(IMachine::R_PadKey, true);
+				} else if (x < 90 && y < 40) {
 					emit pauseClicked();
+				}
 			}
 		}
 	}
 	if (m_keys != lastKeys)
 		m_machine->setPadKeys(0, m_keys);
 }
-
-void HostInput::setQuickQuitEnabled(bool on)
-{ m_quickQuitEnabled = on; }
 
 bool HostInput::isAccelerometerEnabled() const
 { return m_accelerometer != 0; }

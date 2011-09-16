@@ -38,14 +38,14 @@
  * Super NES and Super Nintendo Entertainment System are trademarks of
  * Nintendo Co., Limited and its subsidiary companies.
  */
-#ifndef SNESAPU_H
-#define SNESAPU_H
+#ifndef SNESSPU_H
+#define SNESSPU_H
 
 #include "spc700.h"
 #include "port.h"
 #include <imachine.h>
 
-class SnesApu : public QObject {
+class SnesSpu : public QObject {
 	Q_OBJECT
 public:
 	bool save(QDataStream &s);
@@ -191,4 +191,4 @@ END_EXTERN_C
 
 #define FREQUENCY_MASK 0x3fff
 
-#endif // SNESAPU_H
+#endif // SNESSPU_H

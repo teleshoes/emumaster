@@ -69,6 +69,9 @@ QString PsxMachine::init() {
 	return QString();
 }
 
+void PsxMachine::shutdown() {
+}
+
 void PsxMachine::reset() {
 	SysReset();
 	CheckCdrom();

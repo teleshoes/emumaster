@@ -1,5 +1,5 @@
 #include "snes9x.h"
-#include "apu.h"
+#include "spu.h"
 #include "ppu.h"
 #include "cpu.h"
 //#include "cpuops.h"

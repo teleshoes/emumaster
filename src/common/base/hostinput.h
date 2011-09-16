@@ -15,8 +15,6 @@ public:
 
 	bool isAccelerometerEnabled() const;
 	void setAccelerometerEnabled(bool on);
-
-	void setQuickQuitEnabled(bool on);
 signals:
 	void pauseClicked();
 	void wantClose();
@@ -30,7 +28,6 @@ private:
 	void setKeyState(int key, bool state);
 
 	IMachine *m_machine;
-	bool m_quickQuitEnabled;
 	int m_keys;
 	QAccelerometer *m_accelerometer;
 };

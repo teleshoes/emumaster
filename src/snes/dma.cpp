@@ -45,7 +45,7 @@
 #include "cpu.h"
 #include "missing.h"
 #include "dma.h"
-#include "apu.h"
+#include "spu.h"
 #include "gfx.h"
 #ifdef USE_SA1
 #include "sa1.h"

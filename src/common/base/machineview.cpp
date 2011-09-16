@@ -75,9 +75,6 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 		if (m_autoLoadOnStart)
 			m_stateListModel->loadState(-2);
 		QObject::connect(m_hostInput, SIGNAL(pauseClicked()), SLOT(pause()));
-	} else {
-		m_hostVideo->setQuickQuitVisible(true);
-		m_hostInput->setQuickQuitEnabled(true);
 	}
 	QObject::connect(m_hostInput, SIGNAL(wantClose()), SLOT(close()));
 	QMetaObject::invokeMethod(this, "resume", Qt::QueuedConnection);
@@ -201,8 +198,6 @@ void MachineView::saveSettings() {
 	s.setValue("fpsVisible", m_hostVideo->isFpsVisible());
 	s.setValue("keepAspectRatio", m_hostVideo->keepApsectRatio());
 
-	s.setValue("quickQuit", m_hostVideo->isQuickQuitVisible());
-
 	QStringList accelDisks = s.value("accelerometerEnabledDisks", QStringList()).toStringList();
 	bool accelDisksChanged = false;
 	if (m_hostInput->isAccelerometerEnabled()) {
@@ -237,10 +232,6 @@ void MachineView::loadSettings() {
 	m_hostVideo->setFpsVisible(s.value("fpsVisible", false).toBool());
 	m_hostVideo->setKeepAspectRatio(s.value("keepAspectRatio", false).toBool());
 
-	bool quickQuit = s.value("quickQuit", true).toBool();
-	m_hostVideo->setQuickQuitVisible(quickQuit);
-	m_hostInput->setQuickQuitEnabled(quickQuit);
-
 	QStringList accelDisks = s.value("accelerometerEnabledDisks", QStringList()).toStringList();
 	if (accelDisks.contains(m_diskName))
 		m_hostInput->setAccelerometerEnabled(true);
@@ -270,8 +261,6 @@ bool MachineView::isSwipeEnabled() const
 { return m_hostVideo->isSwipeEnabled(); }
 bool MachineView::isPadVisible() const
 { return m_hostVideo->isPadVisible(); }
-bool MachineView::isQuickQuitEnabled() const
-{ return m_hostVideo->isQuickQuitVisible(); }
 bool MachineView::keepAspectRatio() const
 { return m_hostVideo->keepApsectRatio(); }
 bool MachineView::isAccelerometerEnabled() const
@@ -318,14 +307,6 @@ void MachineView::setPadVisible(bool visible) {
 	if (m_hostVideo->isPadVisible() != visible) {
 		m_hostVideo->setPadVisible(visible);
 		emit padVisibleChanged();
-	}
-}
-
-void MachineView::setQuickQuitEnabled(bool on) {
-	if (m_hostVideo->isQuickQuitVisible() != on) {
-		m_hostVideo->setQuickQuitVisible(on);
-		m_hostInput->setQuickQuitEnabled(on);
-		emit quickQuitEnableChanged();
 	}
 }
 

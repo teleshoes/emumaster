@@ -13,3 +13,5 @@ because program use name of the disk to store screenshots,states and others
 
 files extensions case sensitivity
 patterns scph*.bin for psx bios
+
+pad hotspots image

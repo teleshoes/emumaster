@@ -48,10 +48,11 @@
 #include "cpu.h"
 #include "display.h"
 #include "gfx.h"
-#include "apu.h"
+#include "spu.h"
 #include "cheats.h"
 //#include "tile.h"
 #include "port.h"
+#include "machine.h"
 
 typedef unsigned int u32_t;
 
@@ -311,8 +312,6 @@ bool8_32 S9xGraphicsInit ()
 	GFX.ZPitch >>= 1;
     GFX.Delta = (GFX.SubScreen - GFX.Screen) >> 1;
     GFX.DepthDelta = GFX.SubZBuffer - GFX.ZBuffer;
-    //GFX.InfoStringTimeout = 0;
-    //GFX.InfoString = NULL;
 
     PPU.BG_Forced = 0;
     IPPU.OBJChanged = TRUE;
@@ -640,8 +639,7 @@ void S9xEndScreenRefresh ()
             GFX.Pitch = GFX.Pitch2 = GFX.RealPitch;
             GFX.PPL = GFX.PPLx2 >> 1;
 
-		S9xDeinitUpdate (IPPU.RenderedScreenWidth, IPPU.RenderedScreenHeight,
-				 Settings.SixteenBit);
+		snesMachine.sync(IPPU.RenderedScreenWidth, IPPU.RenderedScreenHeight);
 	}
 #ifndef RC_OPTIMIZED
     S9xApplyCheats ();

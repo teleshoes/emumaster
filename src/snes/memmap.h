@@ -43,7 +43,7 @@
 
 #include <imachine.h>
 
-class SnesMemory : public QObject {
+class SnesMem : public QObject {
 	Q_OBJECT
 public:
 	bool save(QDataStream &s);

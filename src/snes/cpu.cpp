@@ -44,7 +44,7 @@
 #include "dsp1.h"
 #include "cpu.h"
 #include "debug.h"
-#include "apu.h"
+#include "spu.h"
 #include "dma.h"
 #include "port.h"
 #ifdef USE_SA1

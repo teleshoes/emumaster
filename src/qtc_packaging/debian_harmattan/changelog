@@ -14,6 +14,8 @@ emumaster (0.0.2) unstable; urgency=low
   * volume buttons now works correctly
   * redesigned architecture to speed up things
   * optional button to exit in top left corner
+  * you can show/hide pad now
+  * pad look redesigned (L/R buttons added as well)
   * fixed bug in pad: when you touch on edge pad didn't work
   * fixed crash on pause button
   * fix: start button of the pad placed in the right position

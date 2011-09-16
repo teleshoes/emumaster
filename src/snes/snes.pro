@@ -25,7 +25,9 @@ SOURCES += $$ASM_SOURCES \
     cheats2.cpp \
     cheats.cpp \
     spc700.cpp \
-    machine.cpp
+    machine.cpp \
+    mem.cpp \
+    spu.cpp
 
 HEADERS += \
     sdd1emu.h \
@@ -45,8 +47,6 @@ HEADERS += \
     gfx.h \
     dma.h \
     c4.h \
-    apumem.h \
-    apu.h \
     sdd1.h \
     dsp1.h \
     cheats.h \
@@ -60,14 +60,14 @@ HEADERS += \
     messages.h \
     getset.h \
     display.h \
-    debug.h
+    debug.h \
+    spu.h
 
 SOURCES += \
     sdd1emu.cpp \
     fxemu.cpp \
     fxinst.cpp \
     os9x_asm_cpu.cpp \
-    memmap.cpp \
     ppu.cpp \
     globals.cpp \
     tile.cpp \
@@ -84,8 +84,14 @@ SOURCES += \
     clip.cpp \
     c4emu.cpp \
     c4.cpp \
-    apu.cpp \
     sdd1.cpp
+
+
+
+
+
+
+
 
 
 

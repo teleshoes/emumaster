@@ -56,8 +56,8 @@ Column {
 		checked: machineView.accelerometerEnable; onCheckedChanged: machineView.accelerometerEnable = checked
 	}
 	EMSwitchOption {
-		text: qsTr("Exit Button")
-		checked: machineView.quickQuitEnable; onCheckedChanged: machineView.quickQuitEnable = checked
+		text: qsTr("Pad Visible")
+		checked: machineView.padVisible; onCheckedChanged: machineView.padVisible = checked
 	}
 	EMButtonOption {
 		labelText: qsTr("Overwirte Image in Gallery")

@@ -42,31 +42,174 @@
 #include "memmap.h"
 #include "display.h"
 #include "cpu.h"
-#include "apu.h"
+#include "spu.h"
 #include "spc700.h"
 #include "port.h"
 // SPC700/Sound DSP chips have a 24.57MHz crystal on their PCB.
 
-#if defined(ASM_SPC700)
-
-// we only need the memhandlers
-#undef INLINE
-#define INLINE extern "C"
-#include "apumem.h"
-
-#else
-
-#if defined(NO_INLINE_SET_GET)
+extern "C" {
 u8 S9xAPUGetByteZ (u8 address);
 u8 S9xAPUGetByte (u32 address);
 void S9xAPUSetByteZ (u8, u8 address);
 void S9xAPUSetByte (u8, u32 address);
-#else
-#undef INLINE
-#define INLINE inline
-#include "apumem.h"
-#endif
+}
 
+START_EXTERN_C
+extern u8 W4;
+extern u8 APUROM[64];
+END_EXTERN_C
+
+u8 S9xAPUGetByteZ (u8 Address)
+{
+	if (Address >= 0xf0 && IAPU.DirectPage == IAPU.RAM)
+	{
+	if (Address >= 0xf4 && Address <= 0xf7)
+	{
+#ifdef SPC700_SHUTDOWN
+		IAPU.WaitAddress2 = IAPU.WaitAddress1;
+		IAPU.WaitAddress1 = IAPU.PC;
+#endif
+		return (IAPU.RAM [Address]);
+	}
+	if (Address >= 0xfd)
+	{
+#ifdef SPC700_SHUTDOWN
+		IAPU.WaitAddress2 = IAPU.WaitAddress1;
+		IAPU.WaitAddress1 = IAPU.PC;
+#endif
+		u8 t = IAPU.RAM [Address];
+		IAPU.RAM [Address] = 0;
+		return (t);
+	}
+	else
+	if (Address == 0xf3)
+		return (S9xGetAPUDSP ());
+
+	return (IAPU.RAM [Address]);
+	}
+	else
+	return (IAPU.DirectPage [Address]);
+}
+
+void S9xAPUSetByteZ (u8 val, u8 Address)
+{
+	if (Address >= 0xf0 && IAPU.DirectPage == IAPU.RAM)
+	{
+	if (Address == 0xf3)
+		S9xSetAPUDSP (val);
+	else
+	if (Address >= 0xf4 && Address <= 0xf7)
+		APU.OutPorts [Address - 0xf4] = val;
+	else
+	if (Address == 0xf1)
+		S9xSetAPUControl (val);
+	else
+	if (Address < 0xfd)
+	{
+		IAPU.RAM [Address] = val;
+		if (Address >= 0xfa)
+		{
+		if (val == 0)
+			APU.TimerTarget [Address - 0xfa] = 0x100;
+		else
+			APU.TimerTarget [Address - 0xfa] = val;
+		}
+	}
+	}
+	else
+	IAPU.DirectPage [Address] = val;
+}
+
+u8 S9xAPUGetByte (u32 Address)
+{
+	Address &= 0xffff;
+
+	if (Address <= 0xff && Address >= 0xf0)
+	{
+	if (Address >= 0xf4 && Address <= 0xf7)
+	{
+#ifdef SPC700_SHUTDOWN
+		IAPU.WaitAddress2 = IAPU.WaitAddress1;
+		IAPU.WaitAddress1 = IAPU.PC;
+#endif
+		return (IAPU.RAM [Address]);
+	}
+	else
+	if (Address == 0xf3)
+		return (S9xGetAPUDSP ());
+	if (Address >= 0xfd)
+	{
+#ifdef SPC700_SHUTDOWN
+		IAPU.WaitAddress2 = IAPU.WaitAddress1;
+		IAPU.WaitAddress1 = IAPU.PC;
+#endif
+		u8 t = IAPU.RAM [Address];
+		IAPU.RAM [Address] = 0;
+		return (t);
+	}
+	return (IAPU.RAM [Address]);
+	}
+	else
+	return (IAPU.RAM [Address]);
+}
+
+void S9xAPUSetByte (u8 val, u32 Address)
+{
+	Address &= 0xffff;
+
+	if (Address <= 0xff && Address >= 0xf0)
+	{
+	if (Address == 0xf3)
+		S9xSetAPUDSP (val);
+	else
+	if (Address >= 0xf4 && Address <= 0xf7)
+		APU.OutPorts [Address - 0xf4] = val;
+	else
+	if (Address == 0xf1)
+		S9xSetAPUControl (val);
+	else
+	if (Address < 0xfd)
+	{
+		IAPU.RAM [Address] = val;
+		if (Address >= 0xfa)
+		{
+		if (val == 0)
+			APU.TimerTarget [Address - 0xfa] = 0x100;
+		else
+			APU.TimerTarget [Address - 0xfa] = val;
+		}
+	}
+	}
+	else
+	{
+#if 0
+if (Address >= 0x2500 && Address <= 0x2504)
+printf ("%06d %04x <- %02x\n", ICPU.Scanline, Address, val);
+if (Address == 0x26c6)
+{
+	extern FILE *apu_trace;
+	extern FILE *trace;
+	APU.Flags |= TRACE_FLAG;
+	CPU.Flags |= TRACE_FLAG;
+	if (apu_trace == NULL)
+	apu_trace = fopen ("aputrace.log", "wb");
+	if (trace == NULL)
+	trace = fopen ("trace.log", "wb");
+	printf ("TRACING SWITCHED ON\n");
+}
+#endif
+	if (Address < 0xffc0)
+		IAPU.RAM [Address] = val;
+	else
+	{
+		APU.ExtraRAM [Address - 0xffc0] = val;
+		if (!APU.ShowROM)
+		IAPU.RAM [Address] = val;
+	}
+	}
+}
+
+#if !defined(ASM_SPC700)
 START_EXTERN_C
 extern u8 Work8;
 extern u16 Work16;

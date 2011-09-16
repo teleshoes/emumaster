@@ -41,7 +41,7 @@
 
 #include "snes9x.h"
 #include "spc700.h"
-#include "apu.h"
+#include "spu.h"
 #include "soundux.h"
 #include "cpu.h"
 #include <QDataStream>
@@ -1157,7 +1157,7 @@ u8 S9xGetAPUDSP ()
 }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(SnesApu, 1) \
+STATE_SERIALIZE_BEGIN_##sl(SnesSpu, 1) \
 	STATE_SERIALIZE_VAR_##sl(APU.Cycles) \
 	STATE_SERIALIZE_VAR_##sl(APU.ShowROM) \
 	STATE_SERIALIZE_VAR_##sl(APU.Flags) \
@@ -1188,7 +1188,7 @@ STATE_SERIALIZE_BEGIN_##sl(SnesApu, 1) \
 		Settings.APUEnabled = TRUE; \
 		CPU.APU_APUExecuting = TRUE; \
 	} \
-STATE_SERIALIZE_END_##sl(SnesApu)
+STATE_SERIALIZE_END_##sl(SnesSpu)
 
 STATE_SERIALIZE_BUILDER(SAVE)
 STATE_SERIALIZE_BUILDER(LOAD)
