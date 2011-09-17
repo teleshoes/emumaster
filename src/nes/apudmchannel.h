@@ -8,14 +8,14 @@ class NesApuDMChannel : public NesApuChannel {
 public:
 	enum Mode { Normal, Loop, Irq };
 
-	explicit NesApuDMChannel(NesApu *m_apu, int channelNo);
+	explicit NesApuDMChannel(int channelNo);
 	void reset();
 
-	void write0x4010(quint8 data);
-	void write0x4011(quint8 data);
-	void write0x4012(quint8 data);
-	void write0x4013(quint8 data);
-	void write0x4015(quint8 data);
+	void write0x4010(u8 data);
+	void write0x4011(u8 data);
+	void write0x4012(u8 data);
+	void write0x4013(u8 data);
+	void write0x4015(u8 data);
 
 	void updateSampleValue(); // for setEnabled
 
@@ -44,8 +44,6 @@ private:
 
 	uint m_playStartAddress;
 	uint m_playAddress;
-
-	NesApu *m_apu;
 
 	static int m_frequencyLUT[16];
 };

@@ -33,7 +33,7 @@ void NesMachine::setPadKeys(int pad, int keys) {
 }
 
 void NesPad::setKeys(int pad, int keys) {
-	Q_ASSERT(player == 0 || player == 1);
+	Q_ASSERT(pad == 0 || pad == 1);
 	if (!pad)
 		padA = keys;
 	else
@@ -48,7 +48,7 @@ void NesPad::init() {
 	nextStrobe = false;
 }
 
-void NesPad::write(u16 address, u18 data) {
+void NesPad::write(u16 address, u8 data) {
 	Q_ASSERT(address < 2);
 	if (address == 0) {
 		if (data & 0x01) {

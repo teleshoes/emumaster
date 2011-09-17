@@ -10,14 +10,14 @@ void Mapper051::reset() {
 	setCram8KBank(0);
 }
 
-void Mapper051::writeLow(quint16 address, quint8 data) {
+void Mapper051::writeLow(u16 address, u8 data) {
 	if (address >= 0x6000) {
 		mode = ((data & 0x10) >> 3) | ((data & 0x02) >> 1);
 		updateBanks();
 	}
 }
 
-void Mapper051::writeHigh(quint16 address, quint8 data) {
+void Mapper051::writeHigh(u16 address, u8 data) {
 	bank = (data & 0x0f) << 2;
 	if (0xC000 <= address && address <= 0xDFFF)
 		mode = (mode & 0x01) | ((data & 0x10) >> 3);
@@ -27,7 +27,7 @@ void Mapper051::writeHigh(quint16 address, quint8 data) {
 void Mapper051::updateBanks() {
 	switch (mode) {
 	case 0:
-		setMirroring(Vertical);
+		setMirroring(VerticalMirroring);
 		setRom8KBank(3, (bank|0x2c|3));
 		setRom8KBank(4, (bank|0x00|0));
 		setRom8KBank(5, (bank|0x00|1));
@@ -35,7 +35,7 @@ void Mapper051::updateBanks() {
 		setRom8KBank(7, (bank|0x0c|3));
 		break;
 	case 1:
-		setMirroring(Vertical);
+		setMirroring(VerticalMirroring);
 		setRom8KBank(3, (bank|0x20|3));
 		setRom8KBank(4, (bank|0x00|0));
 		setRom8KBank(5, (bank|0x00|1));
@@ -43,7 +43,7 @@ void Mapper051::updateBanks() {
 		setRom8KBank(7, (bank|0x00|3));
 		break;
 	case 2:
-		setMirroring(Vertical);
+		setMirroring(VerticalMirroring);
 		setRom8KBank(3, (bank|0x2e|3));
 		setRom8KBank(4, (bank|0x02|0));
 		setRom8KBank(5, (bank|0x02|1));
@@ -51,7 +51,7 @@ void Mapper051::updateBanks() {
 		setRom8KBank(7, (bank|0x0e|3));
 		break;
 	case 3:
-		setMirroring(Horizontal);
+		setMirroring(HorizontalMirroring);
 		setRom8KBank(3, (bank|0x20|3));
 		setRom8KBank(4, (bank|0x00|0));
 		setRom8KBank(5, (bank|0x00|1));

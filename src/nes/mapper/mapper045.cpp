@@ -11,10 +11,10 @@ void Mapper045::reset() {
 
 	prg0 = 0;
 	prg1 = 1;
-	prg2 = romSize8KB()-2;
-	prg3 = romSize8KB()-1;
+	prg2 = nesRomSize8KB-2;
+	prg3 = nesRomSize8KB-1;
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 	if (crc == 0x58bcacf6		// Kunio 8-in-1 (Pirate Cart)
 	 || crc == 0x9103cfd6		// HIK 7-in-1 (Pirate Cart)
 	 || crc == 0xc082e6d3) {	// Super 8-in-1 (Pirate Cart)
@@ -51,7 +51,7 @@ void Mapper045::reset() {
 	irq_reset = 0;
 }
 
-void Mapper045::writeLow(quint16 address, quint8 data) {
+void Mapper045::writeLow(u16 address, u8 data) {
 	Q_UNUSED(address)
 	if (!(reg[3]&0x40)) {
 		reg[reg[5]] = data;
@@ -65,19 +65,19 @@ void Mapper045::writeLow(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper045::writeHigh(quint16 address, quint8 data) {
+void Mapper045::writeHigh(u16 address, u8 data) {
 	switch (address & 0xE001) {
 	case 0x8000:
 		if ((data&0x40)!=(reg[6]&0x40)) {
-			quint8 swp;
+			u8 swp;
 			swp = prg0; prg0 = prg2; prg2 = swp;
 			swp = p[0]; p[0] = p[2]; p[2] = swp;
 			setBankCpu(4, p[0]);
 			setBankCpu(5, p[1]);
 		}
-		if (vromSize1KB()) {
+		if (nesVromSize1KB) {
 			if ((data&0x80)!=(reg[6]&0x80)) {
-				quint32 swp;
+				u32 swp;
 				swp = chr4; chr4 = chr0; chr0 = swp;
 				swp = chr5; chr5 = chr1; chr1 = swp;
 				swp = chr6; chr6 = chr2; chr2 = swp;
@@ -136,7 +136,7 @@ void Mapper045::writeHigh(quint16 address, quint8 data) {
 		}
 		break;
 	case 0xA000:
-		setMirroring(static_cast<Mirroring>(data & 0x01));
+		setMirroring(static_cast<NesMirroring>(data & 0x01));
 		break;
 	case 0xC000:
 		if (patch == 2) {
@@ -176,7 +176,7 @@ void Mapper045::setBankCpu(uint page, uint bank) {
 }
 
 void Mapper045::setBankPpu() {
-	static quint8 table[16] = {
+	static u8 table[16] = {
 		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 		0x01,0x03,0x07,0x0F,0x1F,0x3F,0x7F,0xFF
 	};
@@ -207,7 +207,7 @@ void Mapper045::setBankPpu() {
 
 void Mapper045::horizontalSync(int scanline) {
 	irq_reset = 0;
-	if (scanline < NesPpu::VisibleScreenHeight && ppuRegisters()->isDisplayOn()) {
+	if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 		if (irq_counter) {
 			irq_counter--;
 			if (irq_counter == 0) {

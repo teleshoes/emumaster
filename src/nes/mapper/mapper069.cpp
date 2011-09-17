@@ -10,25 +10,25 @@ void Mapper069::reset() {
 
 	// TODO nes->apu->SelectExSound(32);
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 
 	irq_enable = 0;
 	irq_counter = 0;
 
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 
 	if (crc == 0xfeac6916)	// Honoo no Toukyuuji - Dodge Danpei 2(J)
-		ppu()->setRenderMethod(NesPpu::TileRender);
+		nesPpu.setRenderMethod(NesPpu::TileRender);
 
 	if (crc == 0xad28aef6)	// Dynamite Batman(J) / Dynamite Batman - Return of the Joker(U)
 		patch = 1;
 }
 
-void Mapper069::writeHigh(quint16 address, quint8 data) {
+void Mapper069::writeHigh(u16 address, u8 data) {
 	switch (address & 0xE000) {
 	case 0x8000:
 		reg = data;
@@ -58,7 +58,7 @@ void Mapper069::writeHigh(quint16 address, quint8 data) {
 			break;
 
 		case 0x0C:
-			setMirroring(static_cast<Mirroring>(data & 0x03));
+			setMirroring(static_cast<NesMirroring>(data & 0x03));
 			break;
 
 		case 0x0D:

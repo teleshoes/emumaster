@@ -10,10 +10,10 @@ void Mapper068::reset() {
 
 	reg[0] = reg[1] = reg[2] = reg[3] = 0;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 }
 
-void Mapper068::writeHigh(quint16 address, quint8 data) {
+void Mapper068::writeHigh(u16 address, u8 data) {
 	switch (address & 0xF000) {
 	case 0x8000:
 		setVrom2KBank(0, data);
@@ -77,7 +77,7 @@ void Mapper068::updateBanks() {
 			break;
 		}
 	} else {
-		setMirroring(static_cast<Mirroring>(reg[1] & 0x03));
+		setMirroring(static_cast<NesMirroring>(reg[1] & 0x03));
 	}
 }
 

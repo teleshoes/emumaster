@@ -4,7 +4,6 @@
 #include "../mapper.h"
 
 class Mapper000 : public NesMapper {
-	Q_OBJECT
 public:
 	void reset();
 };

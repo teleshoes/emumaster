@@ -6,9 +6,9 @@
 void Mapper064::reset() {
 	NesMapper::reset();
 
-	setRom8KBanks(romSize8KB()-1, romSize8KB()-1, romSize8KB()-1, romSize8KB()-1);
+	setRom8KBanks(nesRomSize8KB-1, nesRomSize8KB-1, nesRomSize8KB-1, nesRomSize8KB-1);
 
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 
 	reg[0] = reg[1] = reg[2] = 0;
@@ -21,7 +21,7 @@ void Mapper064::reset() {
 	irq_reset    = 0;
 }
 
-void Mapper064::writeHigh(quint16 address, quint8 data) {
+void Mapper064::writeHigh(u16 address, u8 data) {
 	switch (address & 0xF003) {
 	case 0x8000:
 		reg[0] = data&0x0F;
@@ -108,7 +108,7 @@ void Mapper064::writeHigh(quint16 address, quint8 data) {
 		break;
 
 	case 0xA000:
-		setMirroring(static_cast<Mirroring>(data & 0x01));
+		setMirroring(static_cast<NesMirroring>(data & 0x01));
 		break;
 
 	case 0xC000:
@@ -161,7 +161,7 @@ void Mapper064::horizontalSync(int scanline) {
 
 	irq_reset = 0;
 
-	if (scanline < NesPpu::VisibleScreenHeight && ppuRegisters()->isDisplayOn()) {
+	if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 		if (irq_counter >= 0) {
 			irq_counter--;
 			if (irq_counter < 0) {

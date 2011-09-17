@@ -6,18 +6,18 @@
 void Mapper009::reset() {
 	NesMapper::reset();
 
-	setRom8KBanks(0, romSize8KB()-3, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, nesRomSize8KB-3, nesRomSize8KB-2, nesRomSize8KB-1);
 
 	latch_a = 0xFE;
 	latch_b = 0xFE;
 
-	ppu()->setCharacterLatchEnabled(true);
+	nesPpu.setCharacterLatchEnabled(true);
 
 	setVrom4KBank(0, 4);
 	setVrom4KBank(4, 0);
 }
 
-void Mapper009::writeHigh(quint16 address, quint8 data) {
+void Mapper009::writeHigh(u16 address, u8 data) {
 	switch (address & 0xF000) {
 	case 0xA000:
 		setRom8KBank(4, data);
@@ -48,14 +48,14 @@ void Mapper009::writeHigh(quint16 address, quint8 data) {
 		break;
 	case 0xF000:
 		if (data & 0x01)
-			setMirroring(Horizontal);
+			setMirroring(HorizontalMirroring);
 		else
-			setMirroring(Vertical);
+			setMirroring(VerticalMirroring);
 		break;
 	}
 }
 
-void Mapper009::characterLatch(quint16 address) {
+void Mapper009::characterLatch(u16 address) {
 	if ((address&0x1FF0) == 0x0FD0 && latch_a != 0xFD) {
 		latch_a = 0xFD;
 		setVrom4KBank(0, reg[0]);

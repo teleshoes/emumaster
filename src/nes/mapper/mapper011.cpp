@@ -3,14 +3,14 @@
 void Mapper011::reset() {
 	NesMapper::reset();
 	setRom32KBank(0);
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
-	setMirroring(Vertical);
+	setMirroring(VerticalMirroring);
 }
 
-void Mapper011::writeHigh(quint16 address, quint8 data) {
+void Mapper011::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(address)
 	setRom32KBank(data);
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(data >> 4);
 }

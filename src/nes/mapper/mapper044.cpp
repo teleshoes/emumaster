@@ -8,7 +8,7 @@ void Mapper044::reset() {
 
 	patch = 0;
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 	if (crc == 0x7eef434c) {
 		patch = 1;
 	}
@@ -20,7 +20,7 @@ void Mapper044::reset() {
 	prg1 = 1;
 
 	// set VROM banks
-	if (vromSize1KB()) {
+	if (nesVromSize1KB) {
 		chr01 = 0;
 		chr23 = 2;
 		chr4  = 4;
@@ -39,7 +39,7 @@ void Mapper044::reset() {
 	irq_latch = 0;
 }
 
-void Mapper044::writeLow(quint16 address, quint8 data) {
+void Mapper044::writeLow(u16 address, u8 data) {
 	if (address == 0x6000) {
 		if (patch) {
 			bank = (data & 0x06) >> 1;
@@ -51,7 +51,7 @@ void Mapper044::writeLow(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper044::writeHigh(quint16 address, quint8 data) {
+void Mapper044::writeHigh(u16 address, u8 data) {
 	switch (address & 0xE001) {
 	case 0x8000:
 		reg[0] = data;
@@ -73,8 +73,8 @@ void Mapper044::writeHigh(quint16 address, quint8 data) {
 		break;
 	case 0xA000:
 		reg[2] = data;
-		if (disk()->mirroring() != FourScreen)
-			setMirroring(static_cast<Mirroring>(data & 0x01));
+		if (nesMirroring != FourScreenMirroring)
+			setMirroring(static_cast<NesMirroring>(data & 0x01));
 		break;
 	case 0xA001:
 		reg[3] = data;
@@ -120,7 +120,7 @@ void Mapper044::setBankCpu() {
 }
 
 void Mapper044::setBankPpu() {
-	if (vromSize1KB()) {
+	if (nesVromSize1KB) {
 		if (reg[0] & 0x80) {
 			setVrom1KBank(0, ((bank == 6)?0xff&chr4:0x7f&chr4)|(bank<<7));
 			setVrom1KBank(1, ((bank == 6)?0xff&chr5:0x7f&chr5)|(bank<<7));
@@ -144,7 +144,7 @@ void Mapper044::setBankPpu() {
 }
 
 void Mapper044::horizontalSync(int scanline) {
-	if (scanline < NesPpu::VisibleScreenHeight && ppuRegisters()->isDisplayOn()) {
+	if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 		if (irq_enable) {
 			if (!(--irq_counter)) {
 				irq_counter = irq_latch;

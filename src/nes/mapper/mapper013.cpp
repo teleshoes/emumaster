@@ -7,7 +7,7 @@ void Mapper013::reset() {
 	setCram4KBank(4, 0);
 }
 
-void Mapper013::writeHigh(quint16 address, quint8 data) {
+void Mapper013::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(address)
 	setRom32KBank((data & 0x30) >> 4);
 	setCram4KBank(4, data & 0x03);

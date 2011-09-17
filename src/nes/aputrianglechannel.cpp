@@ -15,7 +15,7 @@ void NesApuTriangleChannel::reset() {
 	sampleValue = 0x0F;
 }
 
-void NesApuTriangleChannel::setLinearCounter(quint8 data) {
+void NesApuTriangleChannel::setLinearCounter(u8 data) {
 	// new values for linear counter
 	m_linearCounterControl = data & 0x80;
 	m_linearCounterLoadValue = data & 0x7F;

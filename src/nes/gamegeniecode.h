@@ -1,33 +1,33 @@
 #ifndef GAMEGENIECODE_H
 #define GAMEGENIECODE_H
 
-#include <QObject>
+#include <imachine.h>
 
 class GameGenieCode {
 public:
 	bool parse(const QString &s);
-	uint address() const;
-	quint8 expectedData() const;
-	quint8 replaceData() const;
+	u16 address() const;
+	u8 expectedData() const;
+	u8 replaceData() const;
 	bool isEightCharWide() const;
 
-	void setExpectedData(quint8 data);
+	void setExpectedData(u8 data);
 private:
-	uint m_address;
-	quint8 m_expected;
-	quint8 m_replace;
+	u16 m_address;
+	u8 m_expected;
+	u8 m_replace;
 	bool m_eightChars;
 };
 
-inline uint GameGenieCode::address() const
+inline u16 GameGenieCode::address() const
 { return m_address; }
-inline quint8 GameGenieCode::expectedData() const
+inline u8 GameGenieCode::expectedData() const
 { return m_expected; }
-inline quint8 GameGenieCode::replaceData() const
+inline u8 GameGenieCode::replaceData() const
 { return m_replace; }
 inline bool GameGenieCode::isEightCharWide() const
 { return m_eightChars; }
-inline void GameGenieCode::setExpectedData(quint8 data)
+inline void GameGenieCode::setExpectedData(u8 data)
 { m_expected = data; }
 
 #endif // GAMEGENIECODE_H

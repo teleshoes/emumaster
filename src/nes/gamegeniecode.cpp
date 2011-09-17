@@ -5,7 +5,7 @@ bool GameGenieCode::parse(const QString &s) {
 	m_replace = 0;
 	m_expected = 0;
 
-	quint8 table[8];
+	u8 table[8];
 
 	if (s.size() != 6 && s.size() != 8)
 		return false;

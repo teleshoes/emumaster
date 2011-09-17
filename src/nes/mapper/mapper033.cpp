@@ -18,11 +18,11 @@ void Mapper033::reset() {
 	irq_counter = 0;
 	irq_latch = 0;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
-	if (vromSize8KB())
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	if (nesVromSize8KB)
 		updateBanks();
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 	// Check For Old #33 games.... (CRC code by NesToy)
 	if (crc == 0x5e9bc161		// Akira(J)
 	 || crc == 0xecdbafa4		// Bakushou!! Jinsei Gekijou(J)
@@ -36,24 +36,24 @@ void Mapper033::reset() {
 		patch = 1;
 	}
 
-	ppu()->setRenderMethod(NesPpu::PreRender);
+	nesPpu.setRenderMethod(NesPpu::PreRender);
 
 	if (crc == 0x202df297) {	// Captain Saver(J)
-		ppu()->setRenderMethod(NesPpu::TileRender);
+		nesPpu.setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0x63bb86b5) {	// The Jetsons(J)
-		ppu()->setRenderMethod(NesPpu::TileRender);
+		nesPpu.setRenderMethod(NesPpu::TileRender);
 	}
 }
 
-void Mapper033::writeHigh(quint16 address, quint8 data) {
+void Mapper033::writeHigh(u16 address, u8 data) {
 	switch (address) {
 	case 0x8000:
 		if (patch) {
 			if (data & 0x40)
-				setMirroring(Horizontal);
+				setMirroring(HorizontalMirroring);
 			else
-				setMirroring(Vertical);
+				setMirroring(VerticalMirroring);
 			setRom8KBank(4, data & 0x1F);
 		} else {
 			setRom8KBank(4, data);
@@ -112,9 +112,9 @@ void Mapper033::writeHigh(quint16 address, quint8 data) {
 		break;
 	case 0xE000:
 		if (data & 0x40)
-			setMirroring(Horizontal);
+			setMirroring(HorizontalMirroring);
 		else
-			setMirroring(Vertical);
+			setMirroring(VerticalMirroring);
 		break;
 	}
 }
@@ -130,7 +130,7 @@ void Mapper033::updateBanks() {
 }
 
 void Mapper033::horizontalSync(int scanline) {
-	if (scanline < NesPpu::VisibleScreenHeight && ppuRegisters()->isDisplayOn()) {
+	if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 		if (irq_enable) {
 			if (++irq_counter == 0) {
 				irq_enable  = 0;

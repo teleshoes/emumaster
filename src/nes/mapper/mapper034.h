@@ -4,11 +4,11 @@
 #include "../mapper.h"
 
 class Mapper034 : public NesMapper {
-	Q_OBJECT
+
 public:
 	void reset();
-	void writeLow(quint16 address, quint8 data);
-	void writeHigh(quint16 address, quint8 data);
+	void writeLow(u16 address, u8 data);
+	void writeHigh(u16 address, u8 data);
 };
 
 #endif // MAPPER034_H

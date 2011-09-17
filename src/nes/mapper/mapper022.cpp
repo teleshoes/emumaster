@@ -2,16 +2,16 @@
 
 void Mapper022::reset() {
 	NesMapper::reset();
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 }
 
-void Mapper022::writeHigh(quint16 address, quint8 data) {
+void Mapper022::writeHigh(u16 address, u8 data) {
 	switch (address) {
 	case 0x8000:
 		setRom8KBank(4, data);
 		break;
 	case 0x9000:
-		setMirroring(static_cast<Mirroring>(data & 3));
+		setMirroring(static_cast<NesMirroring>(data & 3));
 		break;
 	case 0xA000: setRom8KBank(5, data); break;
 	case 0xB000: setVrom1KBank(0, data >> 1); break;

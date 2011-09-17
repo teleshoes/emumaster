@@ -10,11 +10,11 @@ void Mapper050::reset() {
 	setRom8KBank(5, 9);
 	setRom8KBank(6, 0);
 	setRom8KBank(7, 11);
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 }
 
-void Mapper050::writeEx(quint16 address, quint8 data) {
+void Mapper050::writeEx(u16 address, u8 data) {
 	if ((address & 0xE060) == 0x4020) {
 		if (address & 0x0100) {
 			irq_enable = data & 0x01;
@@ -25,7 +25,7 @@ void Mapper050::writeEx(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper050::writeLow(quint16 address, quint8 data) {
+void Mapper050::writeLow(u16 address, u8 data) {
 	if ((address & 0xE060) == 0x4020) {
 		if (address & 0x0100) {
 			irq_enable = data & 0x01;

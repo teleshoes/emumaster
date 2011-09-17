@@ -29,12 +29,12 @@ void Mapper012::reset() {
 	updatePpuBanks();
 }
 
-quint8 Mapper012::readLow(quint16 address) {
+u8 Mapper012::readLow(u16 address) {
 	Q_UNUSED(address)
 	return 0x01;
 }
 
-void Mapper012::writeLow(quint16 address, quint8 data) {
+void Mapper012::writeLow(u16 address, u8 data) {
 	if (address > 0x4100 && address < 0x6000) {
 		vb0 = (data&0x01)<<8;
 		vb1 = (data&0x10)<<4;
@@ -44,7 +44,7 @@ void Mapper012::writeLow(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper012::writeHigh(quint16 address, quint8 data) {
+void Mapper012::writeHigh(u16 address, u8 data) {
 	switch (address & 0xE001) {
 	case 0x8000:
 		reg[0] = data;
@@ -66,11 +66,11 @@ void Mapper012::writeHigh(quint16 address, quint8 data) {
 		break;
 	case 0xA000:
 		reg[2] = data;
-		if (disk()->mirroring() != FourScreen) {
+		if (nesMirroring != FourScreenMirroring) {
 			if (data & 0x01)
-				setMirroring(Horizontal);
+				setMirroring(HorizontalMirroring);
 			else
-				setMirroring(Vertical);
+				setMirroring(VerticalMirroring);
 		}
 		break;
 	case 0xA001:
@@ -82,7 +82,7 @@ void Mapper012::writeHigh(quint16 address, quint8 data) {
 		break;
 	case 0xC001:
 		reg[5] = data;
-		if (ppu()->scanline() < NesPpu::VisibleScreenHeight) {
+		if (nesPpuScanline < NesPpu::VisibleScreenHeight) {
 			irq_counter |= 0x80;
 			irq_preset = 0xFF;
 		} else {
@@ -107,13 +107,13 @@ void Mapper012::writeHigh(quint16 address, quint8 data) {
 
 void Mapper012::updateCpuBanks() {
 	if (reg[0] & 0x40)
-		setRom8KBanks(romSize8KB()-2, prg1, prg0, romSize8KB()-1);
+		setRom8KBanks(nesRomSize8KB-2, prg1, prg0, nesRomSize8KB-1);
 	else
-		setRom8KBanks(prg0, prg1, romSize8KB()-2, romSize8KB()-1);
+		setRom8KBanks(prg0, prg1, nesRomSize8KB-2, nesRomSize8KB-1);
 }
 
 void Mapper012::horizontalSync(int scanline) {
-	if (scanline < NesPpu::VisibleScreenHeight && ppuRegisters()->isDisplayOn()) {
+	if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 		if (irq_preset_vbl) {
 			irq_counter = irq_latch;
 			irq_preset_vbl = 0;
@@ -135,7 +135,7 @@ void Mapper012::horizontalSync(int scanline) {
 }
 
 void Mapper012::updatePpuBanks() {
-	if (vromSize1KB()) {
+	if (nesVromSize1KB) {
 		if (reg[0] & 0x80) {
 			setVrom1KBank(4, vb1 + chr01);
 			setVrom1KBank(5, vb1 + chr01+1);

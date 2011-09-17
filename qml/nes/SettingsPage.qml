@@ -25,10 +25,6 @@ Page {
 				buttonText: renderMethodModel.get(machine.ppu.renderMethod)["name"]
 				onClicked: renderMethodDialog.open()
 			}
-			EMSwitchOption {
-				text: qsTr("PPU Sprite Clipping")
-				checked: machine.ppu.spriteClippingEnable; onCheckedChanged: machine.ppu.spriteClippingEnable = checked
-			}
 		}
 	}
 	ListModel {

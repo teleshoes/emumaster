@@ -4,18 +4,18 @@
 #include "../mapper.h"
 
 class Mapper255 : public NesMapper {
-	Q_OBJECT
+
 public:
 	void reset();
 
-	quint8 readLow(quint16 address);
-	void writeLow(quint16 address, quint8 data);
-	void writeHigh(quint16 address, quint8 data);
+	u8 readLow(u16 address);
+	void writeLow(u16 address, u8 data);
+	void writeHigh(u16 address, u8 data);
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 private:
-	quint8 reg[4];
+	u8 reg[4];
 };
 
 #endif // MAPPER255_H

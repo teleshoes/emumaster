@@ -76,11 +76,11 @@ void HostVideo::paintEvent(QPaintEvent *) {
 								 QString("%1 FPS").arg(m_fpsCount));
 			}
 		}
-		if (m_padOpacity != 0.0f) {
-			painter.setOpacity(m_padOpacity);
-			painter.drawImage(QPoint(), m_padLeftImage);
-			painter.drawImage(QPoint(854-240, 0), m_padRightImage);
-		}
+	}
+	if (m_padOpacity != 0.0f) {
+		painter.setOpacity(m_padOpacity);
+		painter.drawImage(QPoint(), m_padLeftImage);
+		painter.drawImage(QPoint(854-240, 0), m_padRightImage);
 	}
 	painter.end();
 }

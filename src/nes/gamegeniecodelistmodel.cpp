@@ -1,11 +1,12 @@
 #include "gamegeniecodelistmodel.h"
 #include "machine.h"
+#include "mapper.h"
 #include "disk.h"
 #include "gamegeniecode.h"
 #include <QFile>
 
-GameGenieCodeListModel::GameGenieCodeListModel(NesMachine *machine) :
-	m_machine(machine) {
+GameGenieCodeListModel::GameGenieCodeListModel(QObject *parent) :
+	QAbstractListModel(parent) {
 	QHash<int, QByteArray> roles;
 	roles.insert(CodeRole, "code");
 	roles.insert(DescriptionRole, "description");
@@ -43,14 +44,14 @@ void GameGenieCodeListModel::load() {
 	s >> m_enable;
 	m_file.close();
 
-	m_machine->mapper()->setGameGenieCodeList(enabledList());
+	nesMapper->setGameGenieCodeList(enabledList());
 }
 
 QString GameGenieCodeListModel::filePath() {
 	return QString("%1/cheat/%2_%3")
 			.arg(IMachine::userDataDirPath())
-			.arg(m_machine->name())
-			.arg(m_machine->disk()->crc());
+			.arg(nesMachine.name())
+			.arg(nesDiskCrc);
 }
 
 QList<GameGenieCode> GameGenieCodeListModel::enabledList() const {
@@ -69,7 +70,7 @@ void GameGenieCodeListModel::setEnabled(int i, bool on) {
 	if (i >= 0 && i < m_enable.size() && m_enable.at(i) != on) {
 		m_enable[i] = on;
 		emit dataChanged(index(i), index(i));
-		m_machine->mapper()->setGameGenieCodeList(enabledList());
+		nesMapper->setGameGenieCodeList(enabledList());
 	}
 }
 
@@ -99,7 +100,7 @@ void GameGenieCodeListModel::addNew(const QString &code, const QString &descript
 	m_descriptions.append(description);
 	m_enable.append(false);
 	endInsertRows();
-	m_machine->mapper()->setGameGenieCodeList(enabledList());
+	nesMapper->setGameGenieCodeList(enabledList());
 }
 
 void GameGenieCodeListModel::removeAt(int i) {
@@ -110,7 +111,7 @@ void GameGenieCodeListModel::removeAt(int i) {
 	m_descriptions.removeAt(i);
 	m_enable.removeAt(i);
 	endRemoveRows();
-	m_machine->mapper()->setGameGenieCodeList(enabledList());
+	nesMapper->setGameGenieCodeList(enabledList());
 }
 
 bool GameGenieCodeListModel::isCodeValid(const QString &s) {

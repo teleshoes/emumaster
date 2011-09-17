@@ -5,11 +5,11 @@
 void Mapper241::reset() {
 	NesMapper::reset();
 	setRom32KBank(0);
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 }
 
-void Mapper241::writeHigh(quint16 address, quint8 data) {
+void Mapper241::writeHigh(u16 address, u8 data) {
 	if (address == 0x8000)
 		setRom32KBank(data);
 }

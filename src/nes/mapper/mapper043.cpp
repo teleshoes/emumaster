@@ -6,19 +6,19 @@ void Mapper043::reset() {
 
 	setRom8KBank(3, 2);
 	setRom8KBanks(1, 0, 4, 9);
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 	irq_enable = 0xFF;
 	irq_counter = 0;
 }
 
-quint8 Mapper043::readLow(quint16 address) {
+u8 Mapper043::readLow(u16 address) {
 	if (0x5000 <= address && address < 0x6000)
-		return	m_rom[0x2000*8+0x1000+(address-0x5000)];
+		return	nesRom[0x2000*8+0x1000+(address-0x5000)];
 	return address >> 8;
 }
 
-void Mapper043::writeEx(quint16 address, quint8 data) {
+void Mapper043::writeEx(u16 address, u8 data) {
 	if ((address&0xF0FF) == 0x4022) {
 		switch (data&0x07) {
 		case 0x00:
@@ -43,12 +43,12 @@ void Mapper043::writeEx(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper043::writeLow(quint16 address, quint8 data) {
+void Mapper043::writeLow(u16 address, u8 data) {
 	if ((address&0xF0FF) == 0x4022)
 		writeEx(address, data);
 }
 
-void Mapper043::writeHigh(quint16 address, quint8 data) {
+void Mapper043::writeHigh(u16 address, u8 data) {
 	if (address == 0x8122) {
 		if (data & 0x03) {
 			irq_enable = 1;

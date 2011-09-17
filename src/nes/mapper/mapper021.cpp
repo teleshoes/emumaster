@@ -15,10 +15,10 @@ void Mapper021::reset() {
 	irq_latch = 0;
 	irq_clock = 0;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 }
 
-void Mapper021::writeHigh(quint16 address, quint8 data) {
+void Mapper021::writeHigh(u16 address, u8 data) {
 	switch (address & 0xF0CF) {
 	case 0x8000:
 		if(reg[8] & 0x02) {
@@ -32,7 +32,7 @@ void Mapper021::writeHigh(quint16 address, quint8 data) {
 		break;
 
 	case 0x9000:
-		setMirroring(static_cast<Mirroring>(data & 3));
+		setMirroring(static_cast<NesMirroring>(data & 3));
 		break;
 
 	case 0x9002:

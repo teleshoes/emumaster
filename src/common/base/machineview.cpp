@@ -230,7 +230,7 @@ void MachineView::loadSettings() {
 	m_machine->setAudioSampleRate(m_audioSampleRate);
 
 	m_hostVideo->setFpsVisible(s.value("fpsVisible", false).toBool());
-	m_hostVideo->setKeepAspectRatio(s.value("keepAspectRatio", false).toBool());
+	m_hostVideo->setKeepAspectRatio(s.value("keepAspectRatio", true).toBool());
 	m_hostVideo->setPadOpacity(s.value("padOpacity", 0.45f).toReal());
 
 	s.beginGroup(m_machine->name());

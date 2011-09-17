@@ -7,7 +7,7 @@ void Mapper003::reset() {
 	setRom32KBank(0);
 }
 
-void Mapper003::writeHigh(quint16 address, quint8 data) {
+void Mapper003::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(address)
 	setVrom8KBank(data);
 }

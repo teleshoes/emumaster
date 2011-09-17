@@ -6,18 +6,18 @@
 void Mapper232::reset() {
 	NesMapper::reset();
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 
 	reg[0] = 0x0C;
 	reg[1] = 0x00;
 }
 
-void Mapper232::writeLow(quint16 address, quint8 data) {
+void Mapper232::writeLow(u16 address, u8 data) {
 	if (address >= 0x6000)
 		write(address, data);
 }
 
-void Mapper232::writeHigh(quint16 address, quint8 data) {
+void Mapper232::writeHigh(u16 address, u8 data) {
 	if (address <= 0x9FFF)
 		reg[0] = (data & 0x18)>>1;
 	else

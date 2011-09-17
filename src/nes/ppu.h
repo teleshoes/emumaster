@@ -7,6 +7,16 @@ class NesPpu;
 #include <QVector>
 #include <QRgb>
 
+class NesPpu;
+
+extern QImage nesPpuFrame;
+extern NesPpu nesPpu;
+extern u16 nesPpuTilePageOffset;
+extern u8 nesPpuScrollTileYOffset;
+extern u8 nesPpuRegs[4];
+extern int nesPpuScanline;
+extern int nesPpuScanlinesPerFrame;
+
 class NesPpuSprite {
 public:
 	enum AttributeBit {
@@ -46,23 +56,28 @@ inline bool NesPpuSprite::flipVertically() const
 inline bool NesPpuSprite::isBehindBackground() const
 { return m_attributes & BehindBackground; }
 
-class NesPpuPalette : public QObject {
+class NesPpu : public QObject {
 	Q_OBJECT
+	Q_ENUMS(RenderMethod)
+	Q_PROPERTY(RenderMethod renderMethod READ renderMethod WRITE setRenderMethod NOTIFY renderMethodChanged)
 public:
-	void init();
-	void write(u16 address, u8 data);
-	u8 read(u16 address) const;
-	void updateColorEmphasisAndMask();
-
-	QRgb *currentPens();
-
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-};
-
-class NesPpuRegisters : public QObject {
-	Q_OBJECT
-public:
+	enum ChipType {
+		PPU2C02 = 0,// NTSC NES
+		PPU2C03B,	// Playchoice 10
+		PPU2C04,	// Vs. Unisystem // TODO test
+		PPU2C05_01,	// Vs. Unisystem (Ninja Jajamaru Kun) // TODO test
+		PPU2C05_02,	// Vs. Unisystem (Mighty Bomb Jack) // TODO test
+		PPU2C05_03,	// Vs. Unisystem (Gumshoe) // TODO test
+		PPU2C05_04,	// Vs. Unisystem (Top Gun) // TODO test
+		PPU2C07		// PAL NES
+	};
+	enum RenderMethod {
+		PostAllRender = 0,
+		PreAllRender,
+		PostRender,
+		PreRender,
+		TileRender
+	};
 	enum Register {
 		Control0 = 0,
 		Control1 = 1,
@@ -129,95 +144,6 @@ public:
 	};
 	Q_DECLARE_FLAGS(StatusReg, StatusRegBit)
 
-	explicit NesPpuRegisters(NesPpu *ppu = 0);
-	void updateType();
-
-	void write(u16 address, u8 data);
-	u8 read(u16 address);
-
-	bool isBackgroundVisible() const;
-	bool isSpriteVisible() const;
-	bool isDisplayOn() const;
-
-	bool isBackgroundClippingEnabled() const;
-	bool isSpriteClippingEnabled() const;
-
-	int spriteSize() const;
-
-	void setSprite0Hit();
-	bool sprite0HitOccurred() const;
-
-	void setSpriteMax(bool on);
-
-	void setVBlank(bool on);
-	bool isVBlank() const;
-	bool isVBlankEnabled() const;
-
-	int colorEmphasis() const;
-	bool isMonochromeModeSet() const;
-
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-private:
-	u8 m_regs[4]; // registers at 0x2000-0x2003
-	bool m_toggle;
-	u8 m_dataLatch;
-	u16 m_add;
-	u8 m_bufferedData;
-	u8 m_securityValue;
-};
-
-inline bool NesPpuRegisters::isBackgroundVisible() const
-{ return m_regs[Control1] & BackgroundDisplayCR1Bit; }
-inline bool NesPpuRegisters::isSpriteVisible() const
-{ return m_regs[Control1] & SpriteDisplayCR1Bit; }
-inline bool NesPpuRegisters::isDisplayOn() const
-{ return isBackgroundVisible() || isSpriteVisible(); }
-inline bool NesPpuRegisters::isBackgroundClippingEnabled() const
-{ return !(m_regs[Control1] & BackgroundClipDisableCR1Bit); }
-inline bool NesPpuRegisters::isSpriteClippingEnabled() const
-{ return !(m_regs[Control1] & SpriteClipDisableCR1Bit); }
-inline int NesPpuRegisters::spriteSize() const
-{ return (m_regs[Control0] & SpriteSizeCR0Bit) ? 16 : 8; }
-inline void NesPpuRegisters::setSprite0Hit()
-{ m_regs[Status] |= Sprite0HitSRBit; }
-inline bool NesPpuRegisters::sprite0HitOccurred() const
-{ return m_regs[Status] & Sprite0HitSRBit; }
-inline void NesPpuRegisters::setSpriteMax(bool on)
-{ if (on) m_regs[Status] |= SpriteMaxSRBit; else m_regs[Status] &= ~SpriteMaxSRBit; }
-inline bool NesPpuRegisters::isVBlank() const
-{ return m_regs[Status] & VBlankSRBit; }
-inline bool NesPpuRegisters::isVBlankEnabled() const
-{ return m_regs[Control0] & VBlankEnableCR0Bit; }
-inline int NesPpuRegisters::colorEmphasis() const
-{ return static_cast<int>(m_regs[Control1] & BackgroundColorCR1Bit) * 2; }
-inline bool NesPpuRegisters::isMonochromeModeSet() const
-{ return m_regs[Control1] & MonochromeModeCR1Bit; }
-
-class NesPpu : public QObject {
-	Q_OBJECT
-	Q_ENUMS(RenderMethod)
-	Q_PROPERTY(RenderMethod renderMethod READ renderMethod WRITE setRenderMethod NOTIFY renderMethodChanged)
-	Q_PROPERTY(bool spriteClippingEnable READ isSpriteClippingEnabled WRITE setSpriteClippingEnabled NOTIFY spriteClippingEnableChanged)
-public:
-	enum ChipType {
-		PPU2C02 = 0,// NTSC NES
-		PPU2C03B,	// Playchoice 10
-		PPU2C04,	// Vs. Unisystem // TODO test
-		PPU2C05_01,	// Vs. Unisystem (Ninja Jajamaru Kun) // TODO test
-		PPU2C05_02,	// Vs. Unisystem (Mighty Bomb Jack) // TODO test
-		PPU2C05_03,	// Vs. Unisystem (Gumshoe) // TODO test
-		PPU2C05_04,	// Vs. Unisystem (Top Gun) // TODO test
-		PPU2C07		// PAL NES
-	};
-	enum RenderMethod {
-		PostAllRender = 0,
-		PreAllRender,
-		PostRender,
-		PreRender,
-		TileRender
-	};
-
 	static const int ScanlinesPerFrameNTSC = 262;
 	static const int ScanlinesPerFramePAL = 312;
 
@@ -225,25 +151,26 @@ public:
 	static const int AttributeTableOffset = 0x03C0;
 	static const int PalettesAddress = 0x3F00;
 
-	static const int NumSprites = 64;
-
 	static const int VisibleScreenWidth = 32 * 8;
 	static const int VisibleScreenHeight = 30 * 8;
 
 	static const int FetchCycles = 8;
 
-
 	void init();
 
-	void setChipType(ChipType newType);
+	void writeReg(u16 address, u8 data);
+	u8 readReg(u16 address);
 
-	int scanlinesCount() const;
+	void setChipType(ChipType newType);
 
 	RenderMethod renderMethod() const;
 	void setRenderMethod(RenderMethod method);
 
-	int scanline() const;
-	void setScanline(int line);
+	bool isBackgroundVisible() const;
+	bool isSpriteVisible() const;
+	bool isDisplayOn() const;
+
+	void nextScanline();
 
 	void setCharacterLatchEnabled(bool on);
 	void setExternalLatchEnabled(bool on);
@@ -252,7 +179,6 @@ public:
 	void dma(u8 page);
 
 	void processFrameStart();
-	void processFrameEnd();
 	void processScanlineStart();
 	void processScanlineNext();
 	void processScanline();
@@ -261,16 +187,8 @@ public:
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
-
-	u8 scrollTileYOffset() const;
-	u16 tilePageOffset() const;
-
-	bool isSpriteClippingEnabled() const;
-	void setSpriteClippingEnabled(bool on);
 signals:
-	void vblank_o(bool on);
 	void renderMethodChanged();
-	void spriteClippingEnableChanged();
 private:
 	void drawBackground();
 	void drawBackgroundNoTileNoExtLatch();
@@ -280,62 +198,13 @@ private:
 
 	void drawSprites();
 	void fillScanline(int color, int count);
-
-	void updateVBlankOut();
-
-	ChipType m_type;
-	RenderMethod m_renderMethod;
-
-	int m_scanline;
-	int m_scanlinesPerFrame;
-	QRgb *m_scanlineData;
-	QRgb *m_scanline0Data;
-	QImage ppuFrame;
-
-	bool m_characterLatchEnabled;
-	bool m_externalLatchEnabled;
-
-	bool m_vBlankOut;
-
-	u16 nesVramAddress;
-	u16 m_refreshLatch;
-	u8 m_scrollTileXOffset;
-	u8 m_scrollTileYOffset;
-	u16 m_tilePageOffset;
-	u16 m_spritePageOffset;
-	u16 m_loopyShift;
-	u8 m_bgWritten[33];
-	u8 m_bit2Rev[256];
-
-	u8 m_spriteMemory[NumSprites*4];
-
-	bool m_spriteClippingEnable;
-
-	friend class NesPpuRegisters;
-	friend class NesPpuPalette;
 };
 
-inline int NesPpu::scanlinesCount() const
-{ return m_scanlinesPerFrame; }
-inline NesPpu::RenderMethod NesPpu::renderMethod() const
-{ return m_renderMethod; }
-
-inline int NesPpu::scanline() const
-{ return m_scanline; }
-inline void NesPpu::setVBlank(bool on)
-{ m_registers->setVBlank(on); }
-
-inline u8 NesPpu::scrollTileYOffset() const
-{ return m_scrollTileYOffset; }
-inline u16 NesPpu::tilePageOffset() const
-{ return m_tilePageOffset; }
-
-inline bool NesPpu::isSpriteClippingEnabled() const
-{ return m_spriteClippingEnable; }
-
-extern QImage ppuFrame;
-extern NesPpuPalette nesPpuPalette;
-extern NesPpuRegisters nesPpuRegisters;
-extern NesPpu nesPpu;
+inline bool NesPpu::isBackgroundVisible() const
+{ return nesPpuRegs[Control1] & BackgroundDisplayCR1Bit; }
+inline bool NesPpu::isSpriteVisible() const
+{ return nesPpuRegs[Control1] & SpriteDisplayCR1Bit; }
+inline bool NesPpu::isDisplayOn() const
+{ return isBackgroundVisible() || isSpriteVisible(); }
 
 #endif // NESPPU_H

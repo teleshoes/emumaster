@@ -1,9 +1,12 @@
 poll: Amiga N64 NDS
 
- s update nes emulation
+ s remove different sound freq - stick to 44100
+ s option to remove icon from homescreen
+ s more info when no roms in psx about folders
  s pause when call is coming or device is going to sleep
  s exit from gba thread
  s timer for games that don't work at all
+ s fix Jungle
  s load roms from dir in psx (menu in qml)
  s fix psx sound
  s save sound in psx
@@ -14,6 +17,7 @@ poll: Amiga N64 NDS
  s copy legal info
 
  s bluetooth gamepad
+ b portrait mode in disk gallery makes titles half visible
  s remove last state option
  s add some more flags to compiler (as)
  x make icons in home screen removable
@@ -31,7 +35,6 @@ poll: Amiga N64 NDS
  - ScummVM
  - C64
  - ZX Spectrum
- - portrait mode in rom gallery makes titles half visible
  - mappers 72-255
  - test PAL for NES
  - make better documentation:

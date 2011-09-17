@@ -20,7 +20,7 @@ void NesApuNoiseChannel::updateSampleValue() {
 		sampleValue = m_randomBit * masterVolume();
 }
 
-void NesApuNoiseChannel::setFrequency(quint8 data) {
+void NesApuNoiseChannel::setFrequency(u8 data) {
 	progTimerMax = m_noiseWavelengthLUT[data & 0x0F];
 	m_randomMode = data >> 7;
 }

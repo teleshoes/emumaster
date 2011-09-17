@@ -6,6 +6,34 @@
 #include <imachine.h>
 #include <QDataStream>
 
+enum StatusFlag {
+	N = 0x80, // Negative
+	V = 0x40, // Overflow
+	U = 0x20, // Unused
+	B = 0x10, // BrkCommand
+	D = 0x08, // DecimalMode
+	I = 0x04, // IrqDisable
+	Z = 0x02, // Zero
+	C = 0x01  // Carry
+};
+Q_DECLARE_FLAGS(StatusFlags, StatusFlag)
+
+enum AddressingMode {
+	Impli = 0,
+	Accum = 1,
+	Immed = 2,
+	Absol = 3,
+	AbsoX = 4,
+	AbsoY = 5,
+	Relat = 6,
+	Indir = 7,
+	IndiX = 8,
+	IndiY = 9,
+	ZeroP = 10,
+	ZerPX = 11,
+	ZerPY = 12
+};
+
 NesCpu nesCpu;
 
 static const int StackBase = 0x100;
@@ -21,43 +49,49 @@ static u8 P; // processor status register
 
 static u8 ZNTable[256];
 
+static u32 cpuSignals;
+static bool nmiState;
+static u32 currentCycles;
+
+static u32 dmaCycles;
+
+static bool apuIrq;
+static bool mapperIrq;
+
 void NesCpu::init() {
-	// TODO QObject::connect(m_apu, SIGNAL(request_irq_o(bool)), SLOT(apu_irq_i(bool)));
-	// TODO QObject::connect(mapper, SIGNAL(request_irq_o(bool)), SLOT(mapper_irq_i(bool)));
 	A = 0;
 	Y = 0;
 	X = 0;
 	PC = 0;
 	S = 0xFF;
 	P = 0;
-	m_nmiState = false;
-	m_signals = Reset;
+	nmiState = false;
+	cpuSignals = Reset;
 	qMemSet(ZNTable + 0x00, 0, 0x80);
 	qMemSet(ZNTable + 0x80, N, 0x80);
 	ZNTable[0] = Z;
-	m_reset = true;
 }
 
 u32 NesCpu::clock(u32 cycles) {
 	u32 executedCycles = 0;
-	if (m_reset) {
-		m_apuIrq = false;
-		m_mapperIrq = false;
+	if (cpuSignals & Reset) {
+		apuIrq = false;
+		mapperIrq = false;
 		irq0_i(false);
 
 		while (executedCycles < cycles)
 			executedCycles += executeOne();
 		nesApu.reset();
-		m_dmaCycles = 0;
+		dmaCycles = 0;
 	} else {
-		if (m_dmaCycles) {
-			if (cycles <= m_dmaCycles) {
-				m_dmaCycles -= cycles;
+		if (dmaCycles) {
+			if (cycles <= dmaCycles) {
+				dmaCycles -= cycles;
 				nesMapper->clock(cycles);
 				return cycles;
 			} else {
-				executedCycles += m_dmaCycles;
-				m_dmaCycles = 0;
+				executedCycles += dmaCycles;
+				dmaCycles = 0;
 				nesMapper->clock(executedCycles);
 			}
 		}
@@ -74,47 +108,23 @@ u32 NesCpu::clock(u32 cycles) {
 }
 
 void NesCpu::dma(u32 cycles)
-{ m_dmaCycles += cycles; }
-
-void NesCpu::nes_reset_i(bool on) {
-	reset_i(on);
-	m_reset = on;
-}
+{ dmaCycles += cycles; }
 
 void NesCpu::apu_irq_i(bool on) {
-	bool oldIrqState = (m_apuIrq || m_mapperIrq);
-	m_apuIrq = on;
-	bool newIrqState = (m_apuIrq || m_mapperIrq);
+	bool oldIrqState = (apuIrq || mapperIrq);
+	apuIrq = on;
+	bool newIrqState = (apuIrq || mapperIrq);
 	if (newIrqState != oldIrqState)
 		irq0_i(newIrqState);
 }
 
 void NesCpu::mapper_irq_i(bool on) {
-	bool oldIrqState = (m_apuIrq || m_mapperIrq);
-	m_mapperIrq = on;
-	bool newIrqState = (m_apuIrq || m_mapperIrq);
+	bool oldIrqState = (apuIrq || mapperIrq);
+	mapperIrq = on;
+	bool newIrqState = (apuIrq || mapperIrq);
 	if (newIrqState != oldIrqState)
 		irq0_i(newIrqState);
 }
-
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(NesCpu, 1) \
-	STATE_SERIALIZE_VAR_##sl(m_reset) \
-	STATE_SERIALIZE_VAR_##sl(m_dmaCycles) \
-	STATE_SERIALIZE_VAR_##sl(m_apuIrq) \
-	STATE_SERIALIZE_VAR_##sl(m_mapperIrq) \
-	STATE_SERIALIZE_VAR_##sl(m_signals) \
-	STATE_SERIALIZE_VAR_##sl(A) \
-	STATE_SERIALIZE_VAR_##sl(Y) \
-	STATE_SERIALIZE_VAR_##sl(X) \
-	STATE_SERIALIZE_VAR_##sl(PC) \
-	STATE_SERIALIZE_VAR_##sl(S) \
-	STATE_SERIALIZE_VAR_##sl(P) \
-	STATE_SERIALIZE_VAR_##sl(m_nmiState) \
-STATE_SERIALIZE_END_##sl(NesCpu)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
 
 // TODO remove log
 //#include <QFile>
@@ -122,7 +132,7 @@ STATE_SERIALIZE_BUILDER(LOAD)
 //	cpuLog.open(QIODevice::ReadWrite|QIODevice::Truncate);
 
 u32 NesCpu::executeOne() {
-	m_currentCycles = 0;
+	currentCycles = 0;
 	u8 opcode = READ(PC);
 	ADDCYC(cyclesTable[opcode]);
 	PC++;
@@ -160,19 +170,19 @@ u32 NesCpu::executeOne() {
 //	cpuLog.write(qPrintable(QString::number(PC, 16)));
 //	cpuLog.write("\n");
 
-	if (m_signals) {
-		if ((m_signals & (Reset | Nmi)) || !(P & I)) {
+	if (cpuSignals) {
+		if ((cpuSignals & (Reset | Nmi)) || !(P & I)) {
 			u16 vector;
-			if (m_signals & Reset) {
+			if (cpuSignals & Reset) {
 				vector = ResetVectorAddress;
 				P = I;
 				A = 0;
 				Y = 0;
 				X = 0;
 				S = 0xFF;
-			} else if (m_signals & Nmi) {
+			} else if (cpuSignals & Nmi) {
 				vector = NmiVectorAddress;
-				m_signals &= ~Nmi;
+				cpuSignals &= ~Nmi;
 //				cpuLog.write("nmi\n");
 			} else {
 				vector = IrqVectorAddress;
@@ -187,26 +197,47 @@ u32 NesCpu::executeOne() {
 			PC |= READ(vector + 1) << 8;
 		}
 	}
-	return m_currentCycles;
+	return currentCycles;
 }
+
+void NesCpu::ADDCYC(u32 n)
+{ currentCycles += n; }
 
 void NesCpu::setSignal(SignalIn sig, bool on) {
 	if (on)
-		m_signals |=  sig;
+		cpuSignals |=  sig;
 	else
-		m_signals &= ~sig;
+		cpuSignals &= ~sig;
 }
 
 void NesCpu::irq0_i(bool on)
 { setSignal(Irq0, on); }
 
 void NesCpu::nmi_i(bool on) {
-	if (on && !m_nmiState)
+	if (on && !nmiState)
 		setSignal(Nmi, true);
-	m_nmiState = on;
+	nmiState = on;
 }
 void NesCpu::reset_i(bool on)
 { setSignal(Reset, on); }
+
+#define STATE_SERIALIZE_BUILDER(sl) \
+STATE_SERIALIZE_BEGIN_##sl(NesCpu, 1) \
+	STATE_SERIALIZE_VAR_##sl(dmaCycles) \
+	STATE_SERIALIZE_VAR_##sl(apuIrq) \
+	STATE_SERIALIZE_VAR_##sl(mapperIrq) \
+	STATE_SERIALIZE_VAR_##sl(cpuSignals) \
+	STATE_SERIALIZE_VAR_##sl(nmiState) \
+	STATE_SERIALIZE_VAR_##sl(A) \
+	STATE_SERIALIZE_VAR_##sl(Y) \
+	STATE_SERIALIZE_VAR_##sl(X) \
+	STATE_SERIALIZE_VAR_##sl(PC) \
+	STATE_SERIALIZE_VAR_##sl(S) \
+	STATE_SERIALIZE_VAR_##sl(P) \
+STATE_SERIALIZE_END_##sl(NesCpu)
+
+STATE_SERIALIZE_BUILDER(SAVE)
+STATE_SERIALIZE_BUILDER(LOAD)
 
 #define X_ZN(val)	P &= ~(Z|N); P |= ZNTable[val]
 #define X_ZNT(val)	P |= ZNTable[val]
@@ -752,3 +783,107 @@ void NesCpu::execute(u8 instr) {
 	OP(0xFF, RMW_ABX(ISB));
 	}
 }
+
+const u8 NesCpu::cyclesTable[256] = {
+/* 0x00 */7, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,
+/* 0x10 */2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+/* 0x20 */6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 4, 4, 6, 6,
+/* 0x30 */2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+/* 0x40 */6, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 3, 4, 6, 6,
+/* 0x50 */2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+/* 0x60 */6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 5, 4, 6, 6,
+/* 0x70 */2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+/* 0x80 */2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,
+/* 0x90 */2, 6, 2, 6, 4, 4, 4, 4, 2, 5, 2, 5, 5, 5, 5, 5,
+/* 0xA0 */2, 6, 2, 6, 3, 3, 3, 3, 2, 2, 2, 2, 4, 4, 4, 4,
+/* 0xB0 */2, 5, 2, 5, 4, 4, 4, 4, 2, 4, 2, 4, 4, 4, 4, 4,
+/* 0xC0 */2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,
+/* 0xD0 */2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
+/* 0xE0 */2, 6, 3, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,
+/* 0xF0 */2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7, };
+
+const u8 NesCpu::sizeTable[256] = {
+/* 0x00 */1, 2, 1, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
+/* 0x10 */2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
+/* 0x20 */3, 2, 1, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
+/* 0x30 */2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
+/* 0x40 */1, 2, 1, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
+/* 0x50 */2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
+/* 0x60 */1, 2, 1, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
+/* 0x70 */2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
+/* 0x80 */2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
+/* 0x90 */2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
+/* 0xA0 */2, 2, 2, 2, 2, 2, 2, 3, 1, 2, 1, 2, 3, 3, 3, 4,
+/* 0xB0 */2, 2, 1, 2, 2, 2, 2, 4, 1, 3, 1, 3, 3, 3, 3, 4,
+/* 0xC0 */2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
+/* 0xD0 */2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
+/* 0xE0 */2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
+/* 0xF0 */2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3 };
+
+const u8 NesCpu::addressingModeTable[256] = {
+/* 0x00 */Impli, IndiX, Impli, IndiX, ZeroP, ZeroP, ZeroP, ZeroP,
+/* 0x08 */Impli, Immed, Accum, Immed, Absol, Absol, Absol, Absol,
+/* 0x10 */Relat, IndiY, Impli, IndiY, ZerPX, ZerPX, ZerPX, ZerPX,
+/* 0x18 */Impli, AbsoY, Impli, AbsoY, AbsoX, AbsoX, AbsoX, AbsoX,
+/* 0x20 */Absol, IndiX, Impli, IndiX, ZeroP, ZeroP, ZeroP, ZeroP,
+/* 0x28 */Impli, Immed, Accum, Immed, Absol, Absol, Absol, Absol,
+/* 0x30 */Relat, IndiY, Impli, IndiY, ZerPX, ZerPX, ZerPX, ZerPX,
+/* 0x38 */Impli, AbsoY, Impli, AbsoY, AbsoX, AbsoX, AbsoX, AbsoX,
+/* 0x40 */Impli, IndiX, Impli, IndiX, ZeroP, ZeroP, ZeroP, ZeroP,
+/* 0x48 */Impli, Immed, Accum, Immed, Absol, Absol, Absol, Absol,
+/* 0x50 */Relat, IndiY, Impli, IndiY, ZerPX, ZerPX, ZerPX, ZerPX,
+/* 0x58 */Impli, AbsoY, Impli, AbsoY, AbsoX, AbsoX, AbsoX, AbsoX,
+/* 0x60 */Impli, IndiX, Impli, IndiX, ZeroP, ZeroP, ZeroP, ZeroP,
+/* 0x68 */Impli, Immed, Accum, Immed, Indir, Absol, Absol, Absol,
+/* 0x70 */Relat, IndiY, Impli, IndiY, ZerPX, ZerPX, ZerPX, ZerPX,
+/* 0x78 */Impli, AbsoY, Impli, AbsoY, AbsoX, AbsoX, AbsoX, AbsoX,
+/* 0x80 */Immed, IndiX, Immed, IndiX, ZeroP, ZeroP, ZeroP, ZeroP,
+/* 0x88 */Impli, Immed, Impli, Immed, Absol, Absol, Absol, Absol,
+/* 0x90 */Relat, IndiY, Impli, IndiY, ZerPX, ZerPX, ZerPY, ZerPY,
+/* 0x98 */Impli, AbsoY, Impli, AbsoY, AbsoX, AbsoX, AbsoY, AbsoY,
+/* 0xA0 */Immed, IndiX, Immed, IndiX, ZeroP, ZeroP, ZeroP, ZeroP,
+/* 0xA8 */Impli, Immed, Impli, Immed, Absol, Absol, Absol, Absol,
+/* 0xB0 */Relat, IndiY, Impli, IndiY, ZerPX, ZerPX, ZerPY, ZerPY,
+/* 0xB8 */Impli, AbsoY, Impli, AbsoY, AbsoX, AbsoX, AbsoY, AbsoY,
+/* 0xC0 */Immed, IndiX, Immed, IndiX, ZeroP, ZeroP, ZeroP, ZeroP,
+/* 0xC8 */Impli, Immed, Impli, Immed, Absol, Absol, Absol, Absol,
+/* 0xD0 */Relat, IndiY, Impli, IndiY, ZerPX, ZerPX, ZerPX, ZerPX,
+/* 0xD8 */Impli, AbsoY, Impli, AbsoY, AbsoX, AbsoX, AbsoX, AbsoX,
+/* 0xE0 */Immed, IndiX, Immed, IndiX, ZeroP, ZeroP, ZeroP, ZeroP,
+/* 0xE8 */Impli, Immed, Impli, Immed, Absol, Absol, Absol, Absol,
+/* 0xF0 */Relat, IndiY, Impli, IndiY, ZerPX, ZerPX, ZerPX, ZerPX,
+/* 0xF8 */Impli, AbsoY, Impli, AbsoY, AbsoX, AbsoX, AbsoX, AbsoX };
+
+const char *NesCpu::nameTable[256] = {
+/* 0x00 */"BRK", "ORA", "KIL", "SLO", "DOP", "ORA", "ASL", "SLO",
+/* 0x08 */"PHP", "ORA", "ASL", "AAC", "TOP", "ORA", "ASL", "SLO",
+/* 0x10 */"BPL", "ORA", "KIL", "SLO", "DOP", "ORA", "ASL", "SLO",
+/* 0x18 */"CLC", "ORA", "NOP", "SLO", "TOP", "ORA", "ASL", "SLO",
+/* 0x20 */"JSR", "AND", "KIL", "RLA", "BIT", "AND", "ROL", "RLA",
+/* 0x28 */"PLP", "AND", "ROL", "AAC", "BIT", "AND", "ROL", "RLA",
+/* 0x30 */"BMI", "AND", "KIL", "RLA", "DOP", "AND", "ROL", "RLA",
+/* 0x38 */"SEC", "AND", "NOP", "RLA", "TOP", "AND", "ROL", "RLA",
+/* 0x40 */"RTI", "EOR", "KIL", "SRE", "DOP", "EOR", "LSR", "SRE",
+/* 0x48 */"PHA", "EOR", "LSR", "ASR", "JMP", "EOR", "LSR", "SRE",
+/* 0x50 */"BVC", "EOR", "KIL", "SRE", "DOP", "EOR", "LSR", "SRE",
+/* 0x58 */"CLI", "EOR", "NOP", "SRE", "TOP", "EOR", "LSR", "SRE",
+/* 0x60 */"RTS", "ADC", "KIL", "RRA", "DOP", "ADC", "ROR", "RRA",
+/* 0x68 */"PLA", "ADC", "ROR", "ARR", "JMP", "ADC", "ROR", "RRA",
+/* 0x70 */"BVS", "ADC", "KIL", "RRA", "DOP", "ADC", "ROR", "RRA",
+/* 0x78 */"SEI", "ADC", "NOP", "RRA", "TOP", "ADC", "ROR", "RRA",
+/* 0x80 */"DOP", "STA", "DOP", "AAX", "STY", "STA", "STX", "AAX",
+/* 0x88 */"DEY", "DOP", "TXA", "XAA", "STY", "STA", "STX", "AAX",
+/* 0x90 */"BCC", "STA", "KIL", "AXA", "STY", "STA", "STX", "AAX",
+/* 0x98 */"TYA", "STA", "TXS", "XAS", "SYA", "STA", "SXA", "AXA",
+/* 0xA0 */"LDY", "LDA", "LDX", "LAX", "LDY", "LDA", "LDX", "LAX",
+/* 0xA8 */"TAY", "LDA", "TAX", "ATX", "LDY", "LDA", "LDX", "LAX",
+/* 0xB0 */"BCS", "LDA", "KIL", "LAX", "LDY", "LDA", "LDX", "LAX",
+/* 0xB8 */"CLV", "LDA", "TSX", "LAR", "LDY", "LDA", "LDX", "LAX",
+/* 0xC0 */"CPY", "CMP", "DOP", "DCP", "CPY", "CMP", "DEC", "DCP",
+/* 0xC8 */"INY", "CMP", "DEX", "AXS", "CPY", "CMP", "DEC", "DCP",
+/* 0xD0 */"BNE", "CMP", "KIL", "DCP", "DOP", "CMP", "DEC", "DCP",
+/* 0xD8 */"CLD", "CMP", "NOP", "DCP", "TOP", "CMP", "DEC", "DCP",
+/* 0xE0 */"CPX", "SBC", "DOP", "ISC", "CPX", "SBC", "INC", "ISC",
+/* 0xE8 */"INX", "SBC", "NOP", "SBC", "CPX", "SBC", "INC", "ISC",
+/* 0xF0 */"BEQ", "SBC", "KIL", "ISC", "DOP", "SBC", "INC", "ISC",
+/* 0xF8 */"SED", "SBC", "NOP", "ISC", "TOP", "SBC", "INC", "ISC" };

@@ -16,16 +16,16 @@ void Mapper016::reset() {
 
 	eeprom_type = 0;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 
 	if (crc == 0x3f15d20d		// Famicom Jump 2(J)
 	 || crc == 0xf76aa523) {	// Famicom Jump 2(J)(alt)
 		patch = 1;
 		eeprom_type = 0xFF;
 
-		m_wram[0x0BBC] = 0xFF;
+		nesWram[0x0BBC] = 0xFF;
 	}
 
 	if (crc == 0x1d6f27f7) {	// Dragon Ball Z 2(Korean Hack)
@@ -61,7 +61,7 @@ void Mapper016::reset() {
 		eeprom_type = 1;
 	}
 	if (crc == 0x170250de) {	// Rokudenashi Blues(J)
-		ppu()->setRenderMethod(NesPpu::PreAllRender);
+		nesPpu.setRenderMethod(NesPpu::PreAllRender);
 		eeprom_type = 1;
 	}
 
@@ -79,17 +79,17 @@ void Mapper016::reset() {
 	}
 
 	if (eeprom_type == 0) {
-		x24c01.reset(m_wram);
+		x24c01.reset(nesWram);
 	} else if (eeprom_type == 1) {
-		x24c02.reset(m_wram);
+		x24c02.reset(nesWram);
 	} else if (eeprom_type == 2) {
-		x24c02.reset(m_wram);
-		x24c01.reset(m_wram+256);
+		x24c02.reset(nesWram);
+		x24c01.reset(nesWram+256);
 	}
 	setIrqSignalOut(false);
 }
 
-quint8 Mapper016::readLow(quint16 address) {
+u8 Mapper016::readLow(u16 address) {
 	if (patch) {
 		return NesMapper::readLow(address);
 	} else {
@@ -108,7 +108,7 @@ quint8 Mapper016::readLow(quint16 address) {
 	return 0x00;
 }
 
-void Mapper016::writeLow(quint16 address, quint8 data) {
+void Mapper016::writeLow(u16 address, u8 data) {
 	if (!patch) {
 		writeSubA(address, data);
 	} else {
@@ -116,14 +116,14 @@ void Mapper016::writeLow(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper016::writeHigh(quint16 address, quint8 data) {
+void Mapper016::writeHigh(u16 address, u8 data) {
 	if (!patch) {
 		writeSubA(address, data);
 	} else {
 		writeSubB(address, data);
 	}
 }
-void Mapper016::writeSubA(quint16 address, quint8 data) {
+void Mapper016::writeSubA(u16 address, u8 data) {
 	switch(address & 0x000F) {
 	case 0x0000:
 	case 0x0001:
@@ -133,7 +133,7 @@ void Mapper016::writeSubA(quint16 address, quint8 data) {
 	case 0x0005:
 	case 0x0006:
 	case 0x0007:
-		if (vromSize1KB())
+		if (nesVromSize1KB)
 			setVrom1KBank(address&0x0007, data);
 		if (eeprom_type == 2) {
 			reg[0] = data;
@@ -146,7 +146,7 @@ void Mapper016::writeSubA(quint16 address, quint8 data) {
 		break;
 
 	case 0x0009:
-		setMirroring(static_cast<Mirroring>(data & 3));
+		setMirroring(static_cast<NesMirroring>(data & 3));
 		break;
 
 	case 0x000A:
@@ -183,7 +183,7 @@ void Mapper016::writeSubA(quint16 address, quint8 data) {
 }
 
 // Famicom Jump 2
-void Mapper016::writeSubB(quint16 addr, quint8 data)
+void Mapper016::writeSubB(u16 addr, u8 data)
 {
 	switch(addr) {
 	case 0x8000:
@@ -211,7 +211,7 @@ void Mapper016::writeSubB(quint16 addr, quint8 data)
 		break;
 
 	case 0x8009:
-		setMirroring(static_cast<Mirroring>(data & 3));
+		setMirroring(static_cast<NesMirroring>(data & 3));
 		break;
 
 	case 0x800A:

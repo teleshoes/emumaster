@@ -8,10 +8,10 @@ void Mapper227::reset() {
 	setRom8KBanks(0, 1, 0, 1);
 }
 
-void Mapper227::writeHigh(quint16 address, quint8 data) {
+void Mapper227::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(data)
 
-	quint8 bank = ((address&0x0100)>>4) | ((address&0x0078)>>3);
+	u8 bank = ((address&0x0100)>>4) | ((address&0x0078)>>3);
 
 	if (address & 0x0001) {
 		setRom32KBank(bank);
@@ -39,7 +39,7 @@ void Mapper227::writeHigh(quint16 address, quint8 data) {
 		}
 	}
 	if (address & 0x0002)
-		setMirroring(Horizontal);
+		setMirroring(HorizontalMirroring);
 	else
-		setMirroring(Vertical);
+		setMirroring(VerticalMirroring);
 }

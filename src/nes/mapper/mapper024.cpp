@@ -11,15 +11,15 @@ void Mapper024::reset() {
 	irq_latch = 0;
 	irq_clock = 0;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
-	if (vromSize1KB())
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 
-	ppu()->setRenderMethod(NesPpu::PostRender);
+	nesPpu.setRenderMethod(NesPpu::PostRender);
 	// TODO nes->apu->SelectExSound( 1);
 }
 
-void Mapper024::writeHigh(quint16 address, quint8 data) {
+void Mapper024::writeHigh(u16 address, u8 data) {
 	switch (address & 0xF003) {
 	case 0x8000:
 		setRom16KBank(4, data);
@@ -32,7 +32,7 @@ void Mapper024::writeHigh(quint16 address, quint8 data) {
 		break;
 
 	case 0xB003:
-		setMirroring(static_cast<Mirroring>((data >> 3) & 0x03));
+		setMirroring(static_cast<NesMirroring>((data >> 3) & 0x03));
 		break;
 
 	case 0xC000:

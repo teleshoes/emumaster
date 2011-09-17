@@ -8,7 +8,7 @@ public:
 	explicit NesApuRectangleChannel(int channelNo);
 	void reset();
 
-	void setSweep(quint8 data);
+	void setSweep(u8 data);
 
 	void clockSweep();
 	void updateSampleValue();

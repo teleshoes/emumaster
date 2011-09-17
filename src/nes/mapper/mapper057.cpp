@@ -10,7 +10,7 @@ void Mapper057::reset() {
 	reg = 0;
 }
 
-void Mapper057::writeHigh(quint16 address, quint8 data) {
+void Mapper057::writeHigh(u16 address, u8 data) {
 	switch (address) {
 	case 0x8000:
 	case 0x8001:
@@ -28,7 +28,7 @@ void Mapper057::writeHigh(quint16 address, quint8 data) {
 			setRom16KBank(6, (data & 0x60) >> 5);
 		}
 		setVrom8KBank((data&0x07) + ((data&0x10)>>1));
-		setMirroring(static_cast<Mirroring>((data & 0x08) >> 3));
+		setMirroring(static_cast<NesMirroring>((data & 0x08) >> 3));
 		break;
 	}
 }

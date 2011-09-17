@@ -8,27 +8,27 @@ void Mapper018::reset() {
 
 	for (int i = 0; i < 11; i++)
 		reg[i] = 0;
-	reg[2] = romSize8KB()-2;
-	reg[3] = romSize8KB()-1;
+	reg[2] = nesRomSize8KB-2;
+	reg[3] = nesRomSize8KB-1;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 
 	irq_enable  = 0;
 	irq_mode    = 0;
 	irq_counter = 0xFFFF;
 	irq_latch   = 0xFFFF;
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 
 	if (crc == 0xefb1df9e) {	// The Lord of King(J)
-		ppu()->setRenderMethod(NesPpu::PreAllRender);
+		nesPpu.setRenderMethod(NesPpu::PreAllRender);
 	}
 	if (crc == 0x3746f951) {	// Pizza Pop!(J)
-		ppu()->setRenderMethod(NesPpu::PreAllRender);
+		nesPpu.setRenderMethod(NesPpu::PreAllRender);
 	}
 }
 
-void Mapper018::writeHigh(quint16 address, quint8 data) {
+void Mapper018::writeHigh(u16 address, u8 data) {
 	switch (address) {
 	case 0x8000:
 		reg[0] = (reg[0] & 0xF0) | (data & 0x0F);
@@ -148,9 +148,9 @@ void Mapper018::writeHigh(quint16 address, quint8 data) {
 	case 0xF002:
 		data &= 0x03;
 		if (data == 0)
-			setMirroring(Horizontal);
+			setMirroring(HorizontalMirroring);
 		else if (data == 1)
-			setMirroring(Vertical);
+			setMirroring(VerticalMirroring);
 		else
 			setMirroring(SingleLow);
 		break;

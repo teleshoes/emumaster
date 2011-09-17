@@ -1,7 +1,7 @@
 #ifndef NESAPUCHANNEL_H
 #define NESAPUCHANNEL_H
 
-#include <QtGlobal>
+#include <imachine.h>
 
 class NesApuChannel {
 public:
@@ -9,11 +9,11 @@ public:
 	virtual void reset();
 
 	int channelNo() const;
-	void setVolumeDecay(quint8 data);
+	void setVolumeDecay(u8 data);
 	int masterVolume() const;
-	void setLinearCounter(quint8 data);
-	void setFrequency(quint8 data);
-	void setLength(quint8 data);
+	void setLinearCounter(u8 data);
+	void setFrequency(u8 data);
+	void setLength(u8 data);
 	void setEnabled(bool on);
 	bool isEnabled() const;
 

@@ -87,14 +87,44 @@
 #include "mapper/mapper254.h"
 #include "mapper/mapper255.h"
 
-static  QList<GameGenieCode> nesGameGenieList;
+uint nesRomSizeInBytes;
+uint nesRomSize16KB;
+uint nesRomSize8KB;
+
+uint nesVromSizeInBytes;
+uint nesVromSize8KB;
+uint nesVromSize4KB;
+uint nesVromSize2KB;
+uint nesVromSize1KB;
+
+u8 nesTrainer[512];
+NesMirroring nesMirroring;
+NesMirroring nesDefaultMirroring;
+
+int nesMapperType;
+NesMapper *nesMapper = 0;
+
+u8 *nesRom = 0;
+u8 nesRam[8*1024];
+u8 nesWram[128*1024];
+u8 nesXram[8*1024];
+
+u8 *nesVrom = 0;
+u8 nesVram[4*1024];
+u8 nesCram[32*1024];
+
+u8 *nesPpuBanks[16];
+NesPpuBankType nesPpuBanksType[16];
+u8 *nesCpuBanks[8]; // 8K banks 0x0000-0xFFFF
+
+static QList<GameGenieCode> nesGameGenieList;
 
 #define NES_MAPPER_CREATE_CASE(i,name) \
 		mapper = new Mapper##i(); \
 		mapper->m_name = name; \
 		break
 
-NesMapper *NesMapper::create(NesMachine *machine, u8 type) {
+NesMapper *NesMapper::create(u8 type) {
 	NesMapper *mapper = 0;
 	switch (type) {
 	case   0: NES_MAPPER_CREATE_CASE(000, "-");
@@ -177,8 +207,6 @@ NesMapper *NesMapper::create(NesMachine *machine, u8 type) {
 	case 255: NES_MAPPER_CREATE_CASE(255, "110-in-1");
 	default: break;
 	}
-	if (mapper)
-		mapper->setParent(machine);
 	return mapper;
 }
 
@@ -210,9 +238,9 @@ void NesMapper::reset() {
 	qMemSet(nesVram, 0, sizeof(nesVram));
 	qMemSet(nesCram, 0, sizeof(nesCram));
 
-	ppu()->setRenderMethod(NesPpu::PreRender);
-	ppu()->setCharacterLatchEnabled(false);
-	ppu()->setExternalLatchEnabled(false);
+	nesPpu.setRenderMethod(NesPpu::PreRender);
+	nesPpu.setCharacterLatchEnabled(false);
+	nesPpu.setExternalLatchEnabled(false);
 
 	setMirroring(nesDefaultMirroring);
 	setVrom8KBank(0);
@@ -225,7 +253,7 @@ void NesMapper::write(u16 address, u8 data) {
 		break;
 	case 1: // 0x2000-0x3FFF
 		// TODO nsf
-		nesPpuRegisters.write(address & 7, data);
+		nesPpu.writeReg(address & 7, data);
 		break;
 	case 2: // 0x4000-0x5FFF
 		if (address < 0x4100)
@@ -253,7 +281,7 @@ u8 NesMapper::read(u16 address) {
 		data = nesRam[address & 0x07FF];
 		break;
 	case 1:	// 0x2000-0x3FFF
-		data = nesPpuRegisters.read(address & 7);
+		data = nesPpu.readReg(address & 7);
 		break;
 	case 2:	// 0x4000-0x5FFF
 		if (address < 0x4100)
@@ -276,12 +304,12 @@ u8 NesMapper::read(u16 address) {
 
 void NesMapper::writeLow(u16 address, u8 data) {
 	if (address >= 0x6000) // < 0x8000
-		nesCpuBanks[address >> 13][address & 0x1FFF] = data;
+		writeDirect(address, data);
 }
 
 u8 NesMapper::readLow(u16 address) {
 	if (address >= 0x6000) // < 0x8000
-		return nesCpuBanks[address >> 13][address & 0x1FFF];
+		return readDirect(address);
 	return address >> 8;
 }
 
@@ -310,13 +338,13 @@ u8 NesMapper::readReg(u16 address) {
 	if (address == 0x4014) {
 		return 0x14;
 	} if (address == 0x4016) {
-		u8 data = m_pad->read(0);
+		u8 data = nesPad.read(0);
 		return data | 0x40; // TODO | m_TapeOut
 	} else if (address == 0x4017) {
-		u8 data = m_pad->read(1);
-		return data | m_apu->read(0x17);
+		u8 data = nesPad.read(1);
+		return data | nesApu.read(0x17);
 	} else if (address < 0x4017) {
-		return m_apu->read(address & 0x1F);
+		return nesApu.read(address & 0x1F);
 	} else {
 		return readEx(address);
 	}
@@ -332,20 +360,20 @@ u8 NesMapper::readEx(u16 address) {
 	return 0x00;
 }
 
-void NesMapper::clock(uint cycles)
+void NesMapper::clock(u32 cycles)
 { Q_UNUSED(cycles) }
 
 void NesMapper::setIrqSignalOut(bool on) {
 	if (on != m_irqOut) {
 		m_irqOut = on;
-		emit request_irq_o(on);
+		nesCpu.mapper_irq_i(on);
 	}
 }
 
 void NesMapper::setGameGenieCodeList(const QList<GameGenieCode> &codes) {
 	for (int i = 0; i < nesGameGenieList.size(); i++) {
 		const GameGenieCode &code = nesGameGenieList.at(i);
-		uint address = code.address() | 0x8000;
+		u16 address = code.address() | 0x8000;
 		if (readDirect(address) == code.replaceData())
 			writeDirect(address, code.expectedData());
 	}
@@ -353,7 +381,7 @@ void NesMapper::setGameGenieCodeList(const QList<GameGenieCode> &codes) {
 	processGameGenieCodes();
 }
 
-static void processGameGenieCodes() {
+void NesMapper::processGameGenieCodes() {
 	for (int i = 0; i < nesGameGenieList.size(); i++) {
 		GameGenieCode &code = nesGameGenieList[i];
 		uint address = code.address() | 0x8000;
@@ -387,8 +415,8 @@ void NesMapper::setMirroring(uint bank0, uint bank1, uint bank2, uint bank3) {
 	nesPpuBanks[11] = nesPpuBanks[15] = nesVram + bank3*0x400;
 }
 
-void NesMapper::horizontalSync(int scanline)
-{ Q_UNUSED(scanline) }
+void NesMapper::horizontalSync()
+{ }
 
 void NesMapper::verticalSync()
 { }
@@ -414,8 +442,8 @@ bool NesMapper::save(QDataStream &s) {
 	for (int i = 0; i < 8; i++) {
 		u8 *bank = nesCpuBanks[i];
 		u8 type;
-		uint offset;
-		if (bank >= nesRom && bank < (nesRom + nesRomSize)) {
+		u32 offset;
+		if (bank >= nesRom && bank < (nesRom + nesRomSizeInBytes)) {
 			type = 0;
 			offset = bank - nesRom;
 		} else if (bank >= nesRam && bank < (nesRam + sizeof(nesRam))) {
@@ -433,26 +461,29 @@ bool NesMapper::save(QDataStream &s) {
 		s << type;
 		s << offset;
 	}
-	if (s.writeRawData(reinterpret_cast<const char *>(nesRam), sizeof(nesRam)) != sizeof(nesRam))
+	if (s.writeRawData((const char *)nesRam, sizeof(nesRam)) != sizeof(nesRam))
 		return false;
-	if (s.writeRawData(reinterpret_cast<const char *>(nesWram), sizeof(nesWram)) != sizeof(nesWram))
+	if (s.writeRawData((const char *)nesWram, sizeof(nesWram)) != sizeof(nesWram))
 		return false;
-	if (s.writeRawData(reinterpret_cast<const char *>(nesXram), sizeof(nesXram)) != sizeof(nesXram))
+	if (s.writeRawData((const char *)nesXram, sizeof(nesXram)) != sizeof(nesXram))
 		return false;
 	s << m_irqOut;
 	// PPU
-	if (s.writeRawData(reinterpret_cast<const char *>(nesVram), sizeof(nesVram)) != sizeof(nesVram))
+	if (s.writeRawData((const char *)nesVram, sizeof(nesVram)) != sizeof(nesVram))
 		return false;
-	if (s.writeRawData(reinterpret_cast<const char *>(nesCram), sizeof(nesCram)) != sizeof(nesCram))
+	if (s.writeRawData((const char *)nesCram, sizeof(nesCram)) != sizeof(nesCram))
 		return false;
 	for (int i = 0; i < 16; i++) {
-		s << u8(nesPpuBanksType[i]);
+		u8 type = nesPpuBanksType[i];
+		u32 offset = 0;
 		if (nesPpuBanksType[i] == VromBank)
-			s << uint(nesPpuBanks[i] - nesVrom);
+			offset = nesPpuBanks[i] - nesVrom;
 		else if (nesPpuBanksType[i] == CramBank)
-			s << uint(nesPpuBanks[i] - nesCram);
+			offset = nesPpuBanks[i] - nesCram;
 		else if (nesPpuBanksType[i] == VramBank)
-			s << uint(nesPpuBanks[i] - nesVram);
+			offset = nesPpuBanks[i] - nesVram;
+		s << type;
+		s << offset;
 	}
 	return true;
 }
@@ -461,7 +492,7 @@ bool NesMapper::load(QDataStream &s) {
 	// CPU
 	for (int i = 0; i < 8; i++) {
 		u8 type;
-		uint offset;
+		u32 offset;
 		s >> type;
 		s >> offset;
 		if (type == 0)
@@ -475,24 +506,24 @@ bool NesMapper::load(QDataStream &s) {
 		else
 			return false;
 	}
-	if (s.readRawData(reinterpret_cast<char *>(nesRam), sizeof(nesRam)) != sizeof(nesRam))
+	if (s.readRawData((char *)nesRam, sizeof(nesRam)) != sizeof(nesRam))
 		return false;
-	if (s.readRawData(reinterpret_cast<char *>(nesWram), sizeof(nesWram)) != sizeof(nesWram))
+	if (s.readRawData((char *)nesWram, sizeof(nesWram)) != sizeof(nesWram))
 		return false;
-	if (s.readRawData(reinterpret_cast<char *>(nesXram), sizeof(nesXram)) != sizeof(nesXram))
+	if (s.readRawData((char *)nesXram, sizeof(nesXram)) != sizeof(nesXram))
 		return false;
 	s >> m_irqOut;
 	// PPU
-	if (s.readRawData(reinterpret_cast<char *>(nesVram), sizeof(nesVram)) != sizeof(nesVram))
+	if (s.readRawData((char *)nesVram, sizeof(nesVram)) != sizeof(nesVram))
 		return false;
-	if (s.readRawData(reinterpret_cast<char *>(nesCram), sizeof(nesCram)) != sizeof(nesCram))
+	if (s.readRawData((char *)nesCram, sizeof(nesCram)) != sizeof(nesCram))
 		return false;
 	for (int i = 0; i < 16; i++) {
 		u8 bType;
 		s >> bType;
-		nesPpuBanksType[i] = static_cast<BankType>(bType);
+		nesPpuBanksType[i] = static_cast<NesPpuBankType>(bType);
 
-		uint offset;
+		u32 offset;
 		s >> offset;
 		if (nesPpuBanksType[i] == VromBank)
 			nesPpuBanks[i] = nesVrom + offset;

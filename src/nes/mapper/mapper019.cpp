@@ -15,14 +15,14 @@ void Mapper019::reset() {
 	irq_enable = 0;
 	irq_counter = 0;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 
-	if (vromSize1KB())
-		setVrom8KBank(vromSize8KB()-1);
+	if (nesVromSize1KB)
+		setVrom8KBank(nesVromSize8KB-1);
 
 	exsound_enable = 0xFF;
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 
 	if (crc == 0xb62a7b71) {	// Family Circuit '91(J)
 		patch = 1;
@@ -36,18 +36,18 @@ void Mapper019::reset() {
 	}
 
 	if (crc == 0x968dcf09) {	// Final Lap(J)
-		ppu()->setRenderMethod(NesPpu::PreAllRender);
+		nesPpu.setRenderMethod(NesPpu::PreAllRender);
 	}
 	if (crc == 0x3deac303) {	// Rolling Thunder(J)
-		ppu()->setRenderMethod(NesPpu::PostAllRender);
+		nesPpu.setRenderMethod(NesPpu::PostAllRender);
 	}
 
 	if (crc == 0xb1b9e187) {	// For Kaijuu Monogatari(J)
-		ppu()->setRenderMethod(NesPpu::PreAllRender);
+		nesPpu.setRenderMethod(NesPpu::PreAllRender);
 	}
 
 	if (crc == 0x6901346e) {	// For Sangokushi 2 - Haou no Tairiku(J)
-		ppu()->setRenderMethod(NesPpu::TileRender);
+		nesPpu.setRenderMethod(NesPpu::TileRender);
 	}
 
 	if (crc == 0xaf15338f		// For Mindseeker(J)
@@ -67,8 +67,8 @@ void Mapper019::reset() {
 	}
 }
 
-quint8 Mapper019::readLow(quint16 address) {
-	quint8 data = 0;
+u8 Mapper019::readLow(u16 address) {
+	u8 data = 0;
 	switch (address & 0xF800) {
 	case 0x4800:
 		if (address == 0x4800) {
@@ -76,7 +76,7 @@ quint8 Mapper019::readLow(quint16 address) {
 				// TODO exsound nes->apu->ExRead(address);
 				data = exram[reg[2]&0x7F];
 			} else {
-				data = m_wram[reg[2]&0x7F];
+				data = nesWram[reg[2]&0x7F];
 			}
 			if (reg[2]&0x80)
 				reg[2] = (reg[2]+1)|0x80;
@@ -101,7 +101,7 @@ quint8 Mapper019::readLow(quint16 address) {
 	return data;
 }
 
-void Mapper019::writeLow(quint16 address, quint8 data) {
+void Mapper019::writeLow(u16 address, u8 data) {
 	switch (address & 0xF800) {
 	case 0x4800:
 		if (address == 0x4800) {
@@ -109,7 +109,7 @@ void Mapper019::writeLow(quint16 address, quint8 data) {
 				// TODO exsound nes->apu->ExWrite(address, data);
 				exram[reg[2]&0x7F] = data;
 			} else {
-				m_wram[reg[2]&0x7F] = data;
+				nesWram[reg[2]&0x7F] = data;
 			}
 			if (reg[2]&0x80)
 				reg[2] = (reg[2]+1)|0x80;
@@ -135,7 +135,7 @@ void Mapper019::writeLow(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper019::writeHigh(quint16 address, quint8 data) {
+void Mapper019::writeHigh(u16 address, u8 data) {
 	switch (address & 0xF800) {
 	case 0x8000:
 		if ((data < 0xE0) || (reg[0] != 0)) {
@@ -233,15 +233,15 @@ void Mapper019::writeHigh(quint16 address, quint8 data) {
 		setRom8KBank(4, data & 0x3F);
 		if (patch == 2) {
 			if (data & 0x40)
-				setMirroring(Vertical);
+				setMirroring(VerticalMirroring);
 			else
 				setMirroring(SingleLow);
 		}
 		if (patch == 3) {
 			if (data & 0x80)
-				setMirroring(Horizontal);
+				setMirroring(HorizontalMirroring);
 			else
-				setMirroring(Vertical);
+				setMirroring(VerticalMirroring);
 		}
 		break;
 	case 0xE800:

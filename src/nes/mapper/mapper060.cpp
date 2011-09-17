@@ -6,7 +6,7 @@ void Mapper060::reset() {
 	NesMapper::reset();
 
 	patch = 0;
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 	if (crc == 0xf9c484a0) {	// Reset Based 4-in-1(Unl)
 		setRom16KBank(4, game_sel);
 		setRom16KBank(6, game_sel);
@@ -20,7 +20,7 @@ void Mapper060::reset() {
 	}
 }
 
-void Mapper060::writeHigh(quint16 address, quint8 data) {
+void Mapper060::writeHigh(u16 address, u8 data) {
 	if (patch) {
 		if (address & 0x80) {
 			setRom16KBank(4, (address & 0x70) >> 4);
@@ -29,7 +29,7 @@ void Mapper060::writeHigh(quint16 address, quint8 data) {
 			setRom32KBank((address & 0x70) >> 5);
 		}
 		setVrom8KBank(address & 0x07);
-		setMirroring(static_cast<Mirroring>((data & 0x08) >> 3));
+		setMirroring(static_cast<NesMirroring>((data & 0x08) >> 3));
 	}
 }
 

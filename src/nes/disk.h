@@ -5,7 +5,7 @@
 
 class NesDisk {
 public:
-	int load(const QString &fileName);
+	bool load(const QString &fileName);
 
 	bool hasBatteryBackedRam() const;
 };

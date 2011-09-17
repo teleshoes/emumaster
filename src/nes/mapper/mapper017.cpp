@@ -4,14 +4,14 @@
 void Mapper017::reset() {
 	NesMapper::reset();
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
-	if (vromSize1KB())
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 	irqEnable = 0;
 	irqCounter = 0;
 }
 
-void Mapper017::writeLow(quint16 address, quint8 data) {
+void Mapper017::writeLow(u16 address, u8 data) {
 	switch (address) {
 	case 0x42FE:
 		if (data & 0x10)
@@ -21,9 +21,9 @@ void Mapper017::writeLow(quint16 address, quint8 data) {
 		break;
 	case 0x42FF:
 		if (data & 0x10)
-			setMirroring(Horizontal);
+			setMirroring(HorizontalMirroring);
 		else
-			setMirroring(Vertical);
+			setMirroring(VerticalMirroring);
 		break;
 	case 0x4501:
 		irqEnable = 0;
@@ -61,7 +61,7 @@ void Mapper017::writeLow(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper017::writeHigh(quint16 address, quint8 data) {
+void Mapper017::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(address)
 	setRom16KBank(4, (data & 0x3C) >> 2);
 	setCram8KBank(data & 0x03);

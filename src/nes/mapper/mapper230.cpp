@@ -14,10 +14,10 @@ void Mapper230::reset() {
 	if (rom_sw)
 		setRom8KBanks(0, 1, 14, 15);
 	else
-		setRom8KBanks(16, 17, romSize8KB()-2, romSize8KB()-1);
+		setRom8KBanks(16, 17, nesRomSize8KB-2, nesRomSize8KB-1);
 }
 
-void Mapper230::writeHigh(quint16 address, quint8 data) {
+void Mapper230::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(address)
 
 	if (rom_sw) {
@@ -36,9 +36,9 @@ void Mapper230::writeHigh(quint16 address, quint8 data) {
 			setRom8KBank(7, (data&0x1E)*2+19);
 		}
 		if (data & 0x40)
-			setMirroring(Vertical);
+			setMirroring(VerticalMirroring);
 		else
-			setMirroring(Horizontal);
+			setMirroring(HorizontalMirroring);
 	}
 }
 

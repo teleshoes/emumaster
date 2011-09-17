@@ -9,19 +9,19 @@ void Mapper065::reset() {
 	patch = 0;
 
 	// Kaiketsu Yanchamaru 3(J)
-	if (disk()->crc() == 0xe30b7f64)
+	if (nesDiskCrc == 0xe30b7f64)
 		patch = 1;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 
 	irq_enable = 0;
 	irq_counter = 0;
 }
 
-void Mapper065::writeHigh(quint16 address, quint8 data) {
+void Mapper065::writeHigh(u16 address, u8 data) {
 	switch (address) {
 	case 0x8000:
 		setRom8KBank(4, data);
@@ -29,12 +29,12 @@ void Mapper065::writeHigh(quint16 address, quint8 data) {
 
 	case 0x9000:
 		if (!patch)
-			setMirroring(static_cast<Mirroring>((data & 0x40) >> 6));
+			setMirroring(static_cast<NesMirroring>((data & 0x40) >> 6));
 		break;
 
 	case 0x9001:
 		if (patch)
-			setMirroring(static_cast<Mirroring>((data & 0x80) >> 7));
+			setMirroring(static_cast<NesMirroring>((data & 0x80) >> 7));
 		break;
 
 	case 0x9003:

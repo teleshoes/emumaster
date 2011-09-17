@@ -30,7 +30,7 @@ void Mapper254::reset() {
 	irq_request = 0;
 }
 
-quint8 Mapper254::readLow(quint16 address) {
+u8 Mapper254::readLow(u16 address) {
 	if (address >= 0x6000) {
 		if (protectflag)
 			return readDirect(address);
@@ -40,7 +40,7 @@ quint8 Mapper254::readLow(quint16 address) {
 	return NesMapper::readLow(address);
 }
 
-void Mapper254::writeLow(quint16 address, quint8 data) {
+void Mapper254::writeLow(u16 address, u8 data) {
 	switch (address & 0xF000) {
 	case 0x6000:
 	case 0x7000:
@@ -49,7 +49,7 @@ void Mapper254::writeLow(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper254::writeHigh(quint16 address, quint8 data) {
+void Mapper254::writeHigh(u16 address, u8 data) {
 	switch (address & 0xE001) {
 	case 0x8000:
 		protectflag = 0xFF;
@@ -73,8 +73,8 @@ void Mapper254::writeHigh(quint16 address, quint8 data) {
 		break;
 	case 0xA000:
 		reg[2] = data;
-		if (disk()->mirroring() != FourScreen)
-			setMirroring(static_cast<Mirroring>(data & 0x01));
+		if (nesMirroring != FourScreenMirroring)
+			setMirroring(static_cast<NesMirroring>(data & 0x01));
 		break;
 	case 0xA001:
 		reg[3] = data;
@@ -107,7 +107,7 @@ void Mapper254::writeHigh(quint16 address, quint8 data) {
 }
 
 void Mapper254::horizontalSync(int scanline) {
-	if (scanline < NesPpu::VisibleScreenHeight && ppuRegisters()->isDisplayOn()) {
+	if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 		if (irq_enable && !irq_request) {
 			if (scanline == 0) {
 				if (irq_counter)
@@ -124,13 +124,13 @@ void Mapper254::horizontalSync(int scanline) {
 
 void Mapper254::setBankCpu() {
 	if (reg[0] & 0x40)
-		setRom8KBanks(romSize8KB()-2, prg1, prg0, romSize8KB()-1);
+		setRom8KBanks(nesRomSize8KB-2, prg1, prg0, nesRomSize8KB-1);
 	else
-		setRom8KBanks(prg0, prg1, romSize8KB()-2, romSize8KB()-1);
+		setRom8KBanks(prg0, prg1, nesRomSize8KB-2, nesRomSize8KB-1);
 }
 
 void Mapper254::setBankPpu() {
-	if (vromSize1KB()) {
+	if (nesVromSize1KB) {
 		if (reg[0] & 0x80) {
 			setVrom1KBank(4, (chr01+0));
 			setVrom1KBank(5, (chr01+1));

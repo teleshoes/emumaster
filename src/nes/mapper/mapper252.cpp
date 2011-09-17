@@ -17,13 +17,13 @@ void Mapper252::reset() {
 	irq_clock = 0;
 	irq_occur = 0;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 	setVrom8KBank(0);
 
-	ppu()->setRenderMethod(NesPpu::PostRender);
+	nesPpu.setRenderMethod(NesPpu::PostRender);
 }
 
-void Mapper252::writeHigh(quint16 address, quint8 data) {
+void Mapper252::writeHigh(u16 address, u8 data) {
 	if ((address & 0xF000) == 0x8000) {
 		setRom8KBank(4, data);
 		return;

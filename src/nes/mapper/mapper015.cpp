@@ -5,7 +5,7 @@ void Mapper015::reset() {
 	setRom32KBank(0);
 }
 
-void Mapper015::writeHigh(quint16 address, quint8 data) {
+void Mapper015::writeHigh(u16 address, u8 data) {
 	switch (address) {
 	case 0x8000:
 		if (data & 0x80) {
@@ -20,9 +20,9 @@ void Mapper015::writeHigh(quint16 address, quint8 data) {
 			setRom8KBank(7, (data&0x3F)*2+3);
 		}
 		if (data & 0x40)
-			setMirroring(Horizontal);
+			setMirroring(HorizontalMirroring);
 		else
-			setMirroring(Vertical);
+			setMirroring(VerticalMirroring);
 		break;
 	case 0x8001:
 		if (data & 0x80) {
@@ -55,9 +55,9 @@ void Mapper015::writeHigh(quint16 address, quint8 data) {
 			setRom8KBank(7, (data&0x3F)*2+1);
 		}
 		if (data & 0x40)
-			setMirroring(Horizontal);
+			setMirroring(HorizontalMirroring);
 		else
-			setMirroring(Vertical);
+			setMirroring(VerticalMirroring);
 		break;
 	}
 }

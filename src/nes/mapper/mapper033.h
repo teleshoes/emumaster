@@ -4,11 +4,11 @@
 #include "../mapper.h"
 
 class Mapper033 : public NesMapper {
-	Q_OBJECT
+
 public:
 	void reset();
 
-	void writeHigh(quint16 address, quint8 data);
+	void writeHigh(u16 address, u8 data);
 
 	void horizontalSync(int scanline);
 
@@ -17,13 +17,13 @@ public:
 
 	void updateBanks();
 private:
-	quint8 patch;
+	u8 patch;
 
-	quint8 reg[7];
+	u8 reg[7];
 
-	quint8 irq_enable;
-	quint8 irq_counter;
-	quint8 irq_latch;
+	u8 irq_enable;
+	u8 irq_counter;
+	u8 irq_latch;
 };
 
 #endif // MAPPER033_H

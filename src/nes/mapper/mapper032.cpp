@@ -8,11 +8,11 @@ void Mapper032::reset() {
 	patch = 0;
 	reg = 0;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
-	if (vromSize1KB())
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 	// For Major League(J)
 	if (crc == 0xc0fed437) {
 		patch = 1;
@@ -23,7 +23,7 @@ void Mapper032::reset() {
 	}
 }
 
-void Mapper032::writeHigh(quint16 address, quint8 data) {
+void Mapper032::writeHigh(u16 address, u8 data) {
 	switch (address & 0xF000) {
 	case 0x8000:
 		if (reg & 0x02)
@@ -33,7 +33,7 @@ void Mapper032::writeHigh(quint16 address, quint8 data) {
 		break;
 	case 0x9000:
 		reg = data;
-		setMirroring(static_cast<Mirroring>(data & 0x01));
+		setMirroring(static_cast<NesMirroring>(data & 0x01));
 		break;
 	case 0xA000:
 		setRom8KBank(1, data);

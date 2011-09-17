@@ -7,7 +7,7 @@ void Mapper062::reset() {
 	setVrom8KBank(0);
 }
 
-void Mapper062::writeHigh(quint16 address, quint8 data) {
+void Mapper062::writeHigh(u16 address, u8 data) {
 	switch (address & 0xFF00) {
 	case 0x8100:
 		setRom8KBank(4, data);

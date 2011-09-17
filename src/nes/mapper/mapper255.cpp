@@ -9,35 +9,35 @@ void Mapper255::reset() {
 
 	setRom32KBank(0);
 	setVrom8KBank(0);
-	setMirroring(Vertical);
+	setMirroring(VerticalMirroring);
 
 	for (int i = 0; i < 4; i++)
 		reg[i] = 0;
 }
 
-quint8 Mapper255::readLow(quint16 address) {
+u8 Mapper255::readLow(u16 address) {
 	if (address >= 0x5800)
 		return reg[address & 0x0003] & 0x0F;
 	else
 		return address >> 8;
 }
 
-void Mapper255::writeLow(quint16 address, quint8 data) {
+void Mapper255::writeLow(u16 address, u8 data) {
 	if (address >= 0x5800)
 		reg[address & 0x0003] = data & 0x0F;
 }
 
-void Mapper255::writeHigh(quint16 address, quint8 data) {
+void Mapper255::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(data)
 
-	quint8 prg = (address & 0x0F80) >> 7;
+	u8 prg = (address & 0x0F80) >> 7;
 	int chr = (address & 0x003F);
 	int bank = (address & 0x4000) >> 14;
 
 	if (address & 0x2000)
-		setMirroring(Horizontal);
+		setMirroring(HorizontalMirroring);
 	else
-		setMirroring(Vertical);
+		setMirroring(VerticalMirroring);
 
 	if (address & 0x1000) {
 		if (address & 0x0040) {

@@ -11,22 +11,22 @@ void Mapper026::reset() {
 	irq_latch = 0;
 	irq_clock = 0;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
-	if (vromSize1KB())
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 	if (crc == 0x30e64d03) {	// Esper Dream 2 - Aratanaru Tatakai(J)
-		ppu()->setRenderMethod(NesPpu::PostAllRender);
+		nesPpu.setRenderMethod(NesPpu::PostAllRender);
 	}
 	if (crc == 0x836cc1ab) {	// Mouryou Senki Madara(J)
-		ppu()->setRenderMethod(NesPpu::PostRender);
+		nesPpu.setRenderMethod(NesPpu::PostRender);
 	}
 
 	// TODO nes->apu->SelectExSound( 1);
 }
 
-void Mapper026::writeHigh(quint16 address, quint8 data) {
+void Mapper026::writeHigh(u16 address, u8 data) {
 	switch (address & 0xF003) {
 	case 0x8000:
 		setRom16KBank(4, data);
@@ -44,9 +44,9 @@ void Mapper026::writeHigh(quint16 address, quint8 data) {
 		if (data == 0x08 || data == 0x2C)
 			setMirroring(SingleHigh);
 		else if (data == 0x20)
-			setMirroring(Vertical);
+			setMirroring(VerticalMirroring);
 		else if (data == 0x24)
-			setMirroring(Horizontal);
+			setMirroring(HorizontalMirroring);
 		else if (data == 0x28)
 			setMirroring(SingleLow);
 		break;

@@ -6,15 +6,15 @@ void Mapper225::reset() {
 	NesMapper::reset();
 
 	setRom32KBank(0);
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 }
 
-void Mapper225::writeHigh(quint16 address, quint8 data) {
+void Mapper225::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(data)
 
-	quint8 prg_bank = (address & 0x0F80) >> 7;
-	quint8 chr_bank = address & 0x003F;
+	u8 prg_bank = (address & 0x0F80) >> 7;
+	u8 chr_bank = address & 0x003F;
 
 	setVrom1KBank(0, chr_bank*8+0);
 	setVrom1KBank(1, chr_bank*8+1);
@@ -26,9 +26,9 @@ void Mapper225::writeHigh(quint16 address, quint8 data) {
 	setVrom1KBank(7, chr_bank*8+7);
 
 	if (address & 0x2000)
-		setMirroring(Horizontal);
+		setMirroring(HorizontalMirroring);
 	else
-		setMirroring(Vertical);
+		setMirroring(VerticalMirroring);
 
 	if (address & 0x1000) {
 		if (address & 0x0040) {

@@ -6,13 +6,13 @@ void Mapper040::reset() {
 
 	setRom8KBank(3, 6);
 	setRom8KBanks(4, 5, 0, 7);
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 	irq_enable = 0;
 	irq_line = 0;
 }
 
-void Mapper040::writeHigh(quint16 address, quint8 data) {
+void Mapper040::writeHigh(u16 address, u8 data) {
 	switch (address & 0xE000) {
 	case 0x8000:
 		irq_enable = 0;

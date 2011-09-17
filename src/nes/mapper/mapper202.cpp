@@ -7,24 +7,24 @@ void Mapper202::reset() {
 
 	setRom16KBank(4, 6);
 	setRom16KBank(6, 7);
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 }
 
-void Mapper202::writeEx(quint16 address, quint8 data) {
+void Mapper202::writeEx(u16 address, u8 data) {
 	if (address >= 0x4020)
 		writeSub(address, data);
 }
 
-void Mapper202::writeLow(quint16 address, quint8 data) {
+void Mapper202::writeLow(u16 address, u8 data) {
 	writeSub(address, data);
 }
 
-void Mapper202::writeHigh(quint16 address, quint8 data) {
+void Mapper202::writeHigh(u16 address, u8 data) {
 	writeSub(address, data);
 }
 
-void Mapper202::writeSub(quint16 address, quint8 data) {
+void Mapper202::writeSub(u16 address, u8 data) {
 	Q_UNUSED(data)
 
 	int bank = (address>>1) & 0x07;
@@ -36,7 +36,7 @@ void Mapper202::writeSub(quint16 address, quint8 data) {
 	setVrom8KBank(bank);
 
 	if (address & 0x01)
-		setMirroring(Horizontal);
+		setMirroring(HorizontalMirroring);
 	else
-		setMirroring(Vertical);
+		setMirroring(VerticalMirroring);
 }

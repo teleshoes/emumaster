@@ -3,9 +3,8 @@
 #include <imachine.h>
 #include <QDataStream>
 
-NesApuDMChannel::NesApuDMChannel(NesApu *apu, int channelNo) :
-	NesApuChannel(channelNo),
-	m_apu(apu) {
+NesApuDMChannel::NesApuDMChannel(int channelNo) :
+	NesApuChannel(channelNo) {
 }
 
 void NesApuDMChannel::reset() {
@@ -27,7 +26,7 @@ void NesApuDMChannel::reset() {
 	m_playAddress = 0;
 }
 
-void NesApuDMChannel::write0x4010(quint8 data) {
+void NesApuDMChannel::write0x4010(u8 data) {
 	int tmp = data >> 6;
 	if (tmp & 1)
 		tmp &= 1;
@@ -37,23 +36,23 @@ void NesApuDMChannel::write0x4010(quint8 data) {
 	m_dmaFrequency = m_frequencyLUT[data & 0xF];
 }
 
-void NesApuDMChannel::write0x4011(quint8 data) {
+void NesApuDMChannel::write0x4011(u8 data) {
 	m_deltaCounter = (data >> 1) & 0x3F;
 	m_dacLsb = data & 1;
 	sampleValue = ((m_deltaCounter << 1) + m_dacLsb);
 }
 
-void NesApuDMChannel::write0x4012(quint8 data) {
+void NesApuDMChannel::write0x4012(u8 data) {
 	m_playStartAddress = (data << 6) | 0xC000;
 	m_playAddress = m_playStartAddress;
 }
 
-void NesApuDMChannel::write0x4013(quint8 data) {
+void NesApuDMChannel::write0x4013(u8 data) {
 	m_playLength = (data << 4) + 1;
 	lengthCounter = m_playLength;
 }
 
-void NesApuDMChannel::write0x4015(quint8 data) {
+void NesApuDMChannel::write0x4015(u8 data) {
 	if (!((data >> 4) & 1)) {
 		// Disable:
 		lengthCounter = 0;
@@ -103,7 +102,7 @@ void NesApuDMChannel::endOfSample() {
 }
 
 void NesApuDMChannel::nextSample() {
-	m_shiftReg = m_apu->fetchData(m_playAddress);
+	m_shiftReg = nesApu.fetchData(m_playAddress);
 	lengthCounter--;
 	m_playAddress++;
 	if (m_playAddress > 0xFFFF)

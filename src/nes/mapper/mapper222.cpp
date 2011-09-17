@@ -5,13 +5,13 @@
 void Mapper222::reset() {
 	NesMapper::reset();
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
-	if (vromSize1KB())
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
-	setMirroring(Vertical);
+	setMirroring(VerticalMirroring);
 }
 
-void Mapper222::writeHigh(quint16 address, quint8 data) {
+void Mapper222::writeHigh(u16 address, u8 data) {
 	switch (address & 0xF003) {
 	case 0x8000:
 		setRom8KBank(4, data);

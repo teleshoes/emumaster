@@ -15,7 +15,7 @@ public:
 		DescriptionRole,
 		EnableRole
 	};
-	explicit GameGenieCodeListModel(NesMachine *machine);
+	explicit GameGenieCodeListModel(QObject *parent = 0);
 	~GameGenieCodeListModel();
 	int rowCount(const QModelIndex &parent) const;
 	QVariant data(const QModelIndex &index, int role) const;
@@ -30,8 +30,6 @@ public:
 	Q_INVOKABLE bool isCodeValid(const QString &s);
 private:
 	QString filePath();
-
-	NesMachine *m_machine;
 
 	QStringList m_codes;
 	QStringList m_descriptions;

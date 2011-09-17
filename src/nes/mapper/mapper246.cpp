@@ -5,10 +5,10 @@
 void Mapper246::reset() {
 	NesMapper::reset();
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 }
 
-void Mapper246::writeHigh(quint16 address, quint8 data) {
+void Mapper246::writeHigh(u16 address, u8 data) {
 	if (address >= 0x6000 && address < 0x8000) {
 		switch( address) {
 		case 0x6000:

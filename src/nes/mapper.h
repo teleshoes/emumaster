@@ -3,6 +3,7 @@
 
 #include "machine.h"
 #include "gamegeniecode.h"
+class NesMapper;
 
 enum NesMirroring {
 	VerticalMirroring = 0,
@@ -17,6 +18,36 @@ enum NesPpuBankType {
 	CramBank,
 	VramBank
 };
+
+extern uint nesRomSizeInBytes;
+extern uint nesRomSize16KB;
+extern uint nesRomSize8KB;
+
+extern uint nesVromSizeInBytes;
+extern uint nesVromSize8KB;
+extern uint nesVromSize4KB;
+extern uint nesVromSize2KB;
+extern uint nesVromSize1KB;
+
+extern u8 nesTrainer[512];
+extern NesMirroring nesMirroring;
+extern NesMirroring nesDefaultMirroring;
+
+extern int nesMapperType;
+extern NesMapper *nesMapper;
+
+extern u8 *nesRom;
+extern u8 nesRam[8*1024];
+extern u8 nesWram[128*1024];
+extern u8 nesXram[8*1024];
+
+extern u8 *nesVrom;
+extern u8 nesVram[4*1024];
+extern u8 nesCram[32*1024];
+
+extern u8 *nesPpuBanks[16];
+extern NesPpuBankType nesPpuBanksType[16];
+extern u8 *nesCpuBanks[8]; // 8K banks 0x0000-0xFFFF
 
 class NesMapper {
 public:
@@ -66,7 +97,7 @@ public:
 	void ppuWrite(u16 address, u8 data);
 	u8 ppuRead(u16 address);
 
-	virtual void horizontalSync(int scanline);
+	virtual void horizontalSync();
 	virtual void verticalSync();
 	virtual void addressBusLatch(u16 address);
 	virtual void characterLatch(u16 address);
@@ -89,7 +120,7 @@ public:
 
 	void setVram1KBank(uint page, uint vramBank1K);
 
-	BankType ppuBank1KType(uint bank) const;
+	NesPpuBankType ppuBank1KType(uint bank) const;
 	u8 *ppuBank1KData(uint bank) const;
 private:
 	void writeReg(u16 address, u8 data);
@@ -114,7 +145,7 @@ inline void NesMapper::setRom16KBank(uint page, uint romBank16K) {
 }
 
 inline void NesMapper::setRom8KBank(uint page, uint romBank8K) {
-	romBank8K = romBank8K % romSize8KB();
+	romBank8K = romBank8K % nesRomSize8KB;
 	nesCpuBanks[page] = nesRom + romBank8K * 0x2000;
 }
 
@@ -157,8 +188,8 @@ inline void NesMapper::setVrom2KBank(uint page, uint vromBank2K) {
 
 inline void NesMapper::setVrom1KBank(uint page, uint vromBank1K) {
 	Q_ASSERT(page < 16);
-	if (vromSize1KB) {
-		vromBank1K = vromBank1K % vromSize1KB;
+	if (nesVromSize1KB) {
+		vromBank1K = vromBank1K % nesVromSize1KB;
 		nesPpuBanks[page] = nesVrom + vromBank1K * 0x0400;
 		nesPpuBanksType[page] = VromBank;
 	} else {
@@ -193,41 +224,9 @@ inline void NesMapper::setVram1KBank(uint page, uint vramBank1K) {
 	nesPpuBanksType[page] = VramBank;
 }
 
-inline NesMapper::BankType NesMapper::ppuBank1KType(uint bank) const
+inline NesPpuBankType NesMapper::ppuBank1KType(uint bank) const
 { Q_ASSERT(bank < 16); return nesPpuBanksType[bank]; }
 inline u8 *NesMapper::ppuBank1KData(uint bank) const
 { Q_ASSERT(bank < 16); return nesPpuBanks[bank]; }
-
-extern uint nesRomSizeInBytes;
-extern uint nesRomSize16KB;
-extern uint nesRomSize8KB;
-
-extern uint nesVromSizeInBytes;
-extern uint nesVromSize8KB;
-extern uint nesVromSize4KB;
-extern uint nesVromSize2KB;
-extern uint nesVromSize1KB;
-
-extern u8 nesTrainer[512];
-extern NesMirroring nesMirroring;
-extern NesMirroring nesDefaultMirroring;
-
-extern int nesMapperType;
-extern NesMapper *nesMapper;
-
-extern u8 *nesRom;
-extern u8 nesRam[8*1024];
-extern u8 nesWram[128*1024];
-extern u8 nesXram[8*1024];
-
-extern u8 *nesVrom;
-extern u8 nesVram[4*1024];
-extern u8 nesCram[32*1024];
-
-extern u8 *nesPpuBanks[16];
-extern NesPpuBankType nesPpuBanksType[16];
-extern u8 *nesCpuBanks[8]; // 8K banks 0x0000-0xFFFF
-
-// TODO memory cleanup
 
 #endif // MAPPER_H

@@ -30,7 +30,7 @@ void NesApuChannel::reset() {
 	sampleValue = 0;
 }
 
-void NesApuChannel::setVolumeDecay(quint8 data) {
+void NesApuChannel::setVolumeDecay(u8 data) {
 	m_volume = data & 0x0F;
 	m_envelopeDecayRate = (data & 0x0F) + 1;
 	m_envelopeDecayDisable = data & 0x10;
@@ -44,12 +44,12 @@ void NesApuChannel::setVolumeDecay(quint8 data) {
 void NesApuChannel::updateMasterVolume()
 { m_masterVolume = m_envelopeDecayDisable ? m_volume : m_envelopeVolume; }
 
-void NesApuChannel::setFrequency(quint8 data) {
+void NesApuChannel::setFrequency(u8 data) {
 	progTimerMax = (progTimerMax & ~0xFF) | data;
 	updateSampleCondition();
 }
 
-void NesApuChannel::setLength(quint8 data) {
+void NesApuChannel::setLength(u8 data) {
 	progTimerMax = (progTimerMax & 0xFF) | ((data & 0x07) << 8);
 	if (m_enabled)
 		lengthCounter = m_lengthMaxLUT[data >> 3];

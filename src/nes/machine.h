@@ -19,13 +19,14 @@ enum SystemType { NES_NTSC, NES_PAL };
 
 class NesMachine : public IMachine {
 	Q_OBJECT
+	Q_PROPERTY(QObject *ppu READ ppu CONSTANT)
 public:
 	NesMachine();
 	QString init();
 	void shutdown();
 	void reset();
 
-	Type type() const;
+	QString setDisk(const QString &path);
 
 	void clockCpu(u32 cycles);
 	const QImage &frame() const;
@@ -35,16 +36,16 @@ public:
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
-protected:
-	void setAudioSampleRate(int sampleRate);
+
+	QObject *ppu() const;
 private:
 	void emulateFrameNoTile(bool drawEnabled);
-	void emulateVisibleScanlineNoTile(int scanline);
+	void emulateVisibleScanlineNoTile();
 
 	void emulateFrameTile(bool drawEnabled);
-	void emulateVisibleScanlineTile(int scanline);
+	void emulateVisibleScanlineTile();
 
-	void updateZapper(int scanline);
+	void updateZapper();
 };
 
 extern NesMachine nesMachine;

@@ -3,8 +3,7 @@
 
 #include <imachine.h>
 
-class NesPad : public QObject {
-	Q_OBJECT
+class NesPad {
 public:
 	enum Button {
 		A = 0x01,

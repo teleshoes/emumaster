@@ -7,18 +7,18 @@ void Mapper243::reset() {
 
 	setRom32KBank(0);
 
-	if (vromSize8KB() > 4)
+	if (nesVromSize8KB > 4)
 		setVrom8KBank(4);
 	else
 		setVrom8KBank(0);
 
-	setMirroring(Vertical);
+	setMirroring(VerticalMirroring);
 
 	for (int i = 0; i < 4; i++)
 		reg[i] = 0;
 }
 
-void Mapper243::writeLow(quint16 address, quint8 data) {
+void Mapper243::writeLow(u16 address, u8 data) {
 	if ((address&0x4101) == 0x4100) {
 		reg[0] = data;
 	} else if ((address&0x4101) == 0x4101) {
@@ -47,9 +47,9 @@ void Mapper243::writeLow(quint16 address, quint8 data) {
 		setVrom8KBank(reg[2]);
 
 		if (reg[3])
-			setMirroring(Vertical);
+			setMirroring(VerticalMirroring);
 		else
-			setMirroring(Horizontal);
+			setMirroring(HorizontalMirroring);
 	}
 }
 

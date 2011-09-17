@@ -4,11 +4,11 @@
 void Mapper002::reset() {
 	NesMapper::reset();
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 	patch = 0;
-	hasBattery = disk()->hasBatteryBackedRam();
+	hasBattery = nesDisk.hasBatteryBackedRam();
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 	if( crc == 0x8c3d54e8		// Ikari(J)
 	 || crc == 0x655efeed		// Ikari Warriors(U)
 	 || crc == 0x538218b2 ) {	// Ikari Warriors(E)
@@ -19,7 +19,7 @@ void Mapper002::reset() {
 	}
 }
 
-void Mapper002::writeLow(quint16 address, quint8 data) {
+void Mapper002::writeLow(u16 address, u8 data) {
 	if (!hasBattery) {
 		if (address >= 0x5000 && patch == 1)
 			setRom16KBank(0, data);
@@ -28,7 +28,7 @@ void Mapper002::writeLow(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper002::writeHigh(quint16 address, quint8 data) {
+void Mapper002::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(address)
 	if (patch != 2)
 		setRom16KBank(4, data);

@@ -13,18 +13,18 @@ void Mapper226::reset() {
 	reg[1] = 0;
 }
 
-void Mapper226::writeHigh(quint16 address, quint8 data) {
+void Mapper226::writeHigh(u16 address, u8 data) {
 	if (address & 0x001 )
 		reg[1] = data;
 	else
 		reg[0] = data;
 
 	if (reg[0] & 0x40)
-		setMirroring(Vertical);
+		setMirroring(VerticalMirroring);
 	else
-		setMirroring(Horizontal);
+		setMirroring(HorizontalMirroring);
 
-	quint8 bank = ((reg[0]&0x1E)>>1)|((reg[0]&0x80)>>3)|((reg[1]&0x01)<<5);
+	u8 bank = ((reg[0]&0x1E)>>1)|((reg[0]&0x80)>>3)|((reg[1]&0x01)<<5);
 
 	if (reg[0] & 0x20) {
 		if (reg[0] & 0x01) {

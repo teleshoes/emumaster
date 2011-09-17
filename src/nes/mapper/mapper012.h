@@ -4,13 +4,13 @@
 #include "../mapper.h"
 
 class Mapper012 : public NesMapper {
-	Q_OBJECT
+
 public:
 	void reset();
 
-	void writeLow(quint16 address, quint8 data);
-	quint8 readLow(quint16 address);
-	void writeHigh(quint16 address, quint8 data);
+	void writeLow(u16 address, u8 data);
+	u8 readLow(u16 address);
+	void writeHigh(u16 address, u8 data);
 
 	void horizontalSync(int scanline);
 
@@ -20,17 +20,17 @@ public:
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 private:
-	quint32 vb0, vb1;
-	quint8	reg[8];
-	quint8	prg0, prg1;
-	quint8	chr01, chr23, chr4, chr5, chr6, chr7;
+	u32 vb0, vb1;
+	u8	reg[8];
+	u8	prg0, prg1;
+	u8	chr01, chr23, chr4, chr5, chr6, chr7;
 
-	quint8	irq_enable;
-	quint8	irq_counter;
-	quint8	irq_latch;
-	quint8	irq_request;
-	quint8	irq_preset;
-	quint8	irq_preset_vbl;
+	u8	irq_enable;
+	u8	irq_counter;
+	u8	irq_latch;
+	u8	irq_request;
+	u8	irq_preset;
+	u8	irq_preset_vbl;
 };
 
 #endif // MAPPER012_H

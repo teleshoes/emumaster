@@ -7,14 +7,14 @@
 void Mapper251::reset() {
 	NesMapper::reset();
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
-	setMirroring(Vertical);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	setMirroring(VerticalMirroring);
 
 	qMemSet(reg, 0, sizeof(reg));
 	qMemSet(breg, 0, sizeof(breg));
 }
 
-void Mapper251::writeLow(quint16 address, quint8 data) {
+void Mapper251::writeLow(u16 address, u8 data) {
 	Q_UNUSED(address)
 	if ((address & 0xE001) == 0x6000) {
 		if (reg[9]) {
@@ -27,7 +27,7 @@ void Mapper251::writeLow(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper251::writeHigh(quint16 address, quint8 data) {
+void Mapper251::writeHigh(u16 address, u8 data) {
 	switch (address & 0xE001) {
 	case 0x8000:
 		reg[8] = data;
@@ -78,7 +78,7 @@ void Mapper251::setBank() {
 	prg[0] = (reg[6]&((breg[3]&0x3F)^0x3F))|(breg[1]);
 	prg[1] = (reg[7]&((breg[3]&0x3F)^0x3F))|(breg[1]);
 	prg[2] = prg[3] =((breg[3]&0x3F)^0x3F)|(breg[1]);
-	prg[2] &= romSize8KB()-1;
+	prg[2] &= nesRomSize8KB-1;
 
 	if (reg[8] & 0x40)
 		setRom8KBanks(prg[2],prg[1],prg[0],prg[3]);

@@ -2,22 +2,22 @@
 #define MAPPER016_H
 
 #include "../mapper.h"
-#include "mappereeprom.h"
+#include "eeprom.h"
 
 class Mapper016 : public NesMapper {
-	Q_OBJECT
+
 public:
 	void reset();
 
-	quint8 readLow(quint16 address);
-	void writeLow(quint16 address, quint8 data);
-	void writeHigh(quint16 address, quint8 data);
+	u8 readLow(u16 address);
+	void writeLow(u16 address, u8 data);
+	void writeHigh(u16 address, u8 data);
 
 	void clock(uint cycles);
 	void horizontalSync(int scanline);
 
-	void writeSubA(quint16 address, quint8 data);
-	void writeSubB(quint16 address, quint8 data);
+	void writeSubA(u16 address, u8 data);
+	void writeSubB(u16 address, u8 data);
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
@@ -26,15 +26,15 @@ private:
 		IrqClock,
 		IrqHSync
 	};
-	quint8 patch;	// For Famicom Jump 2
-	quint8 eeprom_type;
+	u8 patch;	// For Famicom Jump 2
+	u8 eeprom_type;
 
-	quint8 reg[3];
+	u8 reg[3];
 
-	quint8 irq_enable;
+	u8 irq_enable;
 	int irq_counter;
 	int irq_latch;
-	quint8 irq_type;
+	u8 irq_type;
 
 	X24C01 x24c01;
 	X24C02 x24c02;

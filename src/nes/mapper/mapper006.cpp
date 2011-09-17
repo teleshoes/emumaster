@@ -5,7 +5,7 @@ void Mapper006::reset() {
 	NesMapper::reset();
 
 	setRom8KBanks(0, 1, 14, 15);
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 	else
 		setCram8KBank(0);
@@ -13,7 +13,7 @@ void Mapper006::reset() {
 	irqCounter = 0;
 }
 
-void Mapper006::writeLow(quint16 address, quint8 data) {
+void Mapper006::writeLow(u16 address, u8 data) {
 	switch (address) {
 	case 0x42FE:
 		if (data & 0x10)
@@ -45,7 +45,7 @@ void Mapper006::writeLow(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper006::writeHigh(quint16 address, quint8 data) {
+void Mapper006::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(address)
 	setRom16KBank(4, (data & 0x3C) >> 2);
 	setCram8KBank(data & 0x03);

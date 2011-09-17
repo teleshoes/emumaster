@@ -5,17 +5,17 @@ void Mapper046::reset() {
 	NesMapper::reset();
 	qMemSet(reg, 0, 4);
 	updateBanks();
-	setMirroring(Vertical);
+	setMirroring(VerticalMirroring);
 }
 
-void Mapper046::writeLow(quint16 address, quint8 data) {
+void Mapper046::writeLow(u16 address, u8 data) {
 	Q_UNUSED(address)
 	reg[0] = data & 0x0F;
 	reg[1] = (data & 0xF0) >> 4;
 	updateBanks();
 }
 
-void Mapper046::writeHigh(quint16 address, quint8 data) {
+void Mapper046::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(address)
 	reg[2] = data & 0x01;
 	reg[3] = (data & 0x70) >> 4;

@@ -5,8 +5,8 @@
 void Mapper048::reset() {
 	NesMapper::reset();
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
-	if (vromSize1KB())
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 
 	reg = 0;
@@ -14,11 +14,11 @@ void Mapper048::reset() {
 	irq_counter = 0;
 }
 
-void Mapper048::writeHigh(quint16 address, quint8 data) {
+void Mapper048::writeHigh(u16 address, u8 data) {
 	switch (address) {
 	case 0x8000:
 		if (!reg)
-			setMirroring(static_cast<Mirroring>((data & 0x40) >> 6));
+			setMirroring(static_cast<NesMirroring>((data & 0x40) >> 6));
 		setRom8KBank(4, data);
 		break;
 	case 0x8001:
@@ -60,14 +60,14 @@ void Mapper048::writeHigh(quint16 address, quint8 data) {
 		break;
 
 	case 0xE000:
-		setMirroring(static_cast<Mirroring>((data & 0x40) >> 6));
+		setMirroring(static_cast<NesMirroring>((data & 0x40) >> 6));
 		reg = 1;
 		break;
 	}
 }
 
 void Mapper048::horizontalSync(int scanline) {
-	if (scanline < NesPpu::VisibleScreenHeight && ppuRegisters()->isDisplayOn()) {
+	if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 		if (irq_enable) {
 			if (irq_counter == 0xFF)
 				setIrqSignalOut(true); // TODO need to be cleared somewhere (trigger in virtuanes)

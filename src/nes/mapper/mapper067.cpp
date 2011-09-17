@@ -10,18 +10,18 @@ void Mapper067::reset() {
 	irq_toggle = 0;
 	irq_counter = 0;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 
 	setVrom4KBank(0, 0);
-	setVrom4KBank(4, vromSize4KB()-1);
+	setVrom4KBank(4, nesVromSize4KB-1);
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 
 	if (crc == 0x7f2a04bf) // For Fantasy Zone 2(J)
-		ppu()->setRenderMethod(NesPpu::PreAllRender);
+		nesPpu.setRenderMethod(NesPpu::PreAllRender);
 }
 
-void Mapper067::writeHigh(quint16 address, quint8 data) {
+void Mapper067::writeHigh(u16 address, u8 data) {
 	switch (address & 0xF800) {
 	case 0x8800:
 		setVrom2KBank(0, data);
@@ -52,7 +52,7 @@ void Mapper067::writeHigh(quint16 address, quint8 data) {
 		break;
 
 	case 0xE800:
-		setMirroring(static_cast<Mirroring>(data & 0x03));
+		setMirroring(static_cast<NesMirroring>(data & 0x03));
 		break;
 
 	case 0xF800:

@@ -18,7 +18,7 @@ void NesApuRectangleChannel::reset() {
 	m_rectangleCounter = 0;
 }
 
-void NesApuRectangleChannel::setSweep(quint8 data) {
+void NesApuRectangleChannel::setSweep(u8 data) {
 	m_sweepShiftAmount = data & 0x07;
 	m_sweepDirection = data & 0x08;
 	m_sweepUpdateRate = ((data >> 4) & 0x07) + 1;

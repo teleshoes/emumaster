@@ -8,7 +8,7 @@ void Mapper025::reset() {
 
 	for (int i = 0; i < 11; i++)
 		reg[i] = 0;
-	reg[9] = romSize8KB()-2;
+	reg[9] = nesRomSize8KB-2;
 
 	irq_enable = 0;
 	irq_counter = 0;
@@ -16,23 +16,23 @@ void Mapper025::reset() {
 	irq_clock = 0;
 	irq_occur = 0;
 
-	setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
-	if (vromSize1KB())
+	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 	if (crc == 0xa2e68da8) {	// For Racer Mini Yonku - Japan Cup(J)
-		ppu()->setRenderMethod(NesPpu::TileRender);
+		nesPpu.setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0xea74c587) {	// For Teenage Mutant Ninja Turtles(J)
-		ppu()->setRenderMethod(NesPpu::TileRender);
+		nesPpu.setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0x0bbd85ff) {	// For Bio Miracle Bokutte Upa(J)
-		ppu()->setRenderMethod(NesPpu::PreAllRender);
+		nesPpu.setRenderMethod(NesPpu::PreAllRender);
 	}
 }
 
-void Mapper025::writeHigh(quint16 address, quint8 data) {
+void Mapper025::writeHigh(u16 address, u8 data) {
 	switch (address & 0xF000) {
 	case 0x8000:
 		if (reg[10] & 0x02) {
@@ -50,13 +50,13 @@ void Mapper025::writeHigh(quint16 address, quint8 data) {
 
 	switch (address & 0xF00F) {
 	case 0x9000:
-		setMirroring(static_cast<Mirroring>(data & 3));
+		setMirroring(static_cast<NesMirroring>(data & 3));
 		break;
 
 	case 0x9001:
 	case 0x9004:
 		if((reg[10] & 0x02) != (data & 0x02)) {
-			quint8 swap = reg[8];
+			u8 swap = reg[8];
 			reg[8] = reg[9];
 			reg[9] = swap;
 

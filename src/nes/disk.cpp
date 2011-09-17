@@ -28,35 +28,39 @@ static NesDiskHeader header;
 
 static void patchRom();
 
-static inline bool hasTrainer() const
+static inline bool hasTrainer()
 { return header.flagsA & NesDiskHeader::TrainerFlagA; }
 
-static void computeChecksum() {
-	if (hasTrainer())
-		nesDiskCrc = qChecksum32(reinterpret_cast<const char *>(m_trainer), romSize()+512);
-	else
-		nesDiskCrc = qChecksum32(reinterpret_cast<const char *>(nesRom), romSize());
+static void computeChecksum(QFile &file) {
+	if (hasTrainer()) {
+		file.seek(sizeof(NesDiskHeader));
+		QByteArray ba = file.read(nesRomSizeInBytes+512);
+		nesDiskCrc = qChecksum32(ba.constData(), nesRomSizeInBytes+512);
+	} else {
+		nesDiskCrc = qChecksum32((const char *)nesRom, nesRomSizeInBytes);
+	}
 }
 
 bool NesDisk::load(const QString &fileName) {
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
-		return -1;
-	if (file.read((char *)header, sizeof(header)) != sizeof(header))
-		return -1;
+		return false;
+	if (file.read((char *)&header, sizeof(header)) != sizeof(header))
+		return false;
 	if (qstrncmp(header.magic, "NES\x1A", 4))
-		return -1;
+		return false;
 
+	file.seek(16);
 	if (hasTrainer()) {
 		if (file.read((char *)nesTrainer, 512) != 512)
-			return -1;
+			return false;
 	}
 	nesRomSize16KB = header.num16KBRomBanks;
 	nesRomSize8KB = nesRomSize16KB << 1;
 	nesRomSizeInBytes = nesRomSize16KB * 0x4000;
 	nesRom = new u8[nesRomSizeInBytes];
 	if (file.read((char *)nesRom, nesRomSizeInBytes) != nesRomSizeInBytes)
-		return -1;
+		return false;
 
 	nesVromSize8KB = header.num8KBVRomBanks;
 	nesVromSize4KB = nesVromSize8KB << 1;
@@ -65,9 +69,9 @@ bool NesDisk::load(const QString &fileName) {
 	nesVromSizeInBytes = nesVromSize8KB * 0x2000;
 	nesVrom = new u8[nesVromSizeInBytes];
 	if (file.read((char *)nesVrom, nesVromSizeInBytes) != nesVromSizeInBytes)
-		return -1;
+		return false;
 
-	computeChecksum();
+	computeChecksum(file);
 	patchRom();
 
 	nesMapperType = (header.flagsA >> 4) | (header.flagsB & 0xF0);
@@ -80,7 +84,7 @@ bool NesDisk::load(const QString &fileName) {
 	else
 		nesMirroring = HorizontalMirroring;
 	nesDefaultMirroring = nesMirroring;
-	return nesMapperType;
+	return true;
 }
 
 bool NesDisk::hasBatteryBackedRam() const
@@ -141,7 +145,7 @@ static void patchRom() {
 	}
 
 	if (nesDiskCrc == 0x11469ce3) {	// Viva! Las Vegas(J)
-		m_vrom[0x0000] = 0x01;
+		nesVrom[0x0000] = 0x01;
 	}
 
 	if (nesDiskCrc == 0x3fccdc7b) {	// Baseball Star - Mezase Sankanou!!(J)

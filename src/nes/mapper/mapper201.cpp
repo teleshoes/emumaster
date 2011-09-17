@@ -7,14 +7,14 @@ void Mapper201::reset() {
 
 	setRom16KBank(4, 0);
 	setRom16KBank(6, 0);
-	if (vromSize1KB())
+	if (nesVromSize1KB)
 		setVrom8KBank(0);
 }
 
-void Mapper201::writeHigh(quint16 address, quint8 data) {
+void Mapper201::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(data)
 
-	quint8 bank = address & 0x03;
+	u8 bank = address & 0x03;
 	if (!(address & 0x08))
 		bank = 0;
 	setRom32KBank(bank);

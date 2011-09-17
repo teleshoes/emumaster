@@ -8,7 +8,7 @@ public:
 	explicit NesApuNoiseChannel(int channelNo);
 	void reset();
 
-	void setFrequency(quint8 data);
+	void setFrequency(u8 data);
 	void updateSampleValue();
 
 	int sample();

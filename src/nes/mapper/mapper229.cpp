@@ -9,11 +9,11 @@ void Mapper229::reset() {
 	setVrom8KBank(0);
 }
 
-void Mapper229::writeHigh(quint16 address, quint8 data) {
+void Mapper229::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(data)
 
 	if (address & 0x001E) {
-		quint8 prg = address & 0x001F;
+		u8 prg = address & 0x001F;
 
 		setRom8KBank(4, prg*2+0);
 		setRom8KBank(5, prg*2+1);
@@ -26,7 +26,7 @@ void Mapper229::writeHigh(quint16 address, quint8 data) {
 		setVrom8KBank(0);
 	}
 	if (address & 0x0020)
-		setMirroring(Horizontal);
+		setMirroring(HorizontalMirroring);
 	else
-		setMirroring(Vertical);
+		setMirroring(VerticalMirroring);
 }

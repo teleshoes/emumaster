@@ -48,12 +48,12 @@ void Mapper005::reset() {
 		chr_page[1][i] = 4+(i&0x03);
 	}
 	for (int i = 4; i < 8; i++)
-		setRom8KBank(i, romSize8KB()-1);
+		setRom8KBank(i, nesRomSize8KB-1);
 	setBankSram(3, 0);
 
 	sram_size = 0;
 
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 
 	if (crc == 0x2b548d75	// Bandit Kings of Ancient China(U)
 	 || crc == 0xf4cd4998	// Dai Koukai Jidai(J)
@@ -75,7 +75,7 @@ void Mapper005::reset() {
 	}
 
 	if (crc == 0x95ca9ec7) { // Castlevania 3 - Dracula's Curse(U)
-		ppu()->setRenderMethod(NesPpu::TileRender);
+		nesPpu.setRenderMethod(NesPpu::TileRender);
 	}
 
 	if (crc == 0xcd9acf43) { // Metal Slader Glory(J)
@@ -86,7 +86,7 @@ void Mapper005::reset() {
 		chr_type = 1;
 	}
 
-	ppu()->setExternalLatchEnabled(true);
+	nesPpu.setExternalLatchEnabled(true);
 // TODO ex sound	nes->apu->SelectExSound( 8);
 
 	setVrom8KBank(0);
@@ -96,8 +96,8 @@ void Mapper005::reset() {
 	}
 }
 
-quint8 Mapper005::readLow(quint16 address) {
-	quint8 data = address >> 8;
+u8 Mapper005::readLow(u16 address) {
+	u8 data = address >> 8;
 
 	switch (address) {
 	case 0x5015:
@@ -114,7 +114,7 @@ quint8 Mapper005::readLow(quint16 address) {
 		data = mult_a*mult_b;
 		break;
 	case 0x5206:
-		data = (quint8)(((quint16)mult_a*(quint16)mult_b)>>8);
+		data = (u8)(((u16)mult_a*(u16)mult_b)>>8);
 		break;
 	}
 
@@ -128,7 +128,7 @@ quint8 Mapper005::readLow(quint16 address) {
 	return data;
 }
 
-void Mapper005::writeLow(quint16 address, quint8 data) {
+void Mapper005::writeLow(u16 address, u8 data) {
 	switch (address) {
 	case 0x5100:
 		prg_size = data & 0x03;
@@ -247,7 +247,7 @@ void Mapper005::writeLow(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper005::writeHigh(quint16 address, quint8 data) {
+void Mapper005::writeHigh(u16 address, u8 data) {
 	if (sram_we_a == 0x02 && sram_we_b == 0x01) {
 		if (address >= 0x8000 && address < 0xE000) {
 			if (cpu_bank_wren[address >> 13]) {
@@ -257,7 +257,7 @@ void Mapper005::writeHigh(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper005::setBank(quint16 address, quint8 data) {
+void Mapper005::setBank(u16 address, u8 data) {
 	if (data & 0x80) {
 		// PROM Bank
 		switch (address & 7) {
@@ -325,7 +325,7 @@ void Mapper005::setBank(quint16 address, quint8 data) {
 	}
 }
 
-void Mapper005::setBankSram(quint8 page, quint8 data) {
+void Mapper005::setBankSram(u8 page, u8 data) {
 	if (sram_size == 0) data = (data > 3) ? 8 : 0;
 	if (sram_size == 1) data = (data > 3) ? 1 : 0;
 	if (sram_size == 2) data = (data > 3) ? 8 : data;
@@ -366,26 +366,26 @@ void Mapper005::updatePpuBanks() {
 		switch (chr_size) {
 		case 0:
 			for (int i = 0; i < 8; i++) {
-				BG_MEM_BANK[i] = nesVrom+0x2000*(chr_page[1][7]%vromSize8KB())+0x0400*i;
+				BG_MEM_BANK[i] = nesVrom+0x2000*(chr_page[1][7]%nesVromSize8KB)+0x0400*i;
 			}
 			break;
 		case 1:
 			for (int i = 0; i < 4; i++) {
-				BG_MEM_BANK[i+0] = nesVrom+0x1000*(chr_page[1][3]%vromSize4KB())+0x0400*i;
-				BG_MEM_BANK[i+4] = nesVrom+0x1000*(chr_page[1][7]%vromSize4KB())+0x0400*i;
+				BG_MEM_BANK[i+0] = nesVrom+0x1000*(chr_page[1][3]%nesVromSize4KB)+0x0400*i;
+				BG_MEM_BANK[i+4] = nesVrom+0x1000*(chr_page[1][7]%nesVromSize4KB)+0x0400*i;
 			}
 			break;
 		case 2:
 			for (int i = 0; i < 2; i++) {
-				BG_MEM_BANK[i+0] = nesVrom+0x0800*(chr_page[1][1]%vromSize2KB())+0x0400*i;
-				BG_MEM_BANK[i+2] = nesVrom+0x0800*(chr_page[1][3]%vromSize2KB())+0x0400*i;
-				BG_MEM_BANK[i+4] = nesVrom+0x0800*(chr_page[1][5]%vromSize2KB())+0x0400*i;
-				BG_MEM_BANK[i+6] = nesVrom+0x0800*(chr_page[1][7]%vromSize2KB())+0x0400*i;
+				BG_MEM_BANK[i+0] = nesVrom+0x0800*(chr_page[1][1]%nesVromSize2KB)+0x0400*i;
+				BG_MEM_BANK[i+2] = nesVrom+0x0800*(chr_page[1][3]%nesVromSize2KB)+0x0400*i;
+				BG_MEM_BANK[i+4] = nesVrom+0x0800*(chr_page[1][5]%nesVromSize2KB)+0x0400*i;
+				BG_MEM_BANK[i+6] = nesVrom+0x0800*(chr_page[1][7]%nesVromSize2KB)+0x0400*i;
 			}
 			break;
 		case 3:
 			for (int i = 0; i < 8; i++) {
-				BG_MEM_BANK[i] = nesVrom+0x0400*(chr_page[1][i]%vromSize1KB());
+				BG_MEM_BANK[i] = nesVrom+0x0400*(chr_page[1][i]%nesVromSize1KB);
 			}
 			break;
 		}
@@ -398,7 +398,7 @@ void Mapper005::horizontalSync(int scanline) {
 			irq_status |= 0x80;
 		}
 	}
-	if (ppuRegisters()->isDisplayOn() && scanline < NesPpu::VisibleScreenHeight) {
+	if (nesPpu.isDisplayOn() && scanline < NesPpu::VisibleScreenHeight) {
 		irq_scanline++;
 		irq_status |= 0x40;
 		irq_clear = 0;
@@ -429,7 +429,7 @@ void Mapper005::horizontalSync(int scanline) {
 	if (scanline == 0) {
 		split_yofs = split_scroll&0x07;
 		split_addr = ((split_scroll&0xF8)<<2);
-	} else if (ppuRegisters()->isDisplayOn()) {
+	} else if (nesPpu.isDisplayOn()) {
 		if (split_yofs == 7) {
 			split_yofs = 0;
 			if ((split_addr & 0x03E0) == 0x03A0) {
@@ -451,13 +451,10 @@ void Mapper005::extensionLatchX(uint x) {
 	split_x = x;
 }
 
-void Mapper005::extensionLatch(quint16 address, quint8 *plane1, quint8 *plane2, quint8 *attribute) {
-	quint16	ntbladr, attradr, tileadr, tileofs;
-	quint16	tile_yofs;
+void Mapper005::extensionLatch(u16 address, u8 *plane1, u8 *plane2, u8 *attribute) {
+	u16	ntbladr, attradr, tileadr;
 	uint tilebank;
 	bool bSplit;
-
-	tile_yofs = ppu()->scrollTileYOffset();
 
 	bSplit = false;
 	if (split_control & 0x80) {
@@ -481,9 +478,9 @@ void Mapper005::extensionLatch(quint16 address, quint8 *plane1, quint8 *plane2, 
 				// ExGraphic mode
 				ntbladr = 0x2000+(address&0x0FFF);
 				// Get Nametable
-				tileadr = fill_chr*0x10+tile_yofs;
+				tileadr = fill_chr*0x10+nesPpuScrollTileYOffset;
 				// Get TileBank
-				tilebank = 0x1000*((nesVram[0x0800+(ntbladr&0x03FF)]&0x3F)%vromSize4KB());
+				tilebank = 0x1000*((nesVram[0x0800+(ntbladr&0x03FF)]&0x3F)%nesVromSize4KB);
 				// Attribute
 				*attribute = (fill_pal<<2)&0x0C;
 				// Get Pattern
@@ -491,8 +488,7 @@ void Mapper005::extensionLatch(quint16 address, quint8 *plane1, quint8 *plane2, 
 				*plane2 = nesVrom[tilebank+tileadr+8];
 			} else {
 				// Normal
-				tileofs = ppu()->tilePageOffset();
-				tileadr = tileofs+fill_chr*0x10+tile_yofs;
+				tileadr = nesPpuTilePageOffset+fill_chr*0x10+nesPpuScrollTileYOffset;
 				*attribute = (fill_pal<<2)&0x0C;
 				// Get Pattern
 				if (chr_type) {
@@ -507,9 +503,9 @@ void Mapper005::extensionLatch(quint16 address, quint8 *plane1, quint8 *plane2, 
 			// ExGraphic mode
 			ntbladr = 0x2000+(address&0x0FFF);
 			// Get Nametable
-			tileadr = (quint16)read(ntbladr)*0x10+tile_yofs;
+			tileadr = (u16)read(ntbladr)*0x10+nesPpuScrollTileYOffset;
 			// Get TileBank
-			tilebank = 0x1000*((nesVram[0x0800+(ntbladr&0x03FF)]&0x3F)%vromSize4KB());
+			tilebank = 0x1000*((nesVram[0x0800+(ntbladr&0x03FF)]&0x3F)%nesVromSize4KB);
 			// Get Attribute
 			*attribute = (nesVram[0x0800+(ntbladr&0x03FF)]&0xC0)>>4;
 			// Get Pattern
@@ -517,11 +513,10 @@ void Mapper005::extensionLatch(quint16 address, quint8 *plane1, quint8 *plane2, 
 			*plane2 = nesVrom[tilebank+tileadr+8];
 		} else {
 			// Normal or ExVRAM
-			tileofs = ppu()->tilePageOffset();
 			ntbladr = 0x2000+(address&0x0FFF);
 			attradr = 0x23C0+(address&0x0C00)+((address&0x0380)>>4)+((address&0x001C)>>2);
 			// Get Nametable
-			tileadr = tileofs+read(ntbladr)*0x10+tile_yofs;
+			tileadr = nesPpuTilePageOffset+read(ntbladr)*0x10+nesPpuScrollTileYOffset;
 			// Get Attribute
 			*attribute = read(attradr);
 			if (ntbladr & 0x0002) *attribute >>= 2;
@@ -539,8 +534,8 @@ void Mapper005::extensionLatch(quint16 address, quint8 *plane1, quint8 *plane2, 
 	} else {
 		ntbladr = ((split_addr&0x03E0)|(split_x&0x1F))&0x03FF;
 		// Get Split TileBank
-		tilebank = 0x1000*((int)split_page%vromSize4KB());
-		tileadr  = (quint16)nesVram[0x0800+ntbladr]*0x10+split_yofs;
+		tilebank = 0x1000*((int)split_page%nesVromSize4KB);
+		tileadr  = (u16)nesVram[0x0800+ntbladr]*0x10+split_yofs;
 		// Get Attribute
 		attradr = 0x03C0+((ntbladr&0x0380)>>4)+((ntbladr&0x001C)>>2);
 		*attribute = nesVram[0x0800+attradr];

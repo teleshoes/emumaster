@@ -9,8 +9,8 @@ void Mapper228::reset() {
 	setVrom8KBank(0);
 }
 
-void Mapper228::writeHigh(quint16 address, quint8 data) {
-	quint8 prg = (address&0x0780) >> 7;
+void Mapper228::writeHigh(u16 address, u8 data) {
+	u8 prg = (address&0x0780) >> 7;
 
 	switch ((address&0x1800) >> 11) {
 	case 1:
@@ -39,7 +39,7 @@ void Mapper228::writeHigh(quint16 address, quint8 data) {
 	setVrom8KBank(((address&0x000F)<<2)|(data&0x03));
 
 	if (address & 0x2000)
-		setMirroring(Horizontal);
+		setMirroring(HorizontalMirroring);
 	else
-		setMirroring(Vertical);
+		setMirroring(VerticalMirroring);
 }

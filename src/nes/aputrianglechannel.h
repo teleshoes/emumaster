@@ -8,7 +8,7 @@ public:
 	explicit NesApuTriangleChannel(int channelNo);
 	void reset();
 
-	void setLinearCounter(quint8 data);
+	void setLinearCounter(u8 data);
 
 	void clockLinearCounter();
 	void clockProgrammableTimer(int nCycles);

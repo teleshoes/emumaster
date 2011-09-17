@@ -16,44 +16,44 @@ void Mapper001::reset() {
 	wram_bank = 0;
 	wram_count = 0;
 
-	if (romSize16KB() < 32) {
-		setRom8KBanks(0, 1, romSize8KB()-2, romSize8KB()-1);
+	if (nesRomSize16KB < 32) {
+		setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 	} else {
 		// For 512K/1M byte Cartridge
 		setRom16KBank(4, 0);
 		setRom16KBank(6, 16-1);
 		patch = 1;
 	}
-	quint32 crc = disk()->crc();
+	u32 crc = nesDiskCrc;
 
 	if (crc == 0xb8e16bd0) {	// Snow Bros.(J)
 		patch = 2;
 	}
 	if (crc == 0xc96c6f04) {	// Venus Senki(J)
-		ppu()->setRenderMethod(NesPpu::PostAllRender);
+		nesPpu.setRenderMethod(NesPpu::PostAllRender);
 	}
 	if (crc == 0x4d2edf70) {	// Night Rider(J)
-		ppu()->setRenderMethod(NesPpu::TileRender);
+		nesPpu.setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0xcd2a73f0) {	// Pirates!(U)
-		ppu()->setRenderMethod(NesPpu::TileRender);
+		nesPpu.setRenderMethod(NesPpu::TileRender);
 		patch = 2;
 	}
 	if (crc == 0xd878ebf5) {	// Ninja Ryukenden(J)
-		ppu()->setRenderMethod(NesPpu::PostAllRender);
+		nesPpu.setRenderMethod(NesPpu::PostAllRender);
 	}
 	if (crc == 0x466efdc2) {	// Final Fantasy(J)
-		ppu()->setRenderMethod(NesPpu::TileRender);
+		nesPpu.setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0xc9556b36) {	// Final Fantasy I&II(J)
-		ppu()->setRenderMethod(NesPpu::TileRender);
+		nesPpu.setRenderMethod(NesPpu::TileRender);
 		wram_patch = 2;
 	}
 	if (crc == 0x717e1169) {	// Cosmic Wars(J)
-		ppu()->setRenderMethod(NesPpu::PreAllRender);
+		nesPpu.setRenderMethod(NesPpu::PreAllRender);
 	}
 	if (crc == 0xC05D2034) {	// Snake's Revenge(U)
-		ppu()->setRenderMethod(NesPpu::PreAllRender);
+		nesPpu.setRenderMethod(NesPpu::PreAllRender);
 	}
 
 	if (crc == 0xb8747abf		// Best Play - Pro Yakyuu Special(J)
@@ -70,7 +70,7 @@ void Mapper001::reset() {
 	}
 }
 
-void Mapper001::writeHigh(quint16 address, quint8 data) {
+void Mapper001::writeHigh(u16 address, u8 data) {
 	if (wram_patch == 1 && address == 0xBFFF) {
 		wram_count++;
 		wram_bank += data & 0x01;
@@ -106,7 +106,7 @@ void Mapper001::writeHigh(quint16 address, quint8 data) {
 			break;
 		case 1:
 		case 2:
-			if (vromSize1KB()) {
+			if (nesVromSize1KB) {
 				if (reg[0] & 0x10) {
 					// CHR 4K bank lower($0000-$0FFF)
 					setVrom4KBank(0, reg[1]);
@@ -130,7 +130,7 @@ void Mapper001::writeHigh(quint16 address, quint8 data) {
 				if (reg[0] & 0x04) {
 					// PRG 16K bank ($8000-$BFFF)
 					setRom16KBank(4, reg[3]);
-					setRom16KBank(6, romSize16KB()-1);
+					setRom16KBank(6, nesRomSize16KB-1);
 				} else {
 					// PRG 16K bank ($C000-$FFFF)
 					setRom16KBank(6, reg[3]);
@@ -142,7 +142,7 @@ void Mapper001::writeHigh(quint16 address, quint8 data) {
 	} else {
 		// For 512K/1M byte Cartridge
 		int	promBase = 0;
-		if (romSize16KB() >= 32)
+		if (nesRomSize16KB >= 32)
 			promBase = reg[1] & 0x10;
 		// For FinalFantasy I&II
 		if (wram_patch == 2) {
@@ -154,7 +154,7 @@ void Mapper001::writeHigh(quint16 address, quint8 data) {
 		if (address == 0)
 			setMirroring(mirroringFromRegs());
 		// Register #1 and #2
-		if (vromSize1KB()) {
+		if (nesVromSize1KB) {
 			if (reg[0] & 0x10) {
 				// CHR 4K bank lower($0000-$0FFF)
 				setVrom4KBank(0, reg[1]);
@@ -179,19 +179,19 @@ void Mapper001::writeHigh(quint16 address, quint8 data) {
 			if (reg[0] & 0x04) {
 				// PRG 16K bank ($8000-$BFFF)
 				setRom16KBank(4, promBase + (reg[3] & 0x0F));
-				if (romSize16KB() >= 32)
+				if (nesRomSize16KB >= 32)
 					setRom16KBank(6, promBase+16-1);
 			} else {
 				// PRG 16K bank ($C000-$FFFF)
 				setRom16KBank(6, promBase + (reg[3] & 0x0F));
-				if (romSize16KB() >= 32)
+				if (nesRomSize16KB >= 32)
 					setRom16KBank(4, promBase);
 			}
 		}
 	}
 }
 
-NesMapper::Mirroring Mapper001::mirroringFromRegs() const {
+NesMirroring Mapper001::mirroringFromRegs() const {
 	switch (reg[0] & 3) {
 	case 0: return SingleLow; break;
 	case 1: return SingleHigh; break;

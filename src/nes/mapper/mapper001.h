@@ -4,23 +4,23 @@
 #include "../mapper.h"
 
 class Mapper001 : public NesMapper {
-	Q_OBJECT
+
 public:
 	void reset();
-	void writeHigh(quint16 address, quint8 data);
+	void writeHigh(u16 address, u8 data);
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 private:
 	NesMirroring mirroringFromRegs() const;
 
-	quint8 patch;
-	quint8 wram_patch;
-	quint8 wram_bank;
-	quint8 wram_count;
-	quint16 last_addr;
-	quint8 reg[4];
-	quint8 shift, regbuf;
+	u8 patch;
+	u8 wram_patch;
+	u8 wram_bank;
+	u8 wram_count;
+	u16 last_addr;
+	u8 reg[4];
+	u8 shift, regbuf;
 };
 
 #endif // MAPPER001_H
