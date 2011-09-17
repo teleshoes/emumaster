@@ -36,7 +36,6 @@ public:
 	QSemaphore m_consSem;
 protected:
 	void setAudioEnabled(bool on);
-	void setAudioSampleRate(int sampleRate);
 private:
 	QString loadBios();
 
@@ -123,7 +122,7 @@ void game_name_ext(u8 *src, u8 *buffer, u8 *extension);
   {                                                                           \
 	direct_sound_channel[channel].buffer_index =                              \
 	 (direct_sound_channel[channel].buffer_index + buffer_adjust) %           \
-	 SOUND_BUFFER_SIZE;                                                             \
+	 SoundBufferSize;                                                             \
   }                                                                           \
 
 #define trigger_timer(timer_number)                                           \
@@ -155,7 +154,7 @@ void game_name_ext(u8 *src, u8 *buffer, u8 *extension);
 	  {                                                                       \
 		u32 buffer_adjust =                                                   \
 		 (u32)(((float)(cpu_ticks - timer[timer_number].stop_cpu_ticks) *     \
-		 sound_frequency) / 16777216.0) * 2;                                  \
+		 SoundSampleRate) / 16777216.0) * 2;                                  \
 																			  \
 		sound_update_frequency_step(timer_number);                            \
 		adjust_sound_buffer(timer_number, 0);                                 \

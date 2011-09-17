@@ -45,6 +45,8 @@
 #include "port.h"
 #include "snes9x.h"
 
+static const int SoundSampleRate = 44100;
+
 class SnesSound : public QObject {
 	Q_OBJECT
 public:
@@ -77,12 +79,8 @@ enum { MODE_NONE = SOUND_SILENT, MODE_ADSR, MODE_RELEASE = SOUND_RELEASE,
 
 
 typedef struct {
-    int playback_rate;
-    bool8 stereo;
-    bool8 mute_sound;
-	u8 sound_switch;
+	bool8 mute_sound;
     int noise_gen;
-	u32 freqbase; // notaz
 } SoundStatus;
 
 EXTERN_C SoundStatus so;
@@ -173,8 +171,7 @@ void S9xFixEnvelope (int channel, u8 gain, u8 adsr1, u8 adsr2);
 void S9xStartSample (int channel);
 
 EXTERN_C void S9xMixSamples (signed short *buffer, int sample_count);
-EXTERN_C void S9xMixSamplesO(signed short *buffer, int sample_count, int sample_offset);
-void S9xSetPlaybackRate (u32 rate);
+void S9xSetPlaybackRate();
 EXTERN_C bool8 S9xInitSound (void);
 
 // notaz: some stuff from soundux.cpp to enable their inlining
@@ -207,9 +204,7 @@ if ((v) > 127) \
 
 static inline void S9xSetSoundMute (bool8 mute)
 {
-    //bool8 old = so.mute_sound;
     so.mute_sound = mute;
-    //return (old);
 }
 
 static inline void S9xSetEnvRate (Channel *ch, unsigned long rate, int direction, int target, unsigned int mode)
@@ -225,7 +220,7 @@ static inline void S9xSetEnvRate (Channel *ch, unsigned long rate, int direction
 	ch->direction = direction;
 
 
-    if (rate == 0 || so.playback_rate == 0)
+	if (rate == 0)
 		ch->erate = 0;
     else
     {
@@ -255,23 +250,6 @@ static inline void S9xSetEnvRate (Channel *ch, unsigned long rate, int direction
 			break;
 		}
 	}
-
-#if 0
-    static int steps [] =
-    {
-//	0, 64, 1238, 1238, 256, 1, 64, 109, 64, 1238
-	0, 64, 619, 619, 128, 1, 64, 55, 64, 619
-    };
-
-    if (rate == 0 || so.playback_rate == 0)
-	ch->erate = 0;
-    else
-    {
-	ch->erate = (unsigned long)
-			(((s64) FIXED_POINT * 1000 * steps [ch->state]) /
-		      (rate * so.playback_rate));
-    }
-#endif
 }
 
 static inline void S9xSetEchoEnable (u8 byte)
@@ -322,17 +300,9 @@ static inline u16 *S9xGetSampleAddress (int sample_number)
 
 static inline void S9xSetSoundFrequency (int channel, int hertz) // hertz [0~64K<<1]
 {
-    if (so.playback_rate)
-    {
-		if (SoundData.channels[channel].type == SOUND_NOISE)
-			hertz = NoiseFreq [APU.DSP [APU_FLG] & 0x1f];
-#if 0 // notaz: this compiles to something awful
-		SoundData.channels[channel].frequency = (int)
-			(((s64) hertz * FIXED_POINT) / so.playback_rate);
-#else
-		SoundData.channels[channel].frequency = (hertz * so.freqbase) >> 11;
-#endif
-	}
+	if (SoundData.channels[channel].type == SOUND_NOISE)
+		hertz = NoiseFreq [APU.DSP [APU_FLG] & 0x1f];
+	SoundData.channels[channel].frequency = (hertz * ((FIXED_POINT << 11) / SoundSampleRate)) >> 11;
 }
 
 #endif // SNESSOUND_h

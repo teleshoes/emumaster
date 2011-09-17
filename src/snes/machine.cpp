@@ -48,25 +48,18 @@ void setDefaultSettings() {
 	Settings.SupportHiRes = TRUE;
 	Settings.NetPlay = FALSE;
 	Settings.ServerName[0] = 0;
-	Settings.AutoSaveDelay = 30;
 	Settings.ApplyCheats = FALSE;
 	Settings.HBlankStart = (256 * Settings.H_Max) / SNES_HCOUNTER_MAX;
-	Settings.SixteenBitSound = TRUE;
-	Settings.SoundPlaybackRate = 44100;//22050;
 	Settings.os9x_hack = FALSE;
 	Settings.InterpolatedSound = FALSE;
-	Settings.SixteenBitSound = true;
-	soundSampleCount = Settings.SoundPlaybackRate / (Settings.PAL ? 50 : 60);
-	soundSampleCount *= 2; // stereo
-	so.stereo = TRUE;
-	so.playback_rate = Settings.SoundPlaybackRate;
+	soundSampleCount = SoundSampleRate / (Settings.PAL ? 50 : 60);
+	soundSampleCount *= 2;
 }
 
 QString SnesMachine::init() {
-	S9xSetPlaybackRate(so.playback_rate);
 	S9xSetSoundMute(FALSE);
 	setDefaultSettings();
-	S9xSetPlaybackRate(so.playback_rate);
+	S9xSetPlaybackRate();
 	m_frame = QImage(512, 239, QImage::Format_RGB16);
 	setVideoSrcRect(QRectF(0.0f, 0.0f, 256.0f, 224.f));
 	setFrameRate(60);

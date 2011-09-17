@@ -41,9 +41,7 @@
 #ifndef _srtc_h_
 #define _srtc_h_
 
-#ifndef __GP32__ 
 #include <time.h>
-#endif
 
 #define MAX_RTC_INDEX       0xC
 

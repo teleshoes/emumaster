@@ -141,9 +141,6 @@ static inline void S9xSetSoundADSR (int channel, int attack_ind, int decay_ind,
 static inline void S9xSetSoundVolume (int channel, short volume_left, short volume_right)
 {
     Channel *ch = &SoundData.channels[channel];
-    if (!so.stereo)
-	volume_left = (ABS(volume_right) + ABS(volume_left)) / 2;
-
     ch->volume_left = volume_left;
     ch->volume_right = volume_right;
     ch-> left_vol_level = (ch->envx * volume_left) / 128;
@@ -160,8 +157,6 @@ static inline void S9xSetMasterVolume (short volume_left, short volume_right)
     }
     else
     {
-	if (!so.stereo)
-	    volume_left = (ABS (volume_right) + ABS (volume_left)) / 2;
 	SoundData.master_volume_left = volume_left;
 	SoundData.master_volume_right = volume_right;
 	SoundData.master_volume [0] = volume_left;
@@ -171,8 +166,6 @@ static inline void S9xSetMasterVolume (short volume_left, short volume_right)
 
 static inline void S9xSetEchoVolume (short volume_left, short volume_right)
 {
-    if (!so.stereo)
-	volume_left = (ABS (volume_right) + ABS (volume_left)) / 2;
     SoundData.echo_volume_left = volume_left;
     SoundData.echo_volume_right = volume_right;
     SoundData.echo_volume [0] = volume_left;

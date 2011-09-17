@@ -258,13 +258,11 @@ u8 S9xGetPPU (u16 Address);
 void S9xSetCPU (u8 Byte, u16 Address);
 u8 S9xGetCPU (u16 Address);
 
-//#ifndef __GP32__
 void S9xInitC4 ();
 void S9xSetC4 (u8 Byte, u16 Address);
 u8 S9xGetC4 (u16 Address);
 void S9xSetC4RAM (u8 Byte, u16 Address);
 u8 S9xGetC4RAM (u16 Address);
-//#endif
 
 extern struct SPPU PPU;
 extern struct SDMA DMA [8];

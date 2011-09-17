@@ -27,8 +27,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 
 	m_autoLoadOnStart(true),
 	m_autoSaveOnExit(true),
-	m_audioEnable(true),
-	m_audioSampleRate(44100) {
+	m_audioEnable(true) {
 
 	Q_ASSERT(m_machine != 0);
 
@@ -155,7 +154,7 @@ void MachineView::resume() {
 						 this, SLOT(onFrameGenerated(bool)),
 						 Qt::BlockingQueuedConnection);
 		if (m_audioEnable)
-			m_hostAudio->open(m_audioSampleRate);
+			m_hostAudio->open();
 		m_running = true;
 		// use delay to wait for animation end
 		QTimer::singleShot(500, m_thread, SLOT(resume()));
@@ -191,7 +190,6 @@ void MachineView::saveSettings() {
 	s.setValue("swipeEnable", m_hostVideo->isSwipeEnabled());
 
 	s.setValue("audioEnable", m_audioEnable);
-//	s.setValue("audioSampleRate", m_audioSampleRate);
 
 	s.setValue("fpsVisible", m_hostVideo->isFpsVisible());
 	s.setValue("keepAspectRatio", m_hostVideo->keepApsectRatio());
@@ -225,9 +223,7 @@ void MachineView::loadSettings() {
 	m_hostVideo->setSwipeEnabled(s.value("swipeEnable", false).toBool());
 
 	m_audioEnable = s.value("audioEnable", true).toBool();
-//	m_audioSampleRate = s.value("audioSampleRate", 22050).toInt();
 	m_machine->setAudioEnabled(m_audioEnable);
-	m_machine->setAudioSampleRate(m_audioSampleRate);
 
 	m_hostVideo->setFpsVisible(s.value("fpsVisible", false).toBool());
 	m_hostVideo->setKeepAspectRatio(s.value("keepAspectRatio", true).toBool());
@@ -257,8 +253,6 @@ int MachineView::frameSkip() const
 { return m_thread->frameSkip(); }
 bool MachineView::isAudioEnabled() const
 { return m_audioEnable; }
-int MachineView::audioSampleRate() const
-{ return m_audioSampleRate; }
 bool MachineView::isSwipeEnabled() const
 { return m_hostVideo->isSwipeEnabled(); }
 qreal MachineView::padOpacity() const
@@ -287,14 +281,6 @@ void MachineView::setAudioEnabled(bool on) {
 		m_audioEnable = on;
 		m_machine->setAudioEnabled(on);
 		emit audioEnableChanged();
-	}
-}
-
-void MachineView::setAudioSampleRate(int rate) {
-	if (m_audioSampleRate != rate) {
-		m_audioSampleRate = rate;
-		m_machine->setAudioSampleRate(rate);
-		emit audioSampleRateChanged();
 	}
 }
 

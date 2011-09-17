@@ -73,12 +73,6 @@
   Nintendo Co., Limited and its subsidiary companies.
 *******************************************************************************/
 
-#ifndef __GP32__
-#ifdef HAVE_CONFIG_H
-	#include <config.h>
-#endif
-#endif
-
 #include <math.h>
 #include "snes9x.h"
 #include "sar.h"

@@ -33,7 +33,7 @@ HostAudio::~HostAudio() {
 	close();
 }
 
-void HostAudio::open(int sampleRate) {
+void HostAudio::open() {
 	m_mainloop = pa_threaded_mainloop_new();
 	if (!m_mainloop) {
 		printf("Could not acquire PulseAudio main loop");
@@ -63,7 +63,7 @@ void HostAudio::open(int sampleRate) {
 	pa_sample_spec fmt;
 	fmt.channels = 2;
 	fmt.format = PA_SAMPLE_S16LE;
-	fmt.rate = sampleRate;
+	fmt.rate = 44100;
 
 	pa_buffer_attr buffer_attributes;
 	buffer_attributes.tlength = pa_bytes_per_second(&fmt) / 5;

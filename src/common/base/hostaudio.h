@@ -11,7 +11,7 @@ public:
 	explicit HostAudio(IMachine *machine);
 	~HostAudio();
 
-	void open(int sampleRate);
+	void open();
 	void close();
 
 	void sendFrame();

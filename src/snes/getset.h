@@ -122,10 +122,8 @@ INLINE u8 S9xGetByte (u32 Address)
 	CPU.Cycles += SLOW_ONE_CYCLE;
 #endif
 	return (*(Memory.BWRAM + ((Address & 0x7fff) - 0x6000)));
-//#ifndef __GP32__
     case CMemory::MAP_C4:
 	return (S9xGetC4 (Address & 0xffff));
-//#endif    
     default:
     case CMemory::MAP_NONE:
 #ifdef VAR_CYCLES
@@ -233,12 +231,10 @@ INLINE u16 S9xGetWord (u32 Address)
 	printf ("R(W) %06x\n", Address);
 #endif
 
-//#ifndef __GP32__
     case CMemory::MAP_C4:
 		ret = S9xGetC4 (Address & 0xffff);
 		ret |= (S9xGetC4 ((Address + 1) & 0xffff) << 8);
 		return ret;
-//#endif    
     default:
     case CMemory::MAP_NONE:
 #ifdef VAR_CYCLES
@@ -362,11 +358,9 @@ INLINE void S9xSetByte (u8 Byte, u32 Address)
 	*(Memory.SRAM + (Address & 0xffff)) = Byte;
 	SA1.Executing = !SA1.Waiting;
 	break;
-//#ifndef __GP32__
     case CMemory::MAP_C4:
 	S9xSetC4 (Byte, Address & 0xffff);
 	return;
-//#endif	
     default:
     case CMemory::MAP_NONE:
 #ifdef VAR_CYCLES    
@@ -496,12 +490,10 @@ INLINE void S9xSetWord (u16 Word, u32 Address)
 	*(Memory.SRAM + ((Address + 1) & 0xffff)) = (u8) (Word >> 8);
 	SA1.Executing = !SA1.Waiting;
 	break;
-//#ifndef __GP32__
     case CMemory::MAP_C4:
 	S9xSetC4 (Word & 0xff, Address & 0xffff);
 	S9xSetC4 ((u8) (Word >> 8), (Address + 1) & 0xffff);
 	return;
-//#endif	
     default:
     case CMemory::MAP_NONE:
 #ifdef VAR_CYCLES    
@@ -535,10 +527,8 @@ INLINE u8 *GetBasePointer (u32 Address)
 	return (Memory.BWRAM - 0x6000);
     case CMemory::MAP_HIROM_SRAM:
 	return (Memory.SRAM - 0x6000);
-//#ifndef __GP32__	
     case CMemory::MAP_C4:
 	return (Memory.C4RAM - 0x6000);
-//#endif	
     case CMemory::MAP_DEBUG:
 #ifdef DEBUGGER
 	printf ("GBP %06x\n", Address);
@@ -574,10 +564,8 @@ INLINE u8 *S9xGetMemPointer (u32 Address)
 	return (Memory.BWRAM - 0x6000 + (Address & 0xffff));
     case CMemory::MAP_HIROM_SRAM:
 	return (Memory.SRAM - 0x6000 + (Address & 0xffff));
-//#ifndef __GP32__	
     case CMemory::MAP_C4:
 	return (Memory.C4RAM - 0x6000 + (Address & 0xffff));
-//#endif
     case CMemory::MAP_DEBUG:
 #ifdef DEBUGGER
 	printf ("GMP %06x\n", Address);
@@ -665,7 +653,6 @@ INLINE void S9xSetPCBase (u32 Address)
 	CPU.PCBase = Memory.SRAM - 0x6000;
 	CPU.PC = CPU.PCBase + (Address & 0xffff);
 	return;
-//#ifndef __GP32__
     case CMemory::MAP_C4:
 #ifdef VAR_CYCLES
 	CPU.MemSpeed = SLOW_ONE_CYCLE;
@@ -674,7 +661,6 @@ INLINE void S9xSetPCBase (u32 Address)
 	CPU.PCBase = Memory.C4RAM - 0x6000;
 	CPU.PC = CPU.PCBase + (Address & 0xffff);
 	return;
-//#endif
     case CMemory::MAP_DEBUG:
 #ifdef DEBUGGER
 	printf ("SBP %06x\n", Address);

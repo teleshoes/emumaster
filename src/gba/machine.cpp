@@ -186,8 +186,6 @@ int GbaMachine::fillAudioBuffer(char *stream, int streamSize)
 { return gbaSpu.fillBuffer(stream, streamSize); }
 void GbaMachine::setAudioEnabled(bool on)
 { gbaSpu.setEnabled(on); }
-void GbaMachine::setAudioSampleRate(int sampleRate)
-{ sound_frequency = sampleRate; }
 
 void GbaThread::run() {
 	execute_arm_translate(execute_cycles);

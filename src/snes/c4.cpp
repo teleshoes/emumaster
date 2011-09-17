@@ -73,13 +73,10 @@
   Nintendo Co., Limited and its subsidiary companies.
 *******************************************************************************/
 
-#ifndef __GP32__
 #include <stdlib.h>
-#endif
 
 #include <math.h>
 #include "c4.h"
-//#include "mem.h"
 
 extern "C" {
 

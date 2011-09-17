@@ -57,26 +57,6 @@
 
 #define ROM_NAME_LEN 23
 
-#ifdef ZLIB
-//#ifndef __WIN32__
-#include "zlib.h"
-//#endif
-#define STREAM gzFile
-#define READ_STREAM(p,l,s) gzread (s,p,l)
-#define WRITE_STREAM(p,l,s) gzwrite (s,p,l)
-#define OPEN_STREAM(f,m) gzopen (f,m)
-#define CLOSE_STREAM(s) gzclose (s)
-#define SEEK_STREAM(p,r,s) gzseek(s,p,r)
-#else
-#ifdef __GP32__
-#define STREAM long * //F_HANDLE * 
-#define READ_STREAM(p,l,s) gp32_fread ((unsigned char*)p,(long)l,s)
-#define WRITE_STREAM(p,l,s) gp32_fwrite ((unsigned char*)p,(long)l,s)
-#define OPEN_STREAM(f,m) gp32_fopen ((char*)f,(char*)m)
-#define CLOSE_STREAM(s) gp32_fclose (s)
-#define SEEK_STREAM(p,r,s) gp32_fseek(p,r,s)
-
-#else
 #define STREAM FILE *
 #define READ_STREAM(p,l,s) fread (p,1,l,s)
 #define WRITE_STREAM(p,l,s) fwrite (p,1,l,s)
@@ -84,9 +64,6 @@
 #define CLOSE_STREAM(s) fclose (s)
 #define SEEK_STREAM(p,r,s) fseek(s,p,r)
 #define FROM_CURRENT SEEK_CUR
-#endif
-#endif
-
 
 /* SNES screen width and height */
 #define SNES_WIDTH		256
@@ -304,9 +281,7 @@ struct SSettings{
     bool8  SDD1;
 
     // Sound options
-	u32 SoundPlaybackRate;
     bool8  TraceSoundDSP;
-    bool8  SixteenBitSound;
     int    SoundMixInterval;
     bool8  SoundEnvelopeHeightReading;
     bool8  DisableSoundEcho;
@@ -332,7 +307,6 @@ struct SSettings{
     int    Port;
     bool8  GlideEnable;
     bool8  OpenGLEnable;
-	s32  AutoSaveDelay; // Time in seconds before S-RAM auto-saved if modified.
     bool8  ApplyCheats;
 	u32 os9x_hack;
     
@@ -347,12 +321,6 @@ struct SSettings{
     bool8  DaffyDuck;
 	u8  APURAMInitialValue;
     bool8  SDD1Pack;
-    
-	// notaz
-	u32 GfxLayerMask;
-#ifdef __WIN32__
-    int    SoundDriver;
-#endif
 };
 
 struct SSNESGameFixes

@@ -19,7 +19,6 @@ class BASE_EXPORT MachineView : public QObject {
 	Q_PROPERTY(bool fpsVisible READ isFpsVisible WRITE setFpsVisible NOTIFY fpsVisibleChanged)
 	Q_PROPERTY(int frameSkip READ frameSkip WRITE setFrameSkip NOTIFY frameSkipChanged)
 	Q_PROPERTY(bool audioEnable READ isAudioEnabled WRITE setAudioEnabled NOTIFY audioEnableChanged)
-	Q_PROPERTY(int audioSampleRate READ audioSampleRate WRITE setAudioSampleRate NOTIFY audioSampleRateChanged)
 	Q_PROPERTY(bool swipeEnable READ isSwipeEnabled WRITE setSwipeEnabled NOTIFY swipeEnableChanged)
 	Q_PROPERTY(qreal padOpacity READ padOpacity WRITE setPadOpacity NOTIFY padOpacityChanged)
 	Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged)
@@ -39,8 +38,6 @@ public:
 	void setFrameSkip(int n);
 	bool isAudioEnabled() const;
 	void setAudioEnabled(bool on);
-	int audioSampleRate() const;
-	void setAudioSampleRate(int rate);
 	bool isSwipeEnabled() const;
 	void setSwipeEnabled(bool on);
 	qreal padOpacity() const;
@@ -61,7 +58,6 @@ signals:
 	void fpsVisibleChanged();
 	void frameSkipChanged();
 	void audioEnableChanged();
-	void audioSampleRateChanged();
 	void swipeEnableChanged();
 	void padOpacityChanged();
 	void keepAspectRatioChanged();
@@ -91,7 +87,6 @@ private:
 	bool m_autoLoadOnStart;
 	bool m_autoSaveOnExit;
 	bool m_audioEnable;
-	int m_audioSampleRate;
 };
 
 inline IMachine *MachineView::machine() const

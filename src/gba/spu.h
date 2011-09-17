@@ -22,7 +22,9 @@
 
 #include "common.h"
 
-#define SOUND_BUFFER_SIZE 16384
+static const int SoundBufferSize = 16384;
+static const int SoundSampleRate = 44100;
+extern u32 sound_on;
 
 typedef enum
 {
@@ -115,9 +117,6 @@ extern u32 gbc_sound_master_volume_left;
 extern u32 gbc_sound_master_volume_right;
 extern u32 gbc_sound_master_volume;
 
-extern u32 sound_frequency;
-extern u32 sound_on;
-
 extern u32 enable_low_pass_filter;
 
 void sound_timer_queue8(u32 channel, u8 value);
@@ -151,7 +150,7 @@ void init_sound();
   u32 rate = value & 0x7FF;                                                   \
   gbc_sound_channel[channel].rate = rate;                                     \
   gbc_sound_channel[channel].frequency_step =                                 \
-   float_to_fp16_16(((131072.0 / (2048 - rate)) * 8.0) / sound_frequency);    \
+   float_to_fp16_16(((131072.0 / (2048 - rate)) * 8.0) / SoundSampleRate);    \
   gbc_sound_channel[channel].length_status = (value >> 14) & 0x01;            \
   if(value & 0x8000)                                                          \
   {                                                                           \
@@ -219,7 +218,7 @@ static u32 gbc_sound_wave_volume[4] = { 0, 16384, 8192, 4096 };
   u32 rate = value & 0x7FF;                                                   \
   gbc_sound_channel[2].rate = rate;                                           \
   gbc_sound_channel[2].frequency_step =                                       \
-   float_to_fp16_16((2097152.0 / (2048 - rate)) / sound_frequency);           \
+   float_to_fp16_16((2097152.0 / (2048 - rate)) / SoundSampleRate);           \
   gbc_sound_channel[2].length_status = (value >> 14) & 0x01;                  \
   if(value & 0x8000)                                                          \
   {                                                                           \
@@ -238,13 +237,13 @@ static u32 gbc_sound_wave_volume[4] = { 0, 16384, 8192, 4096 };
   {                                                                           \
     gbc_sound_channel[3].frequency_step =                                     \
      float_to_fp16_16(1048576.0 / (1 << (frequency_shift + 1)) /              \
-     sound_frequency);                                                        \
+	 SoundSampleRate);                                                        \
   }                                                                           \
   else                                                                        \
   {                                                                           \
     gbc_sound_channel[3].frequency_step =                                     \
      float_to_fp16_16(524288.0 / (dividing_ratio *                            \
-     (1 << (frequency_shift + 1))) / sound_frequency);                        \
+	 (1 << (frequency_shift + 1))) / SoundSampleRate);                        \
   }                                                                           \
   gbc_sound_channel[3].noise_type = (value >> 3) & 0x01;                      \
   gbc_sound_channel[3].length_status = (value >> 14) & 0x01;                  \
@@ -317,7 +316,7 @@ static u32 gbc_sound_wave_volume[4] = { 0, 16384, 8192, 4096 };
 
 #define sound_update_frequency_step(timer_number)                             \
   timer[timer_number].frequency_step =                                        \
-   float_to_fp16_16(16777216.0 / (timer_reload * sound_frequency))            \
+   float_to_fp16_16(16777216.0 / (timer_reload * SoundSampleRate))            \
 
 
 void reset_sound();

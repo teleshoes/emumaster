@@ -408,11 +408,11 @@ void NesApu::updateMachineType() {
 	if (nesSystemType == NES_NTSC) {
 		sampleTimerMax = (1024.0 * NES_CPU_NTSC_CLK * NES_NTSC_FRAMERATE) / (SampleRate*60.0);
 		frameTime = 14915.0 * NES_NTSC_FRAMERATE / 60.0;
-		perFrame = 44100 / 60;
+		perFrame = SampleRate / 60;
 	} else {
 		sampleTimerMax = (1024.0 * NES_CPU_PAL_CLK * NES_PAL_FRAMERATE) / (SampleRate*60.0);
 		frameTime = 14915.0 * NES_PAL_FRAMERATE / 60.0;
-		perFrame = 44100 / 50;
+		perFrame = SampleRate / 50;
 	}
 	sampleTimer = 0;
 	bufferIndex = 0;

@@ -22,13 +22,11 @@
 #include "spu.h"
 #include "mem.h"
 
-u32 sound_frequency = 44100;
-
 direct_sound_struct direct_sound_channel[2];
 gbc_sound_struct gbc_sound_channel[4];
 
 u32 sound_on = 0;
-static s16 sound_buffer[SOUND_BUFFER_SIZE];
+static s16 sound_buffer[SoundBufferSize];
 static u32 sound_buffer_base = 0;
 
 static u32 sound_last_cpu_ticks = 0;
@@ -84,7 +82,7 @@ void sound_timer_queue32(u32 channel, u32 value) {
 	while(fifo_fractional <= 0xFFFF) { \
 		render_sample_##type(); \
 		fifo_fractional += frequency_step; \
-		buffer_index = (buffer_index + 2) % SOUND_BUFFER_SIZE; \
+		buffer_index = (buffer_index + 2) % SoundBufferSize; \
 	}
 
 void sound_timer(fixed16_16 frequency_step, int channel) {
@@ -224,7 +222,7 @@ u32 gbc_sound_master_volume;
 				rate = rate + (rate >> gs->sweep_shift); \
 			if (rate > 2048) \
 				rate = 2048; \
-			frequency_step = float_to_fp16_16(((131072.0 / (2048 - rate)) * 8.0) / sound_frequency); \
+			frequency_step = float_to_fp16_16(((131072.0 / (2048 - rate)) * 8.0) / SoundSampleRate); \
 			gs->frequency_step = frequency_step; \
 			gs->rate = rate; \
 			sweep_ticks = gs->sweep_initial_ticks; \
@@ -287,7 +285,7 @@ u32 gbc_sound_master_volume;
 		current_sample = sample_data[fp16_16_to_u32(sample_index) % sample_length]; \
 		gbc_sound_render_sample_##type(); \
 		sample_index += frequency_step; \
-		buffer_index = (buffer_index + 2) % SOUND_BUFFER_SIZE; \
+		buffer_index = (buffer_index + 2) % SoundBufferSize; \
 		update_tone_counters(envelope_op, sweep_op); \
 	}
 
@@ -312,7 +310,7 @@ u32 gbc_sound_master_volume;
 		sample_index += frequency_step; \
 		if (sample_index >= u32_to_fp16_16(gbc_noise_wrap_##noise_type)) \
 			sample_index -= u32_to_fp16_16(gbc_noise_wrap_##noise_type); \
-		buffer_index = (buffer_index + 2) % SOUND_BUFFER_SIZE; \
+		buffer_index = (buffer_index + 2) % SoundBufferSize; \
 		update_tone_counters(envelope_op, sweep_op); \
 	}
 
@@ -348,7 +346,7 @@ u32 gbc_sound_master_volume;
 
 void update_gbc_sound(u32 cpu_ticks) {
 	fixed16_16 buffer_ticks = float_to_fp16_16(
-				((float)(cpu_ticks -gbc_sound_last_cpu_ticks) * sound_frequency) / 16777216.0);
+				((float)(cpu_ticks -gbc_sound_last_cpu_ticks) * SoundSampleRate) / 16777216.0);
 	u32 i, i2;
 	gbc_sound_struct *gs = gbc_sound_channel;
 	fixed16_16 sample_index, frequency_step;
@@ -417,7 +415,7 @@ void update_gbc_sound(u32 cpu_ticks) {
 	}
 	address16(io_registers, 0x84) = sound_status;
 	gbc_sound_last_cpu_ticks = cpu_ticks;
-	gbc_sound_buffer_index = (gbc_sound_buffer_index + (buffer_ticks * 2)) % SOUND_BUFFER_SIZE;
+	gbc_sound_buffer_index = (gbc_sound_buffer_index + (buffer_ticks * 2)) % SoundBufferSize;
 }
 
 // Special thanks to blarrg for the LSFR frequency used in Meridian, as posted
@@ -487,7 +485,7 @@ void reset_sound() {
 }
 
 void init_sound() {
-	gbc_sound_tick_step = float_to_fp16_16(256.0 / sound_frequency);
+	gbc_sound_tick_step = float_to_fp16_16(256.0 / SoundSampleRate);
 	init_noise_table(noise_table15, 32767, 14);
 	init_noise_table(noise_table7, 127, 6);
 	reset_sound();
@@ -513,18 +511,18 @@ static inline void sound_copy(s16 *stream_base, int length) {
 }
 
 int GbaSpu::fillBuffer(char *stream, int length) {
-	const int perFrame = 44100/60;
+	const int perFrame = SoundSampleRate/60;
 	length = (length / perFrame) * perFrame;
 	if (!length)
 		return 0;
-	int sample_length = (gbc_sound_buffer_index - sound_buffer_base + SOUND_BUFFER_SIZE) % SOUND_BUFFER_SIZE;
+	int sample_length = (gbc_sound_buffer_index - sound_buffer_base + SoundBufferSize) % SoundBufferSize;
 	sample_length = (sample_length / perFrame) * perFrame;
 	if (!sample_length)
 		return 0;
 	if (sample_length > length / 2)
 		sample_length = length / 2;
-	if ((sound_buffer_base + sample_length) >= SOUND_BUFFER_SIZE) {
-		u32 partial_length = SOUND_BUFFER_SIZE - sound_buffer_base;
+	if ((sound_buffer_base + sample_length) >= SoundBufferSize) {
+		u32 partial_length = SoundBufferSize - sound_buffer_base;
 		sound_copy((s16 *)stream, partial_length);
 		sound_buffer_base = 0;
 		u32 remainder_length = sample_length - partial_length;
