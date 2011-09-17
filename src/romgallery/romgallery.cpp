@@ -24,12 +24,14 @@ RomGallery::RomGallery(QWidget *parent) :
 RomGallery::~RomGallery() {
 }
 
-void RomGallery::launch(const QString &diskName) {
+void RomGallery::launch(const QString &diskName, bool autoload) {
 	QProcess process;
 	QString machineName = m_romListModel->machineName();
 	QStringList args;
 	args << QString("%1/bin/%2").arg(IMachine::installationDirPath()).arg(machineName);
 	args << diskName;
+	if (!autoload)
+		args << "-noautoload";
 	process.startDetached("/usr/bin/single-instance", args);
 }
 

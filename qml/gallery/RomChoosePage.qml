@@ -11,7 +11,7 @@ Page {
 		ToolIcon {
 			iconId: "toolbar-mediacontrol-play"
 			visible: isDiskVisibleAndSelected
-			onClicked: romGallery.launch(romListModel.get(currentRomIndex))
+			onClicked: romGallery.launch(romListModel.get(currentRomIndex), true)
 		}
 		ButtonRow {
 			platformStyle: TabButtonStyle { }
@@ -63,6 +63,11 @@ Page {
 			MenuItem {
 				text: qsTr("Remove Disk")
 				onClicked: removeRomDialog.open()
+				visible: romChooserPage.isDiskVisibleAndSelected
+			}
+			MenuItem {
+				text: qsTr("Run With Autoload Disabled")
+				onClicked: romGallery.launch(romListModel.get(currentRomIndex), false)
 				visible: romChooserPage.isDiskVisibleAndSelected
 			}
 			MenuItem {

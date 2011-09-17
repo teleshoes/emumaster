@@ -25,9 +25,10 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 	m_wantClose(false),
 	m_pauseRequested(false),
 
-	m_autoLoadOnStart(true),
 	m_autoSaveOnExit(true),
 	m_audioEnable(true) {
+
+	m_autoLoadOnStart = !qApp->arguments().contains("-noautoload");
 
 	Q_ASSERT(m_machine != 0);
 

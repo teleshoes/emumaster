@@ -9,17 +9,20 @@ emumaster (0.0.2) unstable; urgency=low
   * pad look redesigned (in-game exit button and L/R buttons added as well)
   * settings look refreshed
   * settings are saved now
-  * added pad opacity option
-  * added keep aspect ratio option
-  * item in menu to remove disk (disk gallery)
-  * asynchronous audio
-  * accelerometer support
+  * added pad opacity option (settings)
+  * added keep aspect ratio option (settings)
+  * added option to remove icon from home screen (disk gallery)
+  * added item in menu to remove disk (disk gallery)
+  * added item in menu to run game with autoload disabled (disk gallery)
+  * switched to asynchronous pulse audio
+  * added accelerometer support
   * volume buttons now works correctly
   * redesigned architecture to speed up things
   * fixed bug in pad: when you touch on edge pad didn't work
   * fixed crash on pause button
   * render method for nes ppu can now be selected
-  * nes game genie codes enable/disable fix
+  * nes game genie codes enable/disable fixed
+  * nes empahasis/mask fix (several games displayed white screen)
   * nes mappers:
      added: 200,201,202,222,225,226,227,228,229,230,231,232,233,235,236,240,241,242,243,244,246,251,252,254,255
 	 fixed: 2

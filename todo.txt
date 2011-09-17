@@ -1,7 +1,5 @@
 poll: Amiga N64 NDS
 
- s option to remove icon from home screen
- s option to run game without automatic load
  s more info when no roms in psx about folders
  s exit from gba thread
  s timer for games that don't work at all
@@ -14,6 +12,8 @@ poll: Amiga N64 NDS
  b dwie rundy w tekenie - w replayu start i stop ??
  b kula world save/load dont work with bios
  s copy legal info
+ s snes license
+ s update about page -> elemental
 
  s bluetooth gamepad
  b portrait mode in disk gallery makes titles half visible
