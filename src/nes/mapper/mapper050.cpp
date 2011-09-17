@@ -1,4 +1,5 @@
 #include "mapper050.h"
+#include "ppu.h"
 #include <QDataStream>
 
 void Mapper050::reset() {
@@ -36,9 +37,9 @@ void Mapper050::writeLow(u16 address, u8 data) {
 	}
 }
 
-void Mapper050::horizontalSync(int scanline) {
+void Mapper050::horizontalSync() {
 	if (irq_enable) {
-		if (scanline == 21)
+		if (nesPpuScanline == 21)
 			setIrqSignalOut(true);
 	}
 }

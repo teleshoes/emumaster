@@ -17,7 +17,7 @@ public:
 
 	void updatePpuBanks();
 
-	void horizontalSync(int scanline);
+	void horizontalSync();
 	void extensionLatchX(uint x);
 	void extensionLatch(u16 address, u8 *plane1, u8 *plane2, u8 *attribute);
 

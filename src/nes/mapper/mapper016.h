@@ -14,7 +14,7 @@ public:
 	void writeHigh(u16 address, u8 data);
 
 	void clock(uint cycles);
-	void horizontalSync(int scanline);
+	void horizontalSync();
 
 	void writeSubA(u16 address, u8 data);
 	void writeSubB(u16 address, u8 data);

@@ -60,8 +60,7 @@ void Mapper043::writeHigh(u16 address, u8 data) {
 	}
 }
 
-void Mapper043::horizontalSync(int scanline) {
-	Q_UNUSED(scanline)
+void Mapper043::horizontalSync() {
 	setIrqSignalOut(false);
 	if (irq_enable) {
 		irq_counter += 341;

@@ -16,7 +16,7 @@ public:
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 
-	void horizontalSync(int scanline);
+	void horizontalSync();
 
 	void updateCpuBanks();
 	void updatePpuBanks();

@@ -272,9 +272,9 @@ void Mapper004::updateCpuBanks() {
 		setRom8KBanks(prg0, prg1, nesRomSize8KB-2, nesRomSize8KB-1);
 }
 
-void Mapper004::horizontalSync(int scanline) {
+void Mapper004::horizontalSync() {
 	if (irq_type == IrqKlax) {
-		if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
+		if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 			if (irq_enable) {
 				if (irq_counter == 0) {
 					irq_counter = irq_latch;
@@ -287,7 +287,7 @@ void Mapper004::horizontalSync(int scanline) {
 		if (irq_request)
 			setIrqSignalOut(true);
 	} else if (irq_type == IrqRockman3) {
-		if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
+		if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 			if (irq_enable) {
 				if (!(--irq_counter)) {
 					irq_request = 0xFF;
@@ -298,7 +298,7 @@ void Mapper004::horizontalSync(int scanline) {
 		if (irq_request)
 			setIrqSignalOut(true);
 	} else {
-		if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
+		if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 			if (irq_preset_vbl) {
 				irq_counter = irq_latch;
 				irq_preset_vbl = 0;
@@ -306,7 +306,7 @@ void Mapper004::horizontalSync(int scanline) {
 			if (irq_preset) {
 				irq_counter = irq_latch;
 				irq_preset = 0;
-				if (irq_type == IrqDai2JiSuper && scanline == 0) {
+				if (irq_type == IrqDai2JiSuper && nesPpuScanline == 0) {
 					irq_counter--;
 				}
 			} else if (irq_counter > 0) {

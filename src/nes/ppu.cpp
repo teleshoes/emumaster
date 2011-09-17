@@ -67,7 +67,10 @@ static void buildPenLUT() {
 }
 
 static void updateColorEmphasisAndMask() {
-	u32 newEmphasis = u32(nesPpuRegs[NesPpu::Control1] & NesPpu::BackgroundColorCR1Bit) * 2;
+	u32 newEmphasis = u32(nesPpuRegs[NesPpu::Control1] & NesPpu::BackgroundColorCR1Bit);
+	if (newEmphasis != 0x20 && newEmphasis != 0x40 && newEmphasis != 0x80)
+		newEmphasis = 0x00;
+	newEmphasis *= 2;
 	u32 newMask = ((nesPpuRegs[NesPpu::Control1] & NesPpu::MonochromeModeCR1Bit) ? 0xF0 : 0xFF);
 	if (newEmphasis != paletteEmphasis || newMask != paletteMask) {
 		paletteEmphasis = newEmphasis;

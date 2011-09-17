@@ -155,13 +155,13 @@ void Mapper064::clock(uint cycles) {
 	}
 }
 
-void Mapper064::horizontalSync(int scanline) {
+void Mapper064::horizontalSync() {
 	if (irq_mode)
 		return;
 
 	irq_reset = 0;
 
-	if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
+	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 		if (irq_counter >= 0) {
 			irq_counter--;
 			if (irq_counter < 0) {

@@ -12,7 +12,7 @@ public:
 	u8 readLow(u16 address);
 	void writeHigh(u16 address, u8 data);
 
-	void horizontalSync(int scanline);
+	void horizontalSync();
 
 	void updatePpuBanks();
 	void updateCpuBanks();

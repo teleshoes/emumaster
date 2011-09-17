@@ -129,8 +129,8 @@ void Mapper033::updateBanks() {
 	setVrom1KBank(7, reg[5]);
 }
 
-void Mapper033::horizontalSync(int scanline) {
-	if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
+void Mapper033::horizontalSync() {
+	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 		if (irq_enable) {
 			if (++irq_counter == 0) {
 				irq_enable  = 0;

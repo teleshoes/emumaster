@@ -11,7 +11,7 @@ public:
 	void writeLow(u16 address, u8 data);
 	void writeHigh(u16 address, u8 data);
 
-	void horizontalSync(int scanline);
+	void horizontalSync();
 
 	void setBankCpu(uint page, uint bank);
 	void setBankPpu();

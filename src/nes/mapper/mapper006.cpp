@@ -51,8 +51,7 @@ void Mapper006::writeHigh(u16 address, u8 data) {
 	setCram8KBank(data & 0x03);
 }
 
-void Mapper006::horizontalSync(int scanline) {
-	Q_UNUSED(scanline)
+void Mapper006::horizontalSync() {
 	if(irqEnable) {
 		irqCounter += 133;
 		if (irqCounter >= 0xFFFF) {

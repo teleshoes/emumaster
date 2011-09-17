@@ -143,8 +143,8 @@ void Mapper044::setBankPpu() {
 	}
 }
 
-void Mapper044::horizontalSync(int scanline) {
-	if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
+void Mapper044::horizontalSync() {
+	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 		if (irq_enable) {
 			if (!(--irq_counter)) {
 				irq_counter = irq_latch;

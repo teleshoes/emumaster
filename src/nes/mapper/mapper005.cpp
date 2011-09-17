@@ -392,13 +392,13 @@ void Mapper005::updatePpuBanks() {
 	}
 }
 
-void Mapper005::horizontalSync(int scanline) {
+void Mapper005::horizontalSync() {
 	if (irq_type & IrqMetal) {
 		if (irq_scanline == irq_line) {
 			irq_status |= 0x80;
 		}
 	}
-	if (nesPpu.isDisplayOn() && scanline < NesPpu::VisibleScreenHeight) {
+	if (nesPpu.isDisplayOn() && nesPpuScanline < NesPpu::VisibleScreenHeight) {
 		irq_scanline++;
 		irq_status |= 0x40;
 		irq_clear = 0;
@@ -426,7 +426,7 @@ void Mapper005::horizontalSync(int scanline) {
 	}
 
 	// For Split mode!
-	if (scanline == 0) {
+	if (nesPpuScanline == 0) {
 		split_yofs = split_scroll&0x07;
 		split_addr = ((split_scroll&0xF8)<<2);
 	} else if (nesPpu.isDisplayOn()) {

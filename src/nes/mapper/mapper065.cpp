@@ -98,8 +98,7 @@ void Mapper065::clock(uint cycles) {
 	}
 }
 
-void Mapper065::horizontalSync(int scanline) {
-	Q_UNUSED(scanline)
+void Mapper065::horizontalSync() {
 	if (patch) {
 		if (irq_enable) {
 			if (irq_counter == 0) {

@@ -10,7 +10,7 @@ public:
 
 	void writeHigh(u16 address, u8 data);
 
-	void horizontalSync(int scanline);
+	void horizontalSync();
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);

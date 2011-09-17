@@ -112,8 +112,8 @@ void Mapper012::updateCpuBanks() {
 		setRom8KBanks(prg0, prg1, nesRomSize8KB-2, nesRomSize8KB-1);
 }
 
-void Mapper012::horizontalSync(int scanline) {
-	if (scanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
+void Mapper012::horizontalSync() {
+	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
 		if (irq_preset_vbl) {
 			irq_counter = irq_latch;
 			irq_preset_vbl = 0;

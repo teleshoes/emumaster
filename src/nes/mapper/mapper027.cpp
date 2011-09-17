@@ -146,8 +146,7 @@ void Mapper027::writeHigh(u16 address, u8 data) {
 	}
 }
 
-void Mapper027::horizontalSync(int scanline) {
-	Q_UNUSED(scanline)
+void Mapper027::horizontalSync() {
 	if (irq_enable & 0x02) {
 		if (irq_counter == 0xFF) {
 			irq_counter = irq_latch;

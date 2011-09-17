@@ -240,8 +240,7 @@ void Mapper016::clock(uint cycles) {
 	}
 }
 
-void Mapper016::horizontalSync(int scanline) {
-	Q_UNUSED(scanline)
+void Mapper016::horizontalSync() {
 	if (irq_enable && irq_type == IrqHSync) {
 		if (irq_counter <= 113) {
 			setIrqSignalOut(true);
