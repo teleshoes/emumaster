@@ -1,6 +1,6 @@
 poll: Amiga N64 NDS
 
- s option to remove icon from homescreen
+ s option to remove icon from home screen
  s option to run game without automatic load
  s more info when no roms in psx about folders
  s exit from gba thread
@@ -17,7 +17,6 @@ poll: Amiga N64 NDS
 
  s bluetooth gamepad
  b portrait mode in disk gallery makes titles half visible
- s remove last state option
  s add some more flags to compiler (as)
  x make icons in home screen removable
  b saves in gba tasmanian dont work
@@ -27,6 +26,7 @@ poll: Amiga N64 NDS
  s on-screen zapper controller (e.g. duck hunts)
  s nesapu performance
  s 6502 in assembly, detect idle loop
+ s build for N900
  - input feedback
  - fps degradation on touch input
  - Amiga
@@ -38,7 +38,7 @@ poll: Amiga N64 NDS
  - test PAL for NES
  - make better documentation:
    - input - pressing 2 keys at the time
-   - howto make icon in the homescreen
+   - howto make icon in the home screen
    - howto pause, save, load, change settings
    - howto update screen shot in the rom gallery
    - howto change image in the rom gallery to your own file

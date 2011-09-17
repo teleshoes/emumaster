@@ -30,12 +30,17 @@ Page {
 		}
 		ToolIcon {
 			iconId: "toolbar-view-menu"
-			onClicked: mainMenu.open()
+			onClicked: {
+				mainMenu.addRemoveIconToggle = romGallery.iconInHomeScreenExists(romListModel.get(currentRomIndex))
+				mainMenu.open()
+			}
 		}
 	}
 
 	Menu {
 		id: mainMenu
+		property bool addRemoveIconToggle: false
+
 		MenuLayout {
 			MenuItem {
 				text: qsTr("Select Cover")
@@ -46,10 +51,14 @@ Page {
 				visible: romChooserPage.isDiskVisibleAndSelected
 			}
 			MenuItem {
-				// TODO or remove icon
-				text: qsTr("Place Icon in Homescreen")
-				onClicked: romChooserPage.homescreenIcon()
-				visible: romChooserPage.isDiskVisibleAndSelected
+				text: qsTr("Create Icon in Home Screen")
+				onClicked: romChooserPage.homeScreenIcon()
+				visible: romChooserPage.isDiskVisibleAndSelected && !mainMenu.addRemoveIconToggle
+			}
+			MenuItem {
+				text: qsTr("Remove Icon from Home Screen")
+				onClicked: romGallery.removeIconFromHomeScreen(romListModel.get(currentRomIndex))
+				visible: romChooserPage.isDiskVisibleAndSelected && mainMenu.addRemoveIconToggle
 			}
 			MenuItem {
 				text: qsTr("Remove Disk")
@@ -136,7 +145,7 @@ Page {
 		listTab.update()
 	}
 
-	function homescreenIcon() {
+	function homeScreenIcon() {
 		if (romListModel.getScreenShotUpdate(currentRomIndex) < 0) {
 			errorDialog.message = "You need to make screenshot first!"
 			errorDialog.open()

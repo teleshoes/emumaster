@@ -73,8 +73,6 @@ QImage RomGallery::applyMaskAndOverlay(const QImage &icon) {
 
 bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x, int y) {
 	QString machineName = m_romListModel->machineName();
-	QString escapedDiskName = diskName;
-	escapedDiskName.replace(' ', '_');
 	RomImageProvider imgProvider;
 	QImage imgSrc = imgProvider.requestImage(QString("%1_%2*%3")
 											 .arg(m_romListModel->machineName())
@@ -89,10 +87,8 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 		return false;
 	icon = applyMaskAndOverlay(icon);
 
-	QString iconPath = QString("%1/icon/%2_%3.png")
-			.arg(IMachine::userDataDirPath())
-			.arg(machineName)
-			.arg(escapedDiskName);
+	QString desktopPath, iconPath;
+	homeScreenIconPaths(&desktopPath, &iconPath, diskName);
 	if (!icon.save(iconPath))
 		return false;
 
@@ -110,16 +106,29 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 			.arg(diskName)
 			.arg(iconPath);
 
-	QFile file(QString("%1/.local/share/applications/emumaster_%2_%3.desktop")
-			   .arg(getenv("HOME"))
-			   .arg(machineName)
-			   .arg(escapedDiskName));
+	QFile file(desktopPath);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
 		return false;
 	QTextStream out(&file);
 	out << desktopFileContent;
 	file.close();
 	return true;
+}
+
+void RomGallery::removeIconFromHomeScreen(const QString &diskName) {
+	QString desktopPath, iconPath;
+	homeScreenIconPaths(&desktopPath, &iconPath, diskName);
+	QFile desktopFile(desktopPath);
+	QFile iconFile(iconPath);
+	desktopFile.remove();
+	iconFile.remove();
+}
+
+bool RomGallery::iconInHomeScreenExists(const QString &diskName) {
+	QString desktopPath;
+	homeScreenIconPaths(&desktopPath, 0, diskName);
+	QFile desktopFile(desktopPath);
+	return desktopFile.exists();
 }
 
 void RomGallery::donate() {
@@ -140,4 +149,23 @@ void RomGallery::emitRomUpdate() {
 		return;
 	}
 	emit romUpdate();
+}
+
+void RomGallery::homeScreenIconPaths(QString *desktopFilePath, QString *iconFilePath, const QString &diskName) {
+	QString machineName = m_romListModel->machineName();
+	QString escapedDiskName = diskName;
+	escapedDiskName.replace(' ', '_');
+
+	if (iconFilePath) {
+		*iconFilePath = QString("%1/icon/%2_%3.png")
+				.arg(IMachine::userDataDirPath())
+				.arg(machineName)
+				.arg(escapedDiskName);
+	}
+	if (desktopFilePath) {
+		*desktopFilePath = QString("%1/.local/share/applications/emumaster_%2_%3.desktop")
+				.arg(getenv("HOME"))
+				.arg(machineName)
+				.arg(escapedDiskName);
+	}
 }
