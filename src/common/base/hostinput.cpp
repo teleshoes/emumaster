@@ -98,9 +98,9 @@ void HostInput::processTouch(QEvent *e) {
 								setKeyState(IMachine::Left_PadKey, true);
 						} else {
 							if (y > 0)
-								setKeyState(IMachine::Up_PadKey, true);
-							else
 								setKeyState(IMachine::Down_PadKey, true);
+							else
+								setKeyState(IMachine::Up_PadKey, true);
 						}
 					}
 				}
@@ -145,9 +145,9 @@ void HostInput::processTouch(QEvent *e) {
 								setKeyState(IMachine::X_PadKey, true);
 						} else {
 							if (y > 0)
-								setKeyState(IMachine::Y_PadKey, true);
-							else
 								setKeyState(IMachine::B_PadKey, true);
+							else
+								setKeyState(IMachine::Y_PadKey, true);
 						}
 					}
 				}
