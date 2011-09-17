@@ -1,10 +1,9 @@
 poll: Amiga N64 NDS
 
- s exit from gba thread
- s exit from psx thread
  s fix psx sound
  s save sound in psx
  s psx selectable bios
+ s exit from psx thread
  s timer for games that don't work at all
  b dwie rundy w tekenie - w replayu start i stop ??
  b kula world save/load dont work with bios

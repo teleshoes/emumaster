@@ -44,6 +44,8 @@
 .global memory_map_write
 .global reg
 
+.global return_to_host
+
 #define REG_BASE_OFFSET   1024
 
 #define REG_R0            (REG_BASE_OFFSET + (0 * 4))
@@ -249,16 +251,11 @@ arm_update_gba_##name:                                                       ;\
   restore_flags()                                                            ;\
   bx r0                                   /* jump to new ARM block         */;\
 
-
-.text
-
 arm_update_gba_builder(arm, arm, straight)
 arm_update_gba_builder(thumb, thumb, straight)
 
 arm_update_gba_builder(idle_arm, arm, add)
 arm_update_gba_builder(idle_thumb, thumb, add)
-
-
 
 @ These are b stubs for performing indirect branches. They are not
 @ linked to and don't return, instead they link elsewhere.
@@ -484,10 +481,14 @@ execute_swi_function_builder(div, thumb)
 
 @ Input:
 @ r0: initial value for cycle counter
+@ r1: return to host regs store
 
 @ Uses sp as reg_base; must hold consistently true.
 
 execute_arm_translate:
+  stmdb sp!, { r4-r12 }
+  str lr, [r1,#0]
+  str sp, [r1,#4]
   sub sp, sp, #0x100                      @ allocate room for register data
 
   mvn reg_cycles, r0                      @ load cycle counter
@@ -514,7 +515,6 @@ execute_arm_translate:
   call_c_function(block_lookup_address_thumb)
   extract_flags()                         @ load flags
   bx r0                                   @ jump to first Thumb block
-
 
 @ Write out to memory.
 
@@ -1012,6 +1012,14 @@ step_debug_arm:
   restore_flags()
   add pc, lr, #4                          @ return, skipping PC
 
+@ Input:
+@ r0: return to host regs store
+
+return_to_host:
+  ldr lr, [r0,#0]
+  ldr sp, [r0,#4]
+  ldmia sp!, { r4-r12 }
+  bx lr
 
 .comm memory_map_read 0x8000
 .comm memory_map_write 0x8000

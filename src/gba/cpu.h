@@ -128,7 +128,6 @@ extern u32 instruction_count;
 extern u32 last_instruction;
 
 void function_cc step_debug(u32 pc, u32 cycles);
-void execute_arm(u32 cycles);
 void raise_interrupt(irq_type irq_raised);
 
 u32 function_cc execute_load_u8(u32 address);
@@ -139,7 +138,7 @@ u32 function_cc execute_load_s16(u32 address);
 void function_cc execute_store_u8(u32 address, u32 source);
 void function_cc execute_store_u16(u32 address, u32 source);
 void function_cc execute_store_u32(u32 address, u32 source);
-u32 function_cc execute_arm_translate(u32 cycles);
+u32 function_cc execute_arm_translate(u32 cycles, u32 *returnRegs);
 void init_translater();
 
 u8 function_cc *block_lookup_address_arm(u32 pc);

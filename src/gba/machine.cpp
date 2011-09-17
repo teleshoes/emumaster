@@ -40,8 +40,11 @@ u32 gbc_update_count = 0;
 u32 oam_update_count = 0;
 
 extern "C" u16 *screen_pixels_ptr;
+extern "C" void return_to_host(u32 *returnRegs);
+static u32 return_to_host_regs[2];
 
 static QImage gpuFrame;
+static GbaThread gbaThread;
 
 GbaMachine gbaMachine;
 
@@ -61,8 +64,8 @@ QString GbaMachine::init() {
 
 void GbaMachine::shutdown() {
 	m_quit = true;
-	while (m_quit)
-		emulateFrame(false);
+	emulateFrame(false);
+	gbaThread.wait();
 	gpuFrame = QImage();
 }
 
@@ -132,9 +135,7 @@ QString GbaMachine::setDisk(const QString &path) {
 	reset();
 	skip_next_frame = 1;
 
-	GbaThread *t = new GbaThread();
-	t->setParent(this);
-	t->start();
+	gbaThread.start();
 	m_consSem.acquire();
 	return QString();
 }
@@ -151,10 +152,8 @@ void GbaMachine::emulateFrame(bool drawEnabled) {
 
 void GbaMachine::sync() {
 	m_consSem.release();
-	if (m_quit) {
-		m_quit = false;
-		QThread::currentThread()->terminate();
-	}
+	if (m_quit)
+		return_to_host(return_to_host_regs);
 	m_prodSem.acquire();
 }
 
@@ -188,7 +187,7 @@ void GbaMachine::setAudioEnabled(bool on)
 { gbaSpu.setEnabled(on); }
 
 void GbaThread::run() {
-	execute_arm_translate(execute_cycles);
+	execute_arm_translate(execute_cycles, return_to_host_regs);
 }
 
 #define check_count(count_var) \
