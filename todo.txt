@@ -1,20 +1,20 @@
 poll: Amiga N64 NDS
 
- s more info when no roms in psx about folders
  s exit from gba thread
- s timer for games that don't work at all
- s pause when call is coming or device is going to sleep
- s load roms from dir in psx (menu in qml)
+ s exit from psx thread
  s fix psx sound
  s save sound in psx
  s psx selectable bios
- s psx filter files in rom gallery
+ s timer for games that don't work at all
  b dwie rundy w tekenie - w replayu start i stop ??
  b kula world save/load dont work with bios
  s copy legal info
  s snes license
+ s pause when call is coming or device is going to sleep
  s update about page -> elemental
 
+ s load roms from dir in psx (menu in qml)
+ s more info when no roms in psx about folders
  s bluetooth gamepad
  b portrait mode in disk gallery makes titles half visible
  s add some more flags to compiler (as)

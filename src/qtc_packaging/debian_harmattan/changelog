@@ -22,7 +22,7 @@ emumaster (0.0.2) unstable; urgency=low
   * fixed crash on pause button
   * render method for nes ppu can now be selected
   * nes game genie codes enable/disable fixed
-  * nes empahasis/mask fix (several games displayed white screen)
+  * nes empahasis/mask fix (several titles displayed white screen)
   * nes mappers:
      added: 200,201,202,222,225,226,227,228,229,230,231,232,233,235,236,240,241,242,243,244,246,251,252,254,255
 	 fixed: 2

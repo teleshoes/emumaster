@@ -189,7 +189,6 @@ void GbaMachine::setAudioEnabled(bool on)
 
 void GbaThread::run() {
 	execute_arm_translate(execute_cycles);
-	execute_arm(execute_cycles);
 }
 
 #define check_count(count_var) \
