@@ -15,6 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-INLINE void MixXA(void);
-INLINE void FeedXA(xa_decode_t *xap);
-INLINE void FeedCDDA(unsigned char *pcm, int nBytes);
+static inline void MixXA(void);
+static inline void FeedXA(xa_decode_t *xap);
+static inline void FeedCDDA(unsigned char *pcm, int nBytes);

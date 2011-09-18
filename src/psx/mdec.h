@@ -20,15 +20,14 @@
 #ifndef __MDEC_H__
 #define __MDEC_H__
 
-#include "psxcommon.h"
-#include "r3000a.h"
-#include "psxhw.h"
-#include "psxdma.h"
+#include "common.h"
+#include "cpu.h"
+#include "hw.h"
+#include "dma.h"
 
 #ifdef __cplusplus
 
-class PsxMdec : public QObject {
-	Q_OBJECT
+class PsxMdec {
 public:
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);

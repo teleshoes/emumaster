@@ -24,7 +24,7 @@
 */
 
 #include "gte.h"
-#include "psxmem.h"
+#include "mem.h"
 
 #define VX(n) (n < 3 ? psxRegs.CP2D.p[n << 1].sw.l : psxRegs.CP2D.p[9].sw.l)
 #define VY(n) (n < 3 ? psxRegs.CP2D.p[n << 1].sw.h : psxRegs.CP2D.p[10].sw.l)
@@ -377,8 +377,8 @@ void gteRTPS() {
 	gteSX2 = limG1(F((s64)gteOFX + ((s64)gteIR1 * quotient)) >> 16);
 	gteSY2 = limG2(F((s64)gteOFY + ((s64)gteIR2 * quotient)) >> 16);
 
-	gteMAC0 = F((s64)(gteDQB + ((s64)gteDQA * quotient)) >> 12);
-	gteIR0 = limH(gteMAC0);
+	gteMAC0 = F((s64)gteDQB + ((s64)gteDQA * quotient));
+	gteIR0 = limH(gteMAC0 >> 12);
 }
 
 void gteRTPT() {
@@ -407,8 +407,8 @@ void gteRTPT() {
 		fSX(v) = limG1(F((s64)gteOFX + ((s64)gteIR1 * quotient)) >> 16);
 		fSY(v) = limG2(F((s64)gteOFY + ((s64)gteIR2 * quotient)) >> 16);
 	}
-	gteMAC0 = F((s64)(gteDQB + ((s64)gteDQA * quotient)) >> 12);
-	gteIR0 = limH(gteMAC0);
+	gteMAC0 = F((s64)gteDQB + ((s64)gteDQA * quotient));
+	gteIR0 = limH(gteMAC0 >> 12);
 }
 
 void gteMVMVA() {

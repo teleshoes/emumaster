@@ -60,7 +60,7 @@ static int gauss_window[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 // MIX XA & CDDA
 ////////////////////////////////////////////////////////////////////////
 
-INLINE void MixXA(void)
+static inline void MixXA(void)
 {
  int ns;
  uint32_t l;
@@ -117,7 +117,7 @@ unsigned long timeGetTime_spu()
 // FEED XA 
 ////////////////////////////////////////////////////////////////////////
 
-INLINE void FeedXA(xa_decode_t *xap)
+static inline void FeedXA(xa_decode_t *xap)
 {
  int sinc,spos,i,iSize,iPlace,vl,vr;
 
@@ -394,7 +394,7 @@ INLINE void FeedXA(xa_decode_t *xap)
 // FEED CDDA
 ////////////////////////////////////////////////////////////////////////
 
-INLINE void FeedCDDA(unsigned char *pcm, int nBytes)
+static inline void FeedCDDA(unsigned char *pcm, int nBytes)
 {
  while(nBytes>0)
   {

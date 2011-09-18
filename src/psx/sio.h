@@ -21,18 +21,13 @@
 #ifndef _SIO_H_
 #define _SIO_H_
 
-#include "psxcommon.h"
-#include "r3000a.h"
-#include "psxmem.h"
-#include "plugins.h"
-#include "psemu_plugin_defs.h"
+#include "common.h"
+#include "cpu.h"
+#include "mem.h"
 
 #ifdef __cplusplus
 
-#include <imachine.h>
-
-class PsxSio : public QObject {
-	Q_OBJECT
+class PsxSio {
 public:
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
@@ -58,8 +53,6 @@ unsigned short sioReadStat16();
 unsigned short sioReadMode16();
 unsigned short sioReadCtrl16();
 unsigned short sioReadBaud16();
-
-void netError();
 
 void sioInterrupt();
 

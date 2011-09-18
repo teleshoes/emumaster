@@ -132,7 +132,7 @@ static int lastns=0;       // last ns pos
 //
 
 
-INLINE void InterpolateUp(int ch)
+static inline void InterpolateUp(int ch)
 {
  if(s_chan[ch].SB[32]==1)                              // flag == 1? calc step and set flag... and don't change the value in this pass
   {
@@ -180,7 +180,7 @@ INLINE void InterpolateUp(int ch)
 // even easier interpolation on downsampling, also no special filter, again just "Pete's common sense" tm
 //
 
-INLINE void InterpolateDown(int ch)
+static inline void InterpolateDown(int ch)
 {
  if(s_chan[ch].sinc>=0x20000L)                                 // we would skip at least one val?
   {
@@ -206,7 +206,7 @@ INLINE void InterpolateDown(int ch)
 // START SOUND... called by main thread to setup a new sound on a channel
 ////////////////////////////////////////////////////////////////////////
 
-INLINE void StartSound(int ch)
+static inline void StartSound(int ch)
 {
  StartADSR(ch);
  StartREVERB(ch);
@@ -234,7 +234,7 @@ INLINE void StartSound(int ch)
 // ALL KIND OF HELPERS
 ////////////////////////////////////////////////////////////////////////
 
-INLINE void VoiceChangeFrequency(int ch)
+static inline void VoiceChangeFrequency(int ch)
 {
  s_chan[ch].iUsedFreq=s_chan[ch].iActFreq;             // -> take it and calc steps
  s_chan[ch].sinc=s_chan[ch].iRawPitch<<4;
@@ -244,7 +244,7 @@ INLINE void VoiceChangeFrequency(int ch)
 
 ////////////////////////////////////////////////////////////////////////
 
-INLINE void FModChangeFrequency(int ch,int ns)
+static inline void FModChangeFrequency(int ch,int ns)
 {
  int NP=s_chan[ch].iRawPitch;
 
@@ -270,7 +270,7 @@ INLINE void FModChangeFrequency(int ch,int ns)
 // surely wrong... and no noise frequency (spuCtrl&0x3f00) will be used...
 // and sometimes the noise will be used as fmod modulation... pfff
 
-INLINE int iGetNoiseVal(int ch)
+static inline int iGetNoiseVal(int ch)
 {
  int fa;
 
@@ -295,7 +295,7 @@ INLINE int iGetNoiseVal(int ch)
 
 ////////////////////////////////////////////////////////////////////////
 
-INLINE void StoreInterpolationVal(int ch,int fa)
+static inline void StoreInterpolationVal(int ch,int fa)
 {
  if(s_chan[ch].bFMod==2)                               // fmod freq channel
   s_chan[ch].SB[29]=fa;
@@ -330,7 +330,7 @@ INLINE void StoreInterpolationVal(int ch,int fa)
 
 ////////////////////////////////////////////////////////////////////////
 
-INLINE int iGetInterpolationVal(int ch)
+static inline int iGetInterpolationVal(int ch)
 {
  int fa;
 
@@ -801,6 +801,6 @@ void SPU_registerCDDAVolume(void (*CDDAVcallback)(unsigned short,unsigned short)
 
 // vim:shiftwidth=1:expandtab
 
-void SPUirq(void) {
+void SPUirq() {
 	psxHu32ref(0x1070) |= SWAPu32(0x200);
 }

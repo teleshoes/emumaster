@@ -25,6 +25,7 @@
 #include "cdrom.h"
 #include "mdec.h"
 #include "ppf.h"
+#include "machine.h"
 
 char CdromId[10] = "";
 char CdromLabel[33] = "";
@@ -209,6 +210,8 @@ int LoadCdrom() {
 	tmpHead.t_size = SWAP32(tmpHead.t_size);
 	tmpHead.t_addr = SWAP32(tmpHead.t_addr);
 
+	psxCpu->clear(tmpHead.t_addr, tmpHead.t_size / 4);
+
 	// Read the rest of the main executable
 	while (tmpHead.t_size) {
 		void *ptr = (void *)PSXM(tmpHead.t_addr);
@@ -252,7 +255,9 @@ int LoadCdromFile(const char *filename, EXE_HEADER *head) {
 	size = head->t_size;
 	addr = head->t_addr;
 
-	while (size) {
+	psxCpu->clear(addr, size / 4);
+
+	while (size & ~2047) {
 		incTime();
 		READTRACK();
 
@@ -334,8 +339,9 @@ int CheckCdrom() {
 
 	if (Config.PsxAuto) { // autodetect system (pal or ntsc)
 		if (CdromId[2] == 'e' || CdromId[2] == 'E')
-			Config.PsxType = PSX_TYPE_PAL; // pal
-		else Config.PsxType = PSX_TYPE_NTSC; // ntsc
+			psxMachine.systemType = PsxMachine::PalType; // pal
+		else
+			psxMachine.systemType = PsxMachine::NtscType; // ntsc
 	}
 
 	if (CdromLabel[0] == ' ') {
@@ -381,6 +387,7 @@ int Load(const char *ExePath) {
 	int retval = 0;
 	u8 opcode;
 	u32 section_address, section_size;
+	void *mem;
 
 	strncpy(CdromId, "SLUS99999", 9);
 	strncpy(CdromLabel, "SLUS_999.99", 11);
@@ -394,8 +401,14 @@ int Load(const char *ExePath) {
 		switch (type) {
 			case PSX_EXE:
 				fread(&tmpHead,sizeof(EXE_HEADER),1,tmpFile);
-				fseek(tmpFile, 0x800, SEEK_SET);		
-				fread((void *)PSXM(SWAP32(tmpHead.t_addr)), SWAP32(tmpHead.t_size),1,tmpFile);
+				section_address = SWAP32(tmpHead.t_addr);
+				section_size = SWAP32(tmpHead.t_size);
+				mem = PSXM(section_address);
+				if (mem != NULL) {
+					fseek(tmpFile, 0x800, SEEK_SET);		
+					fread(mem, section_size, 1, tmpFile);
+					psxCpu->clear(section_address, section_size / 4);
+				}
 				fclose(tmpFile);
 				psxRegs.pc = SWAP32(tmpHead.pc0);
 				psxRegs.GPR.n.gp = SWAP32(tmpHead.gp0);
@@ -417,7 +430,11 @@ int Load(const char *ExePath) {
 #ifdef EMU_LOG
 							EMU_LOG("Loading %08X bytes from %08X to %08X\n", section_size, ftell(tmpFile), section_address);
 #endif
-							fread(PSXM(section_address), section_size, 1, tmpFile);
+							mem = PSXM(section_address);
+							if (mem != NULL) {
+								fread(mem, section_size, 1, tmpFile);
+								psxCpu->clear(section_address, section_size / 4);
+							}
 							break;
 						case 3: /* register loading (PC only?) */
 							fseek(tmpFile, 2, SEEK_CUR); /* unknown field */
@@ -450,81 +467,4 @@ int Load(const char *ExePath) {
 	}
 
 	return retval;
-}
-
-// STATES
-
-static const char PcsxHeader[32] = "STv5 PSX4 v" PACKAGE_VERSION;
-
-// Savestate Versioning!
-// If you make changes to the savestate version, please increment the value below.
-static const u32 SaveVersion = 0x8b410008;
-
-// NET Function Helpers
-
-int SendPcsxInfo() {
-#if 0 // TODO NET
-	if (NET_recvData == NULL || NET_sendData == NULL)
-		return 0;
-
-	NET_sendData(&Config.Xa, sizeof(Config.Xa), PSE_NET_BLOCKING);
-	NET_sendData(&Config.Sio, sizeof(Config.Sio), PSE_NET_BLOCKING);
-	NET_sendData(&Config.SpuIrq, sizeof(Config.SpuIrq), PSE_NET_BLOCKING);
-	NET_sendData(&Config.RCntFix, sizeof(Config.RCntFix), PSE_NET_BLOCKING);
-	NET_sendData(&Config.PsxType, sizeof(Config.PsxType), PSE_NET_BLOCKING);
-	NET_sendData(&Config.Cpu, sizeof(Config.Cpu), PSE_NET_BLOCKING);
-#endif
-	return 0;
-}
-
-int RecvPcsxInfo() {
-#if 0 // TODO NET
-	int tmp;
-	if (NET_recvData == NULL || NET_sendData == NULL)
-		return 0;
-
-	NET_recvData(&Config.Xa, sizeof(Config.Xa), PSE_NET_BLOCKING);
-	NET_recvData(&Config.Sio, sizeof(Config.Sio), PSE_NET_BLOCKING);
-	NET_recvData(&Config.SpuIrq, sizeof(Config.SpuIrq), PSE_NET_BLOCKING);
-	NET_recvData(&Config.RCntFix, sizeof(Config.RCntFix), PSE_NET_BLOCKING);
-	NET_recvData(&Config.PsxType, sizeof(Config.PsxType), PSE_NET_BLOCKING);
-
-	tmp = Config.Cpu;
-	NET_recvData(&Config.Cpu, sizeof(Config.Cpu), PSE_NET_BLOCKING);
-	if (tmp != Config.Cpu) {
-		psxCpu.shutdown();
-#ifdef DYNAREC
-		if (Config.Cpu == CPU_INTERPRETER) psxCpu = &psxInt;
-		else psxCpu = &psxRec;
-#else
-		psxCpu = &psxInt;
-#endif
-		if (psxCpu->Init() == -1) {
-			SysClose(); return -1;
-		}
-		psxCpu->Reset();
-	}
-#endif
-	return 0;
-}
-
-// remove the leading and trailing spaces in a string
-void trim(char *str) {
-	int pos = 0;
-	char *dest = str;
-
-	// skip leading blanks
-	while (str[pos] <= ' ' && str[pos] > 0)
-		pos++;
-
-	while (str[pos]) {
-		*(dest++) = str[pos];
-		pos++;
-	}
-
-	*(dest--) = '\0'; // store the null
-
-	// remove trailing blanks
-	while (dest >= str && *dest <= ' ' && *dest > 0)
-		*(dest--) = '\0';
 }

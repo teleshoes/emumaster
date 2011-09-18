@@ -22,8 +22,8 @@
 #ifndef __GTE_H__
 #define __GTE_H__
 
-#include "psxcommon.h"
-#include "r3000a.h"
+#include "common.h"
+#include "cpu.h"
 
 #ifdef __cplusplus
 extern "C" {

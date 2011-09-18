@@ -1,6 +1,6 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *   Mupen64plus - assem_arm.c                                             *
- *   Copyright (C) 2009-2010 Ari64                                         *
+ *   Copyright (C) 2009-2011 Ari64                                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -17,6 +17,7 @@
  *   Free Software Foundation, Inc.,                                       *
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 extern int cycle_count;
 extern int last_count;
 extern int pcaddr;
@@ -255,7 +256,7 @@ int get_pointer(void *stub)
 {
   //printf("get_pointer(%x)\n",(int)stub);
   int *ptr=(int *)(stub+4);
-  assert((*ptr&0x0ff00000)==0x05900000);
+  assert((*ptr&0x0fff0000)==0x059f0000);
   u32 offset=*ptr&0xfff;
   int **l_ptr=(void *)ptr+offset+8;
   int *i_ptr=*l_ptr;
@@ -827,15 +828,20 @@ void alloc_reg_temp(struct regstat *cur,int i,signed char reg)
 void alloc_arm_reg(struct regstat *cur,int i,signed char reg,char hr)
 {
   int n;
+  int dirty=0;
   
   // see if it's already allocated (and dealloc it)
   for(n=0;n<HOST_REGS;n++)
   {
-    if(n!=EXCLUDE_REG&&cur->regmap[n]==reg) {cur->regmap[n]=-1;}
+    if(n!=EXCLUDE_REG&&cur->regmap[n]==reg) {
+      dirty=(cur->dirty>>n)&1;
+      cur->regmap[n]=-1;
+    }
   }
   
   cur->regmap[hr]=reg;
   cur->dirty&=~(1<<hr);
+  cur->dirty|=dirty<<hr;
   cur->isconst&=~(1<<hr);
 }
 
@@ -910,7 +916,8 @@ u32 rd_rn_imm_shift(u32 rd, u32 rn, u32 imm, u32 shift)
 }
 u32 genimm(u32 imm,u32 *encoded)
 {
-  if(imm==0) {*encoded=0;return 1;}
+  *encoded=0;
+  if(imm==0) return 1;
   int i=32;
   while(i>0)
   {
@@ -1527,10 +1534,10 @@ void emit_cmpimm(int rs,int imm)
 {
   u32 armval;
   if(genimm(imm,&armval)) {
-    assem_debug("cmp %s,$%d\n",regname[rs],imm);
+    assem_debug("cmp %s,#%d\n",regname[rs],imm);
     output_w32(0xe3500000|rd_rn_rm(0,rs,0)|armval);
   }else if(genimm(-imm,&armval)) {
-    assem_debug("cmn %s,$%d\n",regname[rs],imm);
+    assem_debug("cmn %s,#%d\n",regname[rs],imm);
     output_w32(0xe3700000|rd_rn_rm(0,rs,0)|armval);
   }else if(imm>0) {
     assert(imm<65536);
@@ -2821,6 +2828,18 @@ inline_readstub(int type, int i, u32 addr, signed char regmap[], int target, int
   emit_writeword(rs,(int)&address);
   //emit_pusha();
   save_regs(reglist);
+#ifndef PCSX
+  if((signed int)addr>=(signed int)0xC0000000) {
+    // Theoretically we can have a pagefault here, if the TLB has never
+    // been enabled and the address is outside the range 80000000..BFFFFFFF
+    // Write out the registers so the pagefault can be handled.  This is
+    // a very rare case and likely represents a bug.
+    int ds=regmap!=regs[i].regmap;
+    if(!ds) load_all_consts(regs[i].regmap_entry,regs[i].was32,regs[i].wasdirty,i);
+    if(!ds) wb_dirtys(regs[i].regmap_entry,regs[i].was32,regs[i].wasdirty);
+    else wb_dirtys(branch_regs[i-1].regmap_entry,branch_regs[i-1].was32,branch_regs[i-1].wasdirty);
+  }
+#endif
   //emit_shrimm(rs,16,1);
   int cc=get_reg(regmap,CCREG);
   if(cc<0) {
@@ -3011,6 +3030,19 @@ inline_writestub(int type, int i, u32 addr, signed char regmap[], int target, in
   }
   //emit_pusha();
   save_regs(reglist);
+#ifndef PCSX
+  // rearmed note: load_all_consts prevents BIOS boot, some bug?
+  if((signed int)addr>=(signed int)0xC0000000) {
+    // Theoretically we can have a pagefault here, if the TLB has never
+    // been enabled and the address is outside the range 80000000..BFFFFFFF
+    // Write out the registers so the pagefault can be handled.  This is
+    // a very rare case and likely represents a bug.
+    int ds=regmap!=regs[i].regmap;
+    if(!ds) load_all_consts(regs[i].regmap_entry,regs[i].was32,regs[i].wasdirty,i);
+    if(!ds) wb_dirtys(regs[i].regmap_entry,regs[i].was32,regs[i].wasdirty);
+    else wb_dirtys(branch_regs[i-1].regmap_entry,branch_regs[i-1].was32,branch_regs[i-1].wasdirty);
+  }
+#endif
   //emit_shrimm(rs,16,1);
   int cc=get_reg(regmap,CCREG);
   if(cc<0) {
@@ -3470,6 +3502,7 @@ void loadlr_assemble_arm(int i,struct regstat *i_regs)
     }
     map=get_reg(i_regs->regmap,TLREG);
     assert(map>=0);
+    reglist&=~(1<<map);
     map=do_tlb_r(addr,temp2,map,0,a,c?-1:temp,c,constmap[i][s]+offset);
     if(c) {
       if (opcode[i]==0x22||opcode[i]==0x26) {
@@ -4544,7 +4577,9 @@ void multdiv_assemble_arm(int i,struct regstat *i_regs)
         assert(quotient>=0);
         assert(remainder>=0);
         emit_movs(d1,remainder);
-        emit_negmi(remainder,remainder);
+        emit_movimm(0xffffffff,quotient);
+        emit_negmi(quotient,quotient); // .. quotient and ..
+        emit_negmi(remainder,remainder); // .. remainder for div0 case (will be negated back after jump)
         emit_movs(d2,HOST_TEMPREG);
         emit_jeq((int)out+52); // Division by zero
         emit_negmi(HOST_TEMPREG,HOST_TEMPREG);
@@ -4572,12 +4607,13 @@ void multdiv_assemble_arm(int i,struct regstat *i_regs)
         signed char remainder=get_reg(i_regs->regmap,HIREG);
         assert(quotient>=0);
         assert(remainder>=0);
+        emit_mov(d1,remainder);
+        emit_movimm(0xffffffff,quotient); // div0 case
         emit_test(d2,d2);
-        emit_jeq((int)out+44); // Division by zero
+        emit_jeq((int)out+40); // Division by zero
         emit_clz(d2,HOST_TEMPREG);
         emit_movimm(1<<31,quotient);
         emit_shl(d2,HOST_TEMPREG,d2);
-        emit_mov(d1,remainder);
         emit_shr(quotient,HOST_TEMPREG,quotient);
         emit_cmp(remainder,d2);
         emit_subcs(remainder,d2,remainder);
@@ -4854,23 +4890,8 @@ void wb_valid(signed char pre[],signed char entry[],u32 dirty_pre,u32 dirty,u64 
     if(hr!=EXCLUDE_REG) {
       reg=pre[hr];
       if(((~u)>>(reg&63))&1) {
-        if(reg==entry[hr]||(reg>0&&entry[hr]<0)) {
+        if(reg>0) {
           if(((dirty_pre&~dirty)>>hr)&1) {
-            if(reg>0&&reg<34) {
-              emit_storereg(reg,hr);
-              if( ((is32_pre&~uu)>>reg)&1 ) {
-                emit_sarimm(hr,31,HOST_TEMPREG);
-                emit_storereg(reg|64,HOST_TEMPREG);
-              }
-            }
-            else if(reg>=64) {
-              emit_storereg(reg,hr);
-            }
-          }
-        }
-        else // Check if register moved to a different register
-        if((new_hr=get_reg(entry,reg))>=0) {
-          if((dirty_pre>>hr)&(~dirty>>new_hr)&1) {
             if(reg>0&&reg<34) {
               emit_storereg(reg,hr);
               if( ((is32_pre&~uu)>>reg)&1 ) {

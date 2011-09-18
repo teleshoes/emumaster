@@ -7,7 +7,15 @@
 
 class PsxMachine : public IMachine {
 	Q_OBJECT
-public:
+public:	
+	enum SystemType {
+		NtscType = 0,
+		PalType
+	};
+	enum CpuType {
+		CpuDynarec = 0,
+		CpuInterpreter
+	};
 	explicit PsxMachine(QObject *parent = 0);
 	QString init();
 	void shutdown();
@@ -23,6 +31,8 @@ public:
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
+
+	int systemType;
 private:
 	QSemaphore m_consSem;
 	QSemaphore m_prodSem;
@@ -36,7 +46,6 @@ protected:
 	void run();
 };
 
-extern QImage gpuFrame;
 extern PsxMachine psxMachine;
 
 #endif // PSXMACHINE_H

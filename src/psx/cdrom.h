@@ -20,12 +20,60 @@
 #ifndef __CDROM_H__
 #define __CDROM_H__
 
-#include "psxcommon.h"
+#include "common.h"
 #include "decode_xa.h"
-#include "r3000a.h"
-#include "plugins.h"
-#include "psxmem.h"
-#include "psxhw.h"
+#include "cpu.h"
+#include "mem.h"
+#include "hw.h"
+
+struct SubQ {
+	char res0[12];
+	u8 ControlAndADR;
+	u8 TrackNumber;
+	u8 IndexNumber;
+	u8 TrackRelativeAddress[3];
+	u8 Filler;
+	u8 AbsoluteAddress[3];
+	u8 CRC[2];
+	char res1[72];
+};
+
+struct CdrStat {
+	u32 Type;
+	u32 Status;
+	u8 Time[3];
+};
+
+typedef long (* CDRinit)(void);
+typedef long (* CDRshutdown)(void);
+typedef long (* CDRopen)(void);
+typedef long (* CDRclose)(void);
+typedef long (* CDRgetTN)(unsigned char *);
+typedef long (* CDRgetTD)(unsigned char, unsigned char *);
+typedef long (* CDRreadTrack)(unsigned char *);
+typedef unsigned char* (* CDRgetBuffer)(void);
+typedef unsigned char* (* CDRgetBufferSub)(void);
+typedef long (* CDRplay)(unsigned char *);
+typedef long (* CDRstop)(void);
+typedef long (* CDRgetStatus)(struct CdrStat *);
+
+extern CDRinit               CDR_init;
+extern CDRshutdown           CDR_shutdown;
+extern CDRopen               CDR_open;
+extern CDRclose              CDR_close;
+extern CDRgetTN              CDR_getTN;
+extern CDRgetTD              CDR_getTD;
+extern CDRreadTrack          CDR_readTrack;
+extern CDRgetBuffer          CDR_getBuffer;
+extern CDRgetBufferSub       CDR_getBufferSub;
+extern CDRplay               CDR_play;
+extern CDRstop               CDR_stop;
+extern CDRgetStatus          CDR_getStatus;
+
+void SetIsoFile(const char *filename);
+const char *GetIsoFile(void);
+boolean UsingIso(void);
+void SetCdOpenCaseTime(s64 time);
 
 #define btoi(b)     ((b) / 16 * 10 + (b) % 16) /* BCD to u_char */
 #define itob(i)     ((i) / 10 * 16 + (i) % 10) /* u_char to BCD */
@@ -39,8 +87,7 @@
 
 #ifdef __cplusplus
 
-class PsxCdr : public QObject {
-	Q_OBJECT
+class PsxCdr {
 public:
 	void reset();
 	bool save(QDataStream &s);
@@ -98,7 +145,7 @@ public:
 	u8 FastBackward;
 	u8 pad;
 
-	u32 LeftVol, RightVol;
+	u8 AttenuatorLeft[2], AttenuatorRight[2];
 };
 
 extern PsxCdr psxCdr;

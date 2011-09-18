@@ -23,7 +23,8 @@
 
 #include "cdrom.h"
 #include "ppf.h"
-#include "psxdma.h"
+#include "dma.h"
+#include "spu.h"
 #include <QDataStream>
 
 /* CD-ROM magic numbers */
@@ -66,7 +67,20 @@
 #define ASYNC          254
 /* don't set 255, it's reserved */
 
-char *CmdName[0x100]= {
+CDRinit               CDR_init;
+CDRshutdown           CDR_shutdown;
+CDRopen               CDR_open;
+CDRclose              CDR_close;
+CDRgetTN              CDR_getTN;
+CDRgetTD              CDR_getTD;
+CDRreadTrack          CDR_readTrack;
+CDRgetBuffer          CDR_getBuffer;
+CDRplay               CDR_play;
+CDRstop               CDR_stop;
+CDRgetStatus          CDR_getStatus;
+CDRgetBufferSub       CDR_getBufferSub;
+
+static const char *CmdName[0x100]= {
     "CdlSync",     "CdlNop",       "CdlSetloc",  "CdlPlay",
     "CdlForward",  "CdlBackward",  "CdlReadN",   "CdlStandby",
     "CdlStop",     "CdlPause",     "CdlInit",    "CdlMute",
@@ -77,13 +91,12 @@ char *CmdName[0x100]= {
     "CdlReset",    NULL,           "CDlReadToc", NULL
 };
 
-unsigned char Test04[] = { 0 };
-unsigned char Test05[] = { 0 };
-unsigned char Test20[] = { 0x98, 0x06, 0x10, 0xC3 };
-unsigned char Test22[] = { 0x66, 0x6F, 0x72, 0x20, 0x45, 0x75, 0x72, 0x6F };
-unsigned char Test23[] = { 0x43, 0x58, 0x44, 0x32, 0x39 ,0x34, 0x30, 0x51 };
+static const u8 Test04[] = { 0 };
+static const u8 Test05[] = { 0 };
+static const u8 Test20[] = { 0x98, 0x06, 0x10, 0xC3 };
+static const u8 Test22[] = { 0x66, 0x6F, 0x72, 0x20, 0x45, 0x75, 0x72, 0x6F };
+static const u8 Test23[] = { 0x43, 0x58, 0x44, 0x32, 0x39 ,0x34, 0x30, 0x51 };
 
-// psxCdr.Stat:
 #define NoIntr		0
 #define DataReady	1
 #define Complete	2
@@ -707,10 +720,11 @@ void cdrInterrupt() {
 			Wild 9: skip PREGAP + starting accurate SubQ
 			- plays tracks without retry play
 			*/
+			/* unneeded with correct cdriso?
 			Set_Track();
+			*/
 			Find_CurTrack();
 			ReadTrack( psxCdr.SetSectorPlay );
-
 
 			// GameShark CD Player: Calls 2x + Play 2x
 			if( psxCdr.FastBackward || psxCdr.FastForward ) {
@@ -1214,7 +1228,8 @@ void cdrInterrupt() {
 			// - fixes cutscene speech
 			{
 				u8 *buf = CDR_getBuffer();
-				memcpy(psxCdr.Transfer, buf, 8);
+				if (buf != NULL)
+					memcpy(psxCdr.Transfer, buf, 8);
 			}
 			
 			
@@ -1325,6 +1340,23 @@ void cdrReadInterrupt() {
 			int ret = xa_decode_sector(&psxCdr.Xa, psxCdr.Transfer+4, psxCdr.FirstSector);
 
 			if (!ret) {
+				// only handle attenuator basic channel switch for now
+				if (psxCdr.Xa.stereo) {
+					int i;
+					if ((psxCdr.AttenuatorLeft[0] | psxCdr.AttenuatorLeft[1])
+						&& !(psxCdr.AttenuatorRight[0] | psxCdr.AttenuatorRight[1]))
+					{
+						for (i = 0; i < psxCdr.Xa.nsamples; i++)
+							psxCdr.Xa.pcm[i*2 + 1] = psxCdr.Xa.pcm[i*2];
+					}
+					else if (!(psxCdr.AttenuatorLeft[0] | psxCdr.AttenuatorLeft[1])
+						&& (psxCdr.AttenuatorRight[0] | psxCdr.AttenuatorRight[1]))
+					{
+						for (i = 0; i < psxCdr.Xa.nsamples; i++)
+							psxCdr.Xa.pcm[i*2] = psxCdr.Xa.pcm[i*2 + 1];
+					}
+				}
+
 				SPU_playADPCMchannel(&psxCdr.Xa);
 				psxCdr.FirstSector = 0;
 
@@ -1461,7 +1493,7 @@ void cdrWrite1(unsigned char rt) {
 
 	// Tekken: CDXA fade-out
 	if( (psxCdr.Ctrl & 3) == 3 ) {
-		//psxCdr.AttenuatorRight[0] = rt;
+		psxCdr.AttenuatorRight[0] = rt;
 	}
 
 
@@ -1813,10 +1845,10 @@ void cdrWrite2(unsigned char rt) {
 
 	// Tekken: CDXA fade-out
 	if( (psxCdr.Ctrl & 3) == 2 ) {
-		//psxCdr.AttenuatorLeft[0] = rt;
+		psxCdr.AttenuatorLeft[0] = rt;
 	}
 	else if( (psxCdr.Ctrl & 3) == 3 ) {
-		//psxCdr.AttenuatorRight[1] = rt;
+		psxCdr.AttenuatorRight[1] = rt;
 	}
 
 
@@ -1858,7 +1890,7 @@ void cdrWrite3(unsigned char rt) {
 #ifdef CDR_LOG
 	CDR_LOG("cdrWrite3() Log: CD3 write: %x\n", rt);
 #endif
-/*
+
 	// Tekken: CDXA fade-out
 	if( (psxCdr.Ctrl & 3) == 2 ) {
 		psxCdr.AttenuatorLeft[1] = rt;
@@ -1870,7 +1902,7 @@ void cdrWrite3(unsigned char rt) {
 			psxCdr.AttenuatorRight[0], psxCdr.AttenuatorRight[1] );
 #endif
 	}
-*/
+
 
 	// GameShark CDX CD Player: Irq timing mania
 	if( rt == 0 &&
@@ -1898,9 +1930,14 @@ void cdrWrite3(unsigned char rt) {
 		// - Final Fantasy Tactics
 		// - various other games
 
-		if (psxCdr.Irq) // rearmed guesswork hack
 		if (psxCdr.Reading && !psxCdr.ResultReady) {
-			CDREAD_INT((psxCdr.Mode & MODE_SPEED) ? (cdReadTime / 2) : cdReadTime);
+			int left = psxRegs.intCycle[PSXINT_CDREAD].sCycle + psxRegs.intCycle[PSXINT_CDREAD].cycle - psxRegs.cycle;
+			int time = (psxCdr.Mode & MODE_SPEED) ? (cdReadTime / 2) : cdReadTime;
+			if (Config.CdrReschedule != 2)
+			if (left < time / 2 || Config.CdrReschedule) { // rearmed guesswork hack
+				//printf("-- resched %d -> %d\n", left, time);
+				CDREAD_INT(time);
+			}
 		}
 
 		return;
@@ -1928,6 +1965,7 @@ void cdrWrite3(unsigned char rt) {
 
 void psxDma3(u32 madr, u32 bcr, u32 chcr) {
 	u32 cdsize;
+	int size;
 	u8 *ptr;
 
 #ifdef CDR_LOG
@@ -1972,18 +2010,15 @@ void psxDma3(u32 madr, u32 bcr, u32 chcr) {
 			- CdlPlay
 			- Spams DMA3 and gets buffer overrun
 			*/
-
-			if( (psxCdr.pTransfer-psxCdr.Transfer) + cdsize > 2352 )
+			size = CD_FRAMESIZE_RAW - (psxCdr.pTransfer - psxCdr.Transfer);
+			if (size > cdsize)
+				size = cdsize;
+			if (size > 0)
 			{
-				// avoid crash - probably should wrap here
-				//memcpy(ptr, psxCdr.pTransfer, cdsize);
-			}
-			else
-			{
-				memcpy(ptr, psxCdr.pTransfer, cdsize);
+				memcpy(ptr, psxCdr.pTransfer, size);
 			}
 
-			psxCpu.clear(madr, cdsize / 4);
+			psxCpu->clear(madr, cdsize / 4);
 			psxCdr.pTransfer += cdsize;
 
 
@@ -2009,8 +2044,11 @@ void psxDma3(u32 madr, u32 bcr, u32 chcr) {
 
 void cdrDmaInterrupt()
 {
-	HW_DMA3_CHCR &= SWAP32(~0x01000000);
-	DMA_INTERRUPT(3);
+	if (HW_DMA3_CHCR & SWAP32(0x01000000))
+	{
+		HW_DMA3_CHCR &= SWAP32(~0x01000000);
+		DMA_INTERRUPT(3);
+	}
 }
 
 void LidInterrupt() {
@@ -2082,12 +2120,14 @@ void PsxCdr::reset() {
 	FastBackward = 0;
 	pad = 0;
 
-	LeftVol = 0;
-	RightVol = 0;
-
 	psxCdr.CurTrack = 1;
 	psxCdr.File = 1;
 	psxCdr.Channel = 1;
+
+	psxCdr.AttenuatorLeft[0] = 0x80;
+	psxCdr.AttenuatorLeft[1] = 0x00;
+	psxCdr.AttenuatorRight[0] = 0x80;
+	psxCdr.AttenuatorRight[1] = 0x00;
 }
 
 // TODO Xa - his own save/load
@@ -2140,8 +2180,8 @@ STATE_SERIALIZE_BEGIN_##sl(PsxCdr, 1) \
 	STATE_SERIALIZE_VAR_##sl(FastForward) \
 	STATE_SERIALIZE_VAR_##sl(FastBackward) \
 	STATE_SERIALIZE_VAR_##sl(pad) \
-	STATE_SERIALIZE_VAR_##sl(LeftVol) \
-	STATE_SERIALIZE_VAR_##sl(RightVol) \
+	STATE_SERIALIZE_ARRAY_##sl(AttenuatorLeft, sizeof(AttenuatorLeft)) \
+	STATE_SERIALIZE_ARRAY_##sl(AttenuatorRight, sizeof(AttenuatorRight)) \
 	uint offset = psxCdr.pTransfer - psxCdr.Transfer; \
 	STATE_SERIALIZE_VAR_##sl(offset) \
 	psxCdr.pTransfer = psxCdr.Transfer + offset; \

@@ -24,11 +24,10 @@
 extern "C" {
 #endif
 
-int SysInit();							// Init mem and plugins
 void SysReset();						// Resets mem
-void SysPrintf(const char *fmt, ...);	// Printf used by bios syscalls
+static inline void SysPrintf(const char *fmt, ...)
+{ (void)fmt; }	// Printf used by bios syscalls
 void SysMessage(const char *fmt, ...);	// Message used to print msg to users
-void SysClose();						// Close mem and plugins
 
 #ifdef __cplusplus
 }

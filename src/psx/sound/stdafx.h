@@ -15,26 +15,6 @@
  *                                                                         *
  ***************************************************************************/
 
-#ifdef _WINDOWS
-
-#define WIN32_LEAN_AND_MEAN
-#define STRICT
-#include <windows.h>
-#include <windowsx.h>
-#include "mmsystem.h"
-#include <process.h>
-#include <stdlib.h>
-
-#ifndef INLINE
-#define INLINE __inline
-#endif
-
-#include "resource.h"
-
-#pragma warning (disable:4996)
-
-#else
-
 #ifndef _MACOSX
 #include "../config.h"
 #endif
@@ -56,11 +36,5 @@
 #define DWORD unsigned long
 #define LOWORD(l)           ((unsigned short)(l)) 
 #define HIWORD(l)           ((unsigned short)(((unsigned long)(l) >> 16) & 0xFFFF)) 
-
-#ifndef INLINE
-#define INLINE inline
-#endif
-
-#endif
 
 #include "psemuxa.h"

@@ -11,10 +11,12 @@ poll: Amiga N64 NDS
  s snes license
  s pause when call is coming or device is going to sleep
  s update about page -> elemental
+ s add copyrights
 
+ s bluetooth gamepad
+ s analog and feedback pad psx
  s load roms from dir in psx (menu in qml)
  s more info when no roms in psx about folders
- s bluetooth gamepad
  b portrait mode in disk gallery makes titles half visible
  s add some more flags to compiler (as)
  x make icons in home screen removable
@@ -42,6 +44,9 @@ poll: Amiga N64 NDS
    - howto update screen shot in the rom gallery
    - howto change image in the rom gallery to your own file
    - howto donate
+ - cheats in gba
+ - cheats in snes
+ - cheats in psx
  - netplay
  - remove the hack in .pri files needed for harmattan when sdk will support this
  - translations

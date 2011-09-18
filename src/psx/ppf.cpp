@@ -19,7 +19,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA
  */
 
-#include "psxcommon.h"
+#include "common.h"
 #include "cdrom.h"
 #include "ppf.h"
 
@@ -190,6 +190,8 @@ void BuildPPFCache() {
 
 	FreePPFCache();
 
+	if (CdromId[0] == '\0') return;
+
 	// Generate filename in the format of SLUS_123.45
 	buffer[0] = toupper(CdromId[0]);
 	buffer[1] = toupper(CdromId[1]);
@@ -337,7 +339,7 @@ void BuildPPFCache() {
 unsigned char *sbi_sectors;
 
 int LoadSBI(const char *fname, int sector_count) {
-	char buffer[16], sbifile[MAXPATHLEN];
+	char buffer[16], sbifile[1024];
 	FILE *sbihandle;
 	u8 sbitime[3];
 	int s;

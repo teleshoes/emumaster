@@ -9,8 +9,8 @@ emumaster (0.0.2) unstable; urgency=low
   * pad look redesigned (in-game exit button and L/R buttons added as well)
   * settings look refreshed
   * settings are saved now
-  * added pad opacity option (settings)
-  * added keep aspect ratio option (settings)
+  * added pad opacity option (0.0.2)
+  * added keep aspect ratio option (0.0.2)
   * added option to remove icon from home screen (disk gallery)
   * added item in menu to remove disk (disk gallery)
   * added item in menu to run game with autoload disabled (disk gallery)

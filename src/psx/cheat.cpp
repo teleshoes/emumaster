@@ -16,9 +16,9 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA
  */
 
-#include "psxcommon.h"
-#include "r3000a.h"
-#include "psxmem.h"
+#include "common.h"
+#include "cpu.h"
+#include "mem.h"
 
 #include "cheat.h"
 
@@ -76,7 +76,6 @@ void LoadCheats(const char *filename) {
 
 	while (fgets(buf, 255, fp) != NULL) {
 		buf[255] = '\0';
-		trim(buf);
 
 		// Skip comment or blank lines
 		if (buf[0] == '#' || buf[0] == ';' || buf[0] == '/' || buf[0] == '\"' || buf[0] == '\0')

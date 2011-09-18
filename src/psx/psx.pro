@@ -1,7 +1,5 @@
 include(../machine.pri)
 
-DEFINES += DYNAREC
-
 unix {
 	qml.path = /opt/emumaster/qml/psx
 	qml.files = \
@@ -16,9 +14,8 @@ unix {
 }
 
 HEADERS += \
-    psemu_plugin_defs.h \
+	machine.h \
     ppf.h \
-    plugins.h \
     misc.h \
     mdec.h \
     gte_neon.h \
@@ -26,7 +23,6 @@ HEADERS += \
     gte.h \
     decode_xa.h \
     debug.h \
-    config.h \
     coff.h \
     cheat.h \
     cdrom.h \
@@ -36,71 +32,39 @@ HEADERS += \
     socket.h \
     sjisfont.h \
     sio.h \
-    r3000a.h \
-    psxmem.h \
-    psxhw.h \
-    psxhle.h \
-    psxdma.h \
-    psxcounters.h \
-    psxcommon.h \
-    psxbios.h \
+    cpu.h \
+	pad.h \
     new_dynarec/pcsxmem.h \
     new_dynarec/new_dynarec.h \
     new_dynarec/fpu.h \
     new_dynarec/emu_if.h \
     new_dynarec/assem_arm.h \
-	gpu/fixed.h \
-	gpu/raster.h \
-	gpu/profiller.h \
-	gpu/op_Texture.h \
-	gpu/op_Light.h \
-	gpu/op_Blend.h \
-	gpu/newGPU.h \
-	gpu/inner_Sprite.h \
-	gpu/inner_Poly.h \
-	gpu/inner_Pixel.h \
-	gpu/gpuAPI.h \
-    sound/xa.h \
-    sound/stdafx.h \
-    sound/spu.h \
-    sound/reverb.h \
-    sound/regs.h \
-    sound/registers.h \
-    sound/psemuxa.h \
-    sound/gauss_i.h \
-    sound/externals.h \
-    sound/dma.h \
-	sound/adsr.h \
-	machine.h \
-    pad.h \
-    gpu.h
+	gpu_unai_raster_sprite.h \
+	gpu_unai_raster_polygon.h \
+	gpu_unai_raster_line.h \
+	gpu_unai_raster_image.h \
+	gpu_unai_inner_light.h \
+	gpu_unai_inner_blend.h \
+	gpu_unai_inner.h \
+	gpu_unai_fixedpoint.h \
+	gpu_unai_command.h \
+	gpu_unai.h \
+    gpu.h \
+    spu_registers.h \
+    spu_null.h \
+    cpu_int.h \
+    cpu_rec.h \
+    bios.h \
+    common.h \
+    counters.h \
+    dma.h \
+    hle.h \
+    hw.h \
+    mem.h
 
 SOURCES += \
-	gpu/inner.cpp \
-	gpu/fixed.cpp \
-	gpu/core_Misc.cpp \
-	gpu/core_Draw.cpp \
-	gpu/core_Dma.cpp \
-	gpu/core_Command.cpp \
-	gpu/raster_Sprite.cpp \
-	gpu/raster_Poly.cpp \
-	gpu/raster_Line.cpp \
-	gpu/raster_Image.cpp \
-	gpu/newGPU.cpp \
-	gpu/ARM_asm.S \
-	gpu/gpuAPI.cpp \
 	machine.cpp \
-	video_blit.S \
 	gte_neon.S \
-	new_dynarec/linkage_arm.S \
-    sound/xa.cpp \
-    sound/spu.cpp \
-    sound/reverb.cpp \
-    sound/registers.cpp \
-    sound/freeze.cpp \
-    sound/dma.cpp \
-    sound/adsr.cpp \
-    plugins.cpp \
     cdriso.cpp \
     cdrom.cpp \
     cheat.cpp \
@@ -108,31 +72,118 @@ SOURCES += \
     decode_xa.cpp \
     disr3000a.cpp \
     gte.cpp \
-    LnxMain.cpp \
     mdec.cpp \
     misc.cpp \
     ppf.cpp \
-    psxbios.cpp \
-    psxcommon.cpp \
-    psxcounters.cpp \
-    psxdma.cpp \
-    psxhle.cpp \
-    psxhw.cpp \
-    psxinterpreter.cpp \
-    psxmem.cpp \
-    r3000a.cpp \
     sio.cpp \
     socket.cpp \
+	pad.cpp \
     new_dynarec/fpu.c \
     new_dynarec/new_dynarec.c \
 	new_dynarec/pcsxmem.c \
-    pad.cpp \
-    gpu.cpp \
-    new_dynarec/emu_if.cpp
+	new_dynarec/linkage_arm.S \
+	gpu.cpp \
+	gpu_unai_blit.S \
+	gpu_unai.cpp \
+    spu.cpp \
+    spu_null.cpp \
+    cpu.cpp \
+    cpu_int.cpp \
+    cpu_rec.cpp \
+    bios.cpp \
+    counters.cpp \
+    dma.cpp \
+    hle.cpp \
+    hw.cpp \
+    mem.cpp
 
 OTHER_FILES += \
 	new_dynarec/assem_arm.c \
 	new_dynarec/pcsxmem_inline.c
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -21,7 +21,7 @@
 * R3000A disassembler.
 */
 
-#include "psxcommon.h"
+#include "common.h"
 
 char ostr[256];
 
@@ -52,7 +52,7 @@ typedef char* (*TdisR3000AF)(u32 code, u32 pc);
 	}
 
 
-#include "r3000a.h"
+#include "cpu.h"
 
 #undef _Funct_
 #undef _Rd_

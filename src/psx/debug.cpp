@@ -15,11 +15,11 @@
  *  along with this program; if not, see <http://www.gnu.org/licenses>.
  */
 
-#include "psxcommon.h"
-#include "r3000a.h"
+#include "common.h"
+#include "cpu.h"
 #include "debug.h"
 #include "socket.h"
-#include "gpu/gpuAPI.h"
+#include "gpu.h"
 
 /*
 PCSX Debug console protocol description, version 1.0
@@ -443,9 +443,6 @@ static void ProcessCommands() {
         switch (code) {
         case 0x100:
             sprintf(reply, "200 %s\r\n", arguments == NULL ? "OK" : arguments);
-            break;
-        case 0x101:
-            sprintf(reply, "201 %s\r\n", PACKAGE_VERSION);
             break;
         case 0x102:
             sprintf(reply, "202 1.0\r\n");

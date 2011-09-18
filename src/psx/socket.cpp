@@ -19,7 +19,7 @@
 #include <winsock2.h>
 #endif
 
-#include "psxcommon.h"
+#include "common.h"
 #include "socket.h"
 
 #ifndef _WIN32
@@ -119,7 +119,7 @@ void GetClient() {
     }
 #endif
 
-    sprintf(hello, "000 PCSX Version %s - Debug console\r\n", PACKAGE_VERSION);
+	sprintf(hello, "000 PCSX - Debug console\r\n");
     WriteSocket(hello, strlen(hello));
     ptr = 0;
 }
@@ -190,7 +190,7 @@ int ReadSocket(char * buffer, int len) {
 }
 
 int RawReadSocket(char * buffer, int len) {
-    int r;
+    int r = 0;
     int mlen = len < ptr ? len : ptr;
 
     if (!client_socket)

@@ -20,11 +20,10 @@
 #ifndef __MISC_H__
 #define __MISC_H__
 
-#include "psxcommon.h"
+#include "common.h"
 #include "coff.h"
-#include "plugins.h"
-#include "r3000a.h"
-#include "psxmem.h"
+#include "cpu.h"
+#include "mem.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,11 +59,6 @@ int LoadCdrom();
 int LoadCdromFile(const char *filename, EXE_HEADER *head);
 int CheckCdrom();
 int Load(const char *ExePath);
-
-int SendPcsxInfo();
-int RecvPcsxInfo();
-
-void trim(char *str);
 
 #ifdef __cplusplus
 }

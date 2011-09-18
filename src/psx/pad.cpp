@@ -1,5 +1,4 @@
 #include "machine.h"
-#include "plugins.h"
 
 // MOUSE SCPH-1030
 #define PSE_PAD_TYPE_MOUSE			1

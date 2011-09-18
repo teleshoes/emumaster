@@ -2,7 +2,7 @@
 #define EMUIF_H
 
 #include "new_dynarec.h"
-#include "../r3000a.h"
+#include "../cpu.h"
 
 #if defined(__cplusplus)
 extern "C" {

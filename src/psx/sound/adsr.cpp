@@ -51,7 +51,7 @@ void InitADSR(void)                                    // INIT ADSR
 
 ////////////////////////////////////////////////////////////////////////
 
-INLINE void StartADSR(int ch)                          // MIX ADSR
+static inline void StartADSR(int ch)                          // MIX ADSR
 {
  s_chan[ch].ADSRX.State=0;                             // and init some adsr vars
  s_chan[ch].ADSRX.EnvelopeVol=0;
@@ -59,7 +59,7 @@ INLINE void StartADSR(int ch)                          // MIX ADSR
 
 ////////////////////////////////////////////////////////////////////////
 
-INLINE int MixADSR(int ch)                             // MIX ADSR
+static inline int MixADSR(int ch)                             // MIX ADSR
 {    
  static const char ratetable_offset[8] = { 0, 4, 6, 8, 9, 10, 11, 12 };
  int rto;

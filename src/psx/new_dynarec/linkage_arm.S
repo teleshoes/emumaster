@@ -219,14 +219,16 @@ dynarec_local_end = memory_map + 4194304
 dyna_linker:
 	/* r0 = virtual target address */
 	/* r1 = instruction to patch */
-	mov	r12, r0
-	mov	r6, #4096
-	mov	r2, #0x80000
 	ldr	r3, .jiptr
+	/* get_page */
+	lsr     r2, r0, #12
+	mov	r6, #4096
+	bic	r2, r2, #0xe0000
 	sub	r6, r6, #1
+	cmp     r2, #0x1000
 	ldr	r7, [r1]
-	eor	r2, r2, r12, lsr #12
-	and	r6, r6, r12, lsr #12
+	biclt   r2, #0x0e00
+	and	r6, r6, r2
 	cmp	r2, #2048
 	add	r12, r7, #2
 	orrcs	r2, r6, #2048
@@ -337,14 +339,16 @@ exec_pagefault:
 dyna_linker_ds:
 	/* r0 = virtual target address */
 	/* r1 = instruction to patch */
-	mov	r12, r0
-	mov	r6, #4096
-	mov	r2, #0x80000
 	ldr	r3, .jiptr
+	/* get_page */
+	lsr     r2, r0, #12
+	mov	r6, #4096
+	bic	r2, r2, #0xe0000
 	sub	r6, r6, #1
+	cmp     r2, #0x1000
 	ldr	r7, [r1]
-	eor	r2, r2, r12, lsr #12
-	and	r6, r6, r12, lsr #12
+	biclt   r2, #0x0e00
+	and	r6, r6, r2
 	cmp	r2, #2048
 	add	r12, r7, #2
 	orrcs	r2, r6, #2048
@@ -685,15 +689,15 @@ jump_syscall:
 	.global	jump_syscall_hle
 	.type	jump_syscall_hle, %function
 jump_syscall_hle:
-	str	r0, [fp, #pcaddr-dynarec_local] /* PC must be set to EPC for psxException */
+	str	r0, [fp, #pcaddr-dynarec_local] /* PC must be set to EPC for psxCpuException */
 	ldr	r2, [fp, #last_count-dynarec_local]
 	mov	r1, #0    /* in delay slot */
 	add	r2, r2, r10
 	mov	r0, #0x20 /* cause */
 	str	r2, [fp, #cycle-dynarec_local] /* PCSX cycle counter */
-	bl	psxException
+	bl	psxCpuException
 
-	/* note: psxException might do recorsive recompiler call from it's HLE code,
+	/* note: psxCpuException might do recorsive recompiler call from it's HLE code,
 	 * so be ready for this */
 pcsx_return:
 	ldr	r1, [fp, #next_interupt-dynarec_local]
@@ -726,7 +730,7 @@ jump_intcall:
 	add	r2, r2, r10
 	adr	lr, pcsx_return
 	str	r2, [fp, #cycle-dynarec_local] /* PCSX cycle counter */
-	b	execI
+	b	psxCpuIntExec
 	.size	jump_hlecall, .-jump_hlecall
 
 new_dyna_leave:
