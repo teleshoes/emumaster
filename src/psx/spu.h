@@ -22,6 +22,7 @@ public:
 	virtual void shutdown();
 
 	virtual int fillBuffer(char *stream, int size) = 0;
+	virtual void setEnabled(bool on) = 0;
 
 	virtual bool save(QDataStream &s) = 0;
 	virtual bool load(QDataStream &s) = 0;

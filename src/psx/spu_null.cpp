@@ -118,6 +118,9 @@ int PsxSpuNull::fillBuffer(char *stream, int size) {
 	return 0;
 }
 
+void PsxSpuNull::setEnabled(bool on)
+{ Q_UNUSED(on) }
+
 bool PsxSpuNull::init() {
 	SPU_writeRegister		= spuNullWriteRegister;
 	SPU_readRegister		= spuNullReadRegister;

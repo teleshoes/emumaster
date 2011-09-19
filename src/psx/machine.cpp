@@ -175,6 +175,8 @@ const QImage &PsxMachine::frame() const
 
 int PsxMachine::fillAudioBuffer(char *stream, int streamSize)
 { return psxSpu->fillBuffer(stream, streamSize); }
+void PsxMachine::setAudioEnabled(bool on)
+{ psxSpu->setEnabled(on); }
 
 extern void setPadButtons(int machineKeys);
 

@@ -8,6 +8,7 @@ public:
 	bool init();
 
 	int fillBuffer(char *stream, int size);
+	void setEnabled(bool on);
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
