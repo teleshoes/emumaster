@@ -8,12 +8,9 @@ PsxSpuNull psxSpuNull;
 static u16 regArea[10000];
 static u16 spuMem[256*1024];
 static u8 *spuMem8 = (u8 *)spuMem;
-static u8 *pSpuIrq = 0;
 
 static u16 spuCtrl, spuStat, spuIrq=0;             // some vars to store psx reg infos
 static u32 spuAddr = 0xffffffff;                     // address into spu mem
-
-static void (*irqCallback)() = 0;                   // func of main emu, called on spu irq
 
 static void spuNullWriteRegister(u32 reg, u16 data) {
 	reg &= 0xfff;
@@ -38,7 +35,6 @@ static void spuNullWriteRegister(u32 reg, u16 data) {
 		break;
 	case H_SPUirqAddr:
 		spuIrq = data;
-		pSpuIrq = spuMem8 + (data << 3);
 		break;
 	}
 }
@@ -64,11 +60,11 @@ static u16 spuNullReadRegister(u32 reg) {
 	case H_SPUaddr:
 		return spuAddr >> 3;
 	case H_SPUdata: {
-	   u16 s = spuMem[spuAddr >> 1];
-	   spuAddr += 2;
-	   if (spuAddr>0x7ffff)
-		   spuAddr=0;
-	   return s;
+		u16 s = spuMem[spuAddr >> 1];
+		spuAddr += 2;
+		if (spuAddr>0x7ffff)
+			spuAddr=0;
+		return s;
 	}
 	case H_SPUirqAddr:
 		return spuIrq;
@@ -116,10 +112,6 @@ static void spuNullAsync(u32) {
 static void spuNullPlayCDDAchannel(s16 *, int) {
 }
 
-static void spuNullRegisterCallback(void (*callback)(void)) {
-	irqCallback = callback;
-}
-
 bool PsxSpuNull::init() {
 	SPU_writeRegister		= spuNullWriteRegister;
 	SPU_readRegister		= spuNullReadRegister;
@@ -128,7 +120,6 @@ bool PsxSpuNull::init() {
 	SPU_writeDMAMem			= spuNullWriteDMAMem;
 	SPU_readDMAMem			= spuNullReadDMAMem;
 	SPU_playADPCMchannel	= spuNullPlayADPCMchannel;
-	SPU_registerCallback	= spuNullRegisterCallback;
 	SPU_async				= spuNullAsync;
 	SPU_playCDDAchannel		= spuNullPlayCDDAchannel;
 	return true;

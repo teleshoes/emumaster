@@ -11,7 +11,6 @@ typedef u16 (* SPUreadDMA)();
 typedef void (* SPUwriteDMAMem)(u16 *, int);
 typedef void (* SPUreadDMAMem)(u16 *, int);
 typedef void (* SPUplayADPCMchannel)(xa_decode_t *);
-typedef void (* SPUregisterCallback)(void ( *callback)(void));
 typedef void (* SPUasync)(u32);
 typedef void (* SPUplayCDDAchannel)(s16 *, int);
 
@@ -38,7 +37,6 @@ extern SPUreadDMA          SPU_readDMA;
 extern SPUwriteDMAMem      SPU_writeDMAMem;
 extern SPUreadDMAMem       SPU_readDMAMem;
 extern SPUplayADPCMchannel SPU_playADPCMchannel;
-extern SPUregisterCallback SPU_registerCallback;
 extern SPUasync            SPU_async;
 extern SPUplayCDDAchannel  SPU_playCDDAchannel;
 

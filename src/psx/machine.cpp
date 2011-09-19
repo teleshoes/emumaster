@@ -82,8 +82,6 @@ QString PsxMachine::init() {
 		return "Could not initialize GPU!";
 	if (!psxSpu->init())
 		return "Could not initialize SPU!";
-	// TODO remove callback -> straight to spu irq
-	SPU_registerCallback(SPUirq);
 	return QString();
 }
 
@@ -189,7 +187,6 @@ void PsxThread::run() {
 	psxCpu->execute();
 }
 
-// TODO spu
 #define STATE_SERIALIZE_BUILDER(sl) \
 STATE_SERIALIZE_BEGIN_##sl(PsxMachine, 1) \
 	STATE_SERIALIZE_VAR_##sl(Config.HLE) \
@@ -216,6 +213,7 @@ STATE_SERIALIZE_BEGIN_##sl(PsxMachine, 1) \
 	STATE_SERIALIZE_SUBCALL_##sl(psxCnt) \
 	STATE_SERIALIZE_SUBCALL_##sl(psxMdec) \
 	STATE_SERIALIZE_SUBCALL_PTR_##sl(psxGpu) \
+	STATE_SERIALIZE_SUBCALL_PTR_##sl(psxSpu) \
 	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
 		new_dyna_restore(); \
 	} \

@@ -10,7 +10,6 @@ SPUreadDMA            SPU_readDMA;
 SPUwriteDMAMem        SPU_writeDMAMem;
 SPUreadDMAMem         SPU_readDMAMem;
 SPUplayADPCMchannel   SPU_playADPCMchannel;
-SPUregisterCallback   SPU_registerCallback;
 SPUasync              SPU_async;
 SPUplayCDDAchannel    SPU_playCDDAchannel;
 
