@@ -174,9 +174,7 @@ const QImage &PsxMachine::frame() const
 { return psxGpu->frame(); }
 
 int PsxMachine::fillAudioBuffer(char *stream, int streamSize)
-{ // TODO
-	return 0;
-}
+{ return psxSpu->fillBuffer(stream, streamSize); }
 
 extern void setPadButtons(int machineKeys);
 

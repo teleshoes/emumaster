@@ -112,6 +112,12 @@ static void spuNullAsync(u32) {
 static void spuNullPlayCDDAchannel(s16 *, int) {
 }
 
+int PsxSpuNull::fillBuffer(char *stream, int size) {
+	Q_UNUSED(stream)
+	Q_UNUSED(size)
+	return 0;
+}
+
 bool PsxSpuNull::init() {
 	SPU_writeRegister		= spuNullWriteRegister;
 	SPU_readRegister		= spuNullReadRegister;
