@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __PSXCOUNTERS_H__
-#define __PSXCOUNTERS_H__
+#ifndef PSXCOUNTERS_H
+#define PSXCOUNTERS_H
 
 #include "common.h"
 #include "cpu.h"
@@ -53,4 +53,5 @@ u32 psxRcntRtarget(u32 index);
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXCOUNTERS_H

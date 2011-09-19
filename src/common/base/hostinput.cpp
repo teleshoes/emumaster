@@ -49,6 +49,10 @@ void HostInput::processKey(Qt::Key key, bool state) {
 	case Qt::Key_S:		setKeyState(IMachine::X_PadKey, state); break;
 	case Qt::Key_D:		setKeyState(IMachine::Y_PadKey, state); break;
 	case Qt::Key_Q:		setKeyState(IMachine::Start_PadKey, state); break;
+	case Qt::Key_G:		setKeyState(IMachine::L_PadKey, state); break;
+	case Qt::Key_H:		setKeyState(IMachine::R_PadKey, state); break;
+	case Qt::Key_T:		setKeyState(IMachine::L2_PadKey, state); break;
+	case Qt::Key_Z:		setKeyState(IMachine::R2_PadKey, state); break;
 	case Qt::Key_W:		setKeyState(IMachine::Select_PadKey, state); break;
 	case Qt::Key_Escape:emit pauseClicked(); break;
 	default: break;

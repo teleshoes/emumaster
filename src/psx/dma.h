@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __PSXDMA_H__
-#define __PSXDMA_H__
+#ifndef PSXDMA_H
+#define PSXDMA_H
 
 #include "common.h"
 #include "cpu.h"
@@ -82,4 +82,5 @@ void gpuotcInterrupt();
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXDMA_H

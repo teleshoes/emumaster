@@ -19,8 +19,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __GTE_H__
-#define __GTE_H__
+#ifndef PSXGTE_H
+#define PSXGTE_H
 
 #include "common.h"
 #include "cpu.h"
@@ -62,4 +62,5 @@ void gteNCCT();
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXGTE_H

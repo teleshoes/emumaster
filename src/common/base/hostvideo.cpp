@@ -103,8 +103,8 @@ void HostVideo::setSwipeEnabled(bool on) {
 	uint customRegion[4];
 	customRegion[0] = 0;
 	customRegion[1] = 0;
-	customRegion[2] = 854;
-	customRegion[3] = 480;
+	customRegion[2] = width();
+	customRegion[3] = height();
 
 	atom = XInternAtom(dpy, "_MEEGOTOUCH_CUSTOM_REGION", False);
 	if (!on) {
@@ -121,12 +121,7 @@ void HostVideo::setSwipeEnabled(bool on) {
 
 void HostVideo::setMyVisible(bool visible) {
 	if (visible) {
-#	if defined(MEEGO_EDITION_HARMATTAN)
 		showFullScreen();
-#	else
-		resize(854, 480);
-		QGLWidget::setVisible(true);
-#	endif
 		setFocus();
 	} else {
 		QGLWidget::setVisible(false);

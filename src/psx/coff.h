@@ -17,10 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __COFF_H__
-#define __COFF_H__
-
-/********************** FILE HEADER **********************/
+#ifndef PSXCOFF_H
+#define PSXCOFF_H
 
 struct external_filehdr {
 	unsigned short f_magic;		/* magic number			*/
@@ -35,4 +33,4 @@ struct external_filehdr {
 #define	FILHDR	struct external_filehdr
 #define	FILHSZ	sizeof(FILHDR)
 
-#endif
+#endif // PSXCOFF_H

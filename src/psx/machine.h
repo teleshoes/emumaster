@@ -16,6 +16,13 @@ public:
 		CpuDynarec = 0,
 		CpuInterpreter
 	};
+	enum GpuType {
+		GpuUnai = 0
+	};
+	enum SpuType {
+		SpuNull = 0
+	};
+
 	explicit PsxMachine(QObject *parent = 0);
 	QString init();
 	void shutdown();

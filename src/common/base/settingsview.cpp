@@ -12,12 +12,7 @@ void SettingsView::closeEvent(QCloseEvent *e) {
 
 void SettingsView::setMyVisible(bool visible) {
 	if (visible) {
-#	if defined(MEEGO_EDITION_HARMATTAN)
 		showFullScreen();
-#	else
-		resize(854, 480);
-		setVisible(true);
-#	endif
 		setFocus();
 	} else {
 		setVisible(false);

@@ -20,6 +20,7 @@
 #include "debug.h"
 #include "socket.h"
 #include "gpu.h"
+#include "machine.h"
 
 /*
 PCSX Debug console protocol description, version 1.0
@@ -245,7 +246,7 @@ enum {
     MAP_EXEC_JAL = 128,
 };
 
-char *breakpoint_type_names[] = {
+static const char *breakpoint_type_names[] = {
     "E", "R1", "R2", "R4", "W1", "W2", "W4"
 };
 
@@ -315,7 +316,7 @@ void StartDebugger() {
 
     MemoryMap = (u8 *)malloc(0x200000);
     if (MemoryMap == NULL) {
-		SysMessage("Error allocating memory");
+		//SysMessage("Error allocating memory");
         return;
     }
 
@@ -361,9 +362,7 @@ void DebugVSync() {
     if (reset) {
         resetting = 1;
         CheckCdrom();
-        SysReset();
-        if (reset == 2)
-            LoadCdrom();
+		psxMachine.reset();
         reset = resetting = 0;
         return;
     }

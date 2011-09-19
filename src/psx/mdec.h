@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __MDEC_H__
-#define __MDEC_H__
+#ifndef PSXMDEC_H
+#define PSXMDEC_H
 
 #include "common.h"
 #include "cpu.h"
@@ -51,4 +51,5 @@ void mdec1Interrupt();
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXMDEC_H

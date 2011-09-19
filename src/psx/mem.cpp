@@ -78,7 +78,6 @@ bool psxMemInit() {
 	if (psxMemRLUT == NULL || psxMemWLUT == NULL || 
 		psxM != (void *)0x80000000 || psxR != (void *)0x9fc00000 ||
 		psxP == NULL || psxH == NULL) {
-		SysMessage("Error allocating memory!");
 		return false;
 	}
 

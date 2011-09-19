@@ -23,150 +23,20 @@
 
 PcsxConfig Config;
 
-int LoadPlugins() {
-	cdrIsoInit();
-	if (CDR_init() < 0)
-		return -1;
-	if (!psxGpu->init())
-		return -1;
-	if (!psxSpu->init())
-		return -1;
-	// TODO remove callback -> straight to spu irq
-	SPU_registerCallback(SPUirq);
-	if (CDR_open() < 0)
-		return -1;
-	return 0;
-}
-
-int Log = 0;
-FILE *emuLog = NULL;
-
-void __Log(char *fmt, ...) {
-	va_list list;
-#ifdef LOG_STDOUT
-	char tmp[1024];
-#endif
-
-	va_start(list, fmt);
-#ifndef LOG_STDOUT
-	vfprintf(emuLog, fmt, list);
-#else
-	vsprintf(tmp, fmt, list);
-	SysPrintf(tmp);
-#endif
-	va_end(list);
-}
-
-bool SysInit() {
-#ifdef EMU_LOG
-#ifndef LOG_STDOUT
-	emuLog = fopen("emuLog.txt","wb");
-#else
-	emuLog = stdout;
-#endif
-	setvbuf(emuLog, NULL, _IONBF, 0);
-#endif
-
-	// TODO option to set interpreter cpu
-//	if (Config.Cpu == CpuInterpreter)
-//		psxCpu = &psxInt;
-//	else
-		psxCpu = &psxRec;
-
-		psxGpu = &psxGpuUnai;
-		psxSpu = &psxSpuNull;
-
-	Log = 0;
-
-	if (!psxMemInit())
-		return false;
-	if (!psxCpu->init())
-		return false;
-
-	LoadMcds(Config.Mcd1, Config.Mcd2);	/* TODO Do we need to have this here, or in the calling main() function?? */
-
-	// TODO debug as preprocessor
-	if (Config.Debug) {
-		StartDebugger();
-	}
-
-	return true;
-}
-
-static void dummy_lace() {
-}
-
-void SysReset() {
-	// rearmed hack: reset runs some code when real BIOS is used,
-	// but we usually do reset from menu while GPU is not open yet,
-	// so we need to prevent updateLace() call..
-	void (*real_lace)() = GPU_updateLace;
-	GPU_updateLace = dummy_lace;
-
-	psxMemReset();
-
-	memset(&psxRegs, 0, sizeof(psxRegs));
-
-	psxRegs.pc = 0xbfc00000; // Start in bootstrap
-
-	psxRegs.CP0.r[12] = 0x10900000; // COP0 enabled | BEV = 1 | TS = 1
-	psxRegs.CP0.r[15] = 0x00000002; // PRevID = Revision ID, same as R3000A
-
-	psxCpu->reset();
-
-	psxHwReset();
-	psxBiosInit();
-
-	if (!Config.HLE) {
-		// skip bios logo TODO option
-		while (psxRegs.pc != 0x80030000)
-			psxCpu->executeBlock();
-	}
-
-#ifdef EMU_LOG
-	EMU_LOG("*BIOS END*\n");
-#endif
-	Log = 0;
-
-
-	// hmh core forgets this
-	CDR_stop();
-
-	GPU_updateLace = real_lace;
-}
-
-void SysClose() {
-	FreePPFCache();
-	psxMemShutdown();
-	psxCpu->shutdown();
-
-	StopDebugger();
-
-	if (emuLog != NULL) fclose(emuLog);
-}
-
-void SysMessage(const char *fmt, ...) {
-	va_list list;
-	char msg[512];
-
-	va_start(list, fmt);
-	vsprintf(msg, fmt, list);
-	va_end(list);
-	qDebug(msg);
-}
+static void dummy_lace() { }
 
 #define CONFIG_DIR		"/home/user/MyDocs/emumaster/psx"
 
 PsxMachine psxMachine;
 PsxThread psxThread;
 
-unsigned long timeGetTime() {
- struct timeval tv;
- gettimeofday(&tv, 0);                                 // well, maybe there are better ways
- return tv.tv_sec * 1000 + tv.tv_usec/1000;            // to do that, but at least it works
+PsxMachine::PsxMachine(QObject *parent) :
+	IMachine("psx", parent) {
 }
 
-static void emu_config() {
+QString PsxMachine::init() {
+	m_quit = false;
+
 	Config.HLE = 0;
 
 	strcpy(Config.Mcd1, CONFIG_DIR"/mcd001.mcr");
@@ -182,29 +52,82 @@ static void emu_config() {
 	Config.VSyncWA = 0;
 	// TODO give user ability to choose his bios
 	psxMem.setBiosName("scph1001.bin");
-}
 
-PsxMachine::PsxMachine(QObject *parent) :
-	IMachine("psx", parent) {
-}
-
-QString PsxMachine::init() {
-	m_quit = false;
-	emu_config();
 	systemType = NtscType;
-	if (!SysInit())
-		return "failed to initialize";
 	setVideoSrcRect(QRect(0, 0, 256, 240));
 	setFrameRate(60); // TODO PAL/NTSC
+
+	// TODO option to set interpreter cpu
+//	if (Config.Cpu == CpuInterpreter)
+//		psxCpu = &psxInt;
+//	else
+		psxCpu = &psxRec;
+
+		psxGpu = &psxGpuUnai;
+		psxSpu = &psxSpuNull;
+
+	if (!psxMemInit())
+		return "Could not allocate memory!";
+	if (!psxCpu->init())
+		return "Could not initialize CPU!";
+
+	LoadMcds(Config.Mcd1, Config.Mcd2);	/* TODO Do we need to have this here, or in the calling main() function?? */
+
+	// TODO debug as preprocessor
+	if (Config.Debug) {
+		StartDebugger();
+	}
+
+	cdrIsoInit();
+	if (CDR_init() < 0)
+		return "Could not initialize CD-ROM!";;
+	if (!psxGpu->init())
+		return "Could not initialize GPU!";
+	if (!psxSpu->init())
+		return "Could not initialize SPU!";
+	// TODO remove callback -> straight to spu irq
+	SPU_registerCallback(SPUirq);
 	return QString();
 }
 
 void PsxMachine::shutdown() {
-	// TODO gpu plugin shutdown
+	FreePPFCache();
+	psxMemShutdown();
+	psxCpu->shutdown();
+
+	StopDebugger();
 }
 
 void PsxMachine::reset() {
-	SysReset();
+	// rearmed hack: reset runs some code when real BIOS is used,
+	// but we usually do reset from menu while GPU is not open yet,
+	// so we need to prevent updateLace() call..
+	void (*real_lace)() = GPU_updateLace;
+	GPU_updateLace = dummy_lace;
+
+	psxMemReset();
+
+	memset(&psxRegs, 0, sizeof(psxRegs));
+	psxRegs.pc = 0xBFC00000; // Start in bootstrap
+	psxRegs.CP0.r[12] = 0x10900000; // COP0 enabled | BEV = 1 | TS = 1
+	psxRegs.CP0.r[15] = 0x00000002; // PRevID = Revision ID, same as R3000A
+
+	psxCpu->reset();
+
+	psxHwReset();
+	psxBiosInit();
+
+	if (!Config.HLE) {
+		// skip bios logo TODO option
+		while (psxRegs.pc != 0x80030000)
+			psxCpu->executeBlock();
+	}
+
+	// hmh core forgets this
+	CDR_stop();
+
+	GPU_updateLace = real_lace;
+
 	CheckCdrom();
 	LoadCdrom();
 }
@@ -230,14 +153,12 @@ QString PsxMachine::setDisk(const QString &path) {
 	}
 	SetIsoFile(fi.filePath().toAscii().constData());
 	if (!psxThread.isRunning()) {
-		if (LoadPlugins() == -1)
-			return "Could not load plugins.";
+		if (CDR_open() < 0)
+			return "Could not open CD-ROM.";
 		CheckCdrom();
-		SysReset();
-		if (LoadCdrom() == -1) {
-			SysClose();
+		reset();
+		if (LoadCdrom() == -1)
 			return "Could not load CD.";
-		}
 		psxThread.start();
 		m_consSem.acquire();
 	}
@@ -269,7 +190,6 @@ void PsxMachine::setPadKeys(int pad, int keys) {
 
 void PsxThread::run() {
 	psxCpu->execute();
-	SysClose();
 }
 
 // TODO spu

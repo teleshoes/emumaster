@@ -17,9 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-
-#ifndef _SIO_H_
-#define _SIO_H_
+#ifndef PSXSIO_H
+#define PSXSIO_H
 
 #include "common.h"
 #include "cpu.h"
@@ -77,4 +76,5 @@ void GetMcdBlockInfo(int mcd, int block, McdBlock *info);
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXSIO_H

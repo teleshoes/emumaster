@@ -17,8 +17,10 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __DEBUG_H__
-#define __DEBUG_H__
+#ifndef PSXDEBUG_H
+#define PSXDEBUG_H
+
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,4 +71,5 @@ char* disR3000AF(u32 code, u32 pc);
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXDEBUG_H

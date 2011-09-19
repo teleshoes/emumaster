@@ -1,5 +1,5 @@
-#ifndef PSXUNAIGPU_H
-#define PSXUNAIGPU_H
+#ifndef PSXGPUUNAI_H
+#define PSXGPUUNAI_H
 
 #include "gpu.h"
 
@@ -16,4 +16,4 @@ public:
 
 extern PsxGpuUnai psxGpuUnai;
 
-#endif  // PSXUNAIGPU_H
+#endif  // PSXGPUUNAI_H

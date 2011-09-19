@@ -383,8 +383,9 @@ void LoadMcd(int mcd, char *str) {
 			fread(data, 1, MCD_SIZE, f);
 			fclose(f);
 		}
-		else
-			SysMessage("Memory card %s failed to load!\n", str);
+		else {
+//			SysMessage("Memory card %s failed to load!\n", str);
+		}
 	}
 	else {
 		struct stat buf;

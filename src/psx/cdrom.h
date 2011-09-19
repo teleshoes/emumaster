@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __CDROM_H__
-#define __CDROM_H__
+#ifndef PSXCDROM_H
+#define PSXCDROM_H
 
 #include "common.h"
 #include "decode_xa.h"
@@ -174,4 +174,5 @@ void cdrWrite3(unsigned char rt);
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXCDROM_H

@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __PSXBIOS_H__
-#define __PSXBIOS_H__
+#ifndef PSXBIOS_H
+#define PSXBIOS_H
 
 #include "common.h"
 #include "cpu.h"
@@ -47,4 +47,5 @@ extern boolean hleSoftCall;
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXBIOS_H

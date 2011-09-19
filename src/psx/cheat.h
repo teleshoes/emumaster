@@ -16,8 +16,8 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA
  */
 
-#ifndef CHEAT_H
-#define CHEAT_H
+#ifndef PSXCHEAT_H
+#define PSXCHEAT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -114,4 +114,5 @@ extern int NumSearchResults;
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXCHEAT_H

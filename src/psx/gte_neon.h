@@ -1,5 +1,5 @@
-#ifndef GTENEON_H
-#define GTENEON_H
+#ifndef PSXGTENEON_H
+#define PSXGTENEON_H
 
 #if defined(__cplusplus)
 extern "C" {
@@ -14,4 +14,4 @@ void gteNCLIP_neon(void *cp2_regs, int opcode);
 }
 #endif
 
-#endif // GTENEON_H
+#endif // PSXGTENEON_H

@@ -15,8 +15,8 @@
  *  along with this program; if not, see <http://www.gnu.org/licenses>.
  */
 
-#ifndef __SOCKET_H__
-#define __SOCKET_H__
+#ifndef PSXSOCKET_H
+#define PSXSOCKET_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,4 +40,5 @@ void SetsNonblock();
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXSOCKET_H

@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __PSXHW_H__
-#define __PSXHW_H__
+#ifndef PSXHW_H
+#define PSXHW_H
 
 #include "common.h"
 #include "cpu.h"
@@ -84,4 +84,5 @@ void psxHwWrite32(u32 add, u32 value);
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXHW_H

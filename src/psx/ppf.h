@@ -16,8 +16,8 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA
  */
 
-#ifndef __PPF_H__
-#define __PPF_H__
+#ifndef PSXPPF_H
+#define PSXPPF_H
 
 #include "cdrom.h"
 
@@ -47,4 +47,5 @@ static inline int CheckSBI(const u8 *t)
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXPPF_H

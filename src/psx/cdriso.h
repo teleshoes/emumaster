@@ -18,8 +18,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef CDRISO_H
-#define CDRISO_H
+#ifndef PSXCDRISO_H
+#define PSXCDRISO_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,4 +31,5 @@ int cdrIsoActive(void);
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXCDRISO_H

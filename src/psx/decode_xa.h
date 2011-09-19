@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __DECODE_XA_H__
-#define __DECODE_XA_H__
+#ifndef PSXDECODEXA_H
+#define PSXDECODEXA_H
 
 #include "common.h"
 
@@ -47,4 +47,4 @@ s32 xa_decode_sector(xa_decode_t *xdp,
 }
 #endif
 
-#endif
+#endif // PSXDECODEXA_H

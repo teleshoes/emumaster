@@ -17,11 +17,10 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __MISC_H__
-#define __MISC_H__
+#ifndef PSXMISC_H
+#define PSXMISC_H
 
 #include "common.h"
-#include "coff.h"
 #include "cpu.h"
 #include "mem.h"
 
@@ -63,4 +62,5 @@ int Load(const char *ExePath);
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXMISC_H

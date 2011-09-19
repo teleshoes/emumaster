@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __PSXMEMORY_H__
-#define __PSXMEMORY_H__
+#ifndef PSXMEM_H
+#define PSXMEM_H
 
 #include "common.h"
 
@@ -152,4 +152,5 @@ void *psxMemPointer(u32 mem);
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXMEM_H

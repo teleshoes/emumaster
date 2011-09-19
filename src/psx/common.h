@@ -17,13 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-/* 
-* This file contains common definitions and includes for all parts of the 
-* emulator core.
-*/
-
-#ifndef __PSXCOMMON_H__
-#define __PSXCOMMON_H__
+#ifndef PSXCOMMON_H
+#define PSXCOMMON_H
 
 // System includes
 #include <stdio.h>
@@ -61,7 +56,9 @@ typedef uint8_t boolean;
 #endif
 
 // Local includes
-#include "system.h"
+static inline void SysPrintf(const char *fmt, ...)
+{ (void)fmt; }	// Printf used by bios syscalls
+
 #include "debug.h"
 
 #define strnicmp strncasecmp
@@ -71,11 +68,6 @@ typedef uint8_t boolean;
 #include <imachine.h>
 extern "C" {
 #endif
-
-extern FILE *emuLog;
-extern int Log;
-
-void __Log(char *fmt, ...);
 
 typedef struct {
 	char Mcd1[1024];
@@ -105,4 +97,5 @@ extern PcsxConfig Config;
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXCOMMON_H

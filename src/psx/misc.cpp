@@ -25,6 +25,7 @@
 #include "cdrom.h"
 #include "mdec.h"
 #include "ppf.h"
+#include "coff.h"
 #include "machine.h"
 
 char CdromId[10] = "";

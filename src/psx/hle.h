@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02111-1307 USA.           *
  ***************************************************************************/
 
-#ifndef __PSXHLE_H__
-#define __PSXHLE_H__
+#ifndef PSXHLE_H
+#define PSXHLE_H
 
 #include "common.h"
 #include "cpu.h"
@@ -32,4 +32,5 @@ extern void (*psxHLEt[256])();
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // PSXHLE_H

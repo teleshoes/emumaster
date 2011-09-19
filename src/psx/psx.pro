@@ -27,9 +27,7 @@ HEADERS += \
     cheat.h \
     cdrom.h \
     cdriso.h \
-    system.h \
     spu.h \
-    socket.h \
     sjisfont.h \
     sio.h \
     cpu.h \
@@ -60,7 +58,8 @@ HEADERS += \
     dma.h \
     hle.h \
     hw.h \
-    mem.h
+    mem.h \
+    socket.h
 
 SOURCES += \
 	machine.cpp \
@@ -76,7 +75,6 @@ SOURCES += \
     misc.cpp \
     ppf.cpp \
     sio.cpp \
-    socket.cpp \
 	pad.cpp \
     new_dynarec/fpu.c \
     new_dynarec/new_dynarec.c \
@@ -95,11 +93,17 @@ SOURCES += \
     dma.cpp \
     hle.cpp \
     hw.cpp \
-    mem.cpp
+    mem.cpp \
+    socket.cpp
 
 OTHER_FILES += \
 	new_dynarec/assem_arm.c \
 	new_dynarec/pcsxmem_inline.c
+
+
+
+
+
 
 
 
