@@ -22,7 +22,7 @@
 //  GPU internal polygon drawing functions
 
 ///////////////////////////////////////////////////////////////////////////////
-void gpuDrawF3(const PP gpuPolySpanDriver)
+static void gpuDrawF3(const PP gpuPolySpanDriver)
 {
 	s32 temp;
 	s32 xa, xb, xmin, xmax;
@@ -151,7 +151,7 @@ void gpuDrawF3(const PP gpuPolySpanDriver)
 FT3
 ----------------------------------------------------------------------*/
 
-void gpuDrawFT3(const PP gpuPolySpanDriver)
+static void gpuDrawFT3(const PP gpuPolySpanDriver)
 {
 	s32 temp;
 	s32 xa, xb, xmin, xmax;
@@ -336,7 +336,7 @@ void gpuDrawFT3(const PP gpuPolySpanDriver)
 G3
 ----------------------------------------------------------------------*/
 
-void gpuDrawG3(const PP gpuPolySpanDriver)
+static void gpuDrawG3(const PP gpuPolySpanDriver)
 {
 	s32 temp;
 	s32 xa, xb, xmin, xmax;
@@ -516,7 +516,7 @@ void gpuDrawG3(const PP gpuPolySpanDriver)
 GT3
 ----------------------------------------------------------------------*/
 
-void gpuDrawGT3(const PP gpuPolySpanDriver)
+static void gpuDrawGT3(const PP gpuPolySpanDriver)
 {
 	s32 temp;
 	s32 xa, xb, xmin, xmax;

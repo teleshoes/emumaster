@@ -42,7 +42,7 @@ struct GPUPacket {
 	};
 };
 
-PsxGpuUnai psxUnaiGpu;
+PsxGpuUnai psxGpuUnai;
 
 static bool isSkip = false; /* skip frame (info coming from GPU) */
 
@@ -527,9 +527,12 @@ static void gpuVideoOutput() {
 	int w0 = DisplayArea[2];
 	int h0 = DisplayArea[3];  // video mode
 
-	int h1 = DisplayArea[7] - DisplayArea[5]; // display needed
+	int h1 = DisplayArea[5] - DisplayArea[4]; // display needed
 	if (h0 == 480)
 		h1 = Min2(h1*2,480);
+
+	if (h1 <= 0)
+		return;
 
 	u32* src  = (u32*)(&((u16*)GPU_FrameBuffer)[FRAME_OFFSET(x0,y0)]);
 	int width = (w0+63)/64*64;
@@ -563,14 +566,14 @@ static void gpuUnaiUpdateLace() {
 }
 
 bool PsxGpuUnai::init() {
-	writeStatus		= gpuUnaiWriteStatus;
-	writeData		= gpuUnaiWriteData;
-	writeDataMem	= gpuUnaiWriteDataMem;
-	readStatus		= gpuUnaiReadStatus;
-	readData		= gpuUnaiReadData;
-	readDataMem		= gpuUnaiReadDataMem;
-	dmaChain		= gpuUnaiDmaChain;
-	updateLace		= gpuUnaiUpdateLace;
+	GPU_writeStatus		= gpuUnaiWriteStatus;
+	GPU_writeData		= gpuUnaiWriteData;
+	GPU_writeDataMem	= gpuUnaiWriteDataMem;
+	GPU_readStatus		= gpuUnaiReadStatus;
+	GPU_readData		= gpuUnaiReadData;
+	GPU_readDataMem		= gpuUnaiReadDataMem;
+	GPU_dmaChain		= gpuUnaiDmaChain;
+	GPU_updateLace		= gpuUnaiUpdateLace;
 
 	gpuReset();
 
@@ -595,8 +598,8 @@ void PsxGpuUnai::shutdown() {
 const QImage & PsxGpuUnai::frame()
 { return gpuFrame; }
 
-void PsxGpuUnai::setSkip(bool skip)
-{ isSkip = skip; }
+void PsxGpuUnai::setDrawEnabled(bool drawEnabled)
+{ isSkip = !drawEnabled; }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
 STATE_SERIALIZE_BEGIN_##sl(PsxGpuUnai, 1) \

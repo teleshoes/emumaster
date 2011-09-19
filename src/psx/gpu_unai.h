@@ -8,12 +8,12 @@ public:
 	bool init();
 	void shutdown();
 	const QImage &frame();
-	void setSkip(bool skip);
+	void setDrawEnabled(bool drawEnabled);
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
 };
 
-extern PsxGpuUnai psxUnaiGpu;
+extern PsxGpuUnai psxGpuUnai;
 
 #endif  // PSXUNAIGPU_H

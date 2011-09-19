@@ -74,7 +74,7 @@ static inline void gpuPixelFn(u16 *pixel,const u16 data)
 ///////////////////////////////////////////////////////////////////////////////
 //  Pixel drawing drivers, for lines (only blending)
 typedef void (*PD)(u16 *pixel,const u16 data);
-const PD  gpuPixelDrivers[32] =   //  We only generate pixel op for MASKING/BLEND_ENABLE/BLEND_MODE
+static const PD  gpuPixelDrivers[32] =   //  We only generate pixel op for MASKING/BLEND_ENABLE/BLEND_MODE
 { 
 	gpuPixelFn<0x00<<1>,gpuPixelFn<0x01<<1>,gpuPixelFn<0x02<<1>,gpuPixelFn<0x03<<1>,  
 	NULL,gpuPixelFn<0x05<<1>,NULL,gpuPixelFn<0x07<<1>,
@@ -132,7 +132,7 @@ static inline void  gpuTileSpanFn(u16 *pDst, u32 count, u16 data)
 ///////////////////////////////////////////////////////////////////////////////
 //  Tiles innerloops driver
 typedef void (*PT)(u16 *pDst, u32 count, u16 data);
-const PT gpuTileSpanDrivers[64] = 
+static const PT gpuTileSpanDrivers[64] =
 {
 	gpuTileSpanFn<0x00>,NULL,gpuTileSpanFn<0x02>,NULL,  gpuTileSpanFn<0x04>,NULL,gpuTileSpanFn<0x06>,NULL,  NULL,NULL,gpuTileSpanFn<0x0A>,NULL,  NULL,NULL,gpuTileSpanFn<0x0E>,NULL,
 	NULL,NULL,gpuTileSpanFn<0x12>,NULL,  NULL,NULL,gpuTileSpanFn<0x16>,NULL,  NULL,NULL,gpuTileSpanFn<0x1A>,NULL,  NULL,NULL,gpuTileSpanFn<0x1E>,NULL,
@@ -205,7 +205,7 @@ static inline void  gpuSpriteSpanFn(u16 *pDst, u32 count, u32 u0, const u32 mask
 ///////////////////////////////////////////////////////////////////////////////
 //  Sprite innerloops driver
 typedef void (*PS)(u16 *pDst, u32 count, u32 u0, const u32 mask);
-const PS gpuSpriteSpanDrivers[512] = 
+static const PS gpuSpriteSpanDrivers[512] =
 {
 	NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
 	NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
@@ -387,7 +387,7 @@ static inline void  gpuPolySpanFn(u16 *pDst, u32 count)
 ///////////////////////////////////////////////////////////////////////////////
 //  Polygon innerloops driver
 typedef void (*PP)(u16 *pDst, u32 count);
-const PP gpuPolySpanDrivers[512] =
+static const PP gpuPolySpanDrivers[512] =
 {
 	gpuPolySpanFn<0x00>,gpuPolySpanFn<0x01>,gpuPolySpanFn<0x02>,gpuPolySpanFn<0x03>,  gpuPolySpanFn<0x04>,gpuPolySpanFn<0x05>,gpuPolySpanFn<0x06>,gpuPolySpanFn<0x07>,  NULL,NULL,gpuPolySpanFn<0x0A>,gpuPolySpanFn<0x0B>,  NULL,NULL,gpuPolySpanFn<0x0E>,gpuPolySpanFn<0x0F>,
 	NULL,NULL,gpuPolySpanFn<0x12>,gpuPolySpanFn<0x13>,  NULL,NULL,gpuPolySpanFn<0x16>,gpuPolySpanFn<0x17>,  NULL,NULL,gpuPolySpanFn<0x1A>,gpuPolySpanFn<0x1B>,  NULL,NULL,gpuPolySpanFn<0x1E>,gpuPolySpanFn<0x1F>,

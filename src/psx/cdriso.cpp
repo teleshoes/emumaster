@@ -1307,8 +1307,6 @@ void cdrIsoInit(void) {
 	CDR_stop = ISOstop;
 	CDR_getBufferSub = ISOgetBufferSub;
 	CDR_getStatus = ISOgetStatus;
-
-	numtracks = 0;
 }
 
 int cdrIsoActive(void) {

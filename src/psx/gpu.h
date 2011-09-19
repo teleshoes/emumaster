@@ -19,16 +19,7 @@ public:
 	virtual bool init() = 0;
 	virtual void shutdown();
 	virtual const QImage &frame() = 0;
-	virtual void setSkip(bool skip) = 0;
-
-	GPUwriteStatus   writeStatus;
-	GPUwriteData     writeData;
-	GPUwriteDataMem  writeDataMem;
-	GPUreadStatus    readStatus;
-	GPUreadData      readData;
-	GPUreadDataMem   readDataMem;
-	GPUdmaChain      dmaChain;
-	GPUupdateLace    updateLace;
+	virtual void setDrawEnabled(bool drawEnabled) = 0;
 
 	virtual bool save(QDataStream &s) = 0;
 	virtual bool load(QDataStream &s) = 0;

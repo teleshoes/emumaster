@@ -30,7 +30,7 @@ static inline long GPU_DIV(long rs, long rt)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void gpuDrawLF(const PD gpuPixelDriver)
+static void gpuDrawLF(const PD gpuPixelDriver)
 {
 	s32 temp;
 	s32 xmin, xmax;
@@ -99,7 +99,6 @@ void gpuDrawLF(const PD gpuPixelDriver)
 			y0++;
 			x0 += x1;
 		}
-		
 	} else {
 		if ((u32) (x0 - xmin) < (u32) (xmax - xmin)) {
 			if ((u32) (y0 - ymin) < (u32) (ymax - ymin)) {
@@ -114,7 +113,7 @@ GF
 ----------------------------------------------------------------------*/
 
 ///////////////////////////////////////////////////////////////////////////////
-void gpuDrawLG(const PD gpuPixelDriver)
+static void gpuDrawLG(const PD gpuPixelDriver)
 {
 	s32 temp;
 	s32 xmin, xmax;

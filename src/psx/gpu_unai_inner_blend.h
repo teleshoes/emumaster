@@ -96,12 +96,6 @@
 	 : [src] "=r" (uSrc), [st] "=&r" (st), [dt] "=&r" (dt), [out] "=&r" (out) \
 	 : [dst] "r" (uDst), "0" (uSrc) : "cc"); \
 }
-
-int btest(int s, int d)
-{
-	gpuBlending02(s, d);
-	return s;
-}
 #else
 #define gpuBlending02(uSrc,uDst) \
 { \

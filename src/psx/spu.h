@@ -4,8 +4,6 @@
 #include "common.h"
 #include "decode_xa.h"
 
-// TODO register callback spuirq
-
 typedef void (* SPUwriteRegister)(u32, u16);
 typedef u16 (* SPUreadRegister)(u32);
 typedef void (* SPUwriteDMA)(u16);
@@ -23,17 +21,6 @@ class PsxSpu {
 public:
 	virtual bool init() = 0;
 	virtual void shutdown();
-
-	SPUwriteRegister    writeRegister;
-	SPUreadRegister     readRegister;
-	SPUwriteDMA         writeDMA;
-	SPUreadDMA          readDMA;
-	SPUwriteDMAMem      writeDMAMem;
-	SPUreadDMAMem       readDMAMem;
-	SPUplayADPCMchannel playADPCMchannel;
-	SPUregisterCallback registerCallback;
-	SPUasync            async;
-	SPUplayCDDAchannel  playCDDAchannel;
 
 	virtual bool save(QDataStream &s) = 0;
 	virtual bool load(QDataStream &s) = 0;

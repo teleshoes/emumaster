@@ -121,16 +121,16 @@ static void spuNullRegisterCallback(void (*callback)(void)) {
 }
 
 bool PsxSpuNull::init() {
-	writeRegister		= spuNullWriteRegister;
-	readRegister		= spuNullReadRegister;
-	writeDMA			= spuNullWriteDMA;
-	readDMA				= spuNullReadDMA;
-	writeDMAMem			= spuNullWriteDMAMem;
-	readDMAMem			= spuNullReadDMAMem;
-	playADPCMchannel	= spuNullPlayADPCMchannel;
-	registerCallback	= spuNullRegisterCallback;
-	async				= spuNullAsync;
-	playCDDAchannel		= spuNullPlayCDDAchannel;
+	SPU_writeRegister		= spuNullWriteRegister;
+	SPU_readRegister		= spuNullReadRegister;
+	SPU_writeDMA			= spuNullWriteDMA;
+	SPU_readDMA				= spuNullReadDMA;
+	SPU_writeDMAMem			= spuNullWriteDMAMem;
+	SPU_readDMAMem			= spuNullReadDMAMem;
+	SPU_playADPCMchannel	= spuNullPlayADPCMchannel;
+	SPU_registerCallback	= spuNullRegisterCallback;
+	SPU_async				= spuNullAsync;
+	SPU_playCDDAchannel		= spuNullPlayCDDAchannel;
 	return true;
 }
 

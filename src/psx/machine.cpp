@@ -12,31 +12,29 @@
 #include "cdrom.h"
 #include "sio.h"
 #include "misc.h"
-#include "cpu.h"
-#include "gpu.h"
 #include "mdec.h"
 #include "sio.h"
 #include "ppf.h"
-#include "gpu.h"
 #include "cpu_int.h"
 #include "cpu_rec.h"
+#include "gpu_unai.h"
+#include "spu_null.h"
 #include "cdriso.h"
 
 PcsxConfig Config;
 
 int LoadPlugins() {
-	int ret;
 	cdrIsoInit();
-	ret = CDR_init();
-	if (ret < 0) { SysMessage ("Error initializing CD-ROM plugin: %d", ret); return -1; }
-//	TODO ret = GPU_init();
-//	if (ret < 0) { SysMessage ("Error initializing GPU plugin: %d", ret); return -1; }
-//	ret = SPU_init();
-//	if (ret < 0) { SysMessage ("Error initializing SPU plugin: %d", ret); return -1; }
-	ret = CDR_open();
-	if (ret < 0) { SysMessage ("Error open CD-ROM plugin: %d", ret); return -1; }
-//	TODO ret = SPU_open();
-//	if (ret < 0) { SysMessage ("Error open SPU plugin: %d", ret); return -1; }
+	if (CDR_init() < 0)
+		return -1;
+	if (!psxGpu->init())
+		return -1;
+	if (!psxSpu->init())
+		return -1;
+	// TODO remove callback -> straight to spu irq
+	SPU_registerCallback(SPUirq);
+	if (CDR_open() < 0)
+		return -1;
 	return 0;
 }
 
@@ -59,7 +57,7 @@ void __Log(char *fmt, ...) {
 	va_end(list);
 }
 
-int SysInit() {
+bool SysInit() {
 #ifdef EMU_LOG
 #ifndef LOG_STDOUT
 	emuLog = fopen("emuLog.txt","wb");
@@ -75,20 +73,24 @@ int SysInit() {
 //	else
 		psxCpu = &psxRec;
 
+		psxGpu = &psxGpuUnai;
+		psxSpu = &psxSpuNull;
+
 	Log = 0;
 
 	if (!psxMemInit())
 		return false;
-	if (psxCpu->init())
-		return -1;
+	if (!psxCpu->init())
+		return false;
 
 	LoadMcds(Config.Mcd1, Config.Mcd2);	/* TODO Do we need to have this here, or in the calling main() function?? */
 
+	// TODO debug as preprocessor
 	if (Config.Debug) {
 		StartDebugger();
 	}
 
-	return 0;
+	return true;
 }
 
 static void dummy_lace() {
@@ -190,9 +192,10 @@ QString PsxMachine::init() {
 	m_quit = false;
 	emu_config();
 	systemType = NtscType;
-	SysInit();
+	if (!SysInit())
+		return "failed to initialize";
 	setVideoSrcRect(QRect(0, 0, 256, 240));
-	setFrameRate(50); // TODO PAL/NTSC
+	setFrameRate(60); // TODO PAL/NTSC
 	return QString();
 }
 
@@ -242,7 +245,7 @@ QString PsxMachine::setDisk(const QString &path) {
 }
 
 void PsxMachine::emulateFrame(bool drawEnabled) {
-	psxGpu->setSkip(drawEnabled);
+	psxGpu->setDrawEnabled(drawEnabled);
 	m_prodSem.release();
 	m_consSem.acquire();
 }

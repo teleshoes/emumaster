@@ -19,7 +19,7 @@
 ***************************************************************************/
 
 ///////////////////////////////////////////////////////////////////////////////
-void gpuDrawS(const PS gpuSpriteSpanDriver)
+static void gpuDrawS(const PS gpuSpriteSpanDriver)
 {
 	s32 x0, x1;
 	s32 y0, y1;
@@ -81,7 +81,7 @@ void gpuDrawS(const PS gpuSpriteSpanDriver)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void gpuDrawT(const PT gpuTileSpanDriver)
+static void gpuDrawT(const PT gpuTileSpanDriver)
 {
 	s32 x0, y0;
 	s32 x1, y1;

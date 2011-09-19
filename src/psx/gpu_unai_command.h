@@ -64,7 +64,7 @@ static inline void gpuSetCLUT(u16 clut)
 #define Blending_Mode (((PRIM&0x2)&&(blend))?BLEND_MODE:0)
 #define Lighting (((~PRIM)&0x1)&&(light))
 
-void gpuSendPacketFunction(const int PRIM)
+static void gpuSendPacketFunction(const int PRIM)
 {
 	//printf("0x%x\n",PRIM);
 

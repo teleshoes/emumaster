@@ -37,7 +37,7 @@ typedef s32 fixed;
 #define fixed_HALF ((fixed)((1<<FIXED_BITS)>>1))
 
 //  big precision inverse table.
-s32 s_invTable[(1<<TABLE_BITS)];
+static s32 s_invTable[(1<<TABLE_BITS)];
 
 static inline  fixed i2x(const int   _x) { return  ((_x)<<FIXED_BITS); }
 static inline  fixed x2i(const fixed _x) { return  ((_x)>>FIXED_BITS); }
