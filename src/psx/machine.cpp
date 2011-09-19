@@ -18,7 +18,11 @@
 #include "cpu_rec.h"
 #include "gpu_unai.h"
 #include "spu_null.h"
+#include "mem.h"
+#include "hw.h"
+#include "bios.h"
 #include "cdriso.h"
+#include "counters.h"
 
 PcsxConfig Config;
 

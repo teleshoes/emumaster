@@ -21,9 +21,6 @@
 #define PSXBIOS_H
 
 #include "common.h"
-#include "cpu.h"
-#include "mem.h"
-#include "misc.h"
 
 #ifdef __cplusplus
 extern "C" {

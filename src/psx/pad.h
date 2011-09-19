@@ -1,7 +1,7 @@
 #ifndef PSXPAD_H
 #define PSXPAD_H
 
-#include <imachine.h>
+#include "common.h"
 
 u8 pad1StartPoll(u8 data);
 u8 pad1Poll(u8 data);

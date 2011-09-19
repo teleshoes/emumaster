@@ -23,6 +23,7 @@
 #include "cdriso.h"
 #include "ppf.h"
 #include "spu.h"
+#include "mem.h"
 
 #ifdef _WIN32
 #include <process.h>

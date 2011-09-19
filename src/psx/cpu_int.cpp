@@ -20,6 +20,8 @@
 #include "cpu_int.h"
 #include "gte.h"
 #include "hle.h"
+#include "mem.h"
+#include "bios.h"
 
 PsxCpuInt psxInt;
 

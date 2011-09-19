@@ -21,7 +21,6 @@
 #define PSXHLE_H
 
 #include "common.h"
-#include "cpu.h"
 
 #ifdef __cplusplus
 extern "C" {

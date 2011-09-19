@@ -19,6 +19,8 @@
  ***************************************************************************/
 
 #include "mdec.h"
+#include "mem.h"
+#include "dma.h"
 #include <QDataStream>
 
 /* memory speed is 1 byte per MDEC_BIAS psx clock

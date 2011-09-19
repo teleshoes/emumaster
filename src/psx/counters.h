@@ -21,8 +21,6 @@
 #define PSXCOUNTERS_H
 
 #include "common.h"
-#include "cpu.h"
-#include "mem.h"
 
 #ifdef __cplusplus
 

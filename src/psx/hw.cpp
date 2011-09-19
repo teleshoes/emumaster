@@ -24,9 +24,12 @@
 #include "hw.h"
 #include "mdec.h"
 #include "cdrom.h"
+#include "cpu.h"
 #include "gpu.h"
 #include "spu.h"
 #include "sio.h"
+#include "dma.h"
+#include "counters.h"
 
 void psxHwReset() {
 	if (Config.Sio) psxHu32ref(0x1070) |= SWAP32(0x80);

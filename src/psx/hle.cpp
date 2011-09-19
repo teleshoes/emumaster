@@ -22,6 +22,10 @@
 */
 
 #include "hle.h"
+#include "cpu.h"
+#include "bios.h"
+#include "misc.h"
+#include "mem.h"
 
 static void hleDummy() {
 	psxRegs.pc = psxRegs.GPR.n.ra;

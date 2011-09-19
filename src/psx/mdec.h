@@ -21,9 +21,6 @@
 #define PSXMDEC_H
 
 #include "common.h"
-#include "cpu.h"
-#include "hw.h"
-#include "dma.h"
 
 #ifdef __cplusplus
 

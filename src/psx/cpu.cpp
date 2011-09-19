@@ -22,6 +22,10 @@
 #include "mdec.h"
 #include "gte.h"
 #include "sio.h"
+#include "mem.h"
+#include "dma.h"
+#include "bios.h"
+#include "counters.h"
 
 PsxCpu *psxCpu = 0;
 

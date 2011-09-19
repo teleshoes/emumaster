@@ -12,6 +12,7 @@
 #include "mdec.h"
 #include "gte_neon.h"
 #include "sio.h"
+#include "counters.h"
 #include "new_dynarec/emu_if.h"
 #include "new_dynarec/pcsxmem.h"
 

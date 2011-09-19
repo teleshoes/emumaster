@@ -23,6 +23,7 @@
 #include <assert.h>
 
 #include "emu_if.h" //emulator interface
+#include "mem.h"
 
 #include <sys/mman.h>
 

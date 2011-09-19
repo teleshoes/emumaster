@@ -22,8 +22,10 @@
  */
 
 #include "counters.h"
+#include "cpu.h"
 #include "gpu.h"
 #include "spu.h"
+#include "mem.h"
 #include "machine.h"
 #include <QDataStream>
 

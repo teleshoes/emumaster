@@ -21,9 +21,6 @@
 #define PSXCPU_H
 
 #include "common.h"
-#include "mem.h"
-#include "counters.h"
-#include "bios.h"
 
 #ifdef __cplusplus
 

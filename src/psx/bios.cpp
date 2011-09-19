@@ -25,9 +25,13 @@
 
 #include "bios.h"
 #include "hw.h"
-#include "pad.h"
+#include "cpu.h"
 #include "gpu.h"
+#include "mem.h"
+#include "pad.h"
 #include "sio.h"
+#include "misc.h"
+#include "counters.h"
 #include <zlib.h>
 
 #undef SysPrintf

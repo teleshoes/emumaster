@@ -20,6 +20,8 @@
 #include "debug.h"
 #include "socket.h"
 #include "gpu.h"
+#include "misc.h"
+#include "mem.h"
 #include "machine.h"
 
 /*

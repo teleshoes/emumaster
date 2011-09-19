@@ -22,9 +22,6 @@
 
 #include "common.h"
 #include "decode_xa.h"
-#include "cpu.h"
-#include "mem.h"
-#include "hw.h"
 
 struct SubQ {
 	char res0[12];

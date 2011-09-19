@@ -21,7 +21,9 @@
 
 #include "common.h"
 #include "cdrom.h"
+#include "misc.h"
 #include "ppf.h"
+#include "mem.h"
 
 typedef struct tagPPF_DATA {
 	s32					addr;

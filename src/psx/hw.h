@@ -21,9 +21,7 @@
 #define PSXHW_H
 
 #include "common.h"
-#include "cpu.h"
 #include "mem.h"
-#include "counters.h"
 
 #ifdef __cplusplus
 extern "C" {

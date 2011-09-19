@@ -20,6 +20,7 @@
 #include "sio.h"
 #include "pad.h"
 #include "cpu.h"
+#include "mem.h"
 #include <QDataStream>
 #include <QTextCodec>
 
