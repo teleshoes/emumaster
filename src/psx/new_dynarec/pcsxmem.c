@@ -13,6 +13,7 @@
 #include "pcsxmem.h"
 #include "gpu.h"
 #include "spu.h"
+#include "sio.h"
 
 //#define memprintf printf
 #define memprintf(...)

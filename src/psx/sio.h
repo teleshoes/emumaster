@@ -21,10 +21,12 @@
 #define PSXSIO_H
 
 #include "common.h"
-#include "cpu.h"
-#include "mem.h"
 
 #ifdef __cplusplus
+
+#include <QFile>
+#include <QList>
+#include <QImage>
 
 class PsxSio {
 public:
@@ -34,44 +36,53 @@ public:
 
 extern PsxSio psxSio;
 
+class PsxMcdBlockInfo {
+public:
+	QString title;
+	QString id;
+	QString name;
+	u8 flags;
+	QList<QImage> icons;
+};
+
+class PsxMcd {
+public:
+	static const int BlockSize = 8192;
+	static const int NumBlocks = 16;
+	static const int Size = BlockSize * NumBlocks;
+
+	PsxMcd();
+	void init(const QString &path);
+	void write(u32 address, int size);
+	bool isEnabled() { return m_enabled; }
+
+	PsxMcdBlockInfo blockInfo(int block);
+
+	u8 memory[Size];
+private:
+	QFile m_file;
+	bool m_enabled;
+};
+
+extern PsxMcd psxMcd1;
+extern PsxMcd psxMcd2;
+
 extern "C" {
 #endif
 
-#define MCD_SIZE	(1024 * 8 * 16)
+void sioWrite8(u8 data);
+void sioWriteStat16(u16 data);
+void sioWriteMode16(u16 data);
+void sioWriteCtrl16(u16 data);
+void sioWriteBaud16(u16 data);
 
-extern char Mcd1Data[MCD_SIZE], Mcd2Data[MCD_SIZE];
-
-void sioWrite8(unsigned char value);
-void sioWriteStat16(unsigned short value);
-void sioWriteMode16(unsigned short value);
-void sioWriteCtrl16(unsigned short value);
-void sioWriteBaud16(unsigned short value);
-
-unsigned char sioRead8();
-unsigned short sioReadStat16();
-unsigned short sioReadMode16();
-unsigned short sioReadCtrl16();
-unsigned short sioReadBaud16();
+u8 sioRead8();
+u16 sioReadStat16();
+u16 sioReadMode16();
+u16 sioReadCtrl16();
+u16 sioReadBaud16();
 
 void sioInterrupt();
-
-void LoadMcd(int mcd, char *str);
-void LoadMcds(char *mcd1, char *mcd2);
-void SaveMcd(char *mcd, char *data, uint32_t adr, int size);
-void CreateMcd(char *mcd);
-void ConvertMcd(char *mcd, char *data);
-
-typedef struct {
-	char Title[48 + 1]; // Title in ASCII
-	char sTitle[48 * 2 + 1]; // Title in Shift-JIS
-	char ID[12 + 1];
-	char Name[16 + 1];
-	int IconCount;
-	short Icon[16 * 16 * 3];
-	unsigned char Flags;
-} McdBlock;
-
-void GetMcdBlockInfo(int mcd, int block, McdBlock *info);
 
 #ifdef __cplusplus
 }

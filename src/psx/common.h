@@ -70,8 +70,6 @@ extern "C" {
 #endif
 
 typedef struct {
-	char Mcd1[1024];
-	char Mcd2[1024];
 	boolean Xa;
 	boolean Sio;
 	boolean Mdec;

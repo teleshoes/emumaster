@@ -23,7 +23,6 @@
 #include "common.h"
 #include "cpu.h"
 #include "mem.h"
-#include "sio.h"
 #include "counters.h"
 
 #ifdef __cplusplus

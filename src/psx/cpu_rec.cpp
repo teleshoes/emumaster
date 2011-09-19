@@ -11,6 +11,7 @@
 #include "dma.h"
 #include "mdec.h"
 #include "gte_neon.h"
+#include "sio.h"
 #include "new_dynarec/emu_if.h"
 #include "new_dynarec/pcsxmem.h"
 

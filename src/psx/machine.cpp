@@ -10,7 +10,6 @@
 
 #include "common.h"
 #include "cdrom.h"
-#include "sio.h"
 #include "misc.h"
 #include "mdec.h"
 #include "sio.h"
@@ -39,8 +38,8 @@ QString PsxMachine::init() {
 
 	Config.HLE = 0;
 
-	strcpy(Config.Mcd1, CONFIG_DIR"/mcd001.mcr");
-	strcpy(Config.Mcd2, CONFIG_DIR"/mcd002.mcr");
+	psxMcd1.init(userDataDirPath() + "/psx_mcd1.mcr");
+	psxMcd2.init(userDataDirPath() + "/psx_mcd2.mcr");
 	Config.PsxAuto = 1;
 	Config.Cdda = 0;
 	Config.Xa = 0;
@@ -70,8 +69,6 @@ QString PsxMachine::init() {
 		return "Could not allocate memory!";
 	if (!psxCpu->init())
 		return "Could not initialize CPU!";
-
-	LoadMcds(Config.Mcd1, Config.Mcd2);	/* TODO Do we need to have this here, or in the calling main() function?? */
 
 	// TODO debug as preprocessor
 	if (Config.Debug) {

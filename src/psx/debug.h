@@ -41,7 +41,7 @@ void DebugCheckBP(u32 address, enum breakpoint_types type);
 void PauseDebugger();
 void ResumeDebugger();
 
-extern char *disRNameCP0[];
+extern const char *disRNameCP0[];
 
 char* disR3000AF(u32 code, u32 pc);
 

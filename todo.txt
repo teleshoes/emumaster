@@ -8,6 +8,7 @@ poll: Amiga N64 NDS
  s copy legal info
  s snes license
  s add copyrights
+ s psx mem cards viewer
 
  s bluetooth gamepad
  s analog and feedback pad psx

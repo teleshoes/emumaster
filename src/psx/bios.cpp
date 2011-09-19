@@ -27,12 +27,13 @@
 #include "hw.h"
 #include "pad.h"
 #include "gpu.h"
+#include "sio.h"
 #include <zlib.h>
 
 #undef SysPrintf
 #define SysPrintf if (Config.PsxOut) printf
 
-char *biosA0n[256] = {
+const char *biosA0n[256] = {
 // 0x00
 	"open",		"lseek",	"read",		"write",
 	"close",	"ioctl",	"exit",		"sys_a0_07",
@@ -93,7 +94,7 @@ char *biosA0n[256] = {
 	"?? sub_function",
 };
 
-char *biosB0n[256] = {
+const char *biosB0n[256] = {
 // 0x00
 	"SysMalloc",		"sys_b0_01",	"sys_b0_02",	"sys_b0_03",
 	"sys_b0_04",		"sys_b0_05",	"sys_b0_06",	"DeliverEvent",
@@ -126,7 +127,7 @@ char *biosB0n[256] = {
 	"_card_status",		"_card_wait",
 };
 
-char *biosC0n[256] = {
+const char *biosC0n[256] = {
 // 0x00
 	"InitRCnt",			  "InitException",		"SysEnqIntRP",		"SysDeqIntRP",
 	"get_free_EvCB_slot", "get_free_TCB_slot",	"ExceptionHandler",	"InstallExeptionHandler",
@@ -1644,11 +1645,11 @@ void psxBios_UnDeliverEvent() { // 0x20
 	FDesc[1 + mcd].mode   = a1; \
  \
 	for (i=1; i<16; i++) { \
-		ptr = Mcd##mcd##Data + 128 * i; \
+		ptr = psxMcd##mcd.memory + 128 * i; \
 		if ((*ptr & 0xF0) != 0x50) continue; \
-		if (strcmp(FDesc[1 + mcd].name, ptr+0xa)) continue; \
+		if (strcmp(FDesc[1 + mcd].name, (const char *)ptr+0xa)) continue; \
 		FDesc[1 + mcd].mcfile = i; \
-		SysPrintf("open %s\n", ptr+0xa); \
+		SysPrintf("open %s\n", (const char *)ptr+0xa); \
 		v0 = 1 + mcd; \
 		break; \
 	} \
@@ -1656,7 +1657,7 @@ void psxBios_UnDeliverEvent() { // 0x20
 		for (i=1; i<16; i++) { \
 			int j, xorVal = 0; \
  \
-			ptr = Mcd##mcd##Data + 128 * i; \
+			ptr = psxMcd##mcd.memory + 128 * i; \
 			if ((*ptr & 0xF0) == 0x50) continue; \
 			ptr[0] = 0x50 | (u8)(a1 >> 16); \
 			ptr[4] = 0x00; \
@@ -1665,13 +1666,13 @@ void psxBios_UnDeliverEvent() { // 0x20
 			ptr[7] = 0x00; \
 			ptr[8] = 'B'; \
 			ptr[9] = 'I'; \
-			strcpy(ptr+0xa, FDesc[1 + mcd].name); \
+			strcpy((char *)ptr+0xa, FDesc[1 + mcd].name); \
 			for (j=0; j<127; j++) xorVal^= ptr[j]; \
 			ptr[127] = xorVal; \
 			FDesc[1 + mcd].mcfile = i; \
 			SysPrintf("openC %s\n", ptr); \
 			v0 = 1 + mcd; \
-			SaveMcd(Config.Mcd##mcd, Mcd##mcd##Data, 128 * i, 128); \
+			psxMcd##mcd.write(128 * i, 128); \
 			break; \
 		} \
 	} \
@@ -1683,7 +1684,7 @@ void psxBios_UnDeliverEvent() { // 0x20
 
 void psxBios_open() { // 0x32
 	int i;
-	char *ptr;
+	u8 *ptr;
 
 #ifdef PSXBIOS_LOG
 	PSXBIOS_LOG("psxBios_%s: %s,%x\n", biosB0n[0x32], Ra0, a1);
@@ -1729,8 +1730,8 @@ void psxBios_lseek() { // 0x33
 }
 
 #define buread(mcd) { \
-	SysPrintf("read %d: %x,%x (%s)\n", FDesc[1 + mcd].mcfile, FDesc[1 + mcd].offset, a2, Mcd##mcd##Data + 128 * FDesc[1 + mcd].mcfile + 0xa); \
-	ptr = Mcd##mcd##Data + 8192 * FDesc[1 + mcd].mcfile + FDesc[1 + mcd].offset; \
+	SysPrintf("read %d: %x,%x (%s)\n", FDesc[1 + mcd].mcfile, FDesc[1 + mcd].offset, a2, psxMcd##mcd.memory + 128 * FDesc[1 + mcd].mcfile + 0xa); \
+	ptr = psxMcd##mcd.memory + 8192 * FDesc[1 + mcd].mcfile + FDesc[1 + mcd].offset; \
 	memcpy(Ra1, ptr, a2); \
 	if (FDesc[1 + mcd].mode & 0x8000) v0 = 0; \
 	else v0 = a2; \
@@ -1744,7 +1745,7 @@ void psxBios_lseek() { // 0x33
  */
 
 void psxBios_read() { // 0x34
-	char *ptr;
+	u8 *ptr;
 
 #ifdef PSXBIOS_LOG
 	PSXBIOS_LOG("psxBios_%s: %x, %x, %x\n", biosB0n[0x34], a0, a1, a2);
@@ -1753,8 +1754,8 @@ void psxBios_read() { // 0x34
 	v0 = -1;
 
 	switch (a0) {
-		case 2: buread(1); break;
-		case 3: buread(2); break;
+	case 2: buread(1); break;
+	case 3: buread(2); break;
 	}
   		
 	pc0 = ra;
@@ -1763,10 +1764,10 @@ void psxBios_read() { // 0x34
 #define buwrite(mcd) { \
 	u32 offset =  + 8192 * FDesc[1 + mcd].mcfile + FDesc[1 + mcd].offset; \
 	SysPrintf("write %d: %x,%x\n", FDesc[1 + mcd].mcfile, FDesc[1 + mcd].offset, a2); \
-	ptr = Mcd##mcd##Data + offset; \
+	ptr = psxMcd##mcd.memory + offset; \
 	memcpy(ptr, Ra1, a2); \
 	FDesc[1 + mcd].offset += a2; \
-	SaveMcd(Config.Mcd##mcd, Mcd##mcd##Data, offset, a2); \
+	psxMcd##mcd.write(offset, a2); \
 	if (FDesc[1 + mcd].mode & 0x8000) v0 = 0; \
 	else v0 = a2; \
 	DeliverEvent(0x11, 0x2); /* 0xf0000011, 0x0004 */ \
@@ -1778,7 +1779,7 @@ void psxBios_read() { // 0x34
  */
 
 void psxBios_write() { // 0x35/0x03
-	char *ptr;
+	u8 *ptr;
 
 	if (a0 == 1) { // stdout
 		char *ptr = Ra1;
@@ -1795,8 +1796,8 @@ void psxBios_write() { // 0x35/0x03
 	v0 = -1;
 
 	switch (a0) {
-		case 2: buwrite(1); break;
-		case 3: buwrite(2); break;
+	case 2: buwrite(1); break;
+	case 3: buwrite(2); break;
 	}
 
 	pc0 = ra;
@@ -1832,12 +1833,12 @@ int nfile;
 	while (nfile < 16) { \
 		int match=1; \
  \
-		ptr = Mcd##mcd##Data + 128 * nfile; \
+		ptr = psxMcd##mcd.memory + 128 * nfile; \
 		nfile++; \
 		if ((*ptr & 0xF0) != 0x50) continue; \
 		ptr+= 0xa; \
 		if (pfile[0] == 0) { \
-			strcpy(dir->name, ptr); \
+			strcpy(dir->name, (const char *)ptr); \
 		} else for (i=0; i<20; i++) { \
 			if (pfile[i] == ptr[i]) { \
 				dir->name[i] = ptr[i]; \
@@ -1845,7 +1846,7 @@ int nfile;
 			if (pfile[i] == '?') { \
 				dir->name[i] = ptr[i]; continue; } \
 			if (pfile[i] == '*') { \
-				strcpy(dir->name+i, ptr+i); break; } \
+				strcpy(dir->name+i, (const char *)ptr+i); break; } \
 			match = 0; break; \
 		} \
 		SysPrintf("%d : %s = %s + %s (match=%d)\n", nfile, dir->name, pfile, ptr, match); \
@@ -1863,7 +1864,7 @@ int nfile;
 void psxBios_firstfile() { // 42
 	struct DIRENTRY *dir = (struct DIRENTRY *)Ra1;
 	u32 _dir = a1;
-	char *ptr;
+	u8 *ptr;
 	int i;
 
 #ifdef PSXBIOS_LOG
@@ -1894,7 +1895,7 @@ void psxBios_firstfile() { // 42
 void psxBios_nextfile() { // 43
 	struct DIRENTRY *dir = (struct DIRENTRY *)Ra0;
 	u32 _dir = a0;
-	char *ptr;
+	u8 *ptr;
 	int i;
 
 #ifdef PSXBIOS_LOG
@@ -1917,15 +1918,15 @@ void psxBios_nextfile() { // 43
 #define burename(mcd) { \
 	for (i=1; i<16; i++) { \
 		int namelen, j, xorVal = 0; \
-		ptr = Mcd##mcd##Data + 128 * i; \
+		ptr = psxMcd##mcd.memory + 128 * i; \
 		if ((*ptr & 0xF0) != 0x50) continue; \
-		if (strcmp(Ra0+5, ptr+0xa)) continue; \
+		if (strcmp(Ra0+5, (const char *)ptr+0xa)) continue; \
 		namelen = strlen(Ra1+5); \
 		memcpy(ptr+0xa, Ra1+5, namelen); \
 		memset(ptr+0xa+namelen, 0, 0x75-namelen); \
 		for (j=0; j<127; j++) xorVal^= ptr[j]; \
 		ptr[127] = xorVal; \
-		SaveMcd(Config.Mcd##mcd, Mcd##mcd##Data, 128 * i + 0xa, 0x76); \
+		psxMcd##mcd.write(128 * i + 0xa, 0x76); \
 		v0 = 1; \
 		break; \
 	} \
@@ -1936,7 +1937,7 @@ void psxBios_nextfile() { // 43
  */
 
 void psxBios_rename() { // 44
-	char *ptr;
+	u8 *ptr;
 	int i;
 
 #ifdef PSXBIOS_LOG
@@ -1959,11 +1960,11 @@ void psxBios_rename() { // 44
 
 #define budelete(mcd) { \
 	for (i=1; i<16; i++) { \
-		ptr = Mcd##mcd##Data + 128 * i; \
+		ptr = psxMcd##mcd.memory + 128 * i; \
 		if ((*ptr & 0xF0) != 0x50) continue; \
-		if (strcmp(Ra0+5, ptr+0xa)) continue; \
+		if (strcmp(Ra0+5, (const char *)ptr+0xa)) continue; \
 		*ptr = (*ptr & 0xf) | 0xA0; \
-		SaveMcd(Config.Mcd##mcd, Mcd##mcd##Data, 128 * i, 1); \
+		psxMcd##mcd.write(128 * i, 1); \
 		SysPrintf("delete %s\n", ptr+0xa); \
 		v0 = 1; \
 		break; \
@@ -1975,7 +1976,7 @@ void psxBios_rename() { // 44
  */
 
 void psxBios_delete() { // 45
-	char *ptr;
+	u8 *ptr;
 	int i;
 
 #ifdef PSXBIOS_LOG
@@ -2036,11 +2037,11 @@ void psxBios__card_write() { // 0x4e
 	port = a0 >> 4;
 
 	if (port == 0) {
-		memcpy(Mcd1Data + a1 * 128, Ra2, 128);
-		SaveMcd(Config.Mcd1, Mcd1Data, a1 * 128, 128);
+		memcpy(psxMcd1.memory + a1 * 128, Ra2, 128);
+		psxMcd1.write(a1 * 128, 128);
 	} else {
-		memcpy(Mcd2Data + a1 * 128, Ra2, 128);
-		SaveMcd(Config.Mcd2, Mcd2Data, a1 * 128, 128);
+		memcpy(psxMcd2.memory + a1 * 128, Ra2, 128);
+		psxMcd2.write(a1 * 128, 128);
 	}
 
 	DeliverEvent(0x11, 0x2); // 0xf0000011, 0x0004
@@ -2060,9 +2061,9 @@ void psxBios__card_read() { // 0x4f
 	port = a0 >> 4;
 
 	if (port == 0) {
-		memcpy(Ra2, Mcd1Data + a1 * 128, 128);
+		memcpy(Ra2, psxMcd1.memory + a1 * 128, 128);
 	} else {
-		memcpy(Ra2, Mcd2Data + a1 * 128, 128);
+		memcpy(Ra2, psxMcd2.memory + a1 * 128, 128);
 	}
 
 	DeliverEvent(0x11, 0x2); // 0xf0000011, 0x0004

@@ -21,6 +21,7 @@
 #include "cdrom.h"
 #include "mdec.h"
 #include "gte.h"
+#include "sio.h"
 
 PsxCpu *psxCpu = 0;
 
