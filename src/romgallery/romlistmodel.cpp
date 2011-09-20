@@ -46,8 +46,8 @@ void RomListModel::setMachineName(const QString &name) {
 	if (name == "gba") {
 		excluded << "gba_bios.bin";
 	} else if (name == "psx") {
-		excluded << "mcd001";
-		excluded << "mcd002";
+		excluded << "mcd001.mcr";
+		excluded << "mcd002.mcr";
 	}
 	QRegExp psxBiosRx("scph*.bin", Qt::CaseSensitive, QRegExp::Wildcard);
 	for (int i = 0; i < infoList.size(); i++) {

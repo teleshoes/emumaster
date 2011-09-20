@@ -19,7 +19,7 @@ Sheet {
 
 			Label {
 				width: parent.width
-				text: "Author: Marcin Kaźmierczak\nWant new features? Found bug? Go to homepage"
+				text: "Author: Elemental\nWant new features? Found bug? Go to homepage"
 				wrapMode: Text.WordWrap
 				horizontalAlignment: Text.AlignHCenter
 			}

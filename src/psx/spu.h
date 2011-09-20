@@ -11,7 +11,6 @@ typedef u16 (* SPUreadDMA)();
 typedef void (* SPUwriteDMAMem)(u16 *, int);
 typedef void (* SPUreadDMAMem)(u16 *, int);
 typedef void (* SPUplayADPCMchannel)(xa_decode_t *);
-typedef void (* SPUasync)(u32);
 typedef void (* SPUplayCDDAchannel)(s16 *, int);
 
 #if defined(__cplusplus)
@@ -22,7 +21,7 @@ public:
 	virtual void shutdown();
 
 	virtual int fillBuffer(char *stream, int size) = 0;
-	virtual void setEnabled(bool on) = 0;
+	virtual void setEnabled(bool on);
 
 	virtual bool save(QDataStream &s) = 0;
 	virtual bool load(QDataStream &s) = 0;
@@ -40,7 +39,6 @@ extern SPUreadDMA          SPU_readDMA;
 extern SPUwriteDMAMem      SPU_writeDMAMem;
 extern SPUreadDMAMem       SPU_readDMAMem;
 extern SPUplayADPCMchannel SPU_playADPCMchannel;
-extern SPUasync            SPU_async;
 extern SPUplayCDDAchannel  SPU_playCDDAchannel;
 
 extern void SPUirq();

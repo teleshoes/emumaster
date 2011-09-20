@@ -7,7 +7,6 @@ PsxSpuNull psxSpuNull;
 
 static u16 regArea[10000];
 static u16 spuMem[256*1024];
-static u8 *spuMem8 = (u8 *)spuMem;
 
 static u16 spuCtrl, spuStat, spuIrq=0;             // some vars to store psx reg infos
 static u32 spuAddr = 0xffffffff;                     // address into spu mem
@@ -107,8 +106,6 @@ static void spuNullReadDMAMem(u16 *pusPSXMem, int iSize) {
 
 static void spuNullPlayADPCMchannel(xa_decode_t *) {
 }
-static void spuNullAsync(u32) {
-}
 static void spuNullPlayCDDAchannel(s16 *, int) {
 }
 
@@ -118,9 +115,6 @@ int PsxSpuNull::fillBuffer(char *stream, int size) {
 	return 0;
 }
 
-void PsxSpuNull::setEnabled(bool on)
-{ Q_UNUSED(on) }
-
 bool PsxSpuNull::init() {
 	SPU_writeRegister		= spuNullWriteRegister;
 	SPU_readRegister		= spuNullReadRegister;
@@ -129,7 +123,6 @@ bool PsxSpuNull::init() {
 	SPU_writeDMAMem			= spuNullWriteDMAMem;
 	SPU_readDMAMem			= spuNullReadDMAMem;
 	SPU_playADPCMchannel	= spuNullPlayADPCMchannel;
-	SPU_async				= spuNullAsync;
 	SPU_playCDDAchannel		= spuNullPlayCDDAchannel;
 	return true;
 }
@@ -138,6 +131,7 @@ bool PsxSpuNull::init() {
 STATE_SERIALIZE_BEGIN_##sl(PsxSpuNull, 1) \
 	STATE_SERIALIZE_ARRAY_##sl(regArea, sizeof(regArea)) \
 	STATE_SERIALIZE_ARRAY_##sl(spuMem, sizeof(spuMem)) \
+	STATE_SERIALIZE_VAR_##sl(spuAddr) \
 	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
 		for (int i = 0; i < 0x100; i++) { \
 			if (i != H_SPUon1-0xc00 && i != H_SPUon2-0xc00) \

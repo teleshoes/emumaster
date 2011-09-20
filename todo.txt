@@ -1,16 +1,19 @@
 poll: Amiga N64 NDS
 
  s psx selectable bios
- s exit from psx thread
  s timer for games that don't work at all
  s pause when call is coming or device is going to sleep
- s update about page -> elemental
  s copy legal info
  s snes license
  s add copyrights
  s psx mem cards viewer
+ s gba and nes sound counters are invalid
+ s ROMs not found -> no disk found
+ s something bad with base_addr
+ s pal/ntsc/auto selector in psx
 
  s bluetooth gamepad
+ b when removing disk in gallery the view turns to the first disk
  s analog and feedback pad psx
  s load roms from dir in psx (menu in qml)
  s more info when no roms in psx about folders

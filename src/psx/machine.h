@@ -45,7 +45,6 @@ protected:
 private:
 	QSemaphore m_consSem;
 	QSemaphore m_prodSem;
-	volatile bool m_quit;
 };
 
 class PsxThread : public QThread {

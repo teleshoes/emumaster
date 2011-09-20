@@ -275,36 +275,11 @@ void psxRcntUpdate()
     {
         psxRcntReset( 3 );
 
-        spuSyncCount++;
         hSyncCount++;
-
-        // Update spu.
-		if( spuSyncCount >= SpuUpdInterval[psxMachine.systemType] )
-        {
-            spuSyncCount = 0;
-
-            if( SPU_async )
-            {
-				SPU_async( SpuUpdInterval[psxMachine.systemType] * rcnts[3].target );
-            }
-        }
-
-#if 0
-        // VSync irq.
-		if( hSyncCount == VBlankStart[psxMachine.systemType] )
-        {
-            GPU_vBlank( 1, &hSyncCount );
-        }
-#endif
-        
         // Update lace. (with InuYasha fix)
-		if( hSyncCount >= (Config.VSyncWA ? HSyncTotal[psxMachine.systemType] / BIAS : HSyncTotal[psxMachine.systemType]) )
-        {
+		if( hSyncCount >= (Config.VSyncWA ? HSyncTotal[psxMachine.systemType] / BIAS : HSyncTotal[psxMachine.systemType]) ) {
             hSyncCount = 0;
-#if 0
-            GPU_vBlank( 0, &hSyncCount );
-#endif
-            setIrq( 0x01 );
+			setIrq(0x01);
             GPU_updateLace();
         }
     }

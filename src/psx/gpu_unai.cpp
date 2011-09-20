@@ -475,8 +475,8 @@ static void gpuUnaiWriteStatus(u32 data)
 		GPU_GP1 = (GPU_GP1 & ~0x60000000) | ((data & 3) << 29);
 		break;
 	case 0x05:
-		DisplayArea[0] = (data & 0x000003FF); //(short)(data & 0x3ff);
-		DisplayArea[1] = ((data & 0x0007FC00)>>10); //(data & 0x000FFC00) >> 10; //(short)((data>>10)&0x1ff);
+		DisplayArea[0] = (data & 0x000003FF);
+		DisplayArea[1] = ((data & 0x0007FC00)>>10);
 		break;
 	case 0x07:
 		DisplayArea[4] = data & 0x000003FF; //(short)(data & 0x3ff);
@@ -599,7 +599,7 @@ const QImage & PsxGpuUnai::frame()
 { return gpuFrame; }
 
 void PsxGpuUnai::setDrawEnabled(bool drawEnabled)
-{ isSkip = !drawEnabled; }
+{ isSkip = false/* TODO !drawEnabled*/; }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
 STATE_SERIALIZE_BEGIN_##sl(PsxGpuUnai, 1) \

@@ -10,11 +10,13 @@ SPUreadDMA            SPU_readDMA;
 SPUwriteDMAMem        SPU_writeDMAMem;
 SPUreadDMAMem         SPU_readDMAMem;
 SPUplayADPCMchannel   SPU_playADPCMchannel;
-SPUasync              SPU_async;
 SPUplayCDDAchannel    SPU_playCDDAchannel;
 
 void PsxSpu::shutdown() {
 }
+
+void PsxSpu::setEnabled(bool on)
+{ Q_UNUSED(on) }
 
 void SPUirq() {
 	psxHu32ref(0x1070) |= SWAPu32(0x200);

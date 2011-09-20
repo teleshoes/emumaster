@@ -18,6 +18,7 @@
 #include "cpu_rec.h"
 #include "gpu_unai.h"
 #include "spu_null.h"
+#include "spu_fran.h"
 #include "mem.h"
 #include "hw.h"
 #include "bios.h"
@@ -38,8 +39,6 @@ PsxMachine::PsxMachine(QObject *parent) :
 }
 
 QString PsxMachine::init() {
-	m_quit = false;
-
 	Config.HLE = 0;
 
 	psxMcd1.init(userDataDirPath() + "/psx_mcd1.mcr");
@@ -58,7 +57,7 @@ QString PsxMachine::init() {
 
 	systemType = NtscType;
 	setVideoSrcRect(QRect(0, 0, 256, 240));
-	setFrameRate(60); // TODO PAL/NTSC
+	setFrameRate(60);
 
 	// TODO option to set interpreter cpu
 //	if (Config.Cpu == CpuInterpreter)
@@ -67,7 +66,7 @@ QString PsxMachine::init() {
 		psxCpu = &psxRec;
 
 		psxGpu = &psxGpuUnai;
-		psxSpu = &psxSpuNull;
+		psxSpu = &psxSpuFran;
 
 	if (!psxMemInit())
 		return "Could not allocate memory!";
@@ -90,10 +89,14 @@ QString PsxMachine::init() {
 }
 
 void PsxMachine::shutdown() {
-	FreePPFCache();
-	psxMemShutdown();
+	stop = true;
+	m_prodSem.release();
+	psxThread.wait();
+	psxGpu->shutdown();
+	psxSpu->shutdown();
 	psxCpu->shutdown();
-
+	psxMemShutdown();
+	FreePPFCache();
 	StopDebugger();
 }
 
@@ -137,9 +140,6 @@ void PsxMachine::updateGpuScale(int w, int h) {
 
 void PsxMachine::flipScreen() {
 	m_consSem.release();
-	// TODO rework
-	if (m_quit)
-		psxThread.terminate();
 	m_prodSem.acquire();
 }
 
@@ -158,6 +158,8 @@ QString PsxMachine::setDisk(const QString &path) {
 		reset();
 		if (LoadCdrom() == -1)
 			return "Could not load CD.";
+
+		setFrameRate(systemType == NtscType ? 60 : 50);
 		psxThread.start();
 		m_consSem.acquire();
 	}

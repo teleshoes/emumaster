@@ -1,11 +1,12 @@
-#ifndef PSXSPUNULL_H
-#define PSXSPUNULL_H
+#ifndef SPU_FRAN_H
+#define SPU_FRAN_H
 
 #include "spu.h"
 
-class PsxSpuNull : public PsxSpu {
+class PsxSpuFran : public PsxSpu {
 public:
 	bool init();
+	void shutdown();
 
 	int fillBuffer(char *stream, int size);
 
@@ -13,6 +14,6 @@ public:
 	bool load(QDataStream &s);
 };
 
-extern PsxSpuNull psxSpuNull;
+extern PsxSpuFran psxSpuFran;
 
-#endif // PSXSPUNULL_H
+#endif // SPU_FRAN_H

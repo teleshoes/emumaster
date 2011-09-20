@@ -59,7 +59,8 @@ HEADERS += \
     hle.h \
     hw.h \
     mem.h \
-    socket.h
+    socket.h \
+    spu_fran.h
 
 SOURCES += \
 	machine.cpp \
@@ -94,11 +95,14 @@ SOURCES += \
     hle.cpp \
     hw.cpp \
     mem.cpp \
-    socket.cpp
+    socket.cpp \
+    spu_fran.cpp
 
 OTHER_FILES += \
 	new_dynarec/assem_arm.c \
 	new_dynarec/pcsxmem_inline.c
+
+
 
 
 
