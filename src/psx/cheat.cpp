@@ -180,7 +180,8 @@ void SaveCheats(const char *filename) {
 
 // apply all enabled cheats
 void ApplyCheats() {
-	int		i, j, k, endindex;
+	int		i, j, endindex;
+	u32 k;
 
 	for (i = 0; i < NumCheats; i++) {
 		if (!Cheats[i].Enabled) {

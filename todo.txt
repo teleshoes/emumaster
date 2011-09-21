@@ -2,7 +2,6 @@ poll: Amiga N64 NDS
 
  s psx selectable bios
  s timer for games that don't work at all
- s pause when call is coming or device is going to sleep
  s copy legal info
  s snes license
  s add copyrights

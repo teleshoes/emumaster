@@ -108,12 +108,8 @@ bool psxMemInit() {
 }
 
 void psxMemReset() {
-	FILE *f = NULL;
-	char bios[1024];
-
 	memset(psxM, 0, 0x00200000);
 	memset(psxP, 0, 0x00010000);
-
 	psxMem.loadBios();
 }
 

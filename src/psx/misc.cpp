@@ -107,14 +107,14 @@ void mmssdd( char *b, char *p )
 	READTRACK(); \
 	memcpy(_dir + 2048, buf + 12, 2048);
 
-int GetCdromFile(u8 *mdir, u8 *time, char *filename) {
+int GetCdromFile(u8 *mdir, u8 *time, const char *filename) {
 	struct iso_directory_record *dir;
 	char ddir[4096];
 	u8 *buf;
 	int i;
 
 	// only try to scan if a filename is given
-	if (!strlen((char *)filename)) return -1;
+	if (!strlen(filename)) return -1;
 
 	i = 0;
 	while (i < 4096) {
@@ -125,7 +125,7 @@ int GetCdromFile(u8 *mdir, u8 *time, char *filename) {
 		i += dir->length[0];
 
 		if (dir->flags[0] & 0x2) { // it's a dir
-			if (!strnicmp((char *)&dir->name[0], (char *)filename, dir->name_len[0])) {
+			if (!strnicmp((char *)&dir->name[0], filename, dir->name_len[0])) {
 				if (filename[dir->name_len[0]] != '\\') continue;
 
 				filename += dir->name_len[0] + 1;
@@ -136,7 +136,7 @@ int GetCdromFile(u8 *mdir, u8 *time, char *filename) {
 				mdir = (u8 *)ddir;
 			}
 		} else {
-			if (!strnicmp((char *)&dir->name[0], (char *)filename, strlen((char *)filename))) {
+			if (!strnicmp((char *)&dir->name[0], filename, strlen(filename))) {
 				mmssdd(dir->extent, (char *)time);
 				break;
 			}

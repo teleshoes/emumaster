@@ -341,7 +341,7 @@ void BuildPPFCache() {
 unsigned char *sbi_sectors;
 
 int LoadSBI(const char *fname, int sector_count) {
-	char buffer[16], sbifile[1024];
+	char buffer[16];
 	FILE *sbihandle;
 	u8 sbitime[3];
 	int s;

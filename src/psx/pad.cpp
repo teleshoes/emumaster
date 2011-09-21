@@ -47,10 +47,12 @@ void setPadButtons(int machineKeys) {
 static u8 *buf;
 
 u8 pad2StartPoll(u8 data) {
+	Q_UNUSED(data);
 	return 0xFF;
 }
 
 u8 pad2Poll(u8 data) {
+	Q_UNUSED(data);
 	return 0xFF;
 }
 
@@ -219,6 +221,7 @@ static void do_cmd2(u8 data)
 }
 
 u8 pad1StartPoll(u8 data) {
+	Q_UNUSED(data);
 	byteIndex = 0;
 	return 0xFF;
 }

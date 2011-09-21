@@ -149,7 +149,6 @@ static u8 *pMixIrq=0;
 static SPUCHAN         s_chan[MAXCHAN+1];                     // channel + 1 infos (1 is security for fmod handling)
 static REVERBInfo      rvb;
 
-static u32 dwNoiseVal = 1;                          // global noise generator
 static u16 spuCtrl = 0;                             // some vars to store psx reg infos
 static u16 spuStat = 0;
 static u16 spuIrq = 0;
@@ -188,9 +187,7 @@ static void  spuFranReadDMAMem(u16 *pusPSXMem, int size) {
 
 static void spuFranWriteDMA(u16 data) {
 	spuMem[spuAddr>>1] = data;
-	spuAddr += 2;
-	if (spuAddr >= 0x80000)
-		spuAddr = 0;
+	spuAddr = (spuAddr + 2) & 0x7FFFF;
 }
 
 static void spuFranWriteDMAMem(u16 *pusPSXMem, int size) {
@@ -211,22 +208,16 @@ static void spuFranWriteDMAMem(u16 *pusPSXMem, int size) {
 #define SUSTAIN_MS     441L
 #define RELEASE_MS     437L
 
-// SOUND ON register write
-inline void SoundOn(int start,int end,unsigned short val)     // SOUND ON PSX COMAND
-{
-	int ch;
-	for(ch=start;ch<end;ch++,val>>=1)                     // loop channels
-	{
-		if((val&1) && s_chan[ch].pStart)              // mmm... start has to be set before key on !?!
-			{
-				s_chan[ch].bIgnoreLoop=0;
-				s_chan[ch].bNew=1;
-			}
+static inline void SoundOn(int start, int end, u16 val) {
+	for (int ch = start; ch < end; ch++,val>>=1) {
+		if ((val&1) && s_chan[ch].pStart) {
+			s_chan[ch].bIgnoreLoop=0;
+			s_chan[ch].bNew=1;
+		}
 	}
 }
 
-// SOUND OFF register write
-inline void SoundOff(int start,int end,unsigned short val)    // SOUND OFF PSX COMMAND
+static inline void SoundOff(int start,int end,unsigned short val)    // SOUND OFF PSX COMMAND
 {
 	int ch;
 	for(ch=start;ch<end;ch++,val>>=1)                     // loop channels
@@ -692,8 +683,7 @@ static inline void StartSound(SPUCHAN * pChannel) {
 	pChannel->SB[31]=0;    				// -> no/simple interpolation starts with one 44100 decoding
 }
 
-inline void VoiceChangeFrequency(SPUCHAN * pChannel)
-{
+static inline void VoiceChangeFrequency(SPUCHAN * pChannel) {
 	pChannel->iUsedFreq=pChannel->iActFreq;               // -> take it and calc steps
 	pChannel->sinc=pChannel->iRawPitch<<4;
 	if(!pChannel->sinc) pChannel->sinc=1;
@@ -795,7 +785,7 @@ int PsxSpuFran::fillBuffer(char *stream, int size) {
 
 	u16 *dst = (u16 *)stream;
 	for (SPUCHAN *ch = s_chan; ch != s_chan + MAXCHAN; ch++) {
-		if(ch->bNew)
+		if (ch->bNew)
 			StartSound(ch);
 		if (!ch->bOn)
 			continue;

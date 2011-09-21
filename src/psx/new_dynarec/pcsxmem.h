@@ -12,4 +12,4 @@ void new_dyna_pcsx_mem_reset(void);
 }
 #endif
 
-#endif PCSXMEM_H
+#endif // PCSXMEM_H

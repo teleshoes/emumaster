@@ -102,7 +102,7 @@ static void delayReadWrite(int reg, u32 bpc) {
 #define _tRs_     ((tmp >> 21) & 0x1F)  // The rs part of the instruction register 
 #define _tSa_     ((tmp >>  6) & 0x1F)  // The sa part of the instruction register
 
-static int psxTestLoadDelay(int reg, u32 tmp) {
+static int psxTestLoadDelay(u32 reg, u32 tmp) {
 	if (tmp == 0) return 0; // NOP
 	switch (tmp >> 26) {
 		case 0x00: // SPECIAL

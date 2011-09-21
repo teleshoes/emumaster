@@ -108,7 +108,7 @@ Page {
 		rejectButtonText: "Close"
 
 		titleText: "Help"
-		message: "ROMs not found. To install ROM you need to attach phone to the PC and copy your files to \"emumaster/" +
+		message: "The directory is empty. To install disk you need to attach phone to the PC and copy your files to \"emumaster/" +
 				 romListModel.machineName + "\" directory. Remember to detach phone from the PC. " +
 				 "Consider a small donation if you find this software useful"
 	}
