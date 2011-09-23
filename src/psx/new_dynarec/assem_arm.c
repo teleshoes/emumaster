@@ -252,6 +252,10 @@ void *kill_pointer(void *stub)
   return i_ptr;
 }
 
+// find where external branch is liked to using addr of it's stub:
+// get address that insn one after stub loads (dyna_linker arg1),
+// treat it as a pointer to branch insn,
+// return addr where that branch jumps to
 int get_pointer(void *stub)
 {
   //printf("get_pointer(%x)\n",(int)stub);
@@ -936,33 +940,15 @@ void genimm_checked(u32 imm,u32 *encoded)
 }
 u32 genjmp(u32 addr)
 {
-  if(addr<4) return 0;
-  int offset=addr-(int)out-8;
-  if(offset<-33554432||offset>=33554432)
-  {
-    int n;
-    for (n=0;n<sizeof(jump_table_symbols)/4;n++)
-    {
-      if(addr==jump_table_symbols[n])
-      {
-        offset=BASE_ADDR+(1<<TARGET_SIZE_2)-JUMP_TABLE_SIZE+n*8-(int)out-8;
-        break;
-      }
-    }
-  }
-  assert(offset>=-33554432&&offset<33554432);
-  return ((u32)offset>>2)&0xffffff;
-/*    
   int offset=addr-(int)out-8;
   if(offset<-33554432||offset>=33554432) {
     if (addr>2) {
-      printf("genjmp: out of range: %08x\n", offset);
-      exit(1);
+	  printf("genjmp: out of range: %08x\n", offset);
+	  exit(1);
     }
     return 0;
   }
-  return ((u32)offset>>2)&0xffffff;
-*/
+  return ((u_int)offset>>2)&0xffffff;
 }
 
 void emit_mov(int rs,int rt)
@@ -5006,27 +4992,6 @@ void arch_init() {
   rounding_modes[2]=0x1<<22; // ceil
   rounding_modes[3]=0x2<<22; // floor
 #endif
-
-  // Trampolines for jumps >32M
-  int *ptr,*ptr2;
-  ptr=(int *)jump_table_symbols;
-  ptr2=(int *)((void *)BASE_ADDR+(1<<TARGET_SIZE_2)-JUMP_TABLE_SIZE);
-  while((void *)ptr<(void *)jump_table_symbols+sizeof(jump_table_symbols))
-  {
-    int offset=*ptr-(int)ptr2-8;
-    if(offset>=-33554432&&offset<33554432)
-    {
-      *ptr2=0xea000000|((offset>>2)&0xffffff); // direct branch
-    }
-    else
-    {
-      *ptr2=0xe51ff004; // ldr pc,[pc,#-4]
-    }
-    ptr2++;
-    *ptr2=*ptr;
-    ptr++;
-    ptr2++;
-  }
 }
 
 // vim:shiftwidth=2:expandtab

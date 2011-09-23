@@ -7791,10 +7791,9 @@ void new_dynarec_init()
   printf("Init new dynarec\n");
   out=(u_char *)BASE_ADDR;
   if (mmap (out, 1<<TARGET_SIZE_2,
-            PROT_READ | PROT_WRITE | PROT_EXEC,
-            MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS,
-            -1, 0) <= 0) {printf("mmap() failed\n");}
-  mprotect(out, 1<<TARGET_SIZE_2, PROT_READ|PROT_WRITE|PROT_EXEC);
+			PROT_READ | PROT_WRITE | PROT_EXEC,
+			MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS,
+			-1, 0) <= 0) {printf("mmap() failed\n"); exit(1); }
 #ifdef MUPEN64
   rdword=&readmem_dword;
   fake_pc.f.r.rs=&readmem_dword;
@@ -7887,7 +7886,7 @@ int new_recompile_block(int addr)
 #ifdef PCSX
   if(!sp_in_mirror&&(signed int)(psxRegs.GPR.n.sp&0xffe00000)>0x80200000&&
      0x10000<=psxRegs.GPR.n.sp&&(psxRegs.GPR.n.sp&~0xe0e00000)<RAM_SIZE) {
-    printf("SP hack enabled (%08x), @%08x\n", psxRegs.GPR.n.sp);
+    printf("SP hack enabled (%08x), @%08x\n", psxRegs.GPR.n.sp, psxRegs.pc);
     sp_in_mirror=1;
   }
   if (Config.HLE && start == 0x80001000) // hlecall
@@ -7958,7 +7957,7 @@ int new_recompile_block(int addr)
 #endif
   else {
     printf("Compile at bogus memory address: %x \n", (int)addr);
-	assert(0);
+    exit(1);
   }
 
   /* Pass 1: disassemble */
@@ -10971,6 +10970,7 @@ int new_recompile_block(int addr)
 #ifdef PCSX
   if (start == 0x80030000) {
     // nasty hack for fastbios thing
+    // override block entry to this code
     instr_addr0_override=(u32)out;
     emit_movimm(start,0);
     // abuse io address var as a flag that we
@@ -11287,7 +11287,7 @@ int new_recompile_block(int addr)
   
   // If we're within 256K of the end of the buffer,
   // start over from the beginning. (Is 256K enough?)
-  if((int)out>BASE_ADDR+(1<<TARGET_SIZE_2)-MAX_OUTPUT_BLOCK_SIZE-JUMP_TABLE_SIZE) out=(u_char *)BASE_ADDR;
+  if((int)out>BASE_ADDR+(1<<TARGET_SIZE_2)-MAX_OUTPUT_BLOCK_SIZE) out=(u_char *)BASE_ADDR;
   
   // Trap writes to any of the pages we compiled
   for(i=start>>12;i<=(start+slen*4)>>12;i++) {

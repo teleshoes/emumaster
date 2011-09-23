@@ -354,7 +354,6 @@ int CheckCdrom() {
 	SysPrintf("CD-ROM ID: %.9s\n", CdromId);
 
 	BuildPPFCache();
-
 	return 0;
 }
 

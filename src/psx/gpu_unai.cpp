@@ -474,11 +474,14 @@ static void gpuUnaiWriteStatus(u32 data)
 		PacketCount = 0;
 		GPU_GP1 = (GPU_GP1 & ~0x60000000) | ((data & 3) << 29);
 		break;
-	case 0x05:
+	case 0x05: {
+		int oldX = DisplayArea[0];
+		int oldY = DisplayArea[1];
 		DisplayArea[0] = (data & 0x000003FF);
 		DisplayArea[1] = ((data & 0x0007FC00)>>10);
-		isSkip = false;
+		isSkip = (isSkip && oldX == DisplayArea[0] && oldY == DisplayArea[1]);
 		break;
+	}
 	case 0x07:
 		DisplayArea[4] = data & 0x000003FF; //(short)(data & 0x3ff);
 		DisplayArea[5] = (data & 0x000FFC00) >> 10; //(short)((data>>10) & 0x3ff);
@@ -543,7 +546,7 @@ static void gpuVideoOutput() {
 			gpuFrame = QImage(width, h1, QImage::Format_RGB16);
 			qDebug("16 bit video %d %d", w0, h1);
 		} else {
-			qDebug("24 bit video");
+			qDebug("24 bit video %d %d", w0, h1);
 			gpuFrame = QImage((uchar *)src, width, h1, FRAME_WIDTH*2, QImage::Format_RGB888);
 		}
 		psxMachine.updateGpuScale(w0, h1);

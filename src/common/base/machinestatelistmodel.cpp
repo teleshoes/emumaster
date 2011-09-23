@@ -64,10 +64,10 @@ QImage MachineStateListModel::screenShot(int i) const {
 
 bool MachineStateListModel::saveState(int i) {
 	bool newState = false;
-	if (i == -1) {
+	if (i == NewSlot) {
 		i = ++m_maxSaveIndex;
 		newState = true;
-	} else if (i == -2) {
+	} else if (i == AutoSlot) {
 		newState = (indexOf(-2) < 0);
 	}	
 	QByteArray data;
@@ -106,7 +106,7 @@ bool MachineStateListModel::saveState(int i) {
 }
 
 bool MachineStateListModel::loadState(int i) {
-	if (i == -2) {
+	if (i == AutoSlot) {
 		if (m_list.size() <= 0)
 			return false;
 		i = m_list.at(0).fileName().toInt();

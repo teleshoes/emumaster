@@ -24,15 +24,13 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 	m_backgroundCounter(qAbs(qrand())/2),
 	m_wantClose(false),
 	m_pauseRequested(false),
-
-	m_autoSaveOnExit(true),
 	m_audioEnable(true) {
-
-	m_autoLoadOnStart = !qApp->arguments().contains("-noautoload");
-
 	Q_ASSERT(m_machine != 0);
 
 	m_thread = new MachineThread(m_machine);
+	bool autoLoadOnStart = !qApp->arguments().contains("-noautoload");
+	if (autoLoadOnStart)
+		m_thread->setLoadSlot(MachineStateListModel::AutoSlot);
 
 	m_hostInput = new HostInput(m_machine);
 	m_hostAudio = new HostAudio(m_machine);
@@ -53,6 +51,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 	loadSettings();
 
 	m_stateListModel = new MachineStateListModel(m_machine, diskName);
+	m_thread->setStateListModel(m_stateListModel);
 
 	m_settingsView = new SettingsView();
 	QObject::connect(m_settingsView->engine(), SIGNAL(quit()), SLOT(close()));
@@ -66,14 +65,8 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 
 	if (!error.isEmpty())
 		showError(error);
-
-	if (error.isEmpty()) {
-		for (int i = 0; i < 60; i++)
-			m_machine->emulateFrame(false);
-		if (m_autoLoadOnStart)
-			m_stateListModel->loadState(-2);
+	else
 		QObject::connect(m_hostInput, SIGNAL(pauseClicked()), SLOT(pause()));
-	}
 	QObject::connect(m_hostInput, SIGNAL(wantClose()), SLOT(close()));
 	QMetaObject::invokeMethod(this, "resume", Qt::QueuedConnection);
 }
@@ -84,8 +77,7 @@ MachineView::~MachineView() {
 			m_thread->wait();
 
 		saveSettings();
-		if (m_autoSaveOnExit)
-			m_stateListModel->saveState(-2);
+		m_stateListModel->saveState(MachineStateListModel::AutoSlot);
 
 		// auto save screenshot
 		if (!QFile::exists(m_machine->screenShotPath(m_diskName)))
@@ -111,6 +103,7 @@ void MachineView::showError(const QString &text) {
 void MachineView::pause() {
 	if (!m_running || m_pauseRequested)
 		return;
+	m_closeTries = 0;
 	m_pauseRequested = true;
 	QObject::disconnect(m_thread, SIGNAL(frameGenerated(bool)),
 						this, SLOT(onFrameGenerated(bool)));
@@ -122,9 +115,17 @@ void MachineView::pauseStage2() {
 	// the code below may be seen as bloat but it is needed
 	// we are waiting for the thread to exit, but at the same
 	// we allow blocking queued repaints from the thread
-	if (m_thread->isRunning())
+	if (m_thread->isRunning()) {
+		if (m_wantClose) {
+			m_closeTries++;
+			if (m_closeTries > 400) {
+				m_thread->terminate();
+				close();
+				return;
+			}
+		}
 		QTimer::singleShot(10, this, SLOT(pauseStage2()));
-
+	}
 	m_pauseRequested = false;
 	m_running = false;
 	if (!m_wantClose) {

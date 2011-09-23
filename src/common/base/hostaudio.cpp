@@ -123,7 +123,6 @@ void HostAudio::sendFrame() {
 	else
 		pa_stream_cancel_write(m_stream);
 //	pa_threaded_mainloop_unlock(m_mainloop);
-//	pa_threaded_mainloop_signal(m_mainloop, 0);
 }
 
 void HostAudio::waitForStreamReady() {

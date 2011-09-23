@@ -28,7 +28,7 @@ private:
 	void setKeyState(int key, bool state);
 
 	IMachine *m_machine;
-	int m_keys;
+	int m_keysPhone;
 	QAccelerometer *m_accelerometer;
 };
 

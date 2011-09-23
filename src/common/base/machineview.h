@@ -83,10 +83,8 @@ private:
 	int m_backgroundCounter;
 	bool m_wantClose;
 	bool m_pauseRequested;
-
-	bool m_autoLoadOnStart;
-	bool m_autoSaveOnExit;
 	bool m_audioEnable;
+	int m_closeTries;
 };
 
 inline IMachine *MachineView::machine() const
