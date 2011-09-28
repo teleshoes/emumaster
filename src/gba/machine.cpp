@@ -130,7 +130,7 @@ QString GbaMachine::loadBios() {
 
 QString GbaMachine::setDisk(const QString &path) {
 	init_gamepak_buffer();
-	if (!gbaMem.loadGamePack(path+".gba"))
+	if (!gbaMem.loadGamePack(path))
 		return "Could not load ROM";
 	reset();
 	skip_next_frame = 1;

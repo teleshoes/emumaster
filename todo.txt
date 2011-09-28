@@ -1,52 +1,31 @@
-poll: Amiga N64 NDS
+poll: Amiga Genesis DosBox
 
- s bluetooth gamepad
- s make use of CheckCdrom in psx
- s psx selectable bios
+ b when removing disk in gallery the view turns to the first disk
+ s mark psx as alpha
+ s PAL/NTSC/AUTO in NES emulation
+ s pal/ntsc/auto selector in psx
+ s psx selectable bios, cpu
  s copy legal info
  s snes license
  s add copyrights
- s gba and nes sound counters are invalid
 
- s something bad with base_addr
- s pal/ntsc/auto selector in psx
- b when removing disk in gallery the view turns to the first disk
- s analog and feedback pad psx
- s load roms from dir in psx (menu in qml)
- s more info when no roms in psx about folders
- b portrait mode in disk gallery makes titles half visible
- s add some more flags to compiler (as)
- x make icons in home screen removable
- b saves in gba tasmanian dont work
+ s build for N900
+ s sixaxis
  s load roms from zipped files
- s pad view config, colors, xor
+ s analog and feedback pad
+ s something bad with base_addr
+ s load roms from dir in psx (menu in qml), more info when no roms in psx about folders
+ b portrait mode in disk gallery makes titles half visible
+ x make icons in home screen removable - icon
  s on-screen paddle controller (e.g. arkanoid)
  s on-screen zapper controller (e.g. duck hunts)
  s nesapu performance
- s 6502 in assembly, detect idle loop
- s build for N900
- - input feedback
  - fps degradation on touch input
- - Amiga
- - N64
- - ScummVM
- - C64
- - ZX Spectrum
- - mappers 72-255
- - test PAL for NES
- - make better documentation:
-   - input - pressing 2 keys at the time
-   - howto make icon in the home screen
-   - howto pause, save, load, change settings
-   - howto update screen shot in the rom gallery
-   - howto change image in the rom gallery to your own file
-   - howto donate
+ - mappers 72-200
  - cheats in gba
  - cheats in snes
  - cheats in psx
- - netplay
  - remove the hack in .pri files needed for harmattan when sdk will support this
  - translations
-
-issues:
- - kick master (mapper 4) not working
+ b kick master (mapper 4) not working
+ b saves in gba tasmanian dont work

@@ -511,16 +511,11 @@ static inline void sound_copy(s16 *stream_base, int length) {
 }
 
 int GbaSpu::fillBuffer(char *stream, int length) {
-	const int perFrame = SoundSampleRate/60;
-	length = (length / perFrame) * perFrame;
-	if (!length)
-		return 0;
 	int sample_length = (gbc_sound_buffer_index - sound_buffer_base + SoundBufferSize) % SoundBufferSize;
-	sample_length = (sample_length / perFrame) * perFrame;
-	if (!sample_length)
-		return 0;
 	if (sample_length > length / 2)
 		sample_length = length / 2;
+	if (!sample_length)
+		return 0;
 	if ((sound_buffer_base + sample_length) >= SoundBufferSize) {
 		u32 partial_length = SoundBufferSize - sound_buffer_base;
 		sound_copy((s16 *)stream, partial_length);

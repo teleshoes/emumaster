@@ -69,7 +69,7 @@ Sheet {
 	}
 
 	onAccepted: {
-		if (!romGallery.addIconToHomeScreen(romListModel.get(currentRomIndex), imageScaler.value, iconX, iconY)) {
+		if (!romGallery.addIconToHomeScreen(currentRomIndex, imageScaler.value, iconX, iconY)) {
 			errorDialog.message = "Could not save icon!"
 			errorDialog.open()
 		}

@@ -111,7 +111,7 @@ void HostAudio::close() {
 void HostAudio::sendFrame() {
 	if (!m_stream)
 		return;
-//	pa_threaded_mainloop_lock(m_mainloop);
+	pa_threaded_mainloop_lock(m_mainloop);
 	size_t size = -1;
 	void *data;
 	pa_stream_begin_write(m_stream, &data, &size);
@@ -122,7 +122,7 @@ void HostAudio::sendFrame() {
 		pa_stream_write(m_stream, data, size, 0, 0, PA_SEEK_RELATIVE);
 	else
 		pa_stream_cancel_write(m_stream);
-//	pa_threaded_mainloop_unlock(m_mainloop);
+	pa_threaded_mainloop_unlock(m_mainloop);
 }
 
 void HostAudio::waitForStreamReady() {

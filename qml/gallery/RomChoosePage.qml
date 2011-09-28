@@ -11,7 +11,7 @@ Page {
 		ToolIcon {
 			iconId: "toolbar-mediacontrol-play"
 			visible: isDiskVisibleAndSelected
-			onClicked: romGallery.launch(romListModel.get(currentRomIndex), true)
+			onClicked: romGallery.launch(currentRomIndex, true)
 		}
 		ButtonRow {
 			platformStyle: TabButtonStyle { }
@@ -31,7 +31,7 @@ Page {
 		ToolIcon {
 			iconId: "toolbar-view-menu"
 			onClicked: {
-				mainMenu.addRemoveIconToggle = romGallery.iconInHomeScreenExists(romListModel.get(currentRomIndex))
+				mainMenu.addRemoveIconToggle = romGallery.iconInHomeScreenExists(currentRomIndex)
 				mainMenu.open()
 			}
 		}
@@ -57,7 +57,7 @@ Page {
 			}
 			MenuItem {
 				text: qsTr("Remove Icon from Home Screen")
-				onClicked: romGallery.removeIconFromHomeScreen(romListModel.get(currentRomIndex))
+				onClicked: romGallery.removeIconFromHomeScreen(currentRomIndex)
 				visible: romChooserPage.isDiskVisibleAndSelected && mainMenu.addRemoveIconToggle
 			}
 			MenuItem {
@@ -67,7 +67,7 @@ Page {
 			}
 			MenuItem {
 				text: qsTr("Run With Autoload Disabled")
-				onClicked: romGallery.launch(romListModel.get(currentRomIndex), false)
+				onClicked: romGallery.launch(currentRomIndex, false)
 				visible: romChooserPage.isDiskVisibleAndSelected
 			}
 			MenuItem {
@@ -120,7 +120,7 @@ Page {
 		rejectButtonText: "No"
 
 		titleText: "Remove"
-		message: "Do you really want to remove \"" + romListModel.get(currentRomIndex) + "\" ?"
+		message: "Do you really want to remove \"" + romListModel.getDiskTitle(currentRomIndex) + "\" ?"
 
 		onAccepted: romListModel.trash(currentRomIndex)
 	}
@@ -158,7 +158,7 @@ Page {
 			saveIconSheet.imgScale = 1.0
 			saveIconSheet.iconX = 0
 			saveIconSheet.iconY = 0
-			saveIconSheet.imgSource = "image://rom/" + romListModel.machineName + "_" + romListModel.get(currentRomIndex) + "*" + romListModel.getScreenShotUpdate(currentRomIndex)
+			saveIconSheet.imgSource = "image://rom/" + romListModel.machineName + "_" + romListModel.getDiskTitle(currentRomIndex) + "*" + romListModel.getScreenShotUpdate(currentRomIndex)
 			saveIconSheet.open()
 		}
 	}

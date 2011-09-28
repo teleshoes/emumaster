@@ -15,3 +15,8 @@ files extensions case sensitivity
 patterns scph*.bin for psx bios
 
 pad hotspots image
+howto make icon in the home screen
+howto pause, save, load, change settings
+howto update screen shot in the rom gallery
+howto change image in the rom gallery to your own file
+howto donate

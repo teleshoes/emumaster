@@ -145,18 +145,12 @@ void PsxMachine::flipScreen() {
 
 QString PsxMachine::setDisk(const QString &path) {
 	SetCdOpenCaseTime(time(0) + 2);
-	QFileInfo fi;
-	fi.setFile(path + ".iso");
-	if (!fi.exists()) {
-		fi.setFile(path + ".bin");
-	}
-	SetIsoFile(fi.filePath().toAscii().constData());
+	SetIsoFile(path.toAscii().constData());
 	if (!psxThread.isRunning()) {
 		if (CDR_open() < 0)
 			return "Could not open CD-ROM.";
-		CheckCdrom();
 		reset();
-		if (LoadCdrom() == -1)
+		if (CheckCdrom() == -1)
 			return "Could not load CD.";
 
 		setFrameRate(systemType == NtscType ? 60 : 50);

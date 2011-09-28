@@ -55,7 +55,7 @@ void NesMachine::reset() {
 }
 
 QString NesMachine::setDisk(const QString &path) {
-	if (!nesDisk.load(path + ".nes"))
+	if (!nesDisk.load(path))
 		return "Could not load ROM file";
 
 	nesMapper = NesMapper::create(nesMapperType);
@@ -265,9 +265,6 @@ void NesMachine::emulateFrameTile(bool drawEnabled) {
 
 int NesMachine::fillAudioBuffer(char *stream, int streamSize)
 { return nesApu.fillBuffer(stream, streamSize); }
-
-QObject *NesMachine::ppu() const
-{ return &nesPpu; }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
 STATE_SERIALIZE_BEGIN_##sl(NesMachine, 1) \

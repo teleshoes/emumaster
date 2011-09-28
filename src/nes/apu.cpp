@@ -182,15 +182,11 @@ u8 NesApu::read(u16 address) {
 }
 
 int NesApu::fillBuffer(char *stream, int length) {
-	length = (length / perFrame) * perFrame;
-	if (!length)
-		return 0;
 	int sampleLength = (bufferIndex - bufferBase + SampleBufferSize) % SampleBufferSize;
-	sampleLength = (sampleLength / perFrame) * perFrame;
-	if (!sampleLength)
-		return 0;
 	if (sampleLength > length / 2)
 		sampleLength = length / 2;
+	if (!sampleLength)
+		return 0;
 	if ((bufferBase + sampleLength) >= SampleBufferSize) {
 		u32 partialLength = SampleBufferSize - bufferBase;
 		memcpy((u16 *)stream, sampleBuffer + bufferBase, partialLength*2);

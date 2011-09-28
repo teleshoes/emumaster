@@ -16,7 +16,8 @@ MachineStateListModel::MachineStateListModel(IMachine *machine, const QString &d
 
 	m_dir = QDir(QString("%1/state").arg(IMachine::userDataDirPath()));
 
-	QString subDirName = QString("%1_%2").arg(m_machine->name()).arg(diskName);
+	QString diskTitle = QFileInfo(diskName).completeBaseName();
+	QString subDirName = QString("%1_%2").arg(m_machine->name()).arg(diskTitle);
 	m_dir.mkdir(subDirName);
 	m_dir.cd(subDirName);
 

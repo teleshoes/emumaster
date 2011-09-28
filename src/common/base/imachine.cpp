@@ -59,11 +59,12 @@ void IMachine::buildLocalDirTree() {
 	// TODO add directory for other consoles
 }
 
-QString IMachine::screenShotPath(const QString &diskName) const {
+QString IMachine::screenShotPath(const QString &diskFileName) const {
+	QString diskTitle = QFileInfo(diskFileName).completeBaseName();
 	return QString("%1/screenshot/%2_%3.jpg")
 			.arg(userDataDirPath())
 			.arg(m_name)
-			.arg(diskName);
+			.arg(diskTitle);
 }
 
 void IMachine::setAudioEnabled(bool on)

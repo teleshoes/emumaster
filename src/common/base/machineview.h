@@ -24,7 +24,7 @@ class BASE_EXPORT MachineView : public QObject {
 	Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged)
 	Q_PROPERTY(bool accelerometerEnable READ isAccelerometerEnabled WRITE setAccelerometerEnabled NOTIFY accelerometerEnableChanged)
 public:
-	explicit MachineView(IMachine *machine, const QString &diskName);
+	explicit MachineView(IMachine *machine, const QString &diskFileName);
 	~MachineView();
 
 	IMachine *machine() const;
@@ -70,7 +70,7 @@ private:
 	void loadSettings();
 
 	IMachine *m_machine;
-	QString m_diskName;
+	QString m_diskFileName;
 
 	MachineThread *m_thread;
 	HostInput *m_hostInput;

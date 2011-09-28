@@ -3,13 +3,14 @@
 #include <QFileInfo>
 #include <QSettings>
 #include <QUrl>
+#include <QProcess>
 
 RomListModel::RomListModel(QObject *parent) :
 	QAbstractListModel(parent),
 	m_screenShotUpdateCounter(0) {
 
 	QHash<int, QByteArray> roles;
-	roles.insert(NameRole, "title");
+	roles.insert(TitleRole, "title");
 	roles.insert(AlphabetRole, "alphabet");
 	roles.insert(ScreenShotUpdate, "screenShotUpdate");
 	setRoleNames(roles);
@@ -33,9 +34,9 @@ RomListModel::~RomListModel() {
 void RomListModel::setMachineName(const QString &name) {
 	if (!m_list.isEmpty()) {
 		beginRemoveRows(QModelIndex(), 0, m_list.size()-1);
+		m_list.clear();
 		endRemoveRows();
 	}
-	m_list.clear();
 	m_machineName = name;
 	emit machineNameChanged();
 	m_dir = QDir(IMachine::diskDirPath(m_machineName));
@@ -54,7 +55,7 @@ void RomListModel::setMachineName(const QString &name) {
 		if (psxBiosRx.exactMatch(infoList.at(i).fileName()))
 			continue;
 		if (!excluded.contains(infoList.at(i).fileName()))
-			m_list.append(infoList.at(i).completeBaseName());
+			m_list.append(infoList.at(i).fileName());
 	}
 	if (!m_list.isEmpty()) {
 		beginInsertRows(QModelIndex(), 0, m_list.size()-1);
@@ -63,10 +64,13 @@ void RomListModel::setMachineName(const QString &name) {
 }
 
 QVariant RomListModel::data(const QModelIndex &index, int role) const {
-	if (role == NameRole) {
-		return m_list.at(index.row());
+	if (role == TitleRole) {
+		return getDiskTitle(index.row());
 	} else if (role == AlphabetRole) {
-		return m_list.at(index.row()).at(0).toUpper();
+		QString title = getDiskTitle(index.row());
+		if (title.isEmpty())
+			return QVariant();
+		return title.at(0).toUpper();
 	} else if (role == ScreenShotUpdate) {
 		return getScreenShotUpdate(index.row());
 	}
@@ -87,7 +91,13 @@ QString RomListModel::getAlphabet(int i) const {
 	return m_list.at(i).at(0).toUpper();
 }
 
-QString RomListModel::get(int i) const {
+QString RomListModel::getDiskTitle(int i) const {
+	if (i < 0 || i >= m_list.size())
+		return QString();
+	return QFileInfo(m_list.at(i)).completeBaseName();
+}
+
+QString RomListModel::getDiskFileName(int i) const {
 	if (i < 0 || i >= m_list.size())
 		return QString();
 	return m_list.at(i);
@@ -102,10 +112,13 @@ void RomListModel::updateScreenShot(const QString &name) {
 }
 
 int RomListModel::getScreenShotUpdate(int i) const {
+	QString diskTitle = getDiskTitle(i);
+	if (diskTitle.isEmpty())
+		return -1;
 	QString path = QString("%1/screenshot/%2_%3.jpg")
 			.arg(IMachine::userDataDirPath())
 			.arg(m_machineName)
-			.arg(m_list.at(i));
+			.arg(diskTitle);
 	if (QFile::exists(path))
 		return m_screenShotUpdateCounter;
 	else
@@ -113,43 +126,32 @@ int RomListModel::getScreenShotUpdate(int i) const {
 }
 
 void RomListModel::trash(int i) {
-	QStringList nf;
-	nf << m_list.at(i);
-	QFileInfoList list = m_dir.entryInfoList(nf, QDir::Dirs);
-	if (!list.isEmpty()) {
-		QString fn = list.at(0).fileName();
-		m_dir.cd(fn);
-		nf = QStringList() << "*";
-		list = m_dir.entryInfoList(nf);
-		foreach (QFileInfo info, list)
-			m_dir.remove(info.fileName());
-		m_dir.cdUp();
-		m_dir.rmdir(fn);
-	} else {
-		nf = QStringList() << (m_list.at(i) + ".*");
-		list = m_dir.entryInfoList(nf);
-		foreach (QFileInfo info, list)
-			m_dir.remove(info.fileName());
-	}
-	setMachineName(m_machineName);
+	beginRemoveRows(QModelIndex(), i, i);
+	QStringList args;
+	args << "-R";
+	args << m_dir.absolutePath() + "/" + m_list.at(i);
+	QProcess::startDetached("rm", args);
+	m_list.removeAt(i);
+	endRemoveRows();
 }
 
 void RomListModel::receiveDatagram() {
 	QByteArray ba(m_sock.pendingDatagramSize(), Qt::Uninitialized);
 	m_sock.readDatagram(ba.data(), ba.size());
 	QDataStream s(&ba, QIODevice::ReadOnly);
-	QString name;
-	s >> name;
-	updateScreenShot(name);
+	QString diskFileName;
+	s >> diskFileName;
+	updateScreenShot(diskFileName);
 }
 
 void RomListModel::setDiskCover(int i, const QUrl &coverUrl) {
-	if (i < 0)
+	QString diskTitle = getDiskTitle(i);
+	if (diskTitle.isEmpty())
 		return;
 	QString path = QString("%1/screenshot/%2_%3.jpg")
 			.arg(IMachine::userDataDirPath())
 			.arg(m_machineName)
-			.arg(m_list.at(i));
+			.arg(diskTitle);
 	QString coverPath = coverUrl.toLocalFile();
 	if (!QFile::exists(coverPath))
 		return;

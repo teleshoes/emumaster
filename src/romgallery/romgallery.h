@@ -10,11 +10,11 @@ public:
     explicit RomGallery(QWidget *parent = 0);
 	~RomGallery();
 
-	Q_INVOKABLE void launch(const QString &diskName, bool autoload);
+	Q_INVOKABLE void launch(int index, bool autoload);
 
-	Q_INVOKABLE bool addIconToHomeScreen(const QString &diskName, qreal scale, int x, int y);
-	Q_INVOKABLE void removeIconFromHomeScreen(const QString &diskName);
-	Q_INVOKABLE bool iconInHomeScreenExists(const QString &diskName);
+	Q_INVOKABLE bool addIconToHomeScreen(int index, qreal scale, int x, int y);
+	Q_INVOKABLE void removeIconFromHomeScreen(int index);
+	Q_INVOKABLE bool iconInHomeScreenExists(int index);
 
 	Q_INVOKABLE void donate();
 	Q_INVOKABLE void homepage();
@@ -25,7 +25,7 @@ private slots:
 	void emitRomUpdate();
 private:
 	QImage applyMaskAndOverlay(const QImage &icon);
-	void homeScreenIconPaths(QString *desktopFilePath, QString *iconFilePath, const QString &diskName);
+	void homeScreenIconPaths(QString *desktopFilePath, QString *iconFilePath, const QString &diskTitle);
 
 	RomListModel *m_romListModel;
 };

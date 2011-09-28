@@ -19,7 +19,6 @@ enum SystemType { NES_NTSC, NES_PAL };
 
 class NesMachine : public IMachine {
 	Q_OBJECT
-	Q_PROPERTY(QObject *ppu READ ppu CONSTANT)
 public:
 	NesMachine();
 	QString init();
@@ -36,8 +35,6 @@ public:
 
 	bool save(QDataStream &s);
 	bool load(QDataStream &s);
-
-	QObject *ppu() const;
 private:
 	void emulateFrameNoTile(bool drawEnabled);
 	void emulateVisibleScanlineNoTile();

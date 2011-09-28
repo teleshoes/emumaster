@@ -17,9 +17,9 @@
 #include <QSettings>
 #include <QUdpSocket>
 
-MachineView::MachineView(IMachine *machine, const QString &diskName) :
+MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_machine(machine),
-	m_diskName(diskName),
+	m_diskFileName(diskFileName),
 	m_running(false),
 	m_backgroundCounter(qAbs(qrand())/2),
 	m_wantClose(false),
@@ -45,12 +45,12 @@ MachineView::MachineView(IMachine *machine, const QString &diskName) :
 	if (error.isEmpty()) {
 		error = m_machine->setDisk(QString("%1/%2")
 										   .arg(m_machine->diskDirPath())
-										   .arg(diskName));
+										   .arg(m_diskFileName));
 	}
 
 	loadSettings();
 
-	m_stateListModel = new MachineStateListModel(m_machine, diskName);
+	m_stateListModel = new MachineStateListModel(m_machine, m_diskFileName);
 	m_thread->setStateListModel(m_stateListModel);
 
 	m_settingsView = new SettingsView();
@@ -80,7 +80,7 @@ MachineView::~MachineView() {
 		m_stateListModel->saveState(MachineStateListModel::AutoSlot);
 
 		// auto save screenshot
-		if (!QFile::exists(m_machine->screenShotPath(m_diskName)))
+		if (!QFile::exists(m_machine->screenShotPath(m_diskFileName)))
 			saveScreenShot();
 	}
 	delete m_thread;
@@ -179,10 +179,10 @@ bool MachineView::close() {
 void MachineView::saveScreenShot() {
 	QImage img = m_machine->frame().copy(m_machine->videoSrcRect().toRect());
 	img = img.convertToFormat(QImage::Format_ARGB32);
-	img.save(m_machine->screenShotPath(m_diskName));
+	img.save(m_machine->screenShotPath(m_diskFileName));
 	QByteArray ba;
 	QDataStream s(&ba, QIODevice::WriteOnly);
-	s << m_diskName;
+	s << m_diskFileName;
 	QUdpSocket sock;
 	sock.writeDatagram(ba, QHostAddress::LocalHost, 5798);
 }
@@ -203,13 +203,13 @@ void MachineView::saveSettings() {
 	QStringList accelDisks = s.value("accelerometerEnabledDisks", QStringList()).toStringList();
 	bool accelDisksChanged = false;
 	if (m_hostInput->isAccelerometerEnabled()) {
-		if (!accelDisks.contains(m_diskName)) {
-			accelDisks.append(m_diskName);
+		if (!accelDisks.contains(m_diskFileName)) {
+			accelDisks.append(m_diskFileName);
 			accelDisksChanged = true;
 		}
 	} else {
-		if (accelDisks.contains(m_diskName)) {
-			accelDisks.removeOne(m_diskName);
+		if (accelDisks.contains(m_diskFileName)) {
+			accelDisks.removeOne(m_diskFileName);
 			accelDisksChanged = true;
 		}
 	}
@@ -235,7 +235,7 @@ void MachineView::loadSettings() {
 	m_thread->setFrameSkip(s.value("frameSkip", 1).toInt());
 
 	QStringList accelDisks = s.value("accelerometerEnabledDisks", QStringList()).toStringList();
-	if (accelDisks.contains(m_diskName))
+	if (accelDisks.contains(m_diskFileName))
 		m_hostInput->setAccelerometerEnabled(true);
 
 	m_machine->loadSettings(s);

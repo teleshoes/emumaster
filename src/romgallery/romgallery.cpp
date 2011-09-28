@@ -24,12 +24,15 @@ RomGallery::RomGallery(QWidget *parent) :
 RomGallery::~RomGallery() {
 }
 
-void RomGallery::launch(const QString &diskName, bool autoload) {
+void RomGallery::launch(int index, bool autoload) {
+	QString diskFileName = m_romListModel->getDiskFileName(index);
+	if (diskFileName.isEmpty())
+		return;
 	QProcess process;
 	QString machineName = m_romListModel->machineName();
 	QStringList args;
 	args << QString("%1/bin/%2").arg(IMachine::installationDirPath()).arg(machineName);
-	args << diskName;
+	args << diskFileName;
 	if (!autoload)
 		args << "-noautoload";
 	process.startDetached("/usr/bin/single-instance", args);
@@ -73,12 +76,14 @@ QImage RomGallery::applyMaskAndOverlay(const QImage &icon) {
 	return result;
 }
 
-bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x, int y) {
+bool RomGallery::addIconToHomeScreen(int index, qreal scale, int x, int y) {
+	QString diskFileName = m_romListModel->getDiskFileName(index);
+	QString diskTitle = m_romListModel->getDiskTitle(index);
 	QString machineName = m_romListModel->machineName();
 	RomImageProvider imgProvider;
 	QImage imgSrc = imgProvider.requestImage(QString("%1_%2*%3")
 											 .arg(m_romListModel->machineName())
-											 .arg(diskName)
+											 .arg(diskTitle)
 											 .arg(qrand()), 0, QSize());
 	QImage scaled = imgSrc.scaled(qreal(imgSrc.width())*scale,
 								  qreal(imgSrc.height())*scale,
@@ -90,7 +95,7 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 	icon = applyMaskAndOverlay(icon);
 
 	QString desktopPath, iconPath;
-	homeScreenIconPaths(&desktopPath, &iconPath, diskName);
+	homeScreenIconPaths(&desktopPath, &iconPath, diskTitle);
 	if (!icon.save(iconPath))
 		return false;
 
@@ -105,7 +110,7 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 				"Categories=Emulator;\n")
 			.arg(IMachine::installationDirPath())
 			.arg(machineName)
-			.arg(diskName)
+			.arg(diskFileName)
 			.arg(iconPath);
 
 	QFile file(desktopPath);
@@ -117,18 +122,24 @@ bool RomGallery::addIconToHomeScreen(const QString &diskName, qreal scale, int x
 	return true;
 }
 
-void RomGallery::removeIconFromHomeScreen(const QString &diskName) {
+void RomGallery::removeIconFromHomeScreen(int index) {
+	QString diskTitle = m_romListModel->getDiskTitle(index);
+	if (diskTitle.isEmpty())
+		return;
 	QString desktopPath, iconPath;
-	homeScreenIconPaths(&desktopPath, &iconPath, diskName);
+	homeScreenIconPaths(&desktopPath, &iconPath, diskTitle);
 	QFile desktopFile(desktopPath);
 	QFile iconFile(iconPath);
 	desktopFile.remove();
 	iconFile.remove();
 }
 
-bool RomGallery::iconInHomeScreenExists(const QString &diskName) {
+bool RomGallery::iconInHomeScreenExists(int index) {
+	QString diskTitle = m_romListModel->getDiskTitle(index);
+	if (diskTitle.isEmpty())
+		return false;
 	QString desktopPath;
-	homeScreenIconPaths(&desktopPath, 0, diskName);
+	homeScreenIconPaths(&desktopPath, 0, diskTitle);
 	QFile desktopFile(desktopPath);
 	return desktopFile.exists();
 }
@@ -153,21 +164,19 @@ void RomGallery::emitRomUpdate() {
 	emit romUpdate();
 }
 
-void RomGallery::homeScreenIconPaths(QString *desktopFilePath, QString *iconFilePath, const QString &diskName) {
+void RomGallery::homeScreenIconPaths(QString *desktopFilePath, QString *iconFilePath, const QString &diskTitle) {
 	QString machineName = m_romListModel->machineName();
-	QString escapedDiskName = diskName;
-	escapedDiskName.replace(' ', '_');
 
 	if (iconFilePath) {
 		*iconFilePath = QString("%1/icon/%2_%3.png")
 				.arg(IMachine::userDataDirPath())
 				.arg(machineName)
-				.arg(escapedDiskName);
+				.arg(diskTitle);
 	}
 	if (desktopFilePath) {
 		*desktopFilePath = QString("%1/.local/share/applications/emumaster_%2_%3.desktop")
 				.arg(getenv("HOME"))
 				.arg(machineName)
-				.arg(escapedDiskName);
+				.arg(diskTitle);
 	}
 }

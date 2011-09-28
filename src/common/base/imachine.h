@@ -50,7 +50,7 @@ public:
 
 	QString name() const;
 	QString diskDirPath() const;
-	QString screenShotPath(const QString &diskName) const;
+	QString screenShotPath(const QString &diskFileName) const;
 
 	qreal frameRate() const;
 	QRectF videoSrcRect() const;

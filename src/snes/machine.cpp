@@ -109,8 +109,6 @@ extern "C" void S9xMessage(int type, int number, const char *message)
 extern "C" void S9xLoadSDD1Data(void) {
 	Settings.SDD1Pack = TRUE;
 	Memory.FreeSDD1Data();
-
-	//TODO: now what?
 	Settings.SDD1Pack = FALSE;
 }
 
@@ -217,12 +215,8 @@ void _makepath(char *path, const char *, const char *dir, const char *fname,
 }
 
 QString SnesMachine::setDisk(const QString &path) {
-	bool success = Memory.LoadROM((path + ".smc").toAscii().constData());
-	qDebug(qPrintable(path));
-	if (!success) {
-		qDebug("load rom failed");
-		exit(-1);
-	}
+	if (!Memory.LoadROM(path.toAscii().constData()))
+		return "Load disk failed!";
 	Memory.ROMFramesPerSecond = Settings.PAL ? 50 : 60;
 	setFrameRate(Memory.ROMFramesPerSecond);
 
@@ -244,9 +238,9 @@ const QImage &SnesMachine::frame() const
 { return m_frame; }
 
 int SnesMachine::fillAudioBuffer(char *stream, int streamSize) {
-	int count = qMin(streamSize/2, soundSampleCount);
-	S9xMixSamples((short int *)stream, count);
-	return count * 2;
+	int count = qMin(streamSize/4, soundSampleCount);
+	S9xMixSamples((s16 *)stream, count * 2);
+	return count * 4;
 }
 
 static const int keyMapping[16] = {

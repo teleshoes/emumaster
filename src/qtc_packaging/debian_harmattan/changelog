@@ -1,8 +1,8 @@
 emumaster (0.0.2) unstable; urgency=low
 
-  * added psx emulation
   * added gba emulation
   * added snes emulation
+  * added psx (0.0.2) emulation
   * added page to select the console
   * user can select his own cover in disk gallery
   * states are compressed now

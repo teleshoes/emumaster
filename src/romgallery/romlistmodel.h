@@ -13,7 +13,7 @@ class RomListModel : public QAbstractListModel {
 	Q_PROPERTY(QString machineNameLastUsed READ machineNameLastUsed CONSTANT)
 public:
 	enum RoleType {
-		NameRole = Qt::UserRole+1,
+		TitleRole = Qt::UserRole+1,
 		AlphabetRole,
 		ScreenShotUpdate
 	};
@@ -27,7 +27,8 @@ public:
 	QVariant data(const QModelIndex &index, int role) const;
 	void updateScreenShot(const QString &name);
 
-	Q_INVOKABLE QString get(int i) const;
+	Q_INVOKABLE QString getDiskFileName(int i) const;
+	Q_INVOKABLE QString getDiskTitle(int i) const;
 	Q_INVOKABLE QString getAlphabet(int i) const;
 	Q_INVOKABLE int getScreenShotUpdate(int i) const;
 	Q_INVOKABLE void trash(int i);

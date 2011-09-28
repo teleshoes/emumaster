@@ -6,13 +6,9 @@
 
 PsxSpuFran psxSpuFran;
 
-// sound buffer sizes
-// 400 ms complete sound buffer
-#define SOUNDSIZE   70560
+
 // num of channels
 #define MAXCHAN     24
-// ~ 1 ms of data
-#define NSSIZE (45)
 
 ///////////////////////////////////////////////////////////
 // struct defines
@@ -167,14 +163,17 @@ int             iLeftXAVol  = 32767;
 int             iRightXAVol = 32767;
 
 static u16 spuFranReadDMA() {
-	u16 s = spuMem[spuAddr >> 1];
-	spuAddr += 2;
-	if (spuAddr >= 0x80000)
-		spuAddr = 0;
-	return s;
+	u16 data = spuMem[spuAddr >> 1];
+	spuAddr = (spuAddr + 2) & 0x7FFFF;
+	return data;
 }
 
-static void  spuFranReadDMAMem(u16 *pusPSXMem, int size) {
+static void spuFranWriteDMA(u16 data) {
+	spuMem[spuAddr>>1] = data;
+	spuAddr = (spuAddr + 2) & 0x7FFFF;
+}
+
+static void spuFranReadDMAMem(u16 *pusPSXMem, int size) {
 	if (spuAddr + (size<<1) >= 0x80000) {
 		memcpy(pusPSXMem, &spuMem[spuAddr>>1], 0x7FFFF-spuAddr+1);
 		memcpy(pusPSXMem+(0x7FFFF-spuAddr+1), spuMem, (size<<1)-(0x7FFFF-spuAddr+1));
@@ -183,11 +182,6 @@ static void  spuFranReadDMAMem(u16 *pusPSXMem, int size) {
 		memcpy(pusPSXMem,&spuMem[spuAddr>>1], (size<<1));
 		spuAddr += (size<<1);
 	}
-}
-
-static void spuFranWriteDMA(u16 data) {
-	spuMem[spuAddr>>1] = data;
-	spuAddr = (spuAddr + 2) & 0x7FFFF;
 }
 
 static void spuFranWriteDMAMem(u16 *pusPSXMem, int size) {
@@ -201,62 +195,36 @@ static void spuFranWriteDMAMem(u16 *pusPSXMem, int size) {
 	}
 }
 
-// we have a timebase of 1.020408f ms, not 1 ms... so adjust adsr defines
-#define ATTACK_MS      494L
-#define DECAYHALF_MS   286L
-#define DECAY_MS       572L
-#define SUSTAIN_MS     441L
-#define RELEASE_MS     437L
-
-static inline void SoundOn(int start, int end, u16 val) {
-	for (int ch = start; ch < end; ch++,val>>=1) {
-		if ((val&1) && s_chan[ch].pStart) {
+static inline void SoundOn(int start, int end, u16 data) {
+	for (int ch = start; ch < end; ch++,data>>=1) {
+		if ((data&1) && s_chan[ch].pStart) {
 			s_chan[ch].bIgnoreLoop=0;
 			s_chan[ch].bNew=1;
 		}
 	}
 }
 
-static inline void SoundOff(int start,int end,unsigned short val)    // SOUND OFF PSX COMMAND
-{
-	int ch;
-	for(ch=start;ch<end;ch++,val>>=1)                     // loop channels
-	{
-		if(val&1)                                     // && s_chan[i].bOn)  mmm...
-				s_chan[ch].bStop=1;
-	}
+static inline void SoundOff(int start,int end, u16 data) {
+	for (int ch = start; ch < end; ch++,data>>=1)
+		s_chan[ch].bStop |= (data & 1);
 }
 
-// FMOD register write
-inline void FModOn(int start,int end,unsigned short val)      // FMOD ON PSX COMMAND
-{
-	int ch;
-	for(ch=start;ch<end;ch++,val>>=1)                     // loop channels
-	{
-		if(val&1)                                     // -> fmod on/off
-			{
-				if(ch>0)
-				{
-					s_chan[ch].bFMod=1;           // --> sound channel
-					s_chan[ch-1].bFMod=2;         // --> freq channel
-				}
+static inline void FModOn(int start,int end, u16 data) {
+	for (int ch = start; ch < end; ch++,data>>=1) {
+		if (data & 1) {
+			if (ch > 0) {
+				s_chan[ch].bFMod = 1;
+				s_chan[ch-1].bFMod=2;
 			}
-		else
-				s_chan[ch].bFMod=0;                   // --> turn off fmod
+		} else {
+			s_chan[ch].bFMod = 0;
+		}
 	}
 }
 
-// NOISE register write
-inline void NoiseOn(int start,int end,unsigned short val)     // NOISE ON PSX COMMAND
-{
-	int ch;
-	for(ch=start;ch<end;ch++,val>>=1)                     // loop channels
-	{
-		if(val&1)                                     // -> noise on/off
-				s_chan[ch].bNoise=1;
-		else
-				s_chan[ch].bNoise=0;
-	}
+static inline void NoiseOn(int start,int end, u16 data) {
+	for (int ch=start;ch<end;ch++,data>>=1)
+		s_chan[ch].bNoise = data & 1;
 }
 
 static inline int calcVolume(s16 vol) {
@@ -493,13 +461,11 @@ static const unsigned long int TableDisp[] = {
 
 
 /* MIX ADSR */
-inline int MixADSR(SPUCHAN *ch)
-{
-	unsigned long int disp;
-	signed long int EnvelopeVol = ch->ADSRX.EnvelopeVol;
+static inline int MixADSR(SPUCHAN *ch) {
+	u32 disp;
+	s32 EnvelopeVol = ch->ADSRX.EnvelopeVol;
 
-	if(ch->bStop)                                  // should be stopped:
-	{                                                    // do release
+	if (ch->bStop) {
 		if(ch->ADSRX.ReleaseModeExp)
 				disp = TableDisp[(EnvelopeVol>>28)&0x7];
 		else
