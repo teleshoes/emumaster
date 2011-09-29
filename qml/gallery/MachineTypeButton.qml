@@ -3,10 +3,17 @@ import QtQuick 1.1
 Item {
 	id: button
 	property string name
+	property bool alphaVersion: false
+
 	width: 240; height: 240
 	Image {
 		anchors.centerIn: parent
 		source: "../img/machine-" + name + ".png"
+	}
+	Image {
+		anchors.centerIn: parent
+		source: "../img/alpha-overlay.png"
+		visible: alphaVersion
 	}
 	Text {
 		text: button.name

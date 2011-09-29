@@ -10,6 +10,6 @@ Page {
 		MachineTypeButton { name: "nes" }
 		MachineTypeButton { name: "snes" }
 		MachineTypeButton { name: "gba" }
-		MachineTypeButton { name: "psx" }
+		MachineTypeButton { name: "psx"; alphaVersion: true }
 	}
 }

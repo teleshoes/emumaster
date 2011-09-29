@@ -1,7 +1,5 @@
 poll: Amiga Genesis DosBox
 
- b when removing disk in gallery the view turns to the first disk
- s mark psx as alpha
  s PAL/NTSC/AUTO in NES emulation
  s pal/ntsc/auto selector in psx
  s psx selectable bios, cpu
