@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QTimer>
 #include <QFileInfo>
+#include <QDir>
 #include <machineview.h>
 #include <sys/time.h>
 
@@ -53,7 +54,12 @@ QString PsxMachine::init() {
 	Config.SpuIrq = 0;
 	Config.VSyncWA = 0;
 	// TODO give user ability to choose his bios
-	psxMem.setBiosName("scph1001.bin");
+	QDir diskDir(diskDirPath());
+	QStringList biosFilter;
+	biosFilter << "scph*.bin";
+	QStringList biosList = diskDir.entryList(biosFilter, QDir::NoFilter, QDir::Name);
+	if (!biosList.isEmpty())
+		psxMem.setBiosName(biosList.at(0));
 
 	systemType = NtscType;
 	setVideoSrcRect(QRect(0, 0, 256, 240));

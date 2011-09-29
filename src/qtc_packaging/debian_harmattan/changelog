@@ -2,15 +2,15 @@ emumaster (0.0.2) unstable; urgency=low
 
   * added gba emulation
   * added snes emulation
-  * added psx (0.0.2) emulation
+  * added psx <alpha> emulation
   * added page to select the console
   * user can select his own cover in disk gallery
   * states are compressed now
   * pad look redesigned (in-game exit button and L/R buttons added as well)
   * settings look refreshed
   * settings are saved now
-  * added pad opacity option (0.0.2)
-  * added keep aspect ratio option (0.0.2)
+  * added pad opacity option
+  * added keep aspect ratio option
   * added option to remove icon from home screen (disk gallery)
   * added item in menu to remove disk (disk gallery)
   * added item in menu to run game with autoload disabled (disk gallery)
@@ -29,7 +29,7 @@ emumaster (0.0.2) unstable; urgency=low
 
  -- elemental <mar.kazmierczak@gmail.com>  Wed, 01 Sep 2011 10:02:09 +0200
 
-emumaster (0.0.2) unstable; urgency=low
+emumaster (0.0.1) unstable; urgency=low
 
   * Initial Release.
 

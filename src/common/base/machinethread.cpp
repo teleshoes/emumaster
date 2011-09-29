@@ -5,6 +5,7 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <QDateTime>
+#include <qmath.h>
 
 MachineThread::MachineThread(IMachine *machine) :
 	m_machine(machine),
@@ -61,14 +62,14 @@ void MachineThread::run() {
 			m_inFrameGenerated = false;
 			qreal currentTime = time.elapsed();
 			if (currentTime < currentFrameTime)
-				sleepMs(currentFrameTime - currentTime);
+				sleepMs(qFloor(currentFrameTime - currentTime));
 		} else {
 			m_machine->emulateFrame(false);
 			emit frameGenerated(false);
 			if (frameCounter != 0) {
 				qreal currentTime = time.elapsed();
 				if (currentTime < currentFrameTime)
-					sleepMs(currentFrameTime - currentTime);
+					sleepMs(qFloor(currentFrameTime - currentTime));
 			} else {
 				currentFrameTime = 0;
 				time.restart();

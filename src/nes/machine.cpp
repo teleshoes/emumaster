@@ -37,6 +37,7 @@ QString NesMachine::init() {
 	nesApu.init();
 	nesPad.init();
 	nesPpu.init();
+	qmlRegisterType<NesPpu>();
 	return QString();
 }
 
@@ -265,6 +266,9 @@ void NesMachine::emulateFrameTile(bool drawEnabled) {
 
 int NesMachine::fillAudioBuffer(char *stream, int streamSize)
 { return nesApu.fillBuffer(stream, streamSize); }
+
+NesPpu *NesMachine::ppu() const
+{ return &nesPpu; }
 
 #define STATE_SERIALIZE_BUILDER(sl) \
 STATE_SERIALIZE_BEGIN_##sl(NesMachine, 1) \

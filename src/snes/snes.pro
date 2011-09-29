@@ -10,7 +10,7 @@ unix {
 	gameclassify.path = /usr/share/policy/etc/syspart.conf.d
 	gameclassify.files += $${TARGET}.conf
 
-	INSTALLS += qml game_config gameclassify
+	INSTALLS += qml gameclassify
 }
 
 ASM_SOURCES = \

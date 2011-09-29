@@ -2,6 +2,7 @@
 #define NESMACHINE_H
 
 #include <imachine.h>
+class NesPpu;
 
 #define NES_PPU_NTSC_CLK	21477270.0
 #define NES_PPU_PAL_CLK		26601712.0
@@ -19,11 +20,14 @@ enum SystemType { NES_NTSC, NES_PAL };
 
 class NesMachine : public IMachine {
 	Q_OBJECT
+	Q_PROPERTY(NesPpu *ppu READ ppu CONSTANT)
 public:
 	NesMachine();
 	QString init();
 	void shutdown();
 	void reset();
+
+	NesPpu *ppu() const;
 
 	QString setDisk(const QString &path);
 
