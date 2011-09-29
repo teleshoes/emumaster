@@ -1,13 +1,9 @@
 poll: Amiga Genesis DosBox
 
- s PAL/NTSC/AUTO in NES emulation
- s pal/ntsc/auto selector in psx
  s psx selectable bios, cpu
- s copy legal info
- s snes license
- s add copyrights
-
- s build for N900
+ s pal/ntsc/auto in nes emulation
+ s pal/ntsc/auto selector in psx
+ s build for n900
  s sixaxis
  s load roms from zipped files
  s analog and feedback pad
