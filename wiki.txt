@@ -1,13 +1,3 @@
-written entirely in Qt and QML (even cpu,ppu, etc. is written in Qt)
-rom gallery
-fast scroll
-create icon in home screen
-swipe on/off
-game genie codes
-quite fast NES emulation - full framerate without sound (60fps)
-save/load gallery
-you can push two buttons on the pad with one finger (e.g. A and B)
-
 it is strongly recommended to name games/disks as you would before you use them,
 because program use name of the disk to store screenshots,states and others
 
@@ -18,5 +8,4 @@ pad hotspots image
 howto make icon in the home screen
 howto pause, save, load, change settings
 howto update screen shot in the rom gallery
-howto change image in the rom gallery to your own file
 howto donate

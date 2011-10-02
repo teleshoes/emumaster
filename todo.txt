@@ -1,5 +1,7 @@
 poll: Amiga Genesis DosBox
 
+ s prepare application for sixaxis support
+ b thumbnails in save gallery are misplaced in snes emulation
  s psx selectable bios, cpu
  s pal/ntsc/auto in nes emulation
  s pal/ntsc/auto selector in psx
