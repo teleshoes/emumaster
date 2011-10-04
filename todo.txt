@@ -1,5 +1,6 @@
 poll: Amiga Genesis DosBox
 
+ b machine should not be moved to new thread
  s prepare application for sixaxis support
  b thumbnails in save gallery are misplaced in snes emulation
  s psx selectable bios, cpu
