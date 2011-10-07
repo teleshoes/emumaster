@@ -1,3 +1,9 @@
+emumaster (0.0.3) unstable; urgency=low
+
+  * workaround for sound bug in Mario Kart - thanks to javispedro
+
+ -- elemental <mar.kazmierczak@gmail.com>  Wed, 01 Sep 2011 10:02:09 +0200
+
 emumaster (0.0.2) unstable; urgency=low
 
   * added gba emulation

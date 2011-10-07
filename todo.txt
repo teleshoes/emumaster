@@ -1,5 +1,6 @@
 poll: Amiga Genesis DosBox
 
+ s rewrite save/load state to be aka QSettings
  b machine should not be moved to new thread
  s prepare application for sixaxis support
  b thumbnails in save gallery are misplaced in snes emulation
@@ -26,3 +27,4 @@ poll: Amiga Genesis DosBox
  - translations
  b kick master (mapper 4) not working
  b saves in gba tasmanian dont work
+ s load which does not loads to successfully should stop machine with appropriate message

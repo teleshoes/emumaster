@@ -433,7 +433,6 @@ void NesApu::updateMachineType() {
 
 u8 NesApu::fetchData(u16 address) {
 	u8 data = nesCpu.READ(address);
-	nesCpu.ADDCYC(4);
 	return data;
 }
 
