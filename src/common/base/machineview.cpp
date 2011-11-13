@@ -97,6 +97,8 @@ MachineView::~MachineView() {
 		// auto save screenshot
 		if (!QFile::exists(m_machine->screenShotPath(m_diskFileName)))
 			saveScreenShot();
+
+		m_machine->shutdown();
 	}
 	delete m_thread;
 	delete m_settingsView;
@@ -104,7 +106,6 @@ MachineView::~MachineView() {
 	delete m_hostVideo;
 	delete m_hostAudio;
 	delete m_hostInput;
-	m_machine->shutdown();
 }
 
 void MachineView::showError(const QString &text) {
