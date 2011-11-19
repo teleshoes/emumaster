@@ -78,7 +78,7 @@ Sheet {
 			anchors.right: parent.right
 			height: parent.height
 			orientation: Qt.Vertical
-			minimumValue: 0.5; maximumValue: 4.0
+			minimumValue: 0.1; maximumValue: 4.0
 			valueIndicatorVisible: true
 			onValueChanged: rect.visible = false
 		}

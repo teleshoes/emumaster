@@ -30,5 +30,9 @@ linux-g++-maemo {
 unix {
 	QMAKE_LFLAGS += -Wl,--rpath,/opt/emumaster/bin -Wl,--rpath,/opt/emumaster/lib
 	target.path = /opt/emumaster/bin
-	INSTALLS += target
+
+	gameclassify.path = /usr/share/policy/etc/syspart.conf.d
+	gameclassify.files += $${TARGET}.conf
+
+	INSTALLS += target gameclassify
 }

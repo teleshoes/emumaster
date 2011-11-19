@@ -16,19 +16,39 @@
 
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "../base"
 
-PageStackWindow {
-	id: appWindow
-	showStatusBar: false
-	platformStyle: customStyle
-
-	PageStackWindowStyle {
-		id: customStyle
-		backgroundFillMode: Image.PreserveAspectCrop
-		background: backgroundPath
+Page {
+	tools: ToolBarLayout {
+		ToolIcon { iconId: "toolbar-back"; onClicked: machineView.resume() }
+		ButtonRow {
+			platformStyle: TabButtonStyle { }
+			TabButton {
+				iconSource: "image://theme/icon-m-toolbar-settings"
+				tab: settingsTab
+			}
+			TabButton {
+				iconSource: "../img/icon-m-toolbar-diskette.png"
+				tab: stateTab
+			}
+		}
+		ToolIcon { iconId: "toolbar-close"; onClicked: query.open() }
 	}
 
-	initialPage: mainPage
+	TabGroup {
+		id: tabGroup
+		currentTab: settingsTab
 
-	MainPage { id: mainPage }
+		SettingsPage { id: settingsTab }
+		StatePage { id: stateTab }
+	}
+
+	QueryDialog {
+		id: query
+		titleText: "Really?"
+		message: "Do you want to exit?"
+		acceptButtonText: "Yes"
+		rejectButtonText: "No"
+		onAccepted: Qt.quit()
+	}
 }

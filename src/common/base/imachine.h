@@ -34,6 +34,7 @@ typedef quint64 u64;
 
 class BASE_EXPORT IMachine : public QObject {
 	Q_OBJECT
+	Q_PROPERTY(QString name READ name CONSTANT)
 public:
 	enum PadKey {
 		Left_PadKey		= (1 <<  0),

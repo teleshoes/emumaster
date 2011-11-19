@@ -43,8 +43,6 @@
 
 #define VERSION "1.39"
 
-#include <stdlib.h>
-
 #include "port.h"
 #include "65c816.h"
 #include "messages.h"

@@ -88,7 +88,7 @@
 *******************************************************************************/
 #include "mem.h"
 #include "seta.h"
-//#include "port.h"
+#include <stdio.h>
 
 ST018_Regs ST018;
 

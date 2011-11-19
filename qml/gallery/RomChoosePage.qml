@@ -113,7 +113,6 @@ Page {
 
 	QueryDialog {
 		id: errorDialog
-		icon: "image://theme/icon-m-common-red"
 		message: ""
 		rejectButtonText: "Close"
 	}
@@ -143,7 +142,6 @@ Page {
 
 	QueryDialog {
 		id: detachUsbDialog
-		icon: "image://theme/icon-m-common-red"
 		message: "\"emumaster\" folder not found! Detach USB cable if connected and restart application."
 		rejectButtonText: "Close"
 		onRejected: Qt.quit()

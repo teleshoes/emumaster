@@ -119,7 +119,6 @@ Page {
 
 	QueryDialog {
 		id: errorDialog
-		icon: "image://theme/icon-m-common-red"
 		titleText: "Oops"
 		message: "Something went wrong!"
 		acceptButtonText: "Close"

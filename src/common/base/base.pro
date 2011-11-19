@@ -43,7 +43,13 @@ unix {
 		../../../qml/base/SectionScrollerLabel.qml \
 		../../../qml/base/StatePage.qml \
 		../../../qml/base/constants.js \
-		../../../qml/base/utils.js
+		../../../qml/base/utils.js \
+		\
+		../../../qml/base/main.qml \
+		../../../qml/base/MainPage.qml \
+		../../../qml/base/SettingsPage.qml \
+		../../../qml/base/NesCheatPage.qml
+
 
 	pad.path = /opt/emumaster/data
 	pad.files = \
@@ -55,9 +61,3 @@ unix {
 	qmlimg.files = ../../../qml/img/*
 	INSTALLS += qml qmlimg pad
 }
-
-
-
-
-
-

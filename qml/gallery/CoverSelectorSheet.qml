@@ -35,6 +35,7 @@ Sheet {
 
 	FolderListModel {
 		id: folderModel
+		// TODO retrieve path from IMachine
 		folder: "file:/home/user/MyDocs/emumaster/covers"
 		nameFilters: ["*.jpg","*.png"]
 	}

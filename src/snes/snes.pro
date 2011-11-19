@@ -1,18 +1,5 @@
 include(../machine.pri)
 
-unix {
-	qml.path = /opt/emumaster/qml/snes
-	qml.files = \
-		../../qml/snes/main.qml \
-		../../qml/snes/MainPage.qml \
-		../../qml/snes/SettingsPage.qml
-
-	gameclassify.path = /usr/share/policy/etc/syspart.conf.d
-	gameclassify.files += $${TARGET}.conf
-
-	INSTALLS += qml gameclassify
-}
-
 ASM_SOURCES = \
 	os9x_65c816.S \
 	spc_decode.S \
@@ -85,50 +72,3 @@ SOURCES += \
     c4emu.cpp \
     c4.cpp \
     sdd1.cpp
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

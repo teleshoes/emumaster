@@ -157,15 +157,22 @@ void HostVideo::changeEvent(QEvent *e) {
 void HostVideo::updateRects() {
 	m_srcRect = m_machine->videoSrcRect();
 	Q_ASSERT_X(m_srcRect.width() != 0.0f && m_srcRect.height() != 0.0f, "HostVideo", "Define source rect!");
+#if defined(MEEGO_EDITION_HARMATTAN)
+		qreal ww = width();
+		qreal wh = height();
+#elif defined(Q_WS_MAEMO_5)
+		qreal ww = 800.0f;
+		qreal wh = 480.0f;
+#endif
 	if (m_keepAspectRatio) {
-		qreal scale = qMin(qreal(width())/m_srcRect.width(), qreal(height())/m_srcRect.height());
+		qreal scale = qMin(ww/m_srcRect.width(), wh/m_srcRect.height());
 		qreal w = m_srcRect.width() * scale;
 		qreal h = m_srcRect.height() * scale;
-		qreal x = qreal(width())/2.0f-w/2.0f;
-		qreal y = qreal(height())/2.0f-h/2.0f;
+		qreal x = ww/2.0f-w/2.0f;
+		qreal y = wh/2.0f-h/2.0f;
 		m_dstRect = QRectF(x, y, w, h);
 	} else {
-		m_dstRect = QRectF(QPointF(), size());
+		m_dstRect = QRectF(QPointF(), QSizeF(ww, wh));
 	}
 }
 

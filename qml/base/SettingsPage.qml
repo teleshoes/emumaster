@@ -37,14 +37,28 @@ Page {
 				width: parent.width
 			}
 			EMButtonOption {
+				id: nesRenderMethodButton
 				labelText: qsTr("PPU Render Method")
-				buttonText: renderMethodModel.get(machine.ppu.renderMethod)["name"]
-				onClicked: renderMethodDialog.open()
+				onClicked: nesRenderMethodDialog.open()
+
+				Component.onCompleted: {
+					if (machine.name == "nes")
+						nesRenderMethodButton.buttonText = nesRenderMethodModel.get(machine.ppu.renderMethod)["name"]
+					else
+						nesRenderMethodButton.visible = false
+				}
+			}
+			Button {
+				id: cheatButton
+				width: parent.width
+				text: qsTr("ChEaTs")
+				visible: machine.name == "nes"
+				onClicked: appWindow.pageStack.push(Qt.resolvedUrl("NesCheatPage.qml"))
 			}
 		}
 	}
 	ListModel {
-		id: renderMethodModel
+		id: nesRenderMethodModel
 		ListElement { name: "Post All Render" }
 		ListElement { name: "Pre All Render" }
 		ListElement { name: "Post Render" }
@@ -52,9 +66,9 @@ Page {
 		ListElement { name: "Tile Render" }
 	}
 	SelectionDialog {
-		id: renderMethodDialog
+		id: nesRenderMethodDialog
 		titleText: "Select Render Method"
-		model: renderMethodModel
+		model: nesRenderMethodModel
 		onAccepted: machine.ppu.renderMethod = selectedIndex
 	}
 }

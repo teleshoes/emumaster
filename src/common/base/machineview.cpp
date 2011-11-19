@@ -83,7 +83,11 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	else
 		QObject::connect(m_hostInput, SIGNAL(pauseClicked()), SLOT(pause()));
 	QObject::connect(m_hostInput, SIGNAL(wantClose()), SLOT(close()));
+#if defined(MEEGO_EDITION_HARMATTAN)
 	QMetaObject::invokeMethod(this, "resume", Qt::QueuedConnection);
+#elif defined(Q_WS_MAEMO_5)
+	QMetaObject::invokeMethod(this, "pauseStage2", Qt::QueuedConnection);
+#endif
 }
 
 MachineView::~MachineView() {
@@ -148,9 +152,8 @@ void MachineView::pauseStage2() {
 		QString path = QString("image://machine/screenShotGrayscaled%1").arg(m_backgroundCounter++);
 		m_settingsView->rootContext()->setContextProperty("backgroundPath", path);
 		if (m_settingsView->source().isEmpty()) {
-			m_settingsView->setSource(QUrl::fromLocalFile(QString("%1/qml/%2/main.qml")
-														  .arg(IMachine::installationDirPath())
-														  .arg(m_machine->name())));
+			m_settingsView->setSource(QUrl::fromLocalFile(QString("%1/qml/base/main.qml")
+														  .arg(IMachine::installationDirPath())));
 		}
 		if (m_audioEnable)
 			m_hostAudio->close();

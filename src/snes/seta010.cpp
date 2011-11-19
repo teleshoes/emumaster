@@ -89,6 +89,7 @@
 //#include "port.h"
 #include "mem.h"
 #include "seta.h"
+#include <stdio.h>
 
 // Mode 7 scaling constants for all raster lines
 const s16 ST010_M7Scale[176] = {

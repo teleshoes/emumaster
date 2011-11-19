@@ -21,9 +21,27 @@
 #define ARM_EMIT_H
 
 #include "arm_codegen.h"
+#include <QtGlobal>
+#if defined(Q_WS_MAEMO_5)
+#include <syscall.h>
+#endif
 
 static inline void sys_cacheflush(void *start, void *end) {
+#if defined(MEEGO_EDITION_HARMATTAN)
 	__builtin___clear_cache(start, end);
+#elif defined(Q_WS_MAEMO_5)
+	int num = __ARM_NR_cacheflush;
+	__asm __volatile (
+		"mov	 r0, %0\n"
+		"mov	 r1, %1\n"
+		"mov	 r7, %2\n"
+		"mov     r2, #0x0\n"
+		"svc     0x00000000\n"
+		:
+		:	"r" (start), "r" (end), "r" (num)
+				:	"r0","r2", "r1", "r7"
+	);
+#endif
 }
 
 static inline void sys_cacheflush_size(void *start, int size) {

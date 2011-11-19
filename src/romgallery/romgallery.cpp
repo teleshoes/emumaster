@@ -51,7 +51,12 @@ void RomGallery::launch(int index, bool autoload) {
 	args << diskFileName;
 	if (!autoload)
 		args << "-noautoload";
+#if defined(MEEGO_EDITION_HARMATTAN)
 	process.startDetached("/usr/bin/single-instance", args);
+#elif defined(Q_WS_MAEMO_5)
+	QString app = args.takeFirst();
+	process.startDetached(app, args);
+#endif
 }
 
 QImage RomGallery::applyMaskAndOverlay(const QImage &icon) {
@@ -110,6 +115,10 @@ bool RomGallery::addIconToHomeScreen(int index, qreal scale, int x, int y) {
 		return false;
 	icon = applyMaskAndOverlay(icon);
 
+#if defined(Q_WS_MAEMO_5)
+	icon = icon.scaled(64, 64);
+#endif
+
 	QString desktopPath, iconPath;
 	homeScreenIconPaths(&desktopPath, &iconPath, diskTitle);
 	if (!icon.save(iconPath))
@@ -120,10 +129,14 @@ bool RomGallery::addIconToHomeScreen(int index, qreal scale, int x, int y) {
 				"Version=1.0\n"
 				"Type=Application\n"
 				"Name=%3\n"
+			#if defined(MEEGO_EDITION_HARMATTAN)
 				"Exec=/usr/bin/single-instance %1/bin/%2 \"%3\"\n"
+			#elif defined(Q_WS_MAEMO_5)
+				"Exec=%1/bin/%2 \"%3\"\n"
+			#endif
 				"Icon=%4\n"
 				"Terminal=false\n"
-				"Categories=Emulator;\n")
+				"Categories=Game;Emulator;\n")
 			.arg(IMachine::installationDirPath())
 			.arg(machineName)
 			.arg(diskFileName)
@@ -190,7 +203,11 @@ void RomGallery::homeScreenIconPaths(QString *desktopFilePath, QString *iconFile
 				.arg(diskTitle);
 	}
 	if (desktopFilePath) {
+	#if defined(MEEGO_EDITION_HARMATTAN)
 		*desktopFilePath = QString("%1/.local/share/applications/emumaster_%2_%3.desktop")
+	#elif defined(Q_WS_MAEMO_5)
+		*desktopFilePath = QString("%1/.local/share/applications/hildon/emumaster_%2_%3.desktop")
+	#endif
 				.arg(getenv("HOME"))
 				.arg(machineName)
 				.arg(diskTitle);

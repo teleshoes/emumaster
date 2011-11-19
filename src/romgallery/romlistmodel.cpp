@@ -147,6 +147,8 @@ void RomListModel::trash(int i) {
 	args << "-R";
 	args << m_dir.absolutePath() + "/" + m_list.at(i);
 	QProcess::startDetached("rm", args);
+	// TODO remove icon from home screen
+	// TODO remove states
 	m_list.removeAt(i);
 	endRemoveRows();
 }

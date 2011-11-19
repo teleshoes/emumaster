@@ -19,6 +19,9 @@ import com.nokia.meego 1.0
 import "../base"
 
 Page {
+	tools: ToolBarLayout {
+		ToolIcon { iconId: "toolbar-back"; onClicked: appWindow.pageStack.pop() }
+	}
 	ListView {
 		id: listView
 		anchors.fill: parent

@@ -5,4 +5,4 @@ Terminal=false
 Name=EmuMaster
 Exec=/usr/bin/single-instance /opt/emumaster/bin/romgallery
 Icon=/opt/emumaster/data/romgallery.png
-Categories=Emulator;
+Categories=Game;Emulator;

@@ -47,8 +47,6 @@
 extern "C" void dprintf(char *format, ...);
 #define printf dprintf
 #else
-#define  printf(x...)
-#define dprintf(x...)
 #endif
 
 #include <string.h>

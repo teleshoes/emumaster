@@ -19,6 +19,7 @@
 class IMachine;
 #include <QObject>
 #include <pulse/pulseaudio.h>
+#include <pulse/stream.h>
 
 class HostAudio : public QObject {
     Q_OBJECT

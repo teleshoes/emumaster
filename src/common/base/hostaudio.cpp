@@ -16,6 +16,7 @@
 #include "hostaudio.h"
 #include "imachine.h"
 #include <stdio.h>
+#include <limits.h>
 
 static void contextStreamCallback(pa_context *context, void *userdata) {
 	 if (!context || !userdata)
@@ -62,7 +63,11 @@ void HostAudio::open() {
 		printf("Could not acquire PulseAudio device context");
 		return;
 	}
+#if defined(MEEGO_EDITION_HARMATTAN)
 	if (pa_context_connect(m_context, 0, PA_CONTEXT_NOFLAGS, 0) < 0) {
+#elif defined(Q_WS_MAEMO_5)
+	if (pa_context_connect(m_context, 0, (pa_context_flags_t)0, 0) < 0) {
+#endif
 		int error = pa_context_errno(m_context);
 		printf("Could not connect to PulseAudio server: %s", pa_strerror(error));
 		return;
@@ -95,6 +100,7 @@ void HostAudio::open() {
 	pa_stream_flags_t flags = (pa_stream_flags_t)(PA_STREAM_ADJUST_LATENCY | PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_AUTO_TIMING_UPDATE);
 //	pa_stream_flags_t flags = (pa_stream_flags_t) (PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_EARLY_REQUESTS);
 	if (pa_stream_connect_playback(m_stream, 0, &buffer_attributes, flags, 0, 0) < 0) {
+		m_stream = 0;
 		int error = pa_context_errno(m_context);
 		printf("Could not connect for playback: %s", pa_strerror(error));
 		return;
@@ -127,16 +133,24 @@ void HostAudio::sendFrame() {
 	if (!m_stream)
 		return;
 	pa_threaded_mainloop_lock(m_mainloop);
-	size_t size = -1;
 	void *data;
+#if defined(MEEGO_EDITION_HARMATTAN)
+	size_t size = -1;
 	pa_stream_begin_write(m_stream, &data, &size);
+#elif defined(Q_WS_MAEMO_5)
+	size_t size = 4096;
+	static char buf[4096];
+	data = buf;
+#endif
 	size = qMin(size, pa_stream_writable_size(m_stream));
 	if (size)
 		size = m_machine->fillAudioBuffer(reinterpret_cast<char *>(data), size);
 	if (size)
 		pa_stream_write(m_stream, data, size, 0, 0, PA_SEEK_RELATIVE);
+#if defined(MEEGO_EDITION_HARMATTAN)
 	else
 		pa_stream_cancel_write(m_stream);
+#endif
 	pa_threaded_mainloop_unlock(m_mainloop);
 }
 

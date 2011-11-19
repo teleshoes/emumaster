@@ -303,6 +303,7 @@ int main(int argc, char *argv[]) {
 	if (argc < 2)
 		return -1;
 	QApplication app(argc, argv);
+	// TODO machine on stack
 	MachineView view(new NesMachine(), argv[1]);
 	GameGenieCodeListModel gameGenie(static_cast<NesMachine *>(view.machine()));
 	view.settingsView()->rootContext()->setContextProperty("gameGenie", static_cast<QObject *>(&gameGenie));

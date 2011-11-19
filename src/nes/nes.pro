@@ -191,18 +191,3 @@ SOURCES += \
     apurectanglechannel.cpp \
     aputrianglechannel.cpp \
     eeprom.cpp
-
-unix {
-	qml.path = /opt/emumaster/qml/nes
-	qml.files = \
-		../../qml/nes/main.qml \
-		../../qml/nes/MainPage.qml \
-		../../qml/nes/SettingsPage.qml \
-		../../qml/nes/CheatPage.qml
-
-	gameclassify.path = /usr/share/policy/etc/syspart.conf.d
-	gameclassify.files += $${TARGET}.conf
-
-	INSTALLS += qml gameclassify
-}
-

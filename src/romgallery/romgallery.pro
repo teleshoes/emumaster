@@ -64,4 +64,12 @@ contains(MEEGO_EDITION,harmattan) {
     INSTALLS += desktopfile
 }
 
+maemo5 {
+	icon.files = romgallery.png
+	icon.path = /opt/emumaster/data
+	INSTALLS += icon
 
+	desktopfile.files = $${TARGET}.desktop
+	desktopfile.path = /usr/share/applications/hildon
+	INSTALLS += desktopfile
+}
