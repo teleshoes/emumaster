@@ -22,9 +22,12 @@ class RomListModel;
 
 class RomGallery : public QDeclarativeView {
     Q_OBJECT
+	Q_PROPERTY(int runCount READ runCount CONSTANT)
 public:
     explicit RomGallery(QWidget *parent = 0);
 	~RomGallery();
+
+	int runCount() const;
 
 	Q_INVOKABLE void launch(int index, bool autoload);
 
@@ -37,13 +40,17 @@ public:
 signals:
 	void romUpdate();
 	void detachUsb();
+	void showFirstRunMsg();
 private slots:
 	void emitRomUpdate();
 private:
 	QImage applyMaskAndOverlay(const QImage &icon);
 	void homeScreenIconPaths(QString *desktopFilePath, QString *iconFilePath, const QString &diskTitle);
+	void setupQml();
+	void incrementRunCount();
 
 	RomListModel *m_romListModel;
+	int m_runCount;
 };
 
 #endif // ROMGALLERY_H

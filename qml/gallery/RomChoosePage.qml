@@ -114,36 +114,51 @@ Page {
 	QueryDialog {
 		id: errorDialog
 		message: ""
-		rejectButtonText: "Close"
+		rejectButtonText: qsTr("Close")
 	}
 
 	QueryDialog {
 		id: howToInstallRomDialog
+		rejectButtonText: qsTr("Close")
+		titleText: qsTr("Help")
+		message: qsTr("The directory is empty. To install a disk you need to attach " +
+					  "the phone to the PC and copy your files to \"emumaster/%1\" " +
+					  "directory. Remember to detach the phone from the PC.")
+						.arg(romListModel.machineName)
+	}
 
-		rejectButtonText: "Close"
+	QueryDialog {
+		id: firstRunMsg
+		titleText: qsTr("Info")
+		rejectButtonText: qsTr("Close")
+		message:	qsTr("Hi! Few clues: Please let me know about any problems " +
+						"before you make a review in the Store since I cannot " +
+						"answer you there. You can find contact info at the about " +
+						"page:\n Menu->About EmuMaster...\n Enjoy :)\n " +
+						"Consider a donation if you find this software useful.") +
+						(romGallery.runCount < 10
+							?	qsTr("\n\nThis message will be shown %1 more times")
+									.arg(10-romGallery.runCount)
+							: "")
 
-		titleText: "Help"
-		message: "The directory is empty. To install disk you need to attach phone to the PC and copy your files to \"emumaster/" +
-				 romListModel.machineName + "\" directory. Remember to detach phone from the PC. " +
-				 "Consider a small donation if you find this software useful"
 	}
 
 	QueryDialog {
 		id: removeRomDialog
-
-		acceptButtonText: "Yes"
-		rejectButtonText: "No"
-
-		titleText: "Remove"
-		message: "Do you really want to remove \"" + romListModel.getDiskTitle(currentRomIndex) + "\" ?"
+		acceptButtonText: qsTr("Yes")
+		rejectButtonText: qsTr("No")
+		titleText: qsTr("Remove")
+		message: qsTr("Do you really want to remove \"%1\" ?")
+					.arg(romListModel.getDiskTitle(currentRomIndex))
 
 		onAccepted: romListModel.trash(currentRomIndex)
 	}
 
 	QueryDialog {
 		id: detachUsbDialog
-		message: "\"emumaster\" folder not found! Detach USB cable if connected and restart application."
-		rejectButtonText: "Close"
+		message: qsTr(	"\"emumaster\" folder not found! Detach USB cable if " +
+						"connected and restart the application."	)
+		rejectButtonText: qsTr("Close")
 		onRejected: Qt.quit()
 	}
 
@@ -151,6 +166,7 @@ Page {
 		target: romGallery
 		onRomUpdate: setMachineName(romListModel.machineNameLastUsed)
 		onDetachUsb: detachUsbDialog.open()
+		onShowFirstRunMsg: firstRunMsg.open()
 	}
 	AboutSheet { id: aboutSheet }
 
@@ -166,13 +182,15 @@ Page {
 
 	function homeScreenIcon() {
 		if (romListModel.getScreenShotUpdate(currentRomIndex) < 0) {
-			errorDialog.message = "You need to make screenshot first!"
+			errorDialog.message = qsTr("You need to make a screenshot first!")
 			errorDialog.open()
 		} else {
 			saveIconSheet.imgScale = 1.0
 			saveIconSheet.iconX = 0
 			saveIconSheet.iconY = 0
-			saveIconSheet.imgSource = "image://rom/" + romListModel.machineName + "_" + romListModel.getDiskTitle(currentRomIndex) + "*" + romListModel.getScreenShotUpdate(currentRomIndex)
+			saveIconSheet.imgSource =	"image://rom/" + romListModel.machineName + "_" +
+										romListModel.getDiskTitle(currentRomIndex) + "*" +
+										romListModel.getScreenShotUpdate(currentRomIndex)
 			saveIconSheet.open()
 		}
 	}

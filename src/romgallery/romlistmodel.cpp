@@ -33,7 +33,7 @@ RomListModel::RomListModel(QObject *parent) :
 
 	QSettings s("elemental", "emumaster");
 	s.beginGroup("romgallery");
-	m_machineNameLastUsed = s.value("machineNameLastUsed", "nes").toString();
+	m_machineNameLastUsed = s.value("machineNameLastUsed", "").toString();
 	s.endGroup();
 
 	m_sock.bind(QHostAddress::LocalHost, 5798);
@@ -55,6 +55,10 @@ void RomListModel::setMachineName(const QString &name) {
 	}
 	m_machineName = name;
 	emit machineNameChanged();
+
+	if (name.isEmpty())
+		return;
+
 	m_dir = QDir(IMachine::diskDirPath(m_machineName));
 
 	QFileInfoList infoList = m_dir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot, QDir::Name|QDir::IgnoreCase);

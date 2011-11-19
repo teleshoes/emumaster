@@ -23,10 +23,19 @@
 #include <QFile>
 #include <QTextStream>
 #include <QProcess>
+#include <QSettings>
 
 RomGallery::RomGallery(QWidget *parent) :
 	QDeclarativeView(parent) {
 	m_romListModel = new RomListModel(this);
+	incrementRunCount();
+	setupQml();
+}
+
+RomGallery::~RomGallery() {
+}
+
+void RomGallery::setupQml() {
 	engine()->addImageProvider("rom", new RomImageProvider());
 	rootContext()->setContextProperty("romListModel", m_romListModel);
 	rootContext()->setContextProperty("romGallery", this);
@@ -34,10 +43,23 @@ RomGallery::RomGallery(QWidget *parent) :
 	QString qmlPath = QString("%1/qml/gallery/main.qml")
 			.arg(IMachine::installationDirPath());
 	setSource(QUrl::fromLocalFile(qmlPath));
-	QMetaObject::invokeMethod(this, "emitRomUpdate", Qt::QueuedConnection);
+
+	if (m_runCount <= 10)
+		QMetaObject::invokeMethod(this, "showFirstRunMsg", Qt::QueuedConnection);
+	else
+		QMetaObject::invokeMethod(this, "emitRomUpdate", Qt::QueuedConnection);
 }
 
-RomGallery::~RomGallery() {
+void RomGallery::incrementRunCount() {
+	QSettings s("elemental", "emumaster");
+	s.beginGroup("romgallery");
+	m_runCount = s.value("runCount", 0).toInt() + 1;
+	s.setValue("runCount", m_runCount);
+	s.endGroup();
+}
+
+int RomGallery::runCount() const {
+	return m_runCount;
 }
 
 void RomGallery::launch(int index, bool autoload) {
