@@ -75,6 +75,10 @@ QString PathManager::stateDirPath(const QString &machine,
 			.arg(title);
 }
 
+QString PathManager::stateDirPath(const QString &title) const {
+	return stateDirPath(m_machine, title);
+}
+
 QString PathManager::homeScreenIconPath(const QString &machine,
 										const QString &title) const {
 	return QString("%1/icon/%2_%3.png")

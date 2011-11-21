@@ -28,6 +28,7 @@ public:
 
 	QString diskDirPath() const;
 	QString screenShotPath(const QString &title) const;
+	QString stateDirPath(const QString &title) const;
 	QString cheatPath(const QString &title) const;
 
 	QStringList machines() const;

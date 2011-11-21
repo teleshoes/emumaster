@@ -38,7 +38,6 @@ Sheet {
 		folder: "file:/home/user/MyDocs/emumaster/covers"
 		nameFilters: ["*.jpg","*.png"]
 		showDirs: false
-		Component.onCompleted: console.log(diskGallery.coversPath())
 	}
 	content: CoverFlow {
 		id: coverFlow

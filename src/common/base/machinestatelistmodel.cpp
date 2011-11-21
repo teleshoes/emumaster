@@ -30,12 +30,10 @@ MachineStateListModel::MachineStateListModel(IMachine *machine, const QString &d
 	roles.insert(DateTimeRole, "saveDateTime");
 	setRoleNames(roles);
 
-	m_dir = QDir(QString("%1/state").arg(PathManager::instance()->userDataDirPath()));
-
 	QString diskTitle = QFileInfo(diskName).completeBaseName();
-	QString subDirName = QString("%1_%2").arg(m_machine->name()).arg(diskTitle);
-	m_dir.mkdir(subDirName);
-	m_dir.cd(subDirName);
+	QString path = PathManager::instance()->stateDirPath(diskTitle);
+	m_dir.mkpath(path);
+	m_dir = QDir(path);
 
 	m_list = m_dir.entryInfoList(QDir::Files, QDir::Time);
 	m_maxSaveIndex = 0;
