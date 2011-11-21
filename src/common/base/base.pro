@@ -16,7 +16,8 @@ HEADERS += \
     machineimageprovider.h \
     machinestatelistmodel.h \
     settingsview.h \
-	base_global.h
+	base_global.h \
+    pathmanager.h
 
 SOURCES += \
     machineview.cpp \
@@ -27,7 +28,8 @@ SOURCES += \
     hostinput.cpp \
     machineimageprovider.cpp \
     machinestatelistmodel.cpp \
-	settingsview.cpp
+	settingsview.cpp \
+    pathmanager.cpp
 
 unix {
 	qml.path = /opt/emumaster/qml/base
@@ -61,3 +63,5 @@ unix {
 	qmlimg.files = ../../../qml/img/*
 	INSTALLS += qml qmlimg pad
 }
+
+

@@ -45,8 +45,6 @@ public:
 
 	Q_INVOKABLE bool isCodeValid(const QString &s);
 private:
-	QString filePath();
-
 	QStringList m_codes;
 	QStringList m_descriptions;
 	QList<bool> m_enable;

@@ -39,6 +39,7 @@ public:
 
 NesDisk nesDisk;
 u32 nesDiskCrc = 0;
+QString nesDiskFileName;
 
 static NesDiskHeader header;
 
@@ -58,6 +59,7 @@ static void computeChecksum(QFile &file) {
 }
 
 bool NesDisk::load(const QString &fileName) {
+	nesDiskFileName = fileName;
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
 		return false;

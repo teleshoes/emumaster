@@ -24,20 +24,21 @@ Sheet {
 	property alias folder: folderModel.folder
 	property string selectedPath
 
-	acceptButtonText: "OK"
 	// TODO waiting for new version of components - accept enable disable
-	rejectButtonText: "Cancel"
+	acceptButtonText: qsTr("OK")
+	rejectButtonText: qsTr("Cancel")
 
 	title: Label {
 		anchors.centerIn: parent
-		text: "Select Cover"
+		text: qsTr("Select Cover")
 	}
 
 	FolderListModel {
 		id: folderModel
-		// TODO retrieve path from IMachine
 		folder: "file:/home/user/MyDocs/emumaster/covers"
 		nameFilters: ["*.jpg","*.png"]
+		showDirs: false
+		Component.onCompleted: console.log(diskGallery.coversPath())
 	}
 	content: CoverFlow {
 		id: coverFlow
@@ -65,11 +66,9 @@ Sheet {
 	}
 	QueryDialog {
 		id: whereToCopyCoversDialog
-
-		rejectButtonText: "Close"
-
-		titleText: "Help"
-		message: "Copy your covers (.jpg and .png files) to \"emumaster/covers\" directory"
+		rejectButtonText: qsTr("Close")
+		titleText: qsTr("Help")
+		message: qsTr("Copy your covers (.jpg and .png files) to \"emumaster/covers\" directory")
 		onRejected: coverSelector.reject()
 	}
 	function displayHelp() {

@@ -1,4 +1,5 @@
 #include "machineview.h"
+#include <pathmanager.h>
 #include <QFile>
 #include <QApplication>
 #include "common.h"
@@ -99,7 +100,7 @@ void GbaMachine::reset() {
 }
 
 QString GbaMachine::loadBios() {
-	QString path = diskDirPath() + "/gba_bios.bin";
+	QString path = PathManager::instance()->diskDirPath() + "/gba_bios.bin";
 	QFile biosFile(path);
 
 	bool loaded = false;

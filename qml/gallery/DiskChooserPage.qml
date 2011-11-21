@@ -18,16 +18,16 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 
 Page {
-	id: romChooserPage
-	property int currentRomIndex: -1
+	id: diskChooserPage
+	property int currentDiskIndex: -1
 	property bool coverFlowEnabled: true
-	property bool isDiskVisibleAndSelected: currentRomIndex >= 0 && tabGroup.currentTab !== machineTypeTab
+	property bool isDiskVisibleAndSelected: currentDiskIndex >= 0 && tabGroup.currentTab !== machineTypeTab
 
 	tools: ToolBarLayout {
 		ToolIcon {
 			iconId: "toolbar-mediacontrol-play"
 			visible: isDiskVisibleAndSelected
-			onClicked: romGallery.launch(currentRomIndex, true)
+			onClicked: diskGallery.launch(currentDiskIndex, true)
 		}
 		ButtonRow {
 			platformStyle: TabButtonStyle { }
@@ -47,7 +47,7 @@ Page {
 		ToolIcon {
 			iconId: "toolbar-view-menu"
 			onClicked: {
-				mainMenu.addRemoveIconToggle = romGallery.iconInHomeScreenExists(currentRomIndex)
+				mainMenu.addRemoveIconToggle = diskListModel.iconInHomeScreenExists(currentDiskIndex)
 				mainMenu.open()
 			}
 		}
@@ -64,27 +64,27 @@ Page {
 					coverSelectorSheet.open()
 					coverSelectorSheet.displayHelp()
 				}
-				visible: romChooserPage.isDiskVisibleAndSelected
+				visible: diskChooserPage.isDiskVisibleAndSelected
 			}
 			MenuItem {
 				text: qsTr("Create Icon in Home Screen")
-				onClicked: romChooserPage.homeScreenIcon()
-				visible: romChooserPage.isDiskVisibleAndSelected && !mainMenu.addRemoveIconToggle
+				onClicked: diskChooserPage.homeScreenIcon()
+				visible: diskChooserPage.isDiskVisibleAndSelected && !mainMenu.addRemoveIconToggle
 			}
 			MenuItem {
 				text: qsTr("Remove Icon from Home Screen")
-				onClicked: romGallery.removeIconFromHomeScreen(currentRomIndex)
-				visible: romChooserPage.isDiskVisibleAndSelected && mainMenu.addRemoveIconToggle
+				onClicked: diskListModel.removeIconFromHomeScreen(currentDiskIndex)
+				visible: diskChooserPage.isDiskVisibleAndSelected && mainMenu.addRemoveIconToggle
 			}
 			MenuItem {
 				text: qsTr("Remove Disk")
-				onClicked: removeRomDialog.open()
-				visible: romChooserPage.isDiskVisibleAndSelected
+				onClicked: removeDiskDialog.open()
+				visible: diskChooserPage.isDiskVisibleAndSelected
 			}
 			MenuItem {
 				text: qsTr("Run With Autoload Disabled")
-				onClicked: romGallery.launch(currentRomIndex, false)
-				visible: romChooserPage.isDiskVisibleAndSelected
+				onClicked: diskGallery.launch(currentDiskIndex, false)
+				visible: diskChooserPage.isDiskVisibleAndSelected
 			}
 			MenuItem {
 				text: qsTr("About EmuMaster ...")
@@ -108,7 +108,7 @@ Page {
 
 	CoverSelectorSheet {
 		id: coverSelectorSheet
-		onAccepted: romListModel.setDiskCover(currentRomIndex, selectedPath)
+		onAccepted: diskListModel.setDiskCover(currentDiskIndex, selectedPath)
 	}
 
 	QueryDialog {
@@ -118,13 +118,13 @@ Page {
 	}
 
 	QueryDialog {
-		id: howToInstallRomDialog
+		id: howToInstallDiskDialog
 		rejectButtonText: qsTr("Close")
 		titleText: qsTr("Help")
 		message: qsTr("The directory is empty. To install a disk you need to attach " +
 					  "the phone to the PC and copy your files to \"emumaster/%1\" " +
 					  "directory. Remember to detach the phone from the PC.")
-						.arg(romListModel.machineName)
+						.arg(diskListModel.collection)
 	}
 
 	QueryDialog {
@@ -136,22 +136,22 @@ Page {
 						"answer you there. You can find contact info at the about " +
 						"page:\n Menu->About EmuMaster...\n Enjoy :)\n " +
 						"Consider a donation if you find this software useful.") +
-						(romGallery.runCount < 10
+						(diskGallery.runCount < 10
 							?	qsTr("\n\nThis message will be shown %1 more times")
-									.arg(10-romGallery.runCount)
+									.arg(10-diskGallery.runCount)
 							: "")
 
 	}
 
 	QueryDialog {
-		id: removeRomDialog
+		id: removeDiskDialog
 		acceptButtonText: qsTr("Yes")
 		rejectButtonText: qsTr("No")
-		titleText: qsTr("Remove")
-		message: qsTr("Do you really want to remove \"%1\" ?")
-					.arg(romListModel.getDiskTitle(currentRomIndex))
+		titleText: qsTr("Delete")
+		message: qsTr("Do you really want to delete \"%1\" ?")
+					.arg(diskListModel.getDiskTitle(currentDiskIndex))
 
-		onAccepted: romListModel.trash(currentRomIndex)
+		onAccepted: diskListModel.trash(currentDiskIndex)
 	}
 
 	QueryDialog {
@@ -163,34 +163,35 @@ Page {
 	}
 
 	Connections {
-		target: romGallery
-		onRomUpdate: setMachineName(romListModel.machineNameLastUsed)
+		target: diskGallery
+		onDiskUpdate: selectCollection(diskListModel.collectionLastUsed)
 		onDetachUsb: detachUsbDialog.open()
 		onShowFirstRunMsg: firstRunMsg.open()
 	}
 	AboutSheet { id: aboutSheet }
 
-	function setMachineName(name) {
-		romListModel.machineName = name
-		if (romListModel.count > 0) {
-			currentRomIndex = 0
+	function selectCollection(name) {
+		diskListModel.collection = name
+		if (diskListModel.count > 0) {
+			currentDiskIndex = 0
 		} else {
-			howToInstallRomDialog.open()
+			howToInstallDiskDialog.open()
 		}
 		listTab.update()
 	}
 
 	function homeScreenIcon() {
-		if (romListModel.getScreenShotUpdate(currentRomIndex) < 0) {
+		if (diskListModel.getScreenShotUpdate(currentDiskIndex) < 0) {
 			errorDialog.message = qsTr("You need to make a screenshot first!")
 			errorDialog.open()
 		} else {
 			saveIconSheet.imgScale = 1.0
 			saveIconSheet.iconX = 0
 			saveIconSheet.iconY = 0
-			saveIconSheet.imgSource =	"image://rom/" + romListModel.machineName + "_" +
-										romListModel.getDiskTitle(currentRomIndex) + "*" +
-										romListModel.getScreenShotUpdate(currentRomIndex)
+			saveIconSheet.imgSource = qsTr("image://disk/%1/%2*%3")
+										.arg(diskListModel.collection)
+										.arg(diskListModel.getDiskTitle(currentDiskIndex))
+										.arg(diskListModel.getScreenShotUpdate(currentDiskIndex))
 			saveIconSheet.open()
 		}
 	}

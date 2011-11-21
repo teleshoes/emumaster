@@ -22,6 +22,7 @@
 #include "settingsview.h"
 #include "machineimageprovider.h"
 #include "machinestatelistmodel.h"
+#include "pathmanager.h"
 #include <QDeclarativeView>
 #include <QDeclarativeContext>
 #include <QCloseEvent>
@@ -42,6 +43,8 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_audioEnable(true) {
 	Q_ASSERT(m_machine != 0);
 
+	PathManager::instance()->setMachine(machine->name());
+
 	m_thread = new MachineThread(m_machine);
 	bool autoLoadOnStart = !qApp->arguments().contains("-noautoload");
 	if (autoLoadOnStart)
@@ -59,8 +62,8 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 
 	if (error.isEmpty()) {
 		error = m_machine->setDisk(QString("%1/%2")
-										   .arg(m_machine->diskDirPath())
-										   .arg(m_diskFileName));
+								   .arg(PathManager::instance()->diskDirPath())
+								   .arg(m_diskFileName));
 	}
 
 	loadSettings();
@@ -99,7 +102,9 @@ MachineView::~MachineView() {
 		m_stateListModel->saveState(MachineStateListModel::AutoSlot);
 
 		// auto save screenshot
-		if (!QFile::exists(m_machine->screenShotPath(m_diskFileName)))
+		QString title = QFileInfo(m_diskFileName).completeBaseName();
+		QString path = PathManager::instance()->screenShotPath(title);
+		if (!QFile::exists(path))
 			saveScreenShot();
 
 		m_machine->shutdown();
@@ -152,8 +157,9 @@ void MachineView::pauseStage2() {
 		QString path = QString("image://machine/screenShotGrayscaled%1").arg(m_backgroundCounter++);
 		m_settingsView->rootContext()->setContextProperty("backgroundPath", path);
 		if (m_settingsView->source().isEmpty()) {
-			m_settingsView->setSource(QUrl::fromLocalFile(QString("%1/qml/base/main.qml")
-														  .arg(IMachine::installationDirPath())));
+			QUrl url = QUrl::fromLocalFile(QString("%1/qml/base/main.qml")
+										   .arg(PathManager::instance()->installationDirPath()));
+			m_settingsView->setSource(url);
 		}
 		if (m_audioEnable)
 			m_hostAudio->close();
@@ -198,7 +204,8 @@ bool MachineView::close() {
 void MachineView::saveScreenShot() {
 	QImage img = m_machine->frame().copy(m_machine->videoSrcRect().toRect());
 	img = img.convertToFormat(QImage::Format_ARGB32);
-	img.save(m_machine->screenShotPath(m_diskFileName));
+	QString diskTitle = QFileInfo(m_diskFileName).completeBaseName();
+	img.save(PathManager::instance()->screenShotPath(diskTitle));
 	QByteArray ba;
 	QDataStream s(&ba, QIODevice::WriteOnly);
 	s << m_diskFileName;

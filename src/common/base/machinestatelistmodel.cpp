@@ -15,6 +15,7 @@
 
 #include "machinestatelistmodel.h"
 #include "imachine.h"
+#include "pathmanager.h"
 #include <QDataStream>
 #include <QDateTime>
 #include <QImage>
@@ -29,7 +30,7 @@ MachineStateListModel::MachineStateListModel(IMachine *machine, const QString &d
 	roles.insert(DateTimeRole, "saveDateTime");
 	setRoleNames(roles);
 
-	m_dir = QDir(QString("%1/state").arg(IMachine::userDataDirPath()));
+	m_dir = QDir(QString("%1/state").arg(PathManager::instance()->userDataDirPath()));
 
 	QString diskTitle = QFileInfo(diskName).completeBaseName();
 	QString subDirName = QString("%1_%2").arg(m_machine->name()).arg(diskTitle);

@@ -17,40 +17,37 @@
 #ifndef ROMGALLERY_H
 #define ROMGALLERY_H
 
-class RomListModel;
+class DiskListModel;
 #include <QDeclarativeView>
+#include <QUdpSocket>
 
-class RomGallery : public QDeclarativeView {
+class DiskGallery : public QDeclarativeView {
     Q_OBJECT
 	Q_PROPERTY(int runCount READ runCount CONSTANT)
 public:
-    explicit RomGallery(QWidget *parent = 0);
-	~RomGallery();
+    explicit DiskGallery(QWidget *parent = 0);
+	~DiskGallery();
 
 	int runCount() const;
 
 	Q_INVOKABLE void launch(int index, bool autoload);
 
-	Q_INVOKABLE bool addIconToHomeScreen(int index, qreal scale, int x, int y);
-	Q_INVOKABLE void removeIconFromHomeScreen(int index);
-	Q_INVOKABLE bool iconInHomeScreenExists(int index);
-
 	Q_INVOKABLE void donate();
 	Q_INVOKABLE void homepage();
 signals:
-	void romUpdate();
+	void diskUpdate();
 	void detachUsb();
 	void showFirstRunMsg();
 private slots:
-	void emitRomUpdate();
+	void emitDiskUpdate();
+	void receiveDatagram();
 private:
-	QImage applyMaskAndOverlay(const QImage &icon);
-	void homeScreenIconPaths(QString *desktopFilePath, QString *iconFilePath, const QString &diskTitle);
 	void setupQml();
 	void incrementRunCount();
 
-	RomListModel *m_romListModel;
+	DiskListModel *m_diskListModel;
 	int m_runCount;
+	QUdpSocket m_sock;
 };
 
 #endif // ROMGALLERY_H

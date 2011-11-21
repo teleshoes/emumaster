@@ -16,6 +16,7 @@
 #include "hostvideo.h"
 #include "imachine.h"
 #include "machinethread.h"
+#include "pathmanager.h"
 #include <QPainter>
 #include <QKeyEvent>
 
@@ -42,7 +43,7 @@ HostVideo::HostVideo(IMachine *machine, MachineThread *thread) :
 	m_fpsCounterTime.start();
 
 	m_padOpacity = 0.45f;
-	QString dirPath = QString("%1/data").arg(IMachine::installationDirPath());
+	QString dirPath = QString("%1/data").arg(PathManager::instance()->installationDirPath());
 
 	m_padLeftImage.load(dirPath + "/pad-left.png");
 	if (machine->name() == "psx")

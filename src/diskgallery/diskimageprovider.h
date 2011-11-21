@@ -14,15 +14,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "romgallery.h"
-#include "imachine.h"
-#include <QApplication>
+#ifndef ROMIMAGEPROVIDER_H
+#define ROMIMAGEPROVIDER_H
 
-int main(int argc, char *argv[]) {
-	QApplication app(argc, argv);
-	IMachine::buildLocalDirTree();
+#include <QDeclarativeImageProvider>
 
-	RomGallery view;
-	view.showFullScreen();
-	return app.exec();
-}
+class DiskImageProvider : public QDeclarativeImageProvider {
+public:
+    DiskImageProvider();
+	QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);
+private:
+	QImage m_noScreenShot;
+};
+
+#endif // ROMIMAGEPROVIDER_H

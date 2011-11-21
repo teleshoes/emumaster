@@ -6,7 +6,7 @@ SUBDIRS += \
 	nes \
 	psx \
 	snes \
-	romgallery
+	diskgallery
 
 OTHER_FILES += \
 	../todo.txt \

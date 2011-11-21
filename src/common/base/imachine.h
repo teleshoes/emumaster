@@ -32,6 +32,8 @@ typedef quint32 u32;
 typedef qint64 s64;
 typedef quint64 u64;
 
+// TODO consolide init with setDisk
+
 class BASE_EXPORT IMachine : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(QString name READ name CONSTANT)
@@ -52,24 +54,17 @@ public:
 		Start_PadKey	= (1 << 10),
 		Select_PadKey	= (1 << 11)
 	};
-	static QString installationDirPath();
-	static QString userDataDirPath();
-	static QString diskDirPath(const QString &machineName);
-
-	static void buildLocalDirTree();
 
 	explicit IMachine(const QString &name, QObject *parent = 0);
 	~IMachine();
-	virtual QString init() = 0;
-	virtual void shutdown() = 0;
-	Q_INVOKABLE virtual void reset();
-
 	QString name() const;
-	QString diskDirPath() const;
-	QString screenShotPath(const QString &diskFileName) const;
 
 	qreal frameRate() const;
 	QRectF videoSrcRect() const;
+
+	virtual QString init() = 0;
+	virtual void shutdown() = 0;
+	Q_INVOKABLE virtual void reset();
 
 	virtual QString setDisk(const QString &path) = 0;
 	virtual void emulateFrame(bool drawEnabled) = 0;
@@ -100,8 +95,6 @@ private:
 
 inline QString IMachine::name() const
 { return m_name; }
-inline QString IMachine::diskDirPath() const
-{ return diskDirPath(name()); }
 inline qreal IMachine::frameRate() const
 { return m_frameRate; }
 inline QRectF IMachine::videoSrcRect() const

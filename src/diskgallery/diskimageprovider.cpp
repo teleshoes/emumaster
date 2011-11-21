@@ -14,13 +14,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "romimageprovider.h"
-#include "imachine.h"
+#include "diskimageprovider.h"
+#include <pathmanager.h>
 #include <QImage>
 #include <QPainter>
 #include <QFile>
 
-RomImageProvider::RomImageProvider() :
+DiskImageProvider::DiskImageProvider() :
 	QDeclarativeImageProvider(Image),
 	m_noScreenShot(256, 256, QImage::Format_RGB32) {
 	QPainter painter;
@@ -39,12 +39,12 @@ RomImageProvider::RomImageProvider() :
 	painter.end();
 }
 
-QImage RomImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize) {
+QImage DiskImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize) {
 	Q_UNUSED(size)
 	Q_UNUSED(requestedSize)
 	QString idGoodPart = id.left(id.indexOf('*'));
 	QString path = QString("%1/screenshot/%2.jpg")
-			.arg(IMachine::userDataDirPath())
+			.arg(PathManager::instance()->userDataDirPath())
 			.arg(idGoodPart);
 	if (!QFile::exists(path))
 		return m_noScreenShot;

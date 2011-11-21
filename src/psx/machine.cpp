@@ -15,6 +15,7 @@
  */
 
 #include "machine.h"
+#include <pathmanager.h>
 #include <QString>
 #include <QImage>
 #include <QPainter>
@@ -58,8 +59,8 @@ PsxMachine::PsxMachine(QObject *parent) :
 QString PsxMachine::init() {
 	Config.HLE = 0;
 
-	psxMcd1.init(userDataDirPath() + "/psx_mcd1.mcr");
-	psxMcd2.init(userDataDirPath() + "/psx_mcd2.mcr");
+	psxMcd1.init(PathManager::instance()->userDataDirPath() + "/psx_mcd1.mcr");
+	psxMcd2.init(PathManager::instance()->userDataDirPath() + "/psx_mcd2.mcr");
 	Config.PsxAuto = 1;
 	Config.Cdda = 0;
 	Config.Xa = 0;
@@ -70,7 +71,7 @@ QString PsxMachine::init() {
 	Config.SpuIrq = 0;
 	Config.VSyncWA = 0;
 	// TODO give user ability to choose his bios
-	QDir diskDir(diskDirPath());
+	QDir diskDir(PathManager::instance()->diskDirPath());
 	QStringList biosFilter;
 	biosFilter << "scph*.bin";
 	QStringList biosList = diskDir.entryList(biosFilter, QDir::NoFilter, QDir::Name);

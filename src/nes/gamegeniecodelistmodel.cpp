@@ -19,7 +19,9 @@
 #include "mapper.h"
 #include "disk.h"
 #include "gamegeniecode.h"
+#include <pathmanager.h>
 #include <QFile>
+#include <QFileInfo>
 
 GameGenieCodeListModel::GameGenieCodeListModel(QObject *parent) :
 	QAbstractListModel(parent) {
@@ -29,7 +31,8 @@ GameGenieCodeListModel::GameGenieCodeListModel(QObject *parent) :
 	roles.insert(EnableRole, "isEnabled");
 	setRoleNames(roles);
 
-	m_file.setFileName(filePath());
+	QString title = QFileInfo(nesDiskFileName).completeBaseName();
+	m_file.setFileName(PathManager::instance()->cheatPath(title));
 	load();
 }
 
@@ -61,13 +64,6 @@ void GameGenieCodeListModel::load() {
 	m_file.close();
 
 	nesMapper->setGameGenieCodeList(enabledList());
-}
-
-QString GameGenieCodeListModel::filePath() {
-	return QString("%1/cheat/%2_%3")
-			.arg(IMachine::userDataDirPath())
-			.arg(nesMachine.name())
-			.arg(nesDiskCrc);
 }
 
 QList<GameGenieCode> GameGenieCodeListModel::enabledList() const {

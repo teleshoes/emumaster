@@ -18,6 +18,7 @@
  */
 
 #include <imachine.h>
+#include <pathmanager.h>
 #include <QDataStream>
 #include "mem.h"
 #include "gpu.h"
@@ -2777,7 +2778,7 @@ void GbaMem::loadConfig() {
 	translation_gate_targets = 0;
 	flash_device_id = FLASH_DEVICE_MACRONIX_64KB;
 
-	QString path = IMachine::installationDirPath() + "/data/gba_game_config.txt";
+	QString path = PathManager::instance()->installationDirPath() + "/data/gba_game_config.txt";
 	QFile f(path);
 	if (!f.open(QIODevice::ReadOnly)) {
 		printf("could not load gba_game_config.txt");

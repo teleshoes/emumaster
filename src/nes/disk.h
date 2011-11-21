@@ -28,5 +28,6 @@ public:
 
 extern u32 nesDiskCrc;
 extern NesDisk nesDisk;
+extern QString nesDiskFileName;
 
 #endif // NESDISK_H

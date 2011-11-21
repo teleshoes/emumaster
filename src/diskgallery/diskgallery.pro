@@ -5,14 +5,16 @@ QT += opengl declarative network
 
 SOURCES += \
     main.cpp \
-    romimageprovider.cpp \
-    romgallery.cpp \
-    romlistmodel.cpp
+    diskgallery.cpp \
+    diskimageprovider.cpp \
+    disklistmodel.cpp \
+    disklistmodel_fav.cpp \
+    disklistmodel_icon.cpp
 
 HEADERS += \
-    romimageprovider.h \
-    romgallery.h \
-    romlistmodel.h
+    diskgallery.h \
+    diskimageprovider.h \
+    disklistmodel.h
 
 linux-g++-maemo {
 	MEEGO_VERSION_MAJOR     = 1
@@ -36,14 +38,16 @@ unix {
 		../../qml/gallery/ListPage.qml \
 		../../qml/gallery/MachineTypePage.qml \
 		../../qml/gallery/MachineTypeButton.qml \
-		../../qml/gallery/RomChoosePage.qml
+		../../qml/gallery/DiskChooserPage.qml
 
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = \
-		../../qml/img/machine-gba.png \
-		../../qml/img/machine-nes.png \
-		../../qml/img/machine-snes.png \
-		../../qml/img/machine-psx.png \
+		../../qml/img/collection-gba.png \
+		../../qml/img/collection-nes.png \
+		../../qml/img/collection-snes.png \
+		../../qml/img/collection-psx.png \
+		../../qml/img/collection-amiga.png \
+		../../qml/img/collection-fav.png \
 
 	datafiles.path = /opt/emumaster/data
 	datafiles.files = \
@@ -54,7 +58,7 @@ unix {
 }
 
 contains(MEEGO_EDITION,harmattan) {
-    icon.files = romgallery.png
+	icon.files = diskgallery.png
 	icon.path = /opt/emumaster/data
     INSTALLS += icon
 }
@@ -66,7 +70,7 @@ contains(MEEGO_EDITION,harmattan) {
 }
 
 maemo5 {
-	icon.files = romgallery.png
+	icon.files = diskgallery.png
 	icon.path = /opt/emumaster/data
 	INSTALLS += icon
 
@@ -74,4 +78,24 @@ maemo5 {
 	desktopfile.path = /usr/share/applications/hildon
 	INSTALLS += desktopfile
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

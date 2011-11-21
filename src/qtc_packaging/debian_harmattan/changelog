@@ -1,6 +1,11 @@
 emumaster (0.0.3) unstable; urgency=low
 
-  * workaround for sound bug in Mario Kart - thanks to javispedro
+  * workaround for sound bug (e.g. fix Mario Kart) - thanks to javispedro
+  * added name filters based on disk extension
+  * unified in-game menu
+  * better scaler when selecting an icon for the home screen
+  * information on few first runs
+  * N900 build
 
  -- elemental <mar.kazmierczak@gmail.com>  Wed, 01 Sep 2011 10:02:09 +0200
 

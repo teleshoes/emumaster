@@ -23,7 +23,7 @@ PageStackWindow {
 
 	initialPage: mainPage
 
-	RomChoosePage {
+	DiskChooserPage {
 		id: mainPage
 	}
 }

@@ -16,20 +16,19 @@
 
 import QtQuick 1.1
 import com.nokia.meego 1.0
-//import com.nokia.extras 1.1
 import "../base"
 
 Page {
 	ListModel { id: nullModel }
 	function update() {
 		listView.model = nullModel
-		listView.model = romListModel
+		listView.model = diskListModel
 	}
 
 	ListView {
 		id: listView
 		anchors.fill: parent
-		currentIndex: romChooserPage.currentRomIndex
+		currentIndex: diskChooserPage.currentDiskIndex
 
 		delegate: MyListDelegate {
 			id: delegate
@@ -42,7 +41,7 @@ Page {
 				visible: false
 			}
 
-			onClicked: romChooserPage.currentRomIndex = index
+			onClicked: diskChooserPage.currentDiskIndex = index
 
 			states: [
 				State {

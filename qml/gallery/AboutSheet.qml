@@ -21,11 +21,11 @@ Sheet {
 	id: aboutSheet
 
 	acceptButtonText: ""
-	rejectButtonText: "Close"
+	rejectButtonText: qsTr("Close")
 
 	title: Label {
 		anchors.centerIn: parent
-		text: "About"
+		text: qsTr("About")
 	}
 	content: Item {
 		anchors.fill: parent
@@ -35,7 +35,7 @@ Sheet {
 
 			Label {
 				width: parent.width
-				text: "EmuMaster 0.0.2\nAuthor: Elemental\nWant new features? Found bug? Go to homepage"
+				text: qsTr("EmuMaster 0.1.0\nAuthor: Elemental\nWant new features? Found bug? Go to homepage")
 				wrapMode: Text.WordWrap
 				horizontalAlignment: Text.AlignHCenter
 			}
@@ -45,12 +45,12 @@ Sheet {
 
 				MouseArea {
 					anchors.fill: parent
-					onClicked: romGallery.homepage()
+					onClicked: diskGallery.homepage()
 				}
 			}
 			Label {
 				width: parent.width
-				text: "If you find this software useful please donate"
+				text: qsTr("If you find this software useful please donate")
 				wrapMode: Text.WordWrap
 				horizontalAlignment: Text.AlignHCenter
 			}
@@ -61,7 +61,7 @@ Sheet {
 
 				MouseArea {
 					anchors.fill: parent
-					onClicked: romGallery.donate()
+					onClicked: diskGallery.donate()
 				}
 			}
 		}

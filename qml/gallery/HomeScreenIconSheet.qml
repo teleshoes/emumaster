@@ -27,19 +27,19 @@ Sheet {
 
 	// TODO waiting for new version of qt-components acceptButton.enabled when
 	// icon selected -> rect.visible
-	acceptButtonText: "Save"
-	rejectButtonText: "Cancel"
+	acceptButtonText: qsTr("Save")
+	rejectButtonText: qsTr("Cancel")
 
 	title: Label {
 		anchors.centerIn: parent
-		text: "Select Icon"
+		text: qsTr("Select Icon")
 	}
 
 	content: Item {
 		anchors.fill: parent
 		Label {
 			width: parent.width
-			text: "info: dialog creates icon in the home screen."
+			text: qsTr("Info: Dialog creates an icon in the home screen.")
 			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignHCenter
 		}
@@ -84,8 +84,8 @@ Sheet {
 	}
 
 	onAccepted: {
-		if (!romGallery.addIconToHomeScreen(currentRomIndex, imageScaler.value, iconX, iconY)) {
-			errorDialog.message = "Could not save icon!"
+		if (!diskListModel.addIconToHomeScreen(currentDiskIndex, imageScaler.value, iconX, iconY)) {
+			errorDialog.message = qsTr("Could not save the icon!")
 			errorDialog.open()
 		}
 	}

@@ -23,6 +23,7 @@
 
 // TODO: Implement caches & cycle penalty.
 
+#include <pathmanager.h>
 #include "mem.h"
 #include "cpu.h"
 #include "hw.h"
@@ -327,7 +328,7 @@ PsxMem psxMem;
 void PsxMem::loadBios() {
 	if (m_biosName != "HLE" && !m_biosName.isEmpty()) {
 		QString path = QString("%1/%2")
-				.arg(IMachine::diskDirPath("psx"))
+				.arg(PathManager::instance()->diskDirPath())
 				.arg(m_biosName);
 		QFile biosFile(path);
 		if (biosFile.open(QIODevice::ReadOnly)) {

@@ -22,32 +22,35 @@ Page {
 	CoverFlow {
 		id: coverFlow
 		anchors.fill: parent
-		model: romListModel
+		model: diskListModel
 		delegate: CoverFlowDelegate {
-			imageSource: "image://rom/" + romListModel.machineName + "_" + title + "*" + screenShotUpdate
+			imageSource: qsTr("image://disk/%1/%2*%3")
+							.arg(diskListModel.collection)
+							.arg(title)
+							.arg(screenShotUpdate)
 
 			Label {
 				anchors.top: parent.top
 				anchors.topMargin: -30
 				anchors.horizontalCenter: parent.horizontalCenter
 				text: title
-				visible: romChooserPage.currentRomIndex == index
+				visible: diskChooserPage.currentDiskIndex == index
 			}
 		}
 		pathItemCount: 7
-		currentIndex: romChooserPage.currentRomIndex
+		currentIndex: diskChooserPage.currentDiskIndex
 
 		onCurrentIndexChanged: {
 			if (coverFlowEnabled)
-				romChooserPage.currentRomIndex = currentIndex
+				diskChooserPage.currentDiskIndex = currentIndex
 		}
 
 		Connections {
-			target: romChooserPage
+			target: diskChooserPage
 
-			onCurrentRomIndexChanged: {
+			onCurrentDiskIndexChanged: {
 				if (!coverFlowEnabled)
-					coverFlow.currentIndex = romChooserPage.currentRomIndex
+					coverFlow.currentIndex = diskChooserPage.currentDiskIndex
 			}
 		}
 	}

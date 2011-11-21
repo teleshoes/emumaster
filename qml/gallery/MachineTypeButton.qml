@@ -24,7 +24,7 @@ Item {
 	width: 240; height: 240
 	Image {
 		anchors.centerIn: parent
-		source: "../img/machine-" + name + ".png"
+		source: "../img/collection-" + name + ".png"
 	}
 	Image {
 		anchors.centerIn: parent
@@ -46,10 +46,10 @@ Item {
 		anchors.fill: parent
 		source: "image://theme/meegotouch-panel-background-selected"
 		opacity: 0.5
-		visible: romListModel.machineName === button.name
+		visible: diskListModel.collection === button.name
 	}
 	MouseArea {
 		anchors.fill: parent
-		onClicked: romChooserPage.setMachineName(button.name)
+		onClicked: diskChooserPage.selectCollection(button.name)
 	}
 }
