@@ -84,50 +84,14 @@ Page {
 		id: diskListView
 		anchors.fill: parent
 		spacing: 10
-		delegate: Item {
-			id: diskListViewDelegate
-			width: parent.width
-			height: 280
-
-			Image {
-				id: screenShot
-				x: 10
-				width: parent.width-20
-				height: parent.height-30
-				source: qsTr("image://disk/%1/%2*%3")
-				.arg(diskListModel.getDiskMachine(index))
-							.arg(title)
-							.arg(screenShotUpdate)
-			}
-			Label {
-				x: 10
-				anchors.top: screenShot.bottom
-				anchors.topMargin: 8
-				text: title
-				font.bold: true
-				color: "white"
-			}
-
-			MouseArea {
-				id: mouseArea
-				anchors.fill: parent
-				onClicked: diskGallery.launch(index, true)
-				onPressAndHold: mainMenu.prepareAndOpen(index)
-			}
-			Behavior on scale {
-				NumberAnimation { duration: 100 }
-			}
-
-			states: [
-				State {
-					name: "pressed"
-					when: mouseArea.pressed
-					PropertyChanges {
-						target: diskListViewDelegate
-						scale: 0.85
-					}
-				}
-			]
+		delegate: ImageListViewDelegate {
+			imgSource: qsTr("image://disk/%1/%2*%3")
+						.arg(diskListModel.getDiskMachine(index))
+						.arg(title)
+						.arg(screenShotUpdate)
+			text: title
+			onClicked: diskGallery.launch(index, true)
+			onPressAndHold: mainMenu.prepareAndOpen(index)
 		}
 		section.property: "alphabet"
 		section.criteria: ViewSection.FullString

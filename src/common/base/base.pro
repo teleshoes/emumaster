@@ -39,6 +39,7 @@ unix {
 		../../../qml/base/DefaultSettings.qml \
 		../../../qml/base/EMButtonOption.qml \
 		../../../qml/base/EMSwitchOption.qml \
+		../../../qml/base/ImageListViewDelegate.qml \
 		../../../qml/base/MySectionScroller.js \
 		../../../qml/base/MySectionScroller.qml \
 		../../../qml/base/MyListDelegate.qml \

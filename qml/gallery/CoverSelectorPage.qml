@@ -56,44 +56,14 @@ Page {
 		anchors.fill: parent
 		model: folderModel
 		spacing: 10
-		delegate: Item {
-			id: coverViewDelegate
-			width: parent.width
-			height: 250
-
+		delegate: ImageListViewDelegate {
 			property string filePath: coverSelector.folder + "/" + fileName
-
-			Image {
-				id: screenShot
-				x: 10
-				width: parent.width-20
-				height: parent.height-30
-				source: filePath
+			imgSource: filePath
+			onClicked: {
+				appWindow.pageStack.pop()
+				diskListModel.setDiskCover(coverSelector.diskIndex,
+										   coverViewDelegate.filePath)
 			}
-
-			MouseArea {
-				id: mouseArea
-				anchors.fill: parent
-				onClicked: {
-					appWindow.pageStack.pop()
-					diskListModel.setDiskCover(coverSelector.diskIndex,
-											   coverViewDelegate.filePath)
-				}
-			}
-			Behavior on scale {
-				NumberAnimation { duration: 100 }
-			}
-
-			states: [
-				State {
-					name: "pressed"
-					when: mouseArea.pressed
-					PropertyChanges {
-						target: coverViewDelegate
-						scale: 0.85
-					}
-				}
-			]
 		}
 	}
 	Component.onCompleted: {
