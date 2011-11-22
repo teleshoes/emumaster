@@ -39,7 +39,9 @@ Page {
 			onClicked: {
 				if (rect.visible) {
 					if (!diskListModel.addIconToHomeScreen(
-								diskIndex, imageScaler.value, iconX, iconY)) {
+								saveIconPage.diskIndex,
+								imageScaler.value,
+								iconX, iconY)) {
 						errorDialog.message = qsTr("Could not save the icon!")
 						errorDialog.open()
 					} else {

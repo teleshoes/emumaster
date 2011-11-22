@@ -33,19 +33,37 @@ void DiskListModel::addToFav(int i) {
 		if (machineId == m_favListMachine.at(favIndex))
 			return;
 	}
-	m_favList.append(fileName);
-	m_favListMachine.append(machineId);
+	for (i = 0; i < m_favList.size(); i++) {
+		if (fileName < m_favList.at(i))
+			break;
+	}
+	m_favList.insert(i, fileName);
+	m_favListMachine.insert(i, machineId);
 	saveFav();
 }
 
-void DiskListModel::removeFromFav(int indexInFavList) {
-	if (indexInFavList < 0 || indexInFavList >= m_favList.size())
+void DiskListModel::removeFromFav(int i) {
+	if (m_collection != "fav") {
+		QString fileName = getDiskFileName(i);
+		QString machine = getDiskMachine(i);
+		if (machine.isEmpty())
+			return;
+
+		int machineId = PathManager::instance()->machines().indexOf(machine);
+		i = m_favList.indexOf(fileName);
+		if (i < 0)
+			return;
+		if (machineId != m_favListMachine.at(i))
+			return;
+	}
+	if (i < 0 || i >= m_favList.size())
 		return;
+
 	bool favModelCurrent = (m_collection == "fav");
 	if (favModelCurrent)
-		beginRemoveRows(QModelIndex(), indexInFavList, indexInFavList);
-	m_favList.removeAt(indexInFavList);
-	m_favListMachine.removeAt(indexInFavList);
+		beginRemoveRows(QModelIndex(), i, i);
+	m_favList.removeAt(i);
+	m_favListMachine.removeAt(i);
 	if (favModelCurrent) {
 		m_list = m_favList;
 		m_listMachine = m_favListMachine;

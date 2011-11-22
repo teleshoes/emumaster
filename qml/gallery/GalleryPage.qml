@@ -32,11 +32,13 @@ Page {
 	Menu {
 		id: mainMenu
 		property bool addRemoveIconToggle: false
+		property bool addRemoveFavToggle: false
 		property int diskIndex
 
 		function prepareAndOpen(index) {
 			mainMenu.diskIndex = index
 			mainMenu.addRemoveIconToggle = diskListModel.iconInHomeScreenExists(mainMenu.diskIndex)
+			mainMenu.addRemoveFavToggle = diskListModel.diskInFavExists(mainMenu.diskIndex)
 			mainMenu.open()
 		}
 
@@ -45,6 +47,16 @@ Page {
 				text: qsTr("Select Cover")
 				onClicked: appWindow.pageStack.push(Qt.resolvedUrl("CoverSelectorPage.qml"),
 													{ diskIndex: mainMenu.diskIndex })
+			}
+			MenuItem {
+				text: qsTr("Add to Favourites")
+				visible: !mainMenu.addRemoveFavToggle
+				onClicked: diskListModel.addToFav(mainMenu.diskIndex)
+			}
+			MenuItem {
+				text: qsTr("Remove from Favourites")
+				visible: mainMenu.addRemoveFavToggle
+				onClicked: diskListModel.removeFromFav(mainMenu.diskIndex)
 			}
 			MenuItem {
 				text: qsTr("Create Icon in Home Screen")
@@ -83,7 +95,7 @@ Page {
 				width: parent.width-20
 				height: parent.height-30
 				source: qsTr("image://disk/%1/%2*%3")
-							.arg(diskListModel.collection)
+				.arg(diskListModel.getDiskMachine(index))
 							.arg(title)
 							.arg(screenShotUpdate)
 			}
@@ -168,17 +180,17 @@ Page {
 		}
 	}
 
-	function homeScreenIcon(diskIndex) {
-		if (diskListModel.getScreenShotUpdate(diskIndex) < 0) {
+	function homeScreenIcon(diskIndexArg) {
+		if (diskListModel.getScreenShotUpdate(diskIndexArg) < 0) {
 			errorDialog.message = qsTr("You need to make a screenshot first!")
 			errorDialog.open()
 		} else {
 			var path = qsTr("image://disk/%1/%2*%3")
-							.arg(diskListModel.collection)
-							.arg(diskListModel.getDiskTitle(diskIndex))
-							.arg(diskListModel.getScreenShotUpdate(diskIndex))
+							.arg(diskListModel.getDiskMachine(diskIndexArg))
+							.arg(diskListModel.getDiskTitle(diskIndexArg))
+							.arg(diskListModel.getScreenShotUpdate(diskIndexArg))
 			appWindow.pageStack.push(Qt.resolvedUrl("HomeScreenIconSheet.qml"),
-									 { imgSource: path })
+									 { imgSource: path, diskIndex: diskIndexArg })
 		}
 	}
 }

@@ -2,11 +2,9 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
 	common \
-	nes \
-	gba \
-	snes \
-	psx \
 	diskgallery
+
+#	nes gba snes psx
 
 OTHER_FILES += \
 	../todo.txt \

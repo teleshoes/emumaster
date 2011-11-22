@@ -55,7 +55,7 @@ public:
 	Q_INVOKABLE void setDiskCover(int i, const QUrl &coverUrl);
 
 	Q_INVOKABLE void addToFav(int i);
-	Q_INVOKABLE void removeFromFav(int indexInFavList);
+	Q_INVOKABLE void removeFromFav(int i);
 	Q_INVOKABLE bool diskInFavExists(int i);
 
 	Q_INVOKABLE bool addIconToHomeScreen(int index, qreal scale, int x, int y);
