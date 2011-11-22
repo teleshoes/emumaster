@@ -2,10 +2,10 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
 	common \
-	gba \
 	nes \
-	psx \
+	gba \
 	snes \
+	psx \
 	diskgallery
 
 OTHER_FILES += \

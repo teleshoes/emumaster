@@ -40,7 +40,6 @@
 
 import QtQuick 1.1
 import com.nokia.meego 1.0
-//import com.nokia.extras 1.1
 import "MySectionScroller.js" as Sections
 
 Item {
@@ -60,7 +59,7 @@ Item {
 		}
 	}
 
-	property Style platformStyle: SectionScrollerStyle {}
+	property Style platformStyle: SectionScrollerStyle { }
 
 	//Deprecated, TODO Remove this on w13
 	property alias style: root.platformStyle
@@ -68,7 +67,7 @@ Item {
 	Rectangle {
 		id: container
 		color: "transparent"
-		width: 60
+		width: 80
 		height: listView.height
 		x: listView.x + listView.width - width
 		property bool dragging: false
@@ -136,7 +135,7 @@ Item {
 					id: currentSectionLabel
 					objectName: "currentSectionLabel"
 					text: internal.currentSection
-					highlighted: internal.curSect === text
+					highlighted: true
 					up: !internal.down
 				}
 			}

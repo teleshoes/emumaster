@@ -19,39 +19,166 @@ import com.nokia.meego 1.0
 import "../base"
 
 Page {
-	CoverFlow {
-		id: coverFlow
+	id: galleryPage
+	orientationLock: PageOrientation.LockPortrait
+
+	tools: ToolBarLayout {
+		ToolIcon {
+			iconId: "toolbar-back"
+			onClicked: appWindow.pageStack.pop()
+		}
+	}
+
+	Menu {
+		id: mainMenu
+		property bool addRemoveIconToggle: false
+		property int diskIndex
+
+		function prepareAndOpen(index) {
+			mainMenu.diskIndex = index
+			mainMenu.addRemoveIconToggle = diskListModel.iconInHomeScreenExists(mainMenu.diskIndex)
+			mainMenu.open()
+		}
+
+		MenuLayout {
+			MenuItem {
+				text: qsTr("Select Cover")
+				onClicked: appWindow.pageStack.push(Qt.resolvedUrl("CoverSelectorPage.qml"),
+													{ diskIndex: mainMenu.diskIndex })
+			}
+			MenuItem {
+				text: qsTr("Create Icon in Home Screen")
+				onClicked: galleryPage.homeScreenIcon(mainMenu.diskIndex)
+				visible: !mainMenu.addRemoveIconToggle
+			}
+			MenuItem {
+				text: qsTr("Remove Icon from Home Screen")
+				onClicked: diskListModel.removeIconFromHomeScreen(mainMenu.diskIndex)
+				visible: mainMenu.addRemoveIconToggle
+			}
+			MenuItem {
+				text: qsTr("Remove Disk")
+				onClicked: removeDiskDialog.prepareAndOpen(mainMenu.diskIndex)
+			}
+		}
+	}
+
+	ListModel { id: nullModel }
+	function updateModel() {
+		diskListView.model = nullModel
+		diskListView.model = diskListModel
+	}
+	ListView {
+		id: diskListView
 		anchors.fill: parent
-		model: diskListModel
-		delegate: CoverFlowDelegate {
-			imageSource: qsTr("image://disk/%1/%2*%3")
+		spacing: 10
+		delegate: Item {
+			id: diskListViewDelegate
+			width: parent.width
+			height: 280
+
+			Image {
+				id: screenShot
+				x: 10
+				width: parent.width-20
+				height: parent.height-30
+				source: qsTr("image://disk/%1/%2*%3")
 							.arg(diskListModel.collection)
 							.arg(title)
 							.arg(screenShotUpdate)
-
+			}
 			Label {
-				anchors.top: parent.top
-				anchors.topMargin: -30
-				anchors.horizontalCenter: parent.horizontalCenter
+				x: 10
+				anchors.top: screenShot.bottom
+				anchors.topMargin: 8
 				text: title
-				visible: diskChooserPage.currentDiskIndex == index
+				font.bold: true
+				color: "white"
+			}
+
+			MouseArea {
+				id: mouseArea
+				anchors.fill: parent
+				onClicked: diskGallery.launch(index, true)
+				onPressAndHold: mainMenu.prepareAndOpen(index)
+			}
+			Behavior on scale {
+				NumberAnimation { duration: 100 }
+			}
+
+			states: [
+				State {
+					name: "pressed"
+					when: mouseArea.pressed
+					PropertyChanges {
+						target: diskListViewDelegate
+						scale: 0.85
+					}
+				}
+			]
+		}
+		section.property: "alphabet"
+		section.criteria: ViewSection.FullString
+		section.delegate: Item {
+			width: parent.width
+			height: 40
+			Text {
+				id: headerLabel
+				width: 80
+				height: parent.height
+				anchors.right: parent.right
+				text: section
+				font.pointSize: 18
+				color: theme.inverted ? "#4D4D4D" : "#3C3C3C";
+				horizontalAlignment: Text.AlignHCenter
+				verticalAlignment: Text.AlignVCenter
+			}
+			Image {
+				anchors.left: parent.left
+				anchors.leftMargin: 10
+				anchors.right: parent.right
+				anchors.rightMargin: 80
+				anchors.verticalCenter: headerLabel.verticalCenter
+				source: "image://theme/meegotouch-groupheader" + (theme.inverted ? "-inverted" : "") + "-background"
 			}
 		}
-		pathItemCount: 7
-		currentIndex: diskChooserPage.currentDiskIndex
+	}
+	MySectionScroller {
+		id: sectionScroller
+		listView: diskListView
+	}
+	ScrollDecorator {
+		flickableItem: diskListView
+	}
 
-		onCurrentIndexChanged: {
-			if (coverFlowEnabled)
-				diskChooserPage.currentDiskIndex = currentIndex
+	QueryDialog {
+		id: removeDiskDialog
+		acceptButtonText: qsTr("Yes")
+		rejectButtonText: qsTr("No")
+		titleText: qsTr("Delete")
+		onAccepted: diskListModel.trash(diskIndex)
+
+		property int diskIndex
+
+		function prepareAndOpen(index) {
+			removeDiskDialog.diskIndex = index
+			removeDiskDialog.message = qsTr("Do you really want to delete\n\"%1\" ?")
+						.arg(diskListModel.getDiskTitle(index))
+			removeDiskDialog.open()
 		}
+	}
 
-		Connections {
-			target: diskChooserPage
-
-			onCurrentDiskIndexChanged: {
-				if (!coverFlowEnabled)
-					coverFlow.currentIndex = diskChooserPage.currentDiskIndex
-			}
+	function homeScreenIcon(diskIndex) {
+		if (diskListModel.getScreenShotUpdate(diskIndex) < 0) {
+			errorDialog.message = qsTr("You need to make a screenshot first!")
+			errorDialog.open()
+		} else {
+			var path = qsTr("image://disk/%1/%2*%3")
+							.arg(diskListModel.collection)
+							.arg(diskListModel.getDiskTitle(diskIndex))
+							.arg(diskListModel.getScreenShotUpdate(diskIndex))
+			appWindow.pageStack.push(Qt.resolvedUrl("HomeScreenIconSheet.qml"),
+									 { imgSource: path })
 		}
 	}
 }

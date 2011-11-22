@@ -18,14 +18,37 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 
 Page {
+	orientationLock: PageOrientation.LockPortrait
+
+	tools: ToolBarLayout {
+		ToolIcon {
+			iconId: "toolbar-view-menu"
+			anchors.right: parent.right
+			onClicked: mainMenu.open()
+		}
+	}
+
+	Menu {
+		id: mainMenu
+
+		MenuLayout {
+			MenuItem {
+				text: qsTr("About EmuMaster ...")
+				onClicked: appWindow.pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+			}
+		}
+	}
+
 	Grid {
 		anchors.centerIn: parent
-		rows: 2
+		rows: 3
 		columns: 2
 
-		MachineTypeButton { name: "nes" }
-		MachineTypeButton { name: "snes" }
-		MachineTypeButton { name: "gba" }
-		MachineTypeButton { name: "psx"; alphaVersion: true }
+		CollectionTypeButton { name: "nes" }
+		CollectionTypeButton { name: "snes" }
+		CollectionTypeButton { name: "gba" }
+		CollectionTypeButton { name: "psx"; alphaVersion: true }
+		CollectionTypeButton { name: "amiga" }
+		CollectionTypeButton { name: "fav" }
 	}
 }

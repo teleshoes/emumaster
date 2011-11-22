@@ -39,17 +39,24 @@ Item {
 		font.pointSize: 20
 		font.bold: true
 		font.capitalization: Font.AllUppercase
-		color: "black"
-	}
-	BorderImage {
-		id: overlay
-		anchors.fill: parent
-		source: "image://theme/meegotouch-panel-background-selected"
-		opacity: 0.5
-		visible: diskListModel.collection === button.name
+		color: "white"
 	}
 	MouseArea {
+		id: mouseArea
 		anchors.fill: parent
-		onClicked: diskChooserPage.selectCollection(button.name)
+		onClicked: selectCollection(button.name)
 	}
+	Behavior on scale {
+		NumberAnimation { duration: 100 }
+	}
+	states: [
+		State {
+			name: "pressed"
+			when: mouseArea.pressed
+			PropertyChanges {
+				target: button
+				scale: 0.8
+			}
+		}
+	]
 }

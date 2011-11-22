@@ -19,18 +19,30 @@ import com.nokia.meego 1.0
 import Qt.labs.folderlistmodel 1.0
 import "../base"
 
-Sheet {
+Page {
 	id: coverSelector
+	orientationLock: PageOrientation.LockPortrait
+
+	property int diskIndex
 	property alias folder: folderModel.folder
 	property string selectedPath
 
-	// TODO waiting for new version of components - accept enable disable
-	acceptButtonText: qsTr("OK")
-	rejectButtonText: qsTr("Cancel")
+	tools: ToolBarLayout {
+		ToolIcon {
+			iconId: "toolbar-back"
+			onClicked: appWindow.pageStack.pop()
+		}
+	}
 
-	title: Label {
+	Label {
+		id: helpLabel
 		anchors.centerIn: parent
-		text: qsTr("Select Cover")
+		width: parent.width
+		text: qsTr("Copy your covers (.jpg and .png files) to\n\"emumaster/covers\"")
+		color: "white"
+		font.bold: true
+		horizontalAlignment: Text.AlignHCenter
+		visible: false
 	}
 
 	FolderListModel {
@@ -39,39 +51,53 @@ Sheet {
 		nameFilters: ["*.jpg","*.png"]
 		showDirs: false
 	}
-	content: CoverFlow {
-		id: coverFlow
+	ListView {
+		id: coverView
 		anchors.fill: parent
 		model: folderModel
-		delegate: CoverFlowDelegate {
-			id: coverFlowDelegate
+		spacing: 10
+		delegate: Item {
+			id: coverViewDelegate
+			width: parent.width
+			height: 250
+
 			property string filePath: coverSelector.folder + "/" + fileName
-			property bool selected: coverFlow.currentIndex === index
-			imageSource: filePath
+
+			Image {
+				id: screenShot
+				x: 10
+				width: parent.width-20
+				height: parent.height-30
+				source: filePath
+			}
+
+			MouseArea {
+				id: mouseArea
+				anchors.fill: parent
+				onClicked: {
+					appWindow.pageStack.pop()
+					diskListModel.setDiskCover(coverSelector.diskIndex,
+											   coverViewDelegate.filePath)
+				}
+			}
+			Behavior on scale {
+				NumberAnimation { duration: 100 }
+			}
 
 			states: [
 				State {
-					name: "current"
-					when: coverFlowDelegate.selected
+					name: "pressed"
+					when: mouseArea.pressed
 					PropertyChanges {
-						target: coverSelector
-						restoreEntryValues: false
-						selectedPath: coverFlowDelegate.filePath
+						target: coverViewDelegate
+						scale: 0.85
 					}
 				}
 			]
 		}
-		pathItemCount: 7
 	}
-	QueryDialog {
-		id: whereToCopyCoversDialog
-		rejectButtonText: qsTr("Close")
-		titleText: qsTr("Help")
-		message: qsTr("Copy your covers (.jpg and .png files) to \"emumaster/covers\" directory")
-		onRejected: coverSelector.reject()
-	}
-	function displayHelp() {
+	Component.onCompleted: {
 		if (folderModel.count <= 0)
-			whereToCopyCoversDialog.open()
+			helpLabel.visible = true
 	}
 }

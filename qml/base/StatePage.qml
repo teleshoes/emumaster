@@ -119,9 +119,9 @@ Page {
 
 	QueryDialog {
 		id: errorDialog
-		titleText: "Oops"
-		message: "Something went wrong!"
-		acceptButtonText: "Close"
+		titleText: qsTr("Oops")
+		message: qsTr("Something went wrong!")
+		acceptButtonText: qsTr("Close")
 		rejectButtonText: ""
 	}
 }

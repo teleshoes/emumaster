@@ -30,15 +30,12 @@ unix {
 	qml.path = /opt/emumaster/qml/gallery
 	qml.files = \
 		../../qml/gallery/main.qml \
-		../../qml/gallery/AboutSheet.qml \
-		../../qml/gallery/CoverSelectorSheet.qml \
-		../../qml/gallery/FirstRunMsgPage.qml \
-		../../qml/gallery/GalleryPage.qml \
+		../../qml/gallery/AboutPage.qml \
+		../../qml/gallery/CoverSelectorPage.qml \
 		../../qml/gallery/HomeScreenIconSheet.qml \
-		../../qml/gallery/ListPage.qml \
-		../../qml/gallery/MachineTypePage.qml \
-		../../qml/gallery/MachineTypeButton.qml \
-		../../qml/gallery/DiskChooserPage.qml
+		../../qml/gallery/CollectionMenuPage.qml \
+		../../qml/gallery/CollectionTypeButton.qml \
+		../../qml/gallery/GalleryPage.qml
 
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = \
@@ -78,6 +75,13 @@ maemo5 {
 	desktopfile.path = /usr/share/applications/hildon
 	INSTALLS += desktopfile
 }
+
+
+
+
+
+
+
 
 
 

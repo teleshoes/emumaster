@@ -69,14 +69,14 @@ Item {
 			property bool up: true
 			property int shift: 30
 
-			height: 100
+			height: 150
 			width: parent.width - 40
 			text: ""
 			x: 20
 			color: root.highlighted ? root.platformStyle.textColorHighlighted : root.platformStyle.textColor
 			font {
 				bold: root.platformStyle.fontBoldProperty
-				pixelSize: 60
+				pixelSize: 100
 			}
 			verticalAlignment: Text.AlignVCenter
 			onCurrentChanged: {
