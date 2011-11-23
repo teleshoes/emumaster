@@ -34,6 +34,10 @@ SOURCES += \
 unix {
 	qml.path = /opt/emumaster/qml/base
 	qml.files = \
+		../../../qml/base/main.qml \
+		../../../qml/base/SettingsPage.qml \
+		../../../qml/base/NesCheatPage.qml \
+		\
 		../../../qml/base/EMButtonOption.qml \
 		../../../qml/base/EMSwitchOption.qml \
 		../../../qml/base/ImageListViewDelegate.qml \
@@ -44,11 +48,6 @@ unix {
 		../../../qml/base/SectionSeperator.qml \
 		../../../qml/base/constants.js \
 		../../../qml/base/utils.js \
-		\
-		../../../qml/base/main.qml \
-		../../../qml/base/MainPage.qml \
-		../../../qml/base/NesCheatPage.qml
-
 
 	pad.path = /opt/emumaster/data
 	pad.files = \
@@ -60,10 +59,3 @@ unix {
 	qmlimg.files = ../../../qml/img/*
 	INSTALLS += qml qmlimg pad
 }
-
-
-
-
-
-
-

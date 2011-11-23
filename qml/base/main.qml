@@ -20,7 +20,7 @@ import com.nokia.meego 1.0
 PageStackWindow {
 	id: appWindow
 	showStatusBar: false
-	initialPage: mainPage
+	initialPage: settingsPage
 
 	style: PageStackWindowStyle {
 		id: customStyle
@@ -28,7 +28,7 @@ PageStackWindow {
 		backgroundFillMode: Image.Stretch
 	}
 
-	MainPage { id: mainPage }
+	SettingsPage { id: settingsPage }
 
 	Component.onCompleted: theme.inverted = true
 }

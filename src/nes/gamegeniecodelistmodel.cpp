@@ -86,6 +86,9 @@ void GameGenieCodeListModel::setEnabled(int i, bool on) {
 	}
 }
 
+int GameGenieCodeListModel::length() const
+{ return m_codes.size(); }
+
 int GameGenieCodeListModel::rowCount(const QModelIndex &parent) const {
 	Q_UNUSED(parent)
 	return m_codes.size();
@@ -105,14 +108,16 @@ QVariant GameGenieCodeListModel::data(const QModelIndex &index, int role) const 
 }
 
 void GameGenieCodeListModel::addNew(const QString &code, const QString &description) {
-	if (m_codes.contains(code))
+	QString codeUpper = code.toUpper();
+	if (m_codes.contains(codeUpper))
 		return;
 	beginInsertRows(QModelIndex(), m_codes.size(), m_codes.size());
-	m_codes.append(code);
+	m_codes.append(codeUpper);
 	m_descriptions.append(description);
 	m_enable.append(false);
 	endInsertRows();
 	nesMapper->setGameGenieCodeList(enabledList());
+	emit modified();
 }
 
 void GameGenieCodeListModel::removeAt(int i) {
@@ -124,9 +129,10 @@ void GameGenieCodeListModel::removeAt(int i) {
 	m_enable.removeAt(i);
 	endRemoveRows();
 	nesMapper->setGameGenieCodeList(enabledList());
+	emit modified();
 }
 
 bool GameGenieCodeListModel::isCodeValid(const QString &s) {
 	GameGenieCode code;
-	return code.parse(s);
+	return code.parse(s.toUpper());
 }

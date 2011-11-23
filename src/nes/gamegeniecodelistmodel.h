@@ -25,6 +25,7 @@ class NesMachine;
 
 class GameGenieCodeListModel : public QAbstractListModel {
     Q_OBJECT
+	Q_PROPERTY(int length READ length NOTIFY modified)
 public:
 	enum RoleType {
 		CodeRole = Qt::UserRole+1,
@@ -33,6 +34,7 @@ public:
 	};
 	explicit GameGenieCodeListModel(QObject *parent = 0);
 	~GameGenieCodeListModel();
+	int length() const;
 	int rowCount(const QModelIndex &parent) const;
 	QVariant data(const QModelIndex &index, int role) const;
 
@@ -44,6 +46,8 @@ public:
 	Q_INVOKABLE void removeAt(int i);
 
 	Q_INVOKABLE bool isCodeValid(const QString &s);
+signals:
+	void modified();
 private:
 	QStringList m_codes;
 	QStringList m_descriptions;

@@ -189,13 +189,17 @@ Page {
 			buttonText: qsTr("Take Screenshot")
 			onClicked: machineView.saveScreenShot()
 		}
-		Button {
-			iconSource: "image://theme/icon-l-accounts-main-view"
-			text: qsTr("ChEaTs")
-			visible: machine.name == "nes"
-			onClicked: appWindow.pageStack.push(Qt.resolvedUrl("NesCheatPage.qml"))
-		}
 
+		SectionSeperator {
+			text: qsTr("ChEaTs"); rightPad: 150
+			visible: machine.name == "nes"
+		}
+		Component.onCompleted: {
+			if (machine.name == "nes") {
+				var component = Qt.createComponent("NesCheatPage.qml")
+				component.createObject(column)
+			}
+		}
 	}
 
 	}
