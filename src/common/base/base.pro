@@ -14,10 +14,10 @@ HEADERS += \
     hostvideo.h \
     hostinput.h \
     machineimageprovider.h \
-    machinestatelistmodel.h \
     settingsview.h \
 	base_global.h \
-    pathmanager.h
+    pathmanager.h \
+    statelistmodel.h
 
 SOURCES += \
     machineview.cpp \
@@ -27,9 +27,9 @@ SOURCES += \
     hostvideo.cpp \
     hostinput.cpp \
     machineimageprovider.cpp \
-    machinestatelistmodel.cpp \
 	settingsview.cpp \
-    pathmanager.cpp
+    pathmanager.cpp \
+    statelistmodel.cpp
 
 unix {
 	qml.path = /opt/emumaster/qml/base
@@ -59,3 +59,7 @@ unix {
 	qmlimg.files = ../../../qml/img/*
 	INSTALLS += qml qmlimg pad
 }
+
+
+
+

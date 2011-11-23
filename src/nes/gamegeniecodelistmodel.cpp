@@ -86,7 +86,7 @@ void GameGenieCodeListModel::setEnabled(int i, bool on) {
 	}
 }
 
-int GameGenieCodeListModel::length() const
+int GameGenieCodeListModel::count() const
 { return m_codes.size(); }
 
 int GameGenieCodeListModel::rowCount(const QModelIndex &parent) const {

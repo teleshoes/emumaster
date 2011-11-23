@@ -18,7 +18,7 @@
 
 class IMachine;
 class HostAudio;
-class MachineStateListModel;
+class StateListModel;
 #include <QThread>
 
 class MachineThread : public QThread {
@@ -30,7 +30,7 @@ public:
 	int frameSkip() const;
 	void setFrameSkip(int n);
 	void setLoadSlot(int i);
-	void setStateListModel(MachineStateListModel *stateListModel);
+	void setStateListModel(StateListModel *stateListModel);
 public slots:
 	void resume();
 	void pause();
@@ -48,7 +48,7 @@ private:
 
 	bool m_firstRun;
 	int m_loadSlot;
-	MachineStateListModel *m_stateListModel;
+	StateListModel *m_stateListModel;
 
 	friend class HostVideo;
 };

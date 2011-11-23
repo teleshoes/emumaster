@@ -16,7 +16,7 @@
 #include "machinethread.h"
 #include "imachine.h"
 #include "hostaudio.h"
-#include "machinestatelistmodel.h"
+#include "statelistmodel.h"
 #include <QMutex>
 #include <QWaitCondition>
 #include <QDateTime>
@@ -28,7 +28,7 @@ MachineThread::MachineThread(IMachine *machine) :
 	m_inFrameGenerated(false),
 	m_frameSkip(1),
 	m_firstRun(true),
-	m_loadSlot(MachineStateListModel::InvalidSlot),
+	m_loadSlot(StateListModel::InvalidSlot),
 	m_stateListModel(0) {
 }
 
@@ -56,9 +56,9 @@ void MachineThread::run() {
 	if (m_firstRun) {
 		for (int i = 0; i < 60; i++)
 			m_machine->emulateFrame(false);
-		if (m_loadSlot != MachineStateListModel::InvalidSlot) {
-			m_stateListModel->loadState(MachineStateListModel::AutoSlot);
-			m_loadSlot = MachineStateListModel::AutoSlot;
+		if (m_loadSlot != StateListModel::InvalidSlot) {
+			m_stateListModel->loadState(StateListModel::AutoSlot);
+			m_loadSlot = StateListModel::AutoSlot;
 		}
 		m_firstRun = false;
 	}
@@ -97,7 +97,7 @@ void MachineThread::run() {
 
 void MachineThread::setFrameSkip(int n)
 { m_frameSkip = n; }
-void MachineThread::setStateListModel(MachineStateListModel *stateListModel)
+void MachineThread::setStateListModel(StateListModel *stateListModel)
 { m_stateListModel = stateListModel; }
 void MachineThread::setLoadSlot(int i)
 { m_loadSlot = i; }

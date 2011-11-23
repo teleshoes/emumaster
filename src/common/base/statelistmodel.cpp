@@ -13,14 +13,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "machinestatelistmodel.h"
+#include "statelistmodel.h"
 #include "imachine.h"
 #include "pathmanager.h"
 #include <QDataStream>
 #include <QDateTime>
 #include <QImage>
 
-MachineStateListModel::MachineStateListModel(IMachine *machine, const QString &diskName) :
+StateListModel::StateListModel(IMachine *machine, const QString &diskName) :
 	m_machine(machine),
 	m_screenShotUpdateCounter(0) {
 
@@ -43,7 +43,7 @@ MachineStateListModel::MachineStateListModel(IMachine *machine, const QString &d
 	}
 }
 
-QVariant MachineStateListModel::data(const QModelIndex &index, int role) const {
+QVariant StateListModel::data(const QModelIndex &index, int role) const {
 	if (role == NameRole) {
 		return m_list.at(index.row()).fileName();
 	} else if (role == ScreenShotUpdate) {
@@ -54,18 +54,18 @@ QVariant MachineStateListModel::data(const QModelIndex &index, int role) const {
 	return QVariant();
 }
 
-int MachineStateListModel::rowCount(const QModelIndex &parent) const {
+int StateListModel::rowCount(const QModelIndex &parent) const {
 	Q_UNUSED(parent)
 	return m_list.size();
 }
 
-int MachineStateListModel::count() const
+int StateListModel::count() const
 { return m_list.size(); }
 
-QString MachineStateListModel::get(int i) const
+QString StateListModel::get(int i) const
 { return m_list.at(i).fileName(); }
 
-QImage MachineStateListModel::screenShot(int i) const {
+QImage StateListModel::screenShot(int i) const {
 	QFile file(m_dir.filePath(QString::number(i)));
 	if (!file.open(QIODevice::ReadOnly))
 		return QImage();
@@ -77,7 +77,9 @@ QImage MachineStateListModel::screenShot(int i) const {
 	return screenShot;
 }
 
-bool MachineStateListModel::saveState(int i) {
+bool StateListModel::saveState(int i) {
+	if (!m_machine)
+		return false;
 	bool newState = false;
 	if (i == NewSlot) {
 		i = ++m_maxSaveIndex;
@@ -122,7 +124,9 @@ bool MachineStateListModel::saveState(int i) {
 	return true;
 }
 
-bool MachineStateListModel::loadState(int i) {
+bool StateListModel::loadState(int i) {
+	if (!m_machine)
+		return false;
 	if (i == AutoSlot) {
 		if (m_list.size() <= 0)
 			return false;
@@ -152,7 +156,7 @@ bool MachineStateListModel::loadState(int i) {
 	return ok;
 }
 
-void MachineStateListModel::removeState(int i) {
+void StateListModel::removeState(int i) {
 	int x = indexOf(i);
 	if (x >= 0) {
 		beginRemoveRows(QModelIndex(), x, x);
@@ -162,7 +166,12 @@ void MachineStateListModel::removeState(int i) {
 	}
 }
 
-int MachineStateListModel::indexOf(int i) const {
+void StateListModel::removeAll() {
+	while (!m_list.isEmpty())
+		removeState(m_list.at(0).fileName().toInt());
+}
+
+int StateListModel::indexOf(int i) const {
 	for (int x = 0; x < m_list.size(); x++) {
 		if (m_list.at(x).fileName().toInt() == i)
 			return x;

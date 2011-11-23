@@ -14,10 +14,10 @@
  */
 
 #include "machineimageprovider.h"
-#include "machinestatelistmodel.h"
+#include "statelistmodel.h"
 #include <QPainter>
 
-MachineImageProvider::MachineImageProvider(MachineStateListModel *stateListModel) :
+MachineImageProvider::MachineImageProvider(StateListModel *stateListModel) :
 	QDeclarativeImageProvider(Image),
 	m_stateListModel(stateListModel) {
 }

@@ -97,20 +97,26 @@ Page {
 				}
 			}
 		}
-		Button {
+		Column {
+			spacing: 5
 			anchors.horizontalCenter: parent.horizontalCenter
-			text: qsTr("Save in New Slot")
-			onClicked: {
-				if (!stateListModel.saveState(-1))
-					errorDialog.open()
-				else
-					stateListView.currentIndex = 0
+			Button {
+				text: qsTr("Save in New Slot")
+				onClicked: {
+					if (!stateListModel.saveState(-1))
+						errorDialog.open()
+					else
+						stateListView.currentIndex = 0
+				}
 			}
-		}
-		Button {
-			anchors.horizontalCenter: parent.horizontalCenter
-			text: qsTr("Reset System")
-			onClicked: machine.reset()
+			Button {
+				text: qsTr("Reset System")
+				onClicked: machine.reset()
+			}
+			Button {
+				text: qsTr("Delete All")
+				onClicked: deleteAllStateDialog.open()
+			}
 		}
 
 		SectionSeperator { text: qsTr("INPUT"); rightPad: 150 }
@@ -223,6 +229,15 @@ Page {
 		acceptButtonText: qsTr("Yes")
 		rejectButtonText: qsTr("No")
 		onAccepted: stateListModel.removeState(stateListModel.get(stateMenu.stateIndex))
+	}
+
+	QueryDialog {
+		id: deleteAllStateDialog
+		titleText: qsTr("Really?")
+		message: qsTr("Do you really want to delete all states?")
+		acceptButtonText: qsTr("Yes")
+		rejectButtonText: qsTr("No")
+		onAccepted: stateListModel.removeAll()
 	}
 
 	QueryDialog {

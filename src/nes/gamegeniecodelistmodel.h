@@ -25,7 +25,7 @@ class NesMachine;
 
 class GameGenieCodeListModel : public QAbstractListModel {
     Q_OBJECT
-	Q_PROPERTY(int length READ length NOTIFY modified)
+	Q_PROPERTY(int count READ count NOTIFY modified)
 public:
 	enum RoleType {
 		CodeRole = Qt::UserRole+1,
@@ -34,7 +34,7 @@ public:
 	};
 	explicit GameGenieCodeListModel(QObject *parent = 0);
 	~GameGenieCodeListModel();
-	int length() const;
+	int count() const;
 	int rowCount(const QModelIndex &parent) const;
 	QVariant data(const QModelIndex &index, int role) const;
 

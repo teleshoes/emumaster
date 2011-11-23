@@ -41,7 +41,7 @@ Item {
 	ListView {
 		id: listView
 		width: parent.width
-		height: gameGenie.length * UI.LIST_ITEM_HEIGHT
+		height: gameGenie.count * UI.LIST_ITEM_HEIGHT
 		model: gameGenie
 		delegate: MyListDelegate {
 			id: listViewDelegate

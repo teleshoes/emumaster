@@ -16,17 +16,17 @@
 #ifndef MACHINEIMAGEPROVIDER_H
 #define MACHINEIMAGEPROVIDER_H
 
-class MachineStateListModel;
+class StateListModel;
 #include <QDeclarativeImageProvider>
 
 class MachineImageProvider : public QDeclarativeImageProvider {
 public:
-	explicit MachineImageProvider(MachineStateListModel *stateListModel);
+	explicit MachineImageProvider(StateListModel *stateListModel);
 	QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);
 private:
 	QImage screenShotGrayscaled() const;
 
-	MachineStateListModel *m_stateListModel;
+	StateListModel *m_stateListModel;
 };
 
 #endif // MACHINEIMAGEPROVIDER_H

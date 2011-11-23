@@ -22,7 +22,7 @@ class HostVideo;
 class HostAudio;
 class HostInput;
 class SettingsView;
-class MachineStateListModel;
+class StateListModel;
 #include "base_global.h"
 #include <QGLWidget>
 class QThread;
@@ -90,7 +90,7 @@ private:
 	HostInput *m_hostInput;
 	HostAudio *m_hostAudio;
 	HostVideo *m_hostVideo;
-	MachineStateListModel *m_stateListModel;
+	StateListModel *m_stateListModel;
 	SettingsView *m_settingsView;
 
 	bool m_running;

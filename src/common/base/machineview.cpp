@@ -21,7 +21,7 @@
 #include "hostinput.h"
 #include "settingsview.h"
 #include "machineimageprovider.h"
-#include "machinestatelistmodel.h"
+#include "statelistmodel.h"
 #include "pathmanager.h"
 #include <QDeclarativeView>
 #include <QDeclarativeContext>
@@ -48,7 +48,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_thread = new MachineThread(m_machine);
 	bool autoLoadOnStart = !qApp->arguments().contains("-noautoload");
 	if (autoLoadOnStart)
-		m_thread->setLoadSlot(MachineStateListModel::AutoSlot);
+		m_thread->setLoadSlot(StateListModel::AutoSlot);
 
 	m_hostInput = new HostInput(m_machine);
 	m_hostAudio = new HostAudio(m_machine);
@@ -68,7 +68,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 
 	loadSettings();
 
-	m_stateListModel = new MachineStateListModel(m_machine, m_diskFileName);
+	m_stateListModel = new StateListModel(m_machine, m_diskFileName);
 	m_thread->setStateListModel(m_stateListModel);
 
 	m_settingsView = new SettingsView();
@@ -99,7 +99,7 @@ MachineView::~MachineView() {
 			m_thread->wait();
 
 		saveSettings();
-		m_stateListModel->saveState(MachineStateListModel::AutoSlot);
+		m_stateListModel->saveState(StateListModel::AutoSlot);
 
 		// auto save screenshot
 		QString title = QFileInfo(m_diskFileName).completeBaseName();

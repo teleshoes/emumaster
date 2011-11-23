@@ -22,7 +22,7 @@ class IMachine;
 #include <QFileInfo>
 #include <QDir>
 
-class MachineStateListModel : public QAbstractListModel {
+class StateListModel : public QAbstractListModel {
 	Q_OBJECT
 	Q_PROPERTY(int count READ count NOTIFY countChanged)
 public:
@@ -35,7 +35,7 @@ public:
 		ScreenShotUpdate,
 		DateTimeRole
 	};
-	explicit MachineStateListModel(IMachine *machine, const QString &diskName);
+	explicit StateListModel(IMachine *machine, const QString &diskName);
 	int rowCount(const QModelIndex &parent) const;
 	int count() const;
 	QVariant data(const QModelIndex &index, int role) const;
@@ -45,6 +45,7 @@ public:
 	Q_INVOKABLE bool saveState(int i);
 	Q_INVOKABLE bool loadState(int i);
 	Q_INVOKABLE void removeState(int i);
+	Q_INVOKABLE void removeAll();
 signals:
 	void countChanged();
 private:

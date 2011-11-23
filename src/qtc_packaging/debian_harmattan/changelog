@@ -1,6 +1,6 @@
 emumaster (0.0.3) unstable; urgency=low
 
-  * new ui
+  * completely redesigned UI
   * favourites category
   * workaround for sound bug (e.g. fix Mario Kart) - thanks to javispedro
   * added name filters based on disk extension
