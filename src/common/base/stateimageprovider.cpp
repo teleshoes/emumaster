@@ -13,20 +13,23 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef MACHINEIMAGEPROVIDER_H
-#define MACHINEIMAGEPROVIDER_H
+#include "stateimageprovider.h"
+#include "statelistmodel.h"
+#include <QPainter>
 
-class StateListModel;
-#include <QDeclarativeImageProvider>
+StateImageProvider::StateImageProvider(StateListModel *stateListModel) :
+	QDeclarativeImageProvider(Image),
+	m_stateListModel(stateListModel) {
+}
 
-class MachineImageProvider : public QDeclarativeImageProvider {
-public:
-	explicit MachineImageProvider(StateListModel *stateListModel);
-	QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);
-private:
-	QImage screenShotGrayscaled() const;
-
-	StateListModel *m_stateListModel;
-};
-
-#endif // MACHINEIMAGEPROVIDER_H
+QImage StateImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize) {
+	Q_UNUSED(size)
+	Q_UNUSED(requestedSize)
+	QImage result;
+	QString idGoodPart = id.left(id.indexOf('*'));
+	bool ok;
+	int i = idGoodPart.toInt(&ok);
+	if (ok)
+		result = m_stateListModel->screenShot(i);
+	return result;
+}

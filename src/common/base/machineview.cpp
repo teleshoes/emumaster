@@ -20,7 +20,7 @@
 #include "hostaudio.h"
 #include "hostinput.h"
 #include "settingsview.h"
-#include "machineimageprovider.h"
+#include "stateimageprovider.h"
 #include "statelistmodel.h"
 #include "pathmanager.h"
 #include <QDeclarativeView>
@@ -75,7 +75,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	QObject::connect(m_settingsView->engine(), SIGNAL(quit()), SLOT(close()));
 	QObject::connect(m_settingsView, SIGNAL(wantClose()), SLOT(close()));
 
-	m_settingsView->engine()->addImageProvider("state", new MachineImageProvider(m_stateListModel));
+	m_settingsView->engine()->addImageProvider("state", new StateImageProvider(m_stateListModel));
 	m_settingsView->rootContext()->setContextProperty("backgroundPath", "");
 	m_settingsView->rootContext()->setContextProperty("machineView", static_cast<QObject *>(this));
 	m_settingsView->rootContext()->setContextProperty("machine", static_cast<QObject *>(m_machine));
