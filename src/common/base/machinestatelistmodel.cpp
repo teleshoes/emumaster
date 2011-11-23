@@ -98,7 +98,7 @@ bool MachineStateListModel::saveState(int i) {
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
 		return false;
 	s.setDevice(&file);
-	s << m_machine->frame();
+	s << m_machine->frame().copy(m_machine->videoSrcRect().toRect());
 	QByteArray compressed = qCompress(data);
 	bool ok = (file.write(compressed) == compressed.size());
 	file.close();
