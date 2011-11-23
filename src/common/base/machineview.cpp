@@ -75,7 +75,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	QObject::connect(m_settingsView->engine(), SIGNAL(quit()), SLOT(close()));
 	QObject::connect(m_settingsView, SIGNAL(wantClose()), SLOT(close()));
 
-	m_settingsView->engine()->addImageProvider("machine", new MachineImageProvider(m_machine, m_hostVideo, m_stateListModel));
+	m_settingsView->engine()->addImageProvider("state", new MachineImageProvider(m_stateListModel));
 	m_settingsView->rootContext()->setContextProperty("backgroundPath", "");
 	m_settingsView->rootContext()->setContextProperty("machineView", static_cast<QObject *>(this));
 	m_settingsView->rootContext()->setContextProperty("machine", static_cast<QObject *>(m_machine));
@@ -154,8 +154,6 @@ void MachineView::pauseStage2() {
 	m_pauseRequested = false;
 	m_running = false;
 	if (!m_wantClose) {
-		QString path = QString("image://machine/screenShotGrayscaled%1").arg(m_backgroundCounter++);
-		m_settingsView->rootContext()->setContextProperty("backgroundPath", path);
 		if (m_settingsView->source().isEmpty()) {
 			QUrl url = QUrl::fromLocalFile(QString("%1/qml/base/main.qml")
 										   .arg(PathManager::instance()->installationDirPath()));

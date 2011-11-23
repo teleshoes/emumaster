@@ -2,6 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
 	common \
+	nes \
 	diskgallery
 
 #	nes gba snes psx

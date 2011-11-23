@@ -20,15 +20,15 @@ import com.nokia.meego 1.0
 PageStackWindow {
 	id: appWindow
 	showStatusBar: false
-	platformStyle: customStyle
-
-	PageStackWindowStyle {
-		id: customStyle
-		backgroundFillMode: Image.PreserveAspectCrop
-		background: backgroundPath
-	}
-
 	initialPage: mainPage
 
+	style: PageStackWindowStyle {
+		id: customStyle
+		background: "image://theme/meegotouch-video-background"
+		backgroundFillMode: Image.Stretch
+	}
+
 	MainPage { id: mainPage }
+
+	Component.onCompleted: theme.inverted = true
 }

@@ -19,7 +19,7 @@ import com.nokia.meego 1.0
 
 Item {
 	id: imageListViewDelegate
-	width: parent.width
+	width: 480
 	height: 280
 
 	property alias imgSource: screenShot.source

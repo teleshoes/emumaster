@@ -22,7 +22,6 @@ class HostVideo;
 class HostAudio;
 class HostInput;
 class SettingsView;
-class MachineImageProvider;
 class MachineStateListModel;
 #include "base_global.h"
 #include <QGLWidget>

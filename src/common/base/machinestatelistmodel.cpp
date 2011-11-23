@@ -83,7 +83,7 @@ bool MachineStateListModel::saveState(int i) {
 		i = ++m_maxSaveIndex;
 		newState = true;
 	} else if (i == AutoSlot) {
-		newState = (indexOf(-2) < 0);
+		newState = (indexOf(AutoSlot) < 0);
 	}	
 	QByteArray data;
 	data.reserve(10*1024*1024);
@@ -114,8 +114,10 @@ bool MachineStateListModel::saveState(int i) {
 		emit countChanged();
 	} else {
 		int x = indexOf(i);
-		m_list[x] = QFileInfo(m_list.at(x).filePath());
-		emit dataChanged(index(x), index(x));
+		if (x >= 0) {
+			m_list[x] = QFileInfo(m_list.at(x).filePath());
+			emit dataChanged(index(x), index(x));
+		}
 	}
 	return true;
 }

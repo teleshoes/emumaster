@@ -69,7 +69,7 @@ Page {
 				visible: mainMenu.addRemoveIconToggle
 			}
 			MenuItem {
-				text: qsTr("Remove Disk")
+				text: qsTr("Delete")
 				onClicked: removeDiskDialog.prepareAndOpen(mainMenu.diskIndex)
 			}
 		}
@@ -95,29 +95,7 @@ Page {
 		}
 		section.property: "alphabet"
 		section.criteria: ViewSection.FullString
-		section.delegate: Item {
-			width: parent.width
-			height: 40
-			Text {
-				id: headerLabel
-				width: 80
-				height: parent.height
-				anchors.right: parent.right
-				text: section
-				font.pointSize: 18
-				color: theme.inverted ? "#4D4D4D" : "#3C3C3C";
-				horizontalAlignment: Text.AlignHCenter
-				verticalAlignment: Text.AlignVCenter
-			}
-			Image {
-				anchors.left: parent.left
-				anchors.leftMargin: 10
-				anchors.right: parent.right
-				anchors.rightMargin: 80
-				anchors.verticalCenter: headerLabel.verticalCenter
-				source: "image://theme/meegotouch-groupheader" + (theme.inverted ? "-inverted" : "") + "-background"
-			}
-		}
+		section.delegate: SectionSeperator { text: section }
 	}
 	MySectionScroller {
 		id: sectionScroller
@@ -125,6 +103,7 @@ Page {
 	}
 	ScrollDecorator {
 		flickableItem: diskListView
+		__minIndicatorSize: 80
 	}
 
 	QueryDialog {
