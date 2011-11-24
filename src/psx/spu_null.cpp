@@ -143,12 +143,12 @@ bool PsxSpuNull::init() {
 	return true;
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(PsxSpuNull, 1) \
-	STATE_SERIALIZE_ARRAY_##sl(regArea, sizeof(regArea)) \
-	STATE_SERIALIZE_ARRAY_##sl(spuMem, sizeof(spuMem)) \
-	STATE_SERIALIZE_VAR_##sl(spuAddr) \
-	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
+void PsxSpuNull::sl() {
+	emsl.begin("spu");
+	emsl.array("regArea", regArea, sizeof(regArea));
+	emsl.array("mem", spuMem, sizeof(spuMem));
+	emsl.var("addr", spuAddr);
+	if (!emsl.save) { \
 		for (int i = 0; i < 0x100; i++) { \
 			if (i != H_SPUon1-0xc00 && i != H_SPUon2-0xc00) \
 				spuNullWriteRegister(0x1f801c00+i*2,regArea[i]); \
@@ -156,7 +156,5 @@ STATE_SERIALIZE_BEGIN_##sl(PsxSpuNull, 1) \
 		spuNullWriteRegister(H_SPUon1,regArea[(H_SPUon1-0xc00)/2]); \
 		spuNullWriteRegister(H_SPUon2,regArea[(H_SPUon2-0xc00)/2]); \
 	} \
-STATE_SERIALIZE_END_##sl(PsxSpuNull)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+	emsl.end();
+}

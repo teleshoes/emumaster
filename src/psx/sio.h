@@ -28,13 +28,7 @@
 #include <QList>
 #include <QImage>
 
-class PsxSio {
-public:
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-};
-
-extern PsxSio psxSio;
+extern void psxSioSl();
 
 class PsxMcdBlockInfo {
 public:

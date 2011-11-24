@@ -39,8 +39,7 @@ public:
 	virtual int fillBuffer(char *stream, int size) = 0;
 	virtual void setEnabled(bool on);
 
-	virtual bool save(QDataStream &s) = 0;
-	virtual bool load(QDataStream &s) = 0;
+	virtual void sl() = 0;
 };
 
 extern PsxSpu *psxSpu;

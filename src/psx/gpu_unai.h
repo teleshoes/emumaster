@@ -26,8 +26,7 @@ public:
 	const QImage &frame();
 	void setDrawEnabled(bool drawEnabled);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void sl();
 };
 
 extern PsxGpuUnai psxGpuUnai;

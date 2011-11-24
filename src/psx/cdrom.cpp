@@ -2119,7 +2119,6 @@ void PsxCdr::reset() {
 	LidCheck = 0;
 	FastForward = 0;
 	FastBackward = 0;
-	pad = 0;
 
 	psxCdr.CurTrack = 1;
 	psxCdr.File = 1;
@@ -2133,60 +2132,57 @@ void PsxCdr::reset() {
 
 // TODO Xa - his own save/load
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(PsxCdr, 1) \
-	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
-		StopCdda(); \
-	} \
-	STATE_SERIALIZE_VAR_##sl(OCUP) \
-	STATE_SERIALIZE_VAR_##sl(Reg1Mode) \
-	STATE_SERIALIZE_VAR_##sl(Reg2) \
-	STATE_SERIALIZE_VAR_##sl(CmdProcess) \
-	STATE_SERIALIZE_VAR_##sl(Ctrl) \
-	STATE_SERIALIZE_VAR_##sl(Stat) \
-	STATE_SERIALIZE_VAR_##sl(StatP) \
-	STATE_SERIALIZE_ARRAY_##sl(Transfer, sizeof(Transfer)) \
-	STATE_SERIALIZE_ARRAY_##sl(Prev, sizeof(Prev)) \
-	STATE_SERIALIZE_ARRAY_##sl(Param, sizeof(Param)) \
-	STATE_SERIALIZE_ARRAY_##sl(Result, sizeof(Result)) \
-	STATE_SERIALIZE_VAR_##sl(ParamC) \
-	STATE_SERIALIZE_VAR_##sl(ParamP) \
-	STATE_SERIALIZE_VAR_##sl(ResultC) \
-	STATE_SERIALIZE_VAR_##sl(ResultP) \
-	STATE_SERIALIZE_VAR_##sl(ResultReady) \
-	STATE_SERIALIZE_VAR_##sl(Cmd) \
-	STATE_SERIALIZE_VAR_##sl(Readed) \
-	STATE_SERIALIZE_VAR_##sl(Reading) \
-	STATE_SERIALIZE_ARRAY_##sl(ResultTN, sizeof(ResultTN)) \
-	STATE_SERIALIZE_ARRAY_##sl(ResultTD, sizeof(ResultTD)) \
-	STATE_SERIALIZE_ARRAY_##sl(SetSector, sizeof(SetSector)) \
-	STATE_SERIALIZE_ARRAY_##sl(SetSectorSeek, sizeof(SetSectorSeek)) \
-	STATE_SERIALIZE_ARRAY_##sl(SetSectorPlay, sizeof(SetSectorPlay)) \
-	STATE_SERIALIZE_VAR_##sl(Track) \
-	STATE_SERIALIZE_VAR_##sl(Play) \
-	STATE_SERIALIZE_VAR_##sl(Muted) \
-	STATE_SERIALIZE_VAR_##sl(CurTrack) \
-	STATE_SERIALIZE_VAR_##sl(Mode) \
-	STATE_SERIALIZE_VAR_##sl(File) \
-	STATE_SERIALIZE_VAR_##sl(Channel) \
-	STATE_SERIALIZE_VAR_##sl(Reset) \
-	STATE_SERIALIZE_VAR_##sl(RErr) \
-	STATE_SERIALIZE_VAR_##sl(FirstSector) \
-	STATE_SERIALIZE_ARRAY_##sl(&Xa, sizeof(Xa)) \
-	STATE_SERIALIZE_VAR_##sl(Init) \
-	STATE_SERIALIZE_VAR_##sl(Irq) \
-	STATE_SERIALIZE_VAR_##sl(eCycle) \
-	STATE_SERIALIZE_VAR_##sl(Seeked) \
-	STATE_SERIALIZE_VAR_##sl(LidCheck) \
-	STATE_SERIALIZE_VAR_##sl(FastForward) \
-	STATE_SERIALIZE_VAR_##sl(FastBackward) \
-	STATE_SERIALIZE_VAR_##sl(pad) \
-	STATE_SERIALIZE_ARRAY_##sl(AttenuatorLeft, sizeof(AttenuatorLeft)) \
-	STATE_SERIALIZE_ARRAY_##sl(AttenuatorRight, sizeof(AttenuatorRight)) \
-	uint offset = psxCdr.pTransfer - psxCdr.Transfer; \
-	STATE_SERIALIZE_VAR_##sl(offset) \
-	psxCdr.pTransfer = psxCdr.Transfer + offset; \
-STATE_SERIALIZE_END_##sl(PsxCdr)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void PsxCdr::sl() {
+	emsl.begin("cdr");
+	if (!emsl.save) {
+		StopCdda();
+	}
+	emsl.var("ocup", OCUP);
+	emsl.var("reg1Mode", Reg1Mode);
+	emsl.var("reg2", Reg2);
+	emsl.var("cmdProcess", CmdProcess);
+	emsl.var("ctrl", Ctrl);
+	emsl.var("stat", Stat);
+	emsl.var("statP", StatP);
+	emsl.array("transfer", Transfer, sizeof(Transfer));
+	emsl.array("prev", Prev, sizeof(Prev));
+	emsl.array("param", Param, sizeof(Param));
+	emsl.array("result", Result, sizeof(Result));
+	emsl.var("paramC", ParamC);
+	emsl.var("paramP", ParamP);
+	emsl.var("resultC", ResultC);
+	emsl.var("resultP", ResultP);
+	emsl.var("resultReady", ResultReady);
+	emsl.var("cmd", Cmd);
+	emsl.var("readed", Readed);
+	emsl.var("reading", Reading);
+	emsl.array("resultTN", ResultTN, sizeof(ResultTN));
+	emsl.array("resultTD", ResultTD, sizeof(ResultTD));
+	emsl.array("setSector", SetSector, sizeof(SetSector));
+	emsl.array("setSectorSeek", SetSectorSeek, sizeof(SetSectorSeek));
+	emsl.array("setSectorPlay", SetSectorPlay, sizeof(SetSectorPlay));
+	emsl.var("track", Track);
+	emsl.var("play", Play);
+	emsl.var("muted", Muted);
+	emsl.var("curTrack", CurTrack);
+	emsl.var("mode", Mode);
+	emsl.var("file", File);
+	emsl.var("channel", Channel);
+	emsl.var("reset", Reset);
+	emsl.var("rErr", RErr);
+	emsl.var("firstSector", FirstSector);
+	emsl.array("xa", &Xa, sizeof(Xa));
+	emsl.var("init", Init);
+	emsl.var("irq", Irq);
+	emsl.var("eCycle", eCycle);
+	emsl.var("seeked", Seeked);
+	emsl.var("lidCheck", LidCheck);
+	emsl.var("fastForward", FastForward);
+	emsl.var("fastBackward", FastBackward);
+	emsl.array("attenuatorLeft", AttenuatorLeft, sizeof(AttenuatorLeft));
+	emsl.array("attenuatorRight", AttenuatorRight, sizeof(AttenuatorRight));
+	uint offset = psxCdr.pTransfer - psxCdr.Transfer;
+	emsl.var("offset", offset);
+	psxCdr.pTransfer = psxCdr.Transfer + offset;
+	emsl.end();
+}

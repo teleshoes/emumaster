@@ -37,8 +37,7 @@ public:
 	virtual const QImage &frame() = 0;
 	virtual void setDrawEnabled(bool drawEnabled) = 0;
 
-	virtual bool save(QDataStream &s) = 0;
-	virtual bool load(QDataStream &s) = 0;
+	virtual void sl() = 0;
 };
 
 extern PsxGpu *psxGpu;

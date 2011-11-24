@@ -87,8 +87,7 @@ void SetCdOpenCaseTime(s64 time);
 class PsxCdr {
 public:
 	void reset();
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void sl();
 
 	unsigned char OCUP;
 	unsigned char Reg1Mode;
@@ -140,7 +139,6 @@ public:
 	u8 LidCheck;
 	u8 FastForward;
 	u8 FastBackward;
-	u8 pad;
 
 	u8 AttenuatorLeft[2], AttenuatorRight[2];
 };

@@ -210,40 +210,45 @@ void PsxThread::run() {
 	psxCpu->execute();
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(PsxMachine, 1) \
-	STATE_SERIALIZE_VAR_##sl(Config.HLE) \
-	STATE_SERIALIZE_VAR_##sl(systemType) \
-	if (STATE_SERIALIZE_TEST_TYPE_##sl) { \
-		new_dyna_save(); \
-		if (Config.HLE) \
-			psxBiosFreeze(1); \
-	} else { \
-		if (Config.HLE) \
-			psxBiosInit(); \
-	} \
-	STATE_SERIALIZE_ARRAY_##sl(psxM, 0x00200000) \
-	STATE_SERIALIZE_ARRAY_##sl(psxR, 0x00080000) \
-	STATE_SERIALIZE_ARRAY_##sl(psxH, 0x00010000) \
-	STATE_SERIALIZE_ARRAY_##sl(&psxRegs, sizeof(psxRegs)) \
-	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
-		if (Config.HLE) \
-			psxBiosFreeze(0); \
-		psxCpu->reset(); \
-	} \
-	STATE_SERIALIZE_SUBCALL_##sl(psxSio) \
-	STATE_SERIALIZE_SUBCALL_##sl(psxCdr) \
-	STATE_SERIALIZE_SUBCALL_##sl(psxCnt) \
-	STATE_SERIALIZE_SUBCALL_##sl(psxMdec) \
-	STATE_SERIALIZE_SUBCALL_PTR_##sl(psxGpu) \
-	STATE_SERIALIZE_SUBCALL_PTR_##sl(psxSpu) \
-	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
-		new_dyna_restore(); \
-	} \
-STATE_SERIALIZE_END_##sl(PsxMachine)
+void PsxMachine::sl() {
+	// TODO hard config
+	emsl.begin("machine");
+	emsl.var("hle", Config.HLE);
+	emsl.var("systemType", systemType);
+	emsl.end();
 
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+	if (emsl.save) {
+		new_dyna_save();
+		if (Config.HLE)
+			psxBiosFreeze(1);
+	} else {
+		if (Config.HLE)
+			psxBiosInit();
+	}
+	emsl.begin("mem");
+	emsl.array("psxM", psxM, 0x00200000);
+	emsl.array("psxR", psxR, 0x00080000);
+	emsl.array("psxH", psxH, 0x00010000);
+	emsl.array("psxRegs", &psxRegs, sizeof(psxRegs));
+	emsl.end();
+
+	if (!emsl.save) {
+		if (Config.HLE)
+			psxBiosFreeze(0);
+		psxCpu->reset();
+	}
+
+	psxSioSl();
+	psxCdr.sl();
+	psxRcntSl();
+	mdecSl();
+	psxGpu->sl();
+	psxSpu->sl();
+
+	if (!emsl.save) {
+		new_dyna_restore();
+	}
+}
 
 int main(int argc, char *argv[]) {
 	if (argc < 2)

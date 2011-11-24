@@ -24,14 +24,6 @@
 
 #ifdef __cplusplus
 
-class PsxCnt {
-public:
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-};
-
-extern PsxCnt psxCnt;
-
 extern "C" {
 #endif
 
@@ -47,6 +39,8 @@ void psxRcntWtarget(u32 index, u32 value);
 u32 psxRcntRcount(u32 index);
 u32 psxRcntRmode(u32 index);
 u32 psxRcntRtarget(u32 index);
+
+void psxRcntSl();
 
 #ifdef __cplusplus
 }

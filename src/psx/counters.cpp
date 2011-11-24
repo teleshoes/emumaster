@@ -445,16 +445,12 @@ void psxRcntInit()
     psxRcntSet();
 }
 
-PsxCnt psxCnt;
-
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(PsxCnt, 1) \
-	STATE_SERIALIZE_ARRAY_##sl(rcnts, sizeof(rcnts)) \
-	STATE_SERIALIZE_VAR_##sl(hSyncCount) \
-	STATE_SERIALIZE_VAR_##sl(spuSyncCount) \
-	STATE_SERIALIZE_VAR_##sl(psxNextCounter) \
-	STATE_SERIALIZE_VAR_##sl(psxNextsCounter) \
-STATE_SERIALIZE_END_##sl(PsxCnt)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void psxRcntSl() {
+	emsl.begin("cnt");
+	emsl.array("rcnts", rcnts, sizeof(rcnts));
+	emsl.var("hSyncCount", hSyncCount);
+	emsl.var("spuSyncCount", spuSyncCount);
+	emsl.var("psxNextCounter", psxNextCounter);
+	emsl.var("psxNextsCounter", psxNextsCounter);
+	emsl.end();
+}

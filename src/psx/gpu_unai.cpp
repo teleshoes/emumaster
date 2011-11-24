@@ -605,15 +605,13 @@ const QImage & PsxGpuUnai::frame()
 void PsxGpuUnai::setDrawEnabled(bool drawEnabled)
 { isSkip = !drawEnabled; }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(PsxGpuUnai, 1) \
-	STATE_SERIALIZE_VAR_##sl(GPU_GP1) \
-	STATE_SERIALIZE_ARRAY_##sl(GPU_FrameBuffer, sizeof(GPU_FrameBuffer)) \
-	STATE_SERIALIZE_ARRAY_##sl(DisplayArea, sizeof(DisplayArea)) \
-	STATE_SERIALIZE_ARRAY_##sl(TextureWindow, sizeof(TextureWindow)) \
-	STATE_SERIALIZE_ARRAY_##sl(DrawingArea, sizeof(DrawingArea)) \
-	STATE_SERIALIZE_ARRAY_##sl(DrawingOffset, sizeof(DrawingOffset)) \
-STATE_SERIALIZE_END_##sl(PsxGpuUnai)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void PsxGpuUnai::sl() {
+	emsl.begin("gpu");
+	emsl.var("gp1", GPU_GP1);
+	emsl.array("frameBuffer", GPU_FrameBuffer, sizeof(GPU_FrameBuffer));
+	emsl.array("displayArea", DisplayArea, sizeof(DisplayArea));
+	emsl.array("textureWindow", TextureWindow, sizeof(TextureWindow));
+	emsl.array("drawingArea", DrawingArea, sizeof(DrawingArea));
+	emsl.array("drawingOffset", DrawingOffset, sizeof(DrawingOffset));
+	emsl.end();
+}

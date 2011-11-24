@@ -26,8 +26,7 @@ public:
 
 	int fillBuffer(char *stream, int size);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void sl();
 };
 
 extern PsxSpuFran psxSpuFran;
