@@ -813,9 +813,6 @@ void S9xResetSound (bool8 full)
 		SoundData.echo_write_enabled = 0;
 		SoundData.echo_channel_enable = 0;
 		SoundData.pitch_mod = 0;
-		SoundData.dummy[0] = 0;
-		SoundData.dummy[1] = 0;
-		SoundData.dummy[2] = 0;
 		SoundData.master_volume[0] = 0;
 		SoundData.master_volume[1] = 0;
 		SoundData.echo_volume[0] = 0;
@@ -888,51 +885,51 @@ bool8 S9xInitSound (void)
     return (1);
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(SnesSound, 1) \
-	STATE_SERIALIZE_VAR_##sl(SoundData.master_volume_left) \
-	STATE_SERIALIZE_VAR_##sl(SoundData.master_volume_right) \
-	STATE_SERIALIZE_VAR_##sl(SoundData.echo_volume_left) \
-	STATE_SERIALIZE_VAR_##sl(SoundData.echo_volume_right) \
-	STATE_SERIALIZE_VAR_##sl(SoundData.echo_enable) \
-	STATE_SERIALIZE_VAR_##sl(SoundData.echo_feedback) \
-	STATE_SERIALIZE_VAR_##sl(SoundData.echo_ptr) \
-	STATE_SERIALIZE_VAR_##sl(SoundData.echo_buffer_size) \
-	STATE_SERIALIZE_VAR_##sl(SoundData.echo_write_enabled) \
-	STATE_SERIALIZE_VAR_##sl(SoundData.echo_channel_enable) \
-	STATE_SERIALIZE_VAR_##sl(SoundData.pitch_mod) \
-	STATE_SERIALIZE_ARRAY_##sl(SoundData.dummy, sizeof(SoundData.dummy)) \
-	for (int i = 0; i < 8; i++) { \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].state) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].type) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].volume_left) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].volume_right) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].hertz) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].count) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].loop) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].envx) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].left_vol_level) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].right_vol_level) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].envx_target) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].env_error) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].erate) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].direction) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].attack_rate) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].decay_rate) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].sustain_rate) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].release_rate) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].sustain_level) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].sample) \
-		STATE_SERIALIZE_ARRAY_##sl(SoundData.channels[i].decoded, 16*sizeof(s16)) \
-		STATE_SERIALIZE_ARRAY_##sl(SoundData.channels[i].previous, 2*sizeof(s32)) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].sample_number) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].last_block) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].needs_decode) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].block_pointer) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].sample_pointer) \
-		STATE_SERIALIZE_VAR_##sl(SoundData.channels[i].mode) \
-	} \
-STATE_SERIALIZE_END_##sl(SnesSound)
+void snesSoundSl() {
+	emsl.begin("sound");
+	emsl.var("master_volume_left", SoundData.master_volume_left);
+	emsl.var("master_volume_right", SoundData.master_volume_right);
+	emsl.var("echo_volume_left", SoundData.echo_volume_left);
+	emsl.var("echo_volume_right", SoundData.echo_volume_right);
+	emsl.var("echo_enable", SoundData.echo_enable);
+	emsl.var("echo_feedback", SoundData.echo_feedback);
+	emsl.var("echo_ptr", SoundData.echo_ptr);
+	emsl.var("echo_buffer_size", SoundData.echo_buffer_size);
+	emsl.var("echo_write_enabled", SoundData.echo_write_enabled);
+	emsl.var("echo_channel_enable", SoundData.echo_channel_enable);
+	emsl.var("pitch_mod", SoundData.pitch_mod);
+	emsl.end();
 
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+	for (int i = 0; i < 8; i++) {
+		emsl.begin(QString("sound.ch[%1]").arg(i));
+		emsl.var("state", SoundData.channels[i].state);
+		emsl.var("type", SoundData.channels[i].type);
+		emsl.var("volume_left", SoundData.channels[i].volume_left);
+		emsl.var("volume_right", SoundData.channels[i].volume_right);
+		emsl.var("hertz", SoundData.channels[i].hertz);
+		emsl.var("count", SoundData.channels[i].count);
+		emsl.var("loop", SoundData.channels[i].loop);
+		emsl.var("envx", SoundData.channels[i].envx);
+		emsl.var("left_vol_level", SoundData.channels[i].left_vol_level);
+		emsl.var("right_vol_level", SoundData.channels[i].right_vol_level);
+		emsl.var("envx_target", SoundData.channels[i].envx_target);
+		emsl.var("env_error", SoundData.channels[i].env_error);
+		emsl.var("erate", SoundData.channels[i].erate);
+		emsl.var("direction", SoundData.channels[i].direction);
+		emsl.var("attack_rate", SoundData.channels[i].attack_rate);
+		emsl.var("decay_rate", SoundData.channels[i].decay_rate);
+		emsl.var("sustain_rate", SoundData.channels[i].sustain_rate);
+		emsl.var("release_rate", SoundData.channels[i].release_rate);
+		emsl.var("sustain_level", SoundData.channels[i].sustain_level);
+		emsl.var("sample", SoundData.channels[i].sample);
+		emsl.array("decoded", SoundData.channels[i].decoded, 16*sizeof(s16));
+		emsl.array("previous", SoundData.channels[i].previous, 2*sizeof(s32));
+		emsl.var("sample_number", SoundData.channels[i].sample_number);
+		emsl.var("last_block", SoundData.channels[i].last_block);
+		emsl.var("needs_decode", SoundData.channels[i].needs_decode);
+		emsl.var("block_pointer", SoundData.channels[i].block_pointer);
+		emsl.var("sample_pointer", SoundData.channels[i].sample_pointer);
+		emsl.var("mode", SoundData.channels[i].mode);
+		emsl.end();
+	}
+}

@@ -2781,100 +2781,110 @@ printf ("%06x: %d\n", t, FxEmulate (2000000));
 }
 #endif
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(SnesPpu, 1) \
-	STATE_SERIALIZE_VAR_##sl(PPU.BGMode) \
-	STATE_SERIALIZE_VAR_##sl(PPU.BG3Priority) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Brightness) \
-	STATE_SERIALIZE_VAR_##sl(PPU.VMA.High) \
-	STATE_SERIALIZE_VAR_##sl(PPU.VMA.Increment) \
-	STATE_SERIALIZE_VAR_##sl(PPU.VMA.Address) \
-	STATE_SERIALIZE_VAR_##sl(PPU.VMA.Mask1) \
-	STATE_SERIALIZE_VAR_##sl(PPU.VMA.FullGraphicCount) \
-	STATE_SERIALIZE_VAR_##sl(PPU.VMA.Shift) \
-	for (int i = 0; i < 4; i++) { \
-		STATE_SERIALIZE_VAR_##sl(PPU.BG[i].SCBase) \
-		STATE_SERIALIZE_VAR_##sl(PPU.BG[i].VOffset) \
-		STATE_SERIALIZE_VAR_##sl(PPU.BG[i].HOffset) \
-		STATE_SERIALIZE_VAR_##sl(PPU.BG[i].BGSize) \
-		STATE_SERIALIZE_VAR_##sl(PPU.BG[i].NameBase) \
-		STATE_SERIALIZE_VAR_##sl(PPU.BG[i].SCSize) \
-	} \
-	STATE_SERIALIZE_VAR_##sl(PPU.CGFLIP) \
-	STATE_SERIALIZE_ARRAY_##sl(PPU.CGDATA, sizeof(PPU.CGDATA)) \
-	STATE_SERIALIZE_VAR_##sl(PPU.FirstSprite) \
-	for (int i = 0; i < 128; i++) { \
-		STATE_SERIALIZE_VAR_##sl(PPU.OBJ[i].HPos) \
-		STATE_SERIALIZE_VAR_##sl(PPU.OBJ[i].VPos) \
-		STATE_SERIALIZE_VAR_##sl(PPU.OBJ[i].Name) \
-		STATE_SERIALIZE_VAR_##sl(PPU.OBJ[i].VFlip) \
-		STATE_SERIALIZE_VAR_##sl(PPU.OBJ[i].HFlip) \
-		STATE_SERIALIZE_VAR_##sl(PPU.OBJ[i].Priority) \
-		STATE_SERIALIZE_VAR_##sl(PPU.OBJ[i].Palette) \
-		STATE_SERIALIZE_VAR_##sl(PPU.OBJ[i].Size) \
-	} \
-	STATE_SERIALIZE_VAR_##sl(PPU.OAMPriorityRotation) \
-	STATE_SERIALIZE_VAR_##sl(PPU.OAMAddr) \
-	STATE_SERIALIZE_VAR_##sl(PPU.OAMFlip) \
-	STATE_SERIALIZE_VAR_##sl(PPU.OAMTileAddress) \
-	STATE_SERIALIZE_VAR_##sl(PPU.IRQVBeamPos) \
-	STATE_SERIALIZE_VAR_##sl(PPU.IRQHBeamPos) \
-	STATE_SERIALIZE_VAR_##sl(PPU.VBeamPosLatched) \
-	STATE_SERIALIZE_VAR_##sl(PPU.HBeamPosLatched) \
-	STATE_SERIALIZE_VAR_##sl(PPU.HBeamFlip) \
-	STATE_SERIALIZE_VAR_##sl(PPU.VBeamFlip) \
-	STATE_SERIALIZE_VAR_##sl(PPU.HVBeamCounterLatched) \
-	STATE_SERIALIZE_VAR_##sl(PPU.MatrixA) \
-	STATE_SERIALIZE_VAR_##sl(PPU.MatrixB) \
-	STATE_SERIALIZE_VAR_##sl(PPU.MatrixC) \
-	STATE_SERIALIZE_VAR_##sl(PPU.MatrixD) \
-	STATE_SERIALIZE_VAR_##sl(PPU.CentreX) \
-	STATE_SERIALIZE_VAR_##sl(PPU.CentreY) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Joypad1ButtonReadPos) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Joypad2ButtonReadPos) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Joypad3ButtonReadPos) \
-	STATE_SERIALIZE_VAR_##sl(PPU.CGADD) \
-	STATE_SERIALIZE_VAR_##sl(PPU.FixedColourRed) \
-	STATE_SERIALIZE_VAR_##sl(PPU.FixedColourGreen) \
-	STATE_SERIALIZE_VAR_##sl(PPU.FixedColourBlue) \
-	STATE_SERIALIZE_VAR_##sl(PPU.SavedOAMAddr) \
-	STATE_SERIALIZE_VAR_##sl(PPU.ScreenHeight) \
-	STATE_SERIALIZE_VAR_##sl(PPU.WRAM) \
-	STATE_SERIALIZE_VAR_##sl(PPU.ForcedBlanking) \
-	STATE_SERIALIZE_VAR_##sl(PPU.OBJNameSelect) \
-	STATE_SERIALIZE_VAR_##sl(PPU.OBJSizeSelect) \
-	STATE_SERIALIZE_VAR_##sl(PPU.OBJNameBase) \
-	STATE_SERIALIZE_VAR_##sl(PPU.OAMReadFlip) \
-	STATE_SERIALIZE_VAR_##sl(PPU.VTimerEnabled) \
-	STATE_SERIALIZE_VAR_##sl(PPU.HTimerEnabled) \
-	STATE_SERIALIZE_VAR_##sl(PPU.HTimerPosition) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Mosaic) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Mode7HFlip) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Mode7VFlip) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Mode7Repeat) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Window1Left) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Window1Right) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Window2Left) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Window2Right) \
-	for (int i = 0; i < 6; i++) { \
-		STATE_SERIALIZE_VAR_##sl(PPU.ClipWindowOverlapLogic[i]) \
-		STATE_SERIALIZE_VAR_##sl(PPU.ClipWindow1Enable[i]) \
-		STATE_SERIALIZE_VAR_##sl(PPU.ClipWindow2Enable[i]) \
-		STATE_SERIALIZE_VAR_##sl(PPU.ClipWindow1Inside[i]) \
-		STATE_SERIALIZE_VAR_##sl(PPU.ClipWindow2Inside[i]) \
-	} \
-	STATE_SERIALIZE_VAR_##sl(PPU.CGFLIPRead) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Need16x8Mulitply) \
-	STATE_SERIALIZE_ARRAY_##sl(PPU.BGMosaic, sizeof(PPU.BGMosaic)) \
-	STATE_SERIALIZE_ARRAY_##sl(PPU.OAMData, sizeof(PPU.OAMData)) \
-	STATE_SERIALIZE_VAR_##sl(PPU.Need16x8Mulitply) \
-	STATE_SERIALIZE_ARRAY_##sl(PPU.MouseSpeed, sizeof(PPU.MouseSpeed)) \
-	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
-		IPPU.ColorsChanged = TRUE; \
-		IPPU.OBJChanged = TRUE; \
-		S9xFixColourBrightness(); \
-	} \
-STATE_SERIALIZE_END_##sl(SnesPpu)
+void snesPpuSl() {
+	emsl.begin("ppu");
+	emsl.var("bgMode", PPU.BGMode);
+	emsl.var("bg3Priority", PPU.BG3Priority);
+	emsl.var("brightness", PPU.Brightness);
 
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+	emsl.var("cgFlip", PPU.CGFLIP);
+	emsl.array("cgData", PPU.CGDATA, sizeof(PPU.CGDATA));
+	emsl.var("firstSprite", PPU.FirstSprite);
+
+	emsl.var("oamPriorityRotation", PPU.OAMPriorityRotation);
+	emsl.var("oamAddr", PPU.OAMAddr);
+	emsl.var("oamFlip", PPU.OAMFlip);
+	emsl.var("oamTileAddress", PPU.OAMTileAddress);
+	emsl.var("irqVBeamPos", PPU.IRQVBeamPos);
+	emsl.var("irqHBeamPos", PPU.IRQHBeamPos);
+	emsl.var("vBeamPosLatched", PPU.VBeamPosLatched);
+	emsl.var("hBeamPosLatched", PPU.HBeamPosLatched);
+	emsl.var("vBeamFlip", PPU.VBeamFlip);
+	emsl.var("hBeamFlip", PPU.HBeamFlip);
+	emsl.var("hvBeamCounterLatched", PPU.HVBeamCounterLatched);
+	emsl.var("matrixA", PPU.MatrixA);
+	emsl.var("matrixB", PPU.MatrixB);
+	emsl.var("matrixC", PPU.MatrixC);
+	emsl.var("matrixD", PPU.MatrixD);
+	emsl.var("matrixX", PPU.CentreX);
+	emsl.var("matrixY", PPU.CentreY);
+	emsl.var("joypad1ButtonReadPos", PPU.Joypad1ButtonReadPos);
+	emsl.var("joypad2ButtonReadPos", PPU.Joypad2ButtonReadPos);
+	emsl.var("joypad3ButtonReadPos", PPU.Joypad3ButtonReadPos);
+	emsl.var("cgAdd", PPU.CGADD);
+	emsl.var("fixedColorRed", PPU.FixedColourRed);
+	emsl.var("fixedColorGreen", PPU.FixedColourGreen);
+	emsl.var("fixedColorBlue", PPU.FixedColourBlue);
+	emsl.var("savedOamAddr", PPU.SavedOAMAddr);
+	emsl.var("screenHeight", PPU.ScreenHeight);
+	emsl.var("wram", PPU.WRAM);
+	emsl.var("forcedBlanking", PPU.ForcedBlanking);
+	emsl.var("objNameSelect", PPU.OBJNameSelect);
+	emsl.var("objSizeSelect", PPU.OBJSizeSelect);
+	emsl.var("objNameBase", PPU.OBJNameBase);
+	emsl.var("oamReadFlip", PPU.OAMReadFlip);
+	emsl.var("vTimerEnabled", PPU.VTimerEnabled);
+	emsl.var("hTimerEnabled", PPU.HTimerEnabled);
+	emsl.var("hTimerPosition", PPU.HTimerPosition);
+	emsl.var("mosaic", PPU.Mosaic);
+	emsl.var("mode7VFlip", PPU.Mode7VFlip);
+	emsl.var("mode7HFlip", PPU.Mode7HFlip);
+	emsl.var("mode7Repeat", PPU.Mode7Repeat);
+	emsl.var("window1Left", PPU.Window1Left);
+	emsl.var("window1Right", PPU.Window1Right);
+	emsl.var("window2Left", PPU.Window2Left);
+	emsl.var("window2Right", PPU.Window2Right);
+
+	emsl.var("cgFlipRead", PPU.CGFLIPRead);
+	emsl.var("need16x8Multiply", PPU.Need16x8Mulitply);
+	emsl.array("bgMosaic", PPU.BGMosaic, sizeof(PPU.BGMosaic));
+	emsl.array("oamData", PPU.OAMData, sizeof(PPU.OAMData));
+	emsl.array("mouseSpeed", PPU.MouseSpeed, sizeof(PPU.MouseSpeed));
+	emsl.end();
+
+	emsl.begin("ppu.vma");
+	emsl.var("high", PPU.VMA.High);
+	emsl.var("increment", PPU.VMA.Increment);
+	emsl.var("address", PPU.VMA.Address);
+	emsl.var("mask1", PPU.VMA.Mask1);
+	emsl.var("fullGraphicCount", PPU.VMA.FullGraphicCount);
+	emsl.var("shift", PPU.VMA.Shift	);
+	emsl.end();
+
+	for (int i = 0; i < 4; i++) {
+		emsl.begin(QString("ppu.bg[%1]").arg(i));
+		emsl.var("scBase", PPU.BG[i].SCBase);
+		emsl.var("vOffset", PPU.BG[i].VOffset);
+		emsl.var("hOffset", PPU.BG[i].HOffset);
+		emsl.var("bgSize", PPU.BG[i].BGSize);
+		emsl.var("nameBase", PPU.BG[i].NameBase);
+		emsl.var("scSize", PPU.BG[i].SCSize);
+		emsl.end();
+	}
+	for (int i = 0; i < 128; i++) {
+		emsl.begin(QString("ppu.obj[%1]").arg(i));
+		emsl.var("hPos", PPU.OBJ[i].HPos);
+		emsl.var("vPos", PPU.OBJ[i].VPos);
+		emsl.var("name", PPU.OBJ[i].Name);
+		emsl.var("vFlip", PPU.OBJ[i].VFlip);
+		emsl.var("hFlip", PPU.OBJ[i].HFlip);
+		emsl.var("priorirty", PPU.OBJ[i].Priority);
+		emsl.var("palette", PPU.OBJ[i].Palette);
+		emsl.var("size", PPU.OBJ[i].Size);
+		emsl.end();
+	}
+	for (int i = 0; i < 6; i++) {
+		emsl.begin(QString("ppu.clip[%1]").arg(i));
+		emsl.var("clipWindowOverlapLogic", PPU.ClipWindowOverlapLogic[i]);
+		emsl.var("clipWindow1Enable", PPU.ClipWindow1Enable[i]);
+		emsl.var("clipWindow2Enable", PPU.ClipWindow2Enable[i]);
+		emsl.var("clipWindow1Inside", PPU.ClipWindow1Inside[i]);
+		emsl.var("clipWindow2Inside", PPU.ClipWindow2Inside[i]);
+		emsl.end();
+	}
+	if (!emsl.save) {
+		IPPU.ColorsChanged = TRUE;
+		IPPU.OBJChanged = TRUE;
+		S9xFixColourBrightness();
+	}
+}

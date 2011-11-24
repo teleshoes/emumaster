@@ -44,12 +44,7 @@
 #include "port.h"
 #include "machine.h"
 
-class SnesPpu : public QObject {
-	Q_OBJECT
-public:
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-};
+extern void snesPpuSl();
 
 #define FIRST_VISIBLE_LINE 1
 

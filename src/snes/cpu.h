@@ -45,12 +45,7 @@
 #include "65c816.h"
 #include <imachine.h>
 
-class SnesCpu : public QObject {
-	Q_OBJECT
-public:
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-};
+extern void snesCpuSl();
 
 #define DO_HBLANK_CHECK() \
     if (CPU.Cycles >= CPU.NextEvent) \

@@ -903,26 +903,24 @@ void S9xResetDMA ()
     }
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(SnesDma, 1) \
-	for (int i = 0; i < 8; i++) { \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].TransferDirection) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].AAddressFixed) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].AAddressDecrement) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].TransferMode) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].ABank) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].AAddress) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].Address) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].BAddress) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].TransferBytes) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].HDMAIndirectAddressing) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].IndirectAddress) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].IndirectBank) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].Repeat) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].LineCount) \
-		STATE_SERIALIZE_VAR_##sl(DMA[i].FirstLine) \
-	} \
-STATE_SERIALIZE_END_##sl(SnesDma)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void snesDmaSl() {
+	for (int i = 0; i < 8; i++) {
+		emsl.begin(QString("dma[%1]").arg(i));
+		emsl.var("transferDirection", DMA[i].TransferDirection);
+		emsl.var("aAddressFixed", DMA[i].AAddressFixed);
+		emsl.var("aAddressDecrement", DMA[i].AAddressDecrement);
+		emsl.var("transferMode", DMA[i].TransferMode);
+		emsl.var("aBank", DMA[i].ABank);
+		emsl.var("aAddress", DMA[i].AAddress);
+		emsl.var("address", DMA[i].Address);
+		emsl.var("bAddress", DMA[i].BAddress);
+		emsl.var("transferBytes", DMA[i].TransferBytes);
+		emsl.var("hdmaIndirectAddressing", DMA[i].HDMAIndirectAddressing);
+		emsl.var("indirectAddress", DMA[i].IndirectAddress);
+		emsl.var("indirectBank", DMA[i].IndirectBank);
+		emsl.var("repeat", DMA[i].Repeat);
+		emsl.var("lineCount", DMA[i].LineCount);
+		emsl.var("firstLine", DMA[i].FirstLine);
+		emsl.end();
+	}
+}

@@ -22,12 +22,11 @@ public:
 	int fillAudioBuffer(char *stream, int streamSize);
 	void setPadKeys(int pad, int keys);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-
 	void sync(int width, int height);
 
 	QImage m_frame;
+protected:
+	void sl();
 };
 
 extern SnesMachine snesMachine;

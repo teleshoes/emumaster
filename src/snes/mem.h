@@ -42,15 +42,9 @@
 #define SNESMEMORY_H
 
 #include <imachine.h>
-
-class SnesMem : public QObject {
-	Q_OBJECT
-public:
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-};
-
 #include "snes9x.h"
+
+extern void snesMemSl();
 
 #ifdef FAST_LSB_WORD_ACCESS
 #define READ_WORD(s) (*(u16 *) (s))

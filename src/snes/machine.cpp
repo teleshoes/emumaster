@@ -13,12 +13,6 @@
 // TODO set sound enabled
 
 SnesMachine snesMachine;
-SnesCpu snesCpu;
-SnesPpu snesPpu;
-SnesMem snesMem;
-SnesSpu snesSpu;
-SnesSound snesSound;
-SnesDma snesDma;
 
 static bool romLoaded = false;
 static int soundSampleCount;
@@ -273,32 +267,28 @@ void SnesMachine::setPadKeys(int pad, int keys) {
 	gamepad = newPad;
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(SnesMachine, 1) \
-	if (STATE_SERIALIZE_TEST_TYPE_##sl) { \
-		S9xSRTCPreSaveState(); \
-	} else { \
-		S9xReset(); \
-	} \
-	STATE_SERIALIZE_SUBCALL_##sl(snesCpu) \
-	STATE_SERIALIZE_SUBCALL_##sl(snesMem) \
-	STATE_SERIALIZE_SUBCALL_##sl(snesPpu) \
-	STATE_SERIALIZE_SUBCALL_##sl(snesDma) \
-	STATE_SERIALIZE_SUBCALL_##sl(snesSound) \
-	STATE_SERIALIZE_SUBCALL_##sl(snesSpu) \
-	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
-		S9xFixSoundAfterSnapshotLoad(); \
-		S9xSetPCBase(ICPU.ShiftedPB + Registers.PC); \
-		S9xReschedule(); \
-		S9xSRTCPostLoadState(); \
-		if (Settings.SDD1) \
-			S9xSDD1PostLoadState(); \
-		S9xSetSoundMute(FALSE); \
-	} \
-STATE_SERIALIZE_END_##sl(SnesMachine)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void SnesMachine::sl() {
+	if (emsl.save) {
+		S9xSRTCPreSaveState();
+	} else {
+		S9xReset();
+	}
+	snesCpuSl();
+	snesMemSl();
+	snesPpuSl();
+	snesDmaSl();
+	snesSoundSl();
+	snesSpuSl();
+	if (!emsl.save) {
+		S9xFixSoundAfterSnapshotLoad();
+		S9xSetPCBase(ICPU.ShiftedPB + Registers.PC);
+		S9xReschedule();
+		S9xSRTCPostLoadState();
+		if (Settings.SDD1)
+			S9xSDD1PostLoadState();
+		S9xSetSoundMute(FALSE);
+	}
+}
 
 int main(int argc, char *argv[]) {
 	if (argc < 2)

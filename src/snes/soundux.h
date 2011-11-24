@@ -47,12 +47,7 @@
 
 static const int SoundSampleRate = 44100;
 
-class SnesSound : public QObject {
-	Q_OBJECT
-public:
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-};
+extern void snesSoundSl();
 
 enum { SOUND_SAMPLE = 0, SOUND_NOISE, SOUND_EXTRA_NOISE, SOUND_MUTE };
 enum { SOUND_SILENT, SOUND_ATTACK, SOUND_DECAY, SOUND_SUSTAIN,
@@ -124,9 +119,6 @@ typedef struct {
 	u8 env_ind_attack;
 	u8 env_ind_decay;
 	u8 env_ind_sustain;
-	u8 dummy1;
-    // Just incase they are needed in the future, for snapshot compatibility.
-	u32 dummy [7];
 	//I'll use Fatl's recovery on savestates.
 	short gaussian[8];
 	int   g_index;
@@ -146,8 +138,6 @@ typedef struct
     int echo_write_enabled;
     int echo_channel_enable;
     int pitch_mod;
-    // Just incase they are needed in the future, for snapshot compatibility.
-	u32 dummy [3];
     Channel channels [NUM_CHANNELS];
     bool8 no_filter;
     int master_volume [2];

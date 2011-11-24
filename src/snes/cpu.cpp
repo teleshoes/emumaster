@@ -344,52 +344,51 @@ void S9xDoHBlankProcessing ()
 	S9xReschedule ();
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(SnesCpu, 1) \
-	u32 oldCpuFlags = CPU.Flags; \
-	STATE_SERIALIZE_VAR_##sl(CPU.Flags) \
-	STATE_SERIALIZE_VAR_##sl(CPU.BranchSkip) \
-	STATE_SERIALIZE_VAR_##sl(CPU.NMIActive) \
-	STATE_SERIALIZE_VAR_##sl(CPU.IRQActive) \
-	STATE_SERIALIZE_VAR_##sl(CPU.WaitingForInterrupt) \
-	STATE_SERIALIZE_VAR_##sl(CPU.WhichEvent) \
-	STATE_SERIALIZE_VAR_##sl(CPU.Cycles) \
-	STATE_SERIALIZE_VAR_##sl(CPU.NextEvent) \
-	STATE_SERIALIZE_VAR_##sl(CPU.V_Counter) \
-	STATE_SERIALIZE_VAR_##sl(CPU.MemSpeed) \
-	STATE_SERIALIZE_VAR_##sl(CPU.MemSpeedx2) \
-	STATE_SERIALIZE_VAR_##sl(CPU.FastROMSpeed) \
+void snesCpuSl() {
+	emsl.begin("cpu");
+	u32 oldCpuFlags = CPU.Flags;
+	emsl.var("flags", CPU.Flags);
+	emsl.var("branchSkip", CPU.BranchSkip);
+	emsl.var("nmiActive", CPU.NMIActive);
+	emsl.var("irqActive", CPU.IRQActive);
+	emsl.var("waitForInt", CPU.WaitingForInterrupt);
+	emsl.var("whichEvent", CPU.WhichEvent);
+	emsl.var("cycles", CPU.Cycles);
+	emsl.var("nextEvent", CPU.NextEvent);
+	emsl.var("vCounter", CPU.V_Counter);
+	emsl.var("memSpeed", CPU.MemSpeed);
+	emsl.var("memSpeedx2", CPU.MemSpeedx2);
+	emsl.var("fastRomSpeed", CPU.FastROMSpeed);
 	\
-	u16 p_w = Registers.P.W; \
-	u16 a_w = Registers.A.W; \
-	u16 d_w = Registers.D.W; \
-	u16 s_w = Registers.S.W; \
-	u16 x_w = Registers.X.W; \
-	u16 y_w = Registers.Y.W; \
-	u16 pc = Registers.PC; \
-	STATE_SERIALIZE_VAR_##sl(Registers.PB) \
-	STATE_SERIALIZE_VAR_##sl(Registers.DB) \
-	STATE_SERIALIZE_VAR_##sl(p_w) \
-	STATE_SERIALIZE_VAR_##sl(a_w) \
-	STATE_SERIALIZE_VAR_##sl(d_w) \
-	STATE_SERIALIZE_VAR_##sl(s_w) \
-	STATE_SERIALIZE_VAR_##sl(x_w) \
-	STATE_SERIALIZE_VAR_##sl(y_w) \
-	STATE_SERIALIZE_VAR_##sl(pc) \
-	Registers.P.W = p_w; \
-	Registers.A.W = a_w; \
-	Registers.D.W = d_w; \
-	Registers.S.W = s_w; \
-	Registers.X.W = x_w; \
-	Registers.Y.W = y_w; \
-	Registers.PC = pc; \
-	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
-		CPU.Flags |= oldCpuFlags & (DEBUG_MODE_FLAG | TRACE_FLAG | SINGLE_STEP_FLAG | FRAME_ADVANCE_FLAG); \
-		CPU.InDMA = FALSE; \
-		ICPU.ShiftedPB = Registers.PB << 16; \
-		ICPU.ShiftedDB = Registers.DB << 16; \
-	} \
-STATE_SERIALIZE_END_##sl(SnesCpu)
+	u16 p_w = Registers.P.W;
+	u16 a_w = Registers.A.W;
+	u16 d_w = Registers.D.W;
+	u16 s_w = Registers.S.W;
+	u16 x_w = Registers.X.W;
+	u16 y_w = Registers.Y.W;
+	u16 pc = Registers.PC;
+	emsl.var("reg_pb", Registers.PB);
+	emsl.var("reg_db", Registers.DB);
+	emsl.var("p", p_w);
+	emsl.var("a", a_w);
+	emsl.var("d", d_w);
+	emsl.var("s", s_w);
+	emsl.var("x", x_w);
+	emsl.var("y", y_w);
+	emsl.var("pc", pc);
+	Registers.P.W = p_w;
+	Registers.A.W = a_w;
+	Registers.D.W = d_w;
+	Registers.S.W = s_w;
+	Registers.X.W = x_w;
+	Registers.Y.W = y_w;
+	Registers.PC = pc;
 
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+	if (!emsl.save) {
+		CPU.Flags |= oldCpuFlags & (DEBUG_MODE_FLAG | TRACE_FLAG | SINGLE_STEP_FLAG | FRAME_ADVANCE_FLAG);
+		CPU.InDMA = FALSE;
+		ICPU.ShiftedPB = Registers.PB << 16;
+		ICPU.ShiftedDB = Registers.DB << 16;
+	}
+	emsl.end();
+}

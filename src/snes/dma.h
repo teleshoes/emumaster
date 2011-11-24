@@ -44,18 +44,12 @@
 #include "machine.h"
 #include "port.h"
 
-class SnesDma : public QObject {
-	Q_OBJECT
-public:
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-};
-
 START_EXTERN_C
 void S9xResetDMA (void);
 u8 S9xDoHDMA (u8);
 void S9xStartHDMA ();
 void S9xDoDMA (u8);
+void snesDmaSl();
 END_EXTERN_C
 
 #endif

@@ -45,12 +45,7 @@
 #include "port.h"
 #include <imachine.h>
 
-class SnesSpu : public QObject {
-	Q_OBJECT
-public:
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-};
+extern void snesSpuSl();
 
 struct SIAPU
 {

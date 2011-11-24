@@ -1148,39 +1148,37 @@ u8 S9xGetAPUDSP ()
     return (byte);
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(SnesSpu, 1) \
-	STATE_SERIALIZE_VAR_##sl(APU.Cycles) \
-	STATE_SERIALIZE_VAR_##sl(APU.ShowROM) \
-	STATE_SERIALIZE_VAR_##sl(APU.Flags) \
-	STATE_SERIALIZE_VAR_##sl(APU.KeyedChannels) \
-	STATE_SERIALIZE_ARRAY_##sl(APU.OutPorts, sizeof(APU.OutPorts)) \
-	STATE_SERIALIZE_ARRAY_##sl(APU.DSP, sizeof(APU.DSP)) \
-	STATE_SERIALIZE_ARRAY_##sl(APU.ExtraRAM, sizeof(APU.ExtraRAM)) \
-	STATE_SERIALIZE_ARRAY_##sl(APU.Timer, sizeof(APU.Timer)) \
-	STATE_SERIALIZE_ARRAY_##sl(APU.TimerTarget, sizeof(APU.TimerTarget)) \
-	STATE_SERIALIZE_ARRAY_##sl(APU.TimerEnabled, sizeof(APU.TimerEnabled)) \
-	STATE_SERIALIZE_ARRAY_##sl(APU.TimerValueWritten, sizeof(APU.TimerValueWritten)) \
-	\
-	u16 pc = IAPU.PC - IAPU.RAM; \
-	STATE_SERIALIZE_VAR_##sl(IAPU.P) \
-	STATE_SERIALIZE_VAR_##sl(IAPU.YA.W) \
-	STATE_SERIALIZE_VAR_##sl(IAPU.X) \
-	STATE_SERIALIZE_VAR_##sl(IAPU.S) \
-	STATE_SERIALIZE_VAR_##sl(pc) \
-	IAPU.PC = IAPU.RAM + pc; \
-	STATE_SERIALIZE_ARRAY_##sl(IAPU.RAM, 0x10000) \
-	\
-	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
-		S9xAPUUnpackStatus(); \
-		if (APUCheckDirectPage()) \
-			IAPU.DirectPage = IAPU.RAM + 0x100; \
-		else \
-			IAPU.DirectPage = IAPU.RAM; \
-		Settings.APUEnabled = TRUE; \
-		CPU.APU_APUExecuting = TRUE; \
-	} \
-STATE_SERIALIZE_END_##sl(SnesSpu)
+void snesSpuSl() {
+	emsl.begin("spu");
+	emsl.var("cycles", APU.Cycles);
+	emsl.var("showRom", APU.ShowROM);
+	emsl.var("flags", APU.Flags);
+	emsl.var("keyedChannels", APU.KeyedChannels);
+	emsl.array("outPorts", APU.OutPorts, sizeof(APU.OutPorts));
+	emsl.array("dsp", APU.DSP, sizeof(APU.DSP));
+	emsl.array("extraRam", APU.ExtraRAM, sizeof(APU.ExtraRAM));
+	emsl.array("timer", APU.Timer, sizeof(APU.Timer));
+	emsl.array("timerTarget", APU.TimerTarget, sizeof(APU.TimerTarget));
+	emsl.array("timerEnabled", APU.TimerEnabled, sizeof(APU.TimerEnabled));
+	emsl.array("timerValueWritten", APU.TimerValueWritten, sizeof(APU.TimerValueWritten));
 
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+	u16 pc = IAPU.PC - IAPU.RAM;
+	emsl.var("p", IAPU.P);
+	emsl.var("ya", IAPU.YA.W);
+	emsl.var("x", IAPU.X);
+	emsl.var("s", IAPU.S);
+	emsl.var("pc", pc);
+	IAPU.PC = IAPU.RAM + pc;
+	emsl.array("ram", IAPU.RAM, 0x10000);
+
+	if (!emsl.save) {
+		S9xAPUUnpackStatus();
+		if (APUCheckDirectPage())
+			IAPU.DirectPage = IAPU.RAM + 0x100;
+		else
+			IAPU.DirectPage = IAPU.RAM;
+		Settings.APUEnabled = TRUE;
+		CPU.APU_APUExecuting = TRUE;
+	}
+	emsl.end();
+}

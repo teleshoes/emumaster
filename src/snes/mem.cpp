@@ -2593,16 +2593,13 @@ err_eof:
 #define INLINE
 #include "getset.h"
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(SnesMem, 1) \
-	STATE_SERIALIZE_ARRAY_##sl(Memory.RAM, 0x20000) \
-	STATE_SERIALIZE_ARRAY_##sl(Memory.VRAM, 0x10000) \
-	STATE_SERIALIZE_ARRAY_##sl(Memory.SRAM, 0x20000) \
-	STATE_SERIALIZE_ARRAY_##sl(Memory.FillRAM, 0x8000) \
-	if (!STATE_SERIALIZE_TEST_TYPE_##sl) { \
-		Memory.FixROMSpeed(); \
-	} \
-STATE_SERIALIZE_END_##sl(SnesMem)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void snesMemSl() {
+	emsl.begin("mem");
+	emsl.array("ram", Memory.RAM, 0x20000);
+	emsl.array("vram", Memory.VRAM, 0x10000);
+	emsl.array("sram", Memory.SRAM, 0x20000);
+	emsl.array("fillRam", Memory.FillRAM, 0x8000);
+	if (!emsl.save)
+		Memory.FixROMSpeed();
+	emsl.end();
+}
