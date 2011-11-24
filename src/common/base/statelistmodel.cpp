@@ -127,11 +127,6 @@ bool StateListModel::saveState(int i) {
 bool StateListModel::loadState(int i) {
 	if (!m_machine)
 		return false;
-	if (i == AutoSlot) {
-		if (m_list.size() <= 0)
-			return false;
-		i = m_list.at(0).fileName().toInt();
-	}
 	QString name = QString::number(i);
 	QFile file(m_dir.filePath(name));
 	if (!file.open(QIODevice::ReadOnly))
