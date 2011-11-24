@@ -436,38 +436,38 @@ u8 NesApu::fetchData(u16 address) {
 	return data;
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(NesApu, 1) \
-	STATE_SERIALIZE_SUBCALL_##sl(r1ch) \
-	STATE_SERIALIZE_SUBCALL_##sl(r2ch) \
-	STATE_SERIALIZE_SUBCALL_##sl(nsch) \
-	STATE_SERIALIZE_SUBCALL_##sl(trch) \
-	STATE_SERIALIZE_SUBCALL_##sl(dmch) \
-	STATE_SERIALIZE_VAR_##sl(frameIrqGenerated) \
-	STATE_SERIALIZE_VAR_##sl(frameIrqEnable) \
-	STATE_SERIALIZE_VAR_##sl(frameIrqCounterMax) \
-	STATE_SERIALIZE_VAR_##sl(initCounter) \
-	STATE_SERIALIZE_VAR_##sl(initializingHardware) \
-	STATE_SERIALIZE_VAR_##sl(masterFrameCounter) \
-	STATE_SERIALIZE_VAR_##sl(derivedFrameCounter) \
-	STATE_SERIALIZE_VAR_##sl(countSequence) \
-	STATE_SERIALIZE_VAR_##sl(triValue) \
-	STATE_SERIALIZE_VAR_##sl(smpR1) \
-	STATE_SERIALIZE_VAR_##sl(smpR2) \
-	STATE_SERIALIZE_VAR_##sl(smpTR) \
-	STATE_SERIALIZE_VAR_##sl(smpNS) \
-	STATE_SERIALIZE_VAR_##sl(smpDM) \
-	STATE_SERIALIZE_VAR_##sl(accCount) \
-	STATE_SERIALIZE_VAR_##sl(extraCycles) \
-	STATE_SERIALIZE_VAR_##sl(prevSampleL) \
-	STATE_SERIALIZE_VAR_##sl(prevSampleR) \
-	STATE_SERIALIZE_VAR_##sl(smpAccumL) \
-	STATE_SERIALIZE_VAR_##sl(smpAccumR) \
-	STATE_SERIALIZE_VAR_##sl(irqSignal) \
-	sampleTimer = 0; \
-	bufferIndex = 0; \
-	bufferBase = 0; \
-STATE_SERIALIZE_END_##sl(NesApu)
+void NesApu::sl() {
+	r1ch.sl(0);
+	r2ch.sl(1);
+	nsch.sl(2);
+	trch.sl(3);
+	dmch.sl(4);
 
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+	emsl.begin("apu");
+	emsl.var("frameIrqGenerated", frameIrqGenerated);
+	emsl.var("frameIrqEnable", frameIrqEnable);
+	emsl.var("frameIrqCounterMax", frameIrqCounterMax);
+	emsl.var("initCounter", initCounter);
+	emsl.var("initializingHardware", initializingHardware);
+	emsl.var("masterFrameCounter", masterFrameCounter);
+	emsl.var("derivedFrameCounter", derivedFrameCounter);
+	emsl.var("countSequence", countSequence);
+	emsl.var("triValue", triValue);
+	emsl.var("smpR1", smpR1);
+	emsl.var("smpR2", smpR2);
+	emsl.var("smpTR", smpTR);
+	emsl.var("smpNS", smpNS);
+	emsl.var("smpDM", smpDM);
+	emsl.var("accCount", accCount);
+	emsl.var("extraCycles", extraCycles);
+	emsl.var("prevSampleL", prevSampleL);
+	emsl.var("prevSampleR", prevSampleR);
+	emsl.var("smpAccumL", smpAccumL);
+	emsl.var("smpAccumR", smpAccumR);
+	emsl.var("irqSignal", irqSignal);
+	emsl.end();
+
+	sampleTimer = 0;
+	bufferIndex = 0;
+	bufferBase = 0;
+}

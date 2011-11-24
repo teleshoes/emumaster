@@ -87,13 +87,8 @@ void Mapper067::clock(uint cycles) {
 	}
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper067, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_VAR_##sl(irq_enable) \
-	STATE_SERIALIZE_VAR_##sl(irq_counter) \
-	STATE_SERIALIZE_VAR_##sl(irq_toggle) \
-STATE_SERIALIZE_END_##sl(Mapper067)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper067::extSl() {
+	emsl.var("irq_enable", irq_enable);
+	emsl.var("irq_counter", irq_counter);
+	emsl.var("irq_toggle", irq_toggle);
+}

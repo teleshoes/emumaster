@@ -37,8 +37,7 @@ public:
 	void extensionLatchX(uint x);
 	void extensionLatch(u16 address, u8 *plane1, u8 *plane2, u8 *attribute);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 private:
 	enum Irq {
 		IrqNone = 0,

@@ -14,6 +14,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+// TODO codes in state
+
 #include "gamegeniecodelistmodel.h"
 #include "machine.h"
 #include "mapper.h"

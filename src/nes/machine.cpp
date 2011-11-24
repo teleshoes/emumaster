@@ -286,18 +286,17 @@ int NesMachine::fillAudioBuffer(char *stream, int streamSize)
 NesPpu *NesMachine::ppu() const
 { return &nesPpu; }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(NesMachine, 1) \
-	STATE_SERIALIZE_SUBCALL_PTR_##sl(nesMapper) \
-	STATE_SERIALIZE_SUBCALL_##sl(nesCpu) \
-	STATE_SERIALIZE_SUBCALL_##sl(nesPpu) \
-	STATE_SERIALIZE_SUBCALL_##sl(nesApu) \
-	STATE_SERIALIZE_VAR_##sl(cpuCycleCounter) \
-	STATE_SERIALIZE_VAR_##sl(ppuCycleCounter) \
-STATE_SERIALIZE_END_##sl(NesMachine)
+void NesMachine::sl() {
+	nesMapper->sl();
+	nesCpu.sl();
+	nesPpu.sl();
+	nesApu.sl();
 
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+	emsl.begin("machine");
+	emsl.var("cpuCycleCounter", cpuCycleCounter);
+	emsl.var("ppuCycleCounter", ppuCycleCounter);
+	emsl.end();
+}
 
 int main(int argc, char *argv[]) {
 	if (argc < 2)

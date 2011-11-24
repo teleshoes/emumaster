@@ -97,11 +97,6 @@ void Mapper068::updateBanks() {
 	}
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper068, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
-STATE_SERIALIZE_END_##sl(Mapper068)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper068::extSl() {
+	emsl.array("reg", reg, sizeof(reg));
+}

@@ -48,15 +48,10 @@ int NesApuNoiseChannel::m_noiseWavelengthLUT[16] = {
 	0x2FA, 0x3F8, 0x7F2, 0xFE4
 };
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(NesApuNoiseChannel, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesApuChannel) \
-	STATE_SERIALIZE_VAR_##sl(m_randomBit) \
-	STATE_SERIALIZE_VAR_##sl(m_randomMode) \
-	STATE_SERIALIZE_VAR_##sl(m_shiftReg) \
-	STATE_SERIALIZE_VAR_##sl(m_accValue) \
-	STATE_SERIALIZE_VAR_##sl(m_accCount) \
-STATE_SERIALIZE_END_##sl(NesApuNoiseChannel)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void NesApuNoiseChannel::extSl() {
+	emsl.var("randomBit", m_randomBit);
+	emsl.var("randomMode", m_randomMode);
+	emsl.var("shiftReg", m_shiftReg);
+	emsl.var("accValue", m_accValue);
+	emsl.var("accCount", m_accCount);
+}

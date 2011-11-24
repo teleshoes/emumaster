@@ -28,8 +28,7 @@ public:
 	void writeLow(u16 address, u8 data);
 	void writeHigh(u16 address, u8 data);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 private:
 	u8 reg[4];
 };

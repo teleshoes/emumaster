@@ -28,8 +28,7 @@ public:
 
 	void updateBanks();
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 private:
 	u8 reg[4];
 };

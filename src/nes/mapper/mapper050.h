@@ -29,8 +29,7 @@ public:
 
 	void horizontalSync();
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 private:
 	u8 irq_enable;
 };

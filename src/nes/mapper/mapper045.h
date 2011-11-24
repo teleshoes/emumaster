@@ -32,8 +32,7 @@ public:
 	void setBankCpu(uint page, uint bank);
 	void setBankPpu();
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 private:
 	u8 patch;
 	u8 reg[8];

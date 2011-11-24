@@ -189,25 +189,20 @@ void Mapper254::setBankPpu() {
 	}
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper254, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
-	STATE_SERIALIZE_VAR_##sl(prg0) \
-	STATE_SERIALIZE_VAR_##sl(prg1) \
-	STATE_SERIALIZE_VAR_##sl(chr01) \
-	STATE_SERIALIZE_VAR_##sl(chr23) \
-	STATE_SERIALIZE_VAR_##sl(chr4) \
-	STATE_SERIALIZE_VAR_##sl(chr5) \
-	STATE_SERIALIZE_VAR_##sl(chr6) \
-	STATE_SERIALIZE_VAR_##sl(chr7) \
-	STATE_SERIALIZE_VAR_##sl(irq_type) \
-	STATE_SERIALIZE_VAR_##sl(irq_enable) \
-	STATE_SERIALIZE_VAR_##sl(irq_counter) \
-	STATE_SERIALIZE_VAR_##sl(irq_latch) \
-	STATE_SERIALIZE_VAR_##sl(irq_request) \
-	STATE_SERIALIZE_VAR_##sl(protectflag) \
-STATE_SERIALIZE_END_##sl(Mapper254)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper254::extSl() {
+	emsl.array("reg", reg, sizeof(reg));
+	emsl.var("prg0", prg0);
+	emsl.var("prg1", prg1);
+	emsl.var("chr01", chr01);
+	emsl.var("chr23", chr23);
+	emsl.var("chr4", chr4);
+	emsl.var("chr5", chr5);
+	emsl.var("chr6", chr6);
+	emsl.var("chr7", chr7);
+	emsl.var("irq_type", irq_type);
+	emsl.var("irq_enable", irq_enable);
+	emsl.var("irq_counter", irq_counter);
+	emsl.var("irq_latch", irq_latch);
+	emsl.var("irq_request", irq_request);
+	emsl.var("protectflag", protectflag);
+}

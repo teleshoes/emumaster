@@ -118,22 +118,21 @@ void NesApuChannel::clockEnvelopeDecay() {
 	updateSampleValue();
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(NesApuChannel, 1) \
-	STATE_SERIALIZE_VAR_##sl(envelopeReset) \
-	STATE_SERIALIZE_VAR_##sl(lengthCounterEnable) \
-	STATE_SERIALIZE_VAR_##sl(lengthCounter) \
-	STATE_SERIALIZE_VAR_##sl(m_channelNo) \
-	STATE_SERIALIZE_VAR_##sl(m_enabled) \
-	STATE_SERIALIZE_VAR_##sl(m_masterVolume) \
-	STATE_SERIALIZE_VAR_##sl(m_volume) \
-	STATE_SERIALIZE_VAR_##sl(m_envelopeVolume) \
-	STATE_SERIALIZE_VAR_##sl(m_envelopeDecayRate) \
-	STATE_SERIALIZE_VAR_##sl(m_envelopeDecayDisable) \
-	STATE_SERIALIZE_VAR_##sl(m_envelopeDecayLoopEnable) \
-	STATE_SERIALIZE_VAR_##sl(m_envelopeDecayCounter) \
-	STATE_SERIALIZE_VAR_##sl(m_dutyMode) \
-STATE_SERIALIZE_END_##sl(NesApuChannel)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void NesApuChannel::sl(int i) {
+	emsl.begin(QString("apuChannel%1").arg(i));
+	emsl.var("envelopeReset", envelopeReset);
+	emsl.var("lengthCounterEnable", lengthCounterEnable);
+	emsl.var("lengthCounter", lengthCounter);
+	emsl.var("channelNo", m_channelNo);
+	emsl.var("enabled", m_enabled);
+	emsl.var("masterVolume", m_masterVolume);
+	emsl.var("volume", m_volume);
+	emsl.var("envelopeVolume", m_envelopeVolume);
+	emsl.var("envelopeDecayRate", m_envelopeDecayRate);
+	emsl.var("envelopeDecayDisable", m_envelopeDecayDisable);
+	emsl.var("envelopeDecayLoopEnable", m_envelopeDecayLoopEnable);
+	emsl.var("envelopeDecayCounter", m_envelopeDecayCounter);
+	emsl.var("dutyMode", m_dutyMode);
+	extSl();
+	emsl.end();
+}

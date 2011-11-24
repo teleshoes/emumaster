@@ -33,8 +33,7 @@ public:
 	void updatePpuBanks();
 	void updateCpuBanks();
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 private:
 	u32 vb0, vb1;
 	u8	reg[8];

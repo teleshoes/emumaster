@@ -77,12 +77,7 @@ void Mapper006::horizontalSync() {
 	}
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper006, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_VAR_##sl(irqEnable) \
-	STATE_SERIALIZE_VAR_##sl(irqCounter) \
-STATE_SERIALIZE_END_##sl(Mapper006)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper006::extSl() {
+	emsl.var("irqEnable", irqEnable);
+	emsl.var("irqCounter", irqCounter);
+}

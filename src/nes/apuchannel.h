@@ -49,9 +49,10 @@ public:
 	int progTimerMax;
 	int progTimerCount;
 
-	virtual bool save(QDataStream &s);
-	virtual bool load(QDataStream &s);
+	void sl(int i);
 protected:
+	virtual void extSl() = 0;
+
 	union {
 		bool envelopeReset;
 		bool linearCounterHalt;

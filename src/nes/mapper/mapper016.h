@@ -35,8 +35,7 @@ public:
 	void writeSubA(u16 address, u8 data);
 	void writeSubB(u16 address, u8 data);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 private:
 	enum {
 		IrqClock,

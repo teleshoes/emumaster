@@ -564,42 +564,29 @@ void Mapper005::extensionLatch(u16 address, u8 *plane1, u8 *plane2, u8 *attribut
 	}
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper005, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_VAR_##sl(prg_size) \
-	STATE_SERIALIZE_VAR_##sl(chr_size) \
-	STATE_SERIALIZE_VAR_##sl(sram_we_a) \
-	STATE_SERIALIZE_VAR_##sl(sram_we_b) \
-	STATE_SERIALIZE_VAR_##sl(graphic_mode) \
-	STATE_SERIALIZE_VAR_##sl(nametable_mode) \
-	STATE_SERIALIZE_VAR_##sl(nametable_type[0]) \
-	STATE_SERIALIZE_VAR_##sl(nametable_type[1]) \
-	STATE_SERIALIZE_VAR_##sl(nametable_type[2]) \
-	STATE_SERIALIZE_VAR_##sl(nametable_type[3]) \
-	STATE_SERIALIZE_VAR_##sl(sram_page) \
-	STATE_SERIALIZE_VAR_##sl(fill_chr) \
-	STATE_SERIALIZE_VAR_##sl(fill_pal) \
-	STATE_SERIALIZE_VAR_##sl(split_control) \
-	STATE_SERIALIZE_VAR_##sl(split_scroll) \
-	STATE_SERIALIZE_VAR_##sl(split_page) \
-	STATE_SERIALIZE_VAR_##sl(chr_mode) \
-	STATE_SERIALIZE_VAR_##sl(irq_status) \
-	STATE_SERIALIZE_VAR_##sl(irq_enable) \
-	STATE_SERIALIZE_VAR_##sl(irq_line) \
-	STATE_SERIALIZE_VAR_##sl(irq_scanline) \
-	STATE_SERIALIZE_VAR_##sl(irq_clear) \
-	STATE_SERIALIZE_VAR_##sl(mult_a) \
-	STATE_SERIALIZE_VAR_##sl(mult_b) \
-	for (int j = 0; j < 2; j++) { \
-		for (int i = 0; i < 8; i++) { \
-			STATE_SERIALIZE_VAR_##sl(chr_page[j][i]) \
-		} \
-	} \
-	for (int i = 0; i < 8; i++) \
-		STATE_SERIALIZE_VAR_##sl(cpu_bank_wren[i]) \
-	updatePpuBanks(); \
-STATE_SERIALIZE_END_##sl(Mapper005)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper005::extSl() {
+	emsl.var("prg_size", prg_size);
+	emsl.var("chr_size", chr_size);
+	emsl.var("sram_we_a", sram_we_a);
+	emsl.var("sram_we_b", sram_we_b);
+	emsl.var("graphic_mode", graphic_mode);
+	emsl.var("nametable_mode", nametable_mode);
+	emsl.array("nametable_type", nametable_type, sizeof(nametable_type));
+	emsl.var("sram_page", sram_page);
+	emsl.var("fill_chr", fill_chr);
+	emsl.var("fill_pal", fill_pal);
+	emsl.var("split_control", split_control);
+	emsl.var("split_scroll", split_scroll);
+	emsl.var("split_page", split_page);
+	emsl.var("chr_mode", chr_mode);
+	emsl.var("irq_status", irq_status);
+	emsl.var("irq_enable", irq_enable);
+	emsl.var("irq_line", irq_line);
+	emsl.var("irq_scanline", irq_scanline);
+	emsl.var("irq_clear", irq_clear);
+	emsl.var("mult_a", mult_a);
+	emsl.var("mult_b", mult_b);
+	emsl.array("chr_page", chr_page, 2*8);
+	emsl.array("cpu_bank_wren", cpu_bank_wren, sizeof(cpu_bank_wren));
+	updatePpuBanks();
+}

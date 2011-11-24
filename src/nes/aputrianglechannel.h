@@ -35,8 +35,8 @@ public:
 
 	int triangleCounter() const;
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+protected:
+	void extSl();
 private:
 	bool m_linearCounterControl;
 	int m_linearCounterLoadValue;

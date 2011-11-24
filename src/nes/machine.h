@@ -53,8 +53,8 @@ public:
 	int fillAudioBuffer(char *stream, int streamSize);
 	void setPadKeys(int pad, int keys);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+protected:
+	void sl();
 private:
 	void emulateFrameNoTile(bool drawEnabled);
 	void emulateVisibleScanlineNoTile();

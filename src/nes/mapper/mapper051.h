@@ -29,8 +29,7 @@ public:
 
 	void updateBanks();
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 private:
 	u32 mode;
 	u32 bank;

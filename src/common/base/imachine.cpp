@@ -90,3 +90,12 @@ bool IMachine::load(QDataStream *stream) {
 	sl();
 	return emsl.error.isEmpty();
 }
+
+void EMSL::push() {
+	end();
+	groupStack.append(currGroup);
+}
+
+void EMSL::pop() {
+	begin(groupStack.takeLast());
+}

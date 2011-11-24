@@ -77,12 +77,7 @@ void Mapper051::updateBanks() {
 	}
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper051, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_VAR_##sl(mode) \
-	STATE_SERIALIZE_VAR_##sl(bank) \
-STATE_SERIALIZE_END_##sl(Mapper051)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper051::extSl() {
+	emsl.var("mode", mode);
+	emsl.var("bank", bank);
+}

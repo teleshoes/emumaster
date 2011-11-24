@@ -237,23 +237,21 @@ void NesCpu::nmi_i(bool on) {
 void NesCpu::reset_i(bool on)
 { setSignal(Reset, on); }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(NesCpu, 1) \
-	STATE_SERIALIZE_VAR_##sl(dmaCycles) \
-	STATE_SERIALIZE_VAR_##sl(apuIrq) \
-	STATE_SERIALIZE_VAR_##sl(mapperIrq) \
-	STATE_SERIALIZE_VAR_##sl(cpuSignals) \
-	STATE_SERIALIZE_VAR_##sl(nmiState) \
-	STATE_SERIALIZE_VAR_##sl(A) \
-	STATE_SERIALIZE_VAR_##sl(Y) \
-	STATE_SERIALIZE_VAR_##sl(X) \
-	STATE_SERIALIZE_VAR_##sl(PC) \
-	STATE_SERIALIZE_VAR_##sl(S) \
-	STATE_SERIALIZE_VAR_##sl(P) \
-STATE_SERIALIZE_END_##sl(NesCpu)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void NesCpu::sl() {
+	emsl.begin("cpu");
+	emsl.var("dmaCycles", dmaCycles);
+	emsl.var("apuIrq", apuIrq);
+	emsl.var("mapperIrq", mapperIrq);
+	emsl.var("cpuSignals", cpuSignals);
+	emsl.var("nmiState", nmiState);
+	emsl.var("A", A);
+	emsl.var("Y", Y);
+	emsl.var("X", X);
+	emsl.var("PC", PC);
+	emsl.var("S", S);
+	emsl.var("P", P);
+	emsl.end();
+}
 
 #define X_ZN(val)	P &= ~(Z|N); P |= ZNTable[val]
 #define X_ZNT(val)	P |= ZNTable[val]

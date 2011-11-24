@@ -25,8 +25,7 @@ public:
 	void write(bool scl_in, bool sda_in);
 	bool read() const;
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void sl(const QString &groupName);
 private:
 	enum State {
 		Idle,
@@ -54,8 +53,7 @@ public:
 	void write(bool scl_in, bool sda_in);
 	bool read() const;
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void sl(const QString &groupName);
 private:
 	enum State {
 		Idle,

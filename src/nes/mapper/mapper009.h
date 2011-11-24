@@ -27,8 +27,7 @@ public:
 
 	void characterLatch(u16 address);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 private:
 	u8 reg[4];
 	u8 latch_a, latch_b;

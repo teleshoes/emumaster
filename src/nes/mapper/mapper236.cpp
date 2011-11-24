@@ -72,12 +72,7 @@ void Mapper236::writeHigh(u16 address, u8 data) {
 	}
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper236, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_VAR_##sl(bank) \
-	STATE_SERIALIZE_VAR_##sl(mode) \
-STATE_SERIALIZE_END_##sl(Mapper236)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper236::extSl() {
+	emsl.var("bank", bank);
+	emsl.var("mode", mode);
+}

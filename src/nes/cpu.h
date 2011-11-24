@@ -36,8 +36,7 @@ public:
 	u8 READ(u16 address);
 	void ADDCYC(u32 n);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void sl();
 
 	void apu_irq_i(bool on);
 	void irq0_i(bool on);

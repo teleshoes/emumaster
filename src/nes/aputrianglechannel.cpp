@@ -72,14 +72,9 @@ void NesApuTriangleChannel::clockTriangleGenerator(){
 void NesApuTriangleChannel::updateSampleCondition()
 { sampleCondition = (lengthStatus() && progTimerMax > 7 && m_linearCounter > 0); }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(NesApuTriangleChannel, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesApuChannel) \
-	STATE_SERIALIZE_VAR_##sl(m_linearCounterControl) \
-	STATE_SERIALIZE_VAR_##sl(m_linearCounterLoadValue) \
-	STATE_SERIALIZE_VAR_##sl(m_linearCounter) \
-	STATE_SERIALIZE_VAR_##sl(m_triangleCounter) \
-STATE_SERIALIZE_END_##sl(NesApuTriangleChannel)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void NesApuTriangleChannel::extSl() {
+	emsl.var("linearCounterControl", m_linearCounterControl);
+	emsl.var("linearCounterLoadValue", m_linearCounterLoadValue);
+	emsl.var("linearCounter", m_linearCounter);
+	emsl.var("triangleCounter", m_triangleCounter);
+}

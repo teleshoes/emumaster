@@ -109,6 +109,9 @@ public:
 	void begin(const QString &groupName, int version);
 	void end();
 
+	void push();
+	void pop();
+
 	template <typename T>
 	void var(const QString &name, T &t);
 
@@ -126,6 +129,8 @@ public:
 private:
 	void varNotExist(const QString &name);
 	void ioError();
+
+	QList<QString> groupStack;
 };
 
 extern EMSL emsl;

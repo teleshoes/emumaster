@@ -217,16 +217,10 @@ NesMirroring Mapper001::mirroringFromRegs() const {
 	}
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper001, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
-	STATE_SERIALIZE_VAR_##sl(shift) \
-	STATE_SERIALIZE_VAR_##sl(regbuf) \
-	STATE_SERIALIZE_VAR_##sl(wram_bank) \
-	STATE_SERIALIZE_VAR_##sl(wram_count) \
-	STATE_SERIALIZE_VAR_##sl(last_addr) \
-STATE_SERIALIZE_END_##sl(Mapper001)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper001::extSl() {
+	emsl.var("shift", shift);
+	emsl.var("regbuf", regbuf);
+	emsl.var("wram_bank", wram_bank);
+	emsl.var("wram_count", wram_count);
+	emsl.var("last_addr", last_addr);
+}

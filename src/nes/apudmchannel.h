@@ -41,10 +41,9 @@ public:
 
 	void clock(int nCycles);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-
 	bool irqGenerated;
+protected:
+	void extSl();
 private:
 	bool m_hasSample;
 

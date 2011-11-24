@@ -27,8 +27,7 @@ public:
 	void writeHigh(u16 address, u8 data);
 	void clock(uint cycles);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 private:
 	u8 reg[9];
 

@@ -102,12 +102,7 @@ void Mapper251::setBank() {
 		setRom8KBanks(prg[0],prg[1],prg[2],prg[3]);
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper251, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
-	STATE_SERIALIZE_ARRAY_##sl(breg, sizeof(breg)) \
-STATE_SERIALIZE_END_##sl(Mapper251)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper251::extSl() {
+	emsl.array("reg", reg, sizeof(reg));
+	emsl.array("breg", breg, sizeof(breg));
+}

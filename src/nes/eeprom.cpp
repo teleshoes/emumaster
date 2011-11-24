@@ -124,20 +124,18 @@ void X24C01::write(bool scl_in, bool sda_in) {
 bool X24C01::read() const
 { return m_sda; }
 
-#define X24C01_STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(X24C01, 1) \
-	STATE_SERIALIZE_VAR_##sl(m_nowState) \
-	STATE_SERIALIZE_VAR_##sl(m_nextState) \
-	STATE_SERIALIZE_VAR_##sl(m_bitCounter) \
-	STATE_SERIALIZE_VAR_##sl(m_address) \
-	STATE_SERIALIZE_VAR_##sl(m_data) \
-	STATE_SERIALIZE_VAR_##sl(m_sda) \
-	STATE_SERIALIZE_VAR_##sl(m_sclOld) \
-	STATE_SERIALIZE_VAR_##sl(m_sdaOld) \
-STATE_SERIALIZE_END_##sl(X24C01)
-
-X24C01_STATE_SERIALIZE_BUILDER(SAVE)
-X24C01_STATE_SERIALIZE_BUILDER(LOAD)
+void X24C01::sl(const QString &groupName) {
+	emsl.begin(groupName);
+	emsl.var("nowState", m_nowState);
+	emsl.var("nextState", m_nextState);
+	emsl.var("bitCounter", m_bitCounter);
+	emsl.var("address", m_address);
+	emsl.var("data", m_data);
+	emsl.var("sda", m_sda);
+	emsl.var("sclOld", m_sclOld);
+	emsl.var("sdaOld", m_sdaOld);
+	emsl.end();
+}
 
 void X24C02::reset(u8 *eedata) {
 	m_nowState = Idle;
@@ -283,18 +281,16 @@ void X24C02::write(bool scl_in, bool sda_in) {
 bool X24C02::read() const
 { return m_sda; }
 
-#define X24C02_STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(X24C02, 1) \
-	STATE_SERIALIZE_VAR_##sl(m_nowState) \
-	STATE_SERIALIZE_VAR_##sl(m_nextState) \
-	STATE_SERIALIZE_VAR_##sl(m_bitCounter) \
-	STATE_SERIALIZE_VAR_##sl(m_address) \
-	STATE_SERIALIZE_VAR_##sl(m_data) \
-	STATE_SERIALIZE_VAR_##sl(m_rw) \
-	STATE_SERIALIZE_VAR_##sl(m_sda) \
-	STATE_SERIALIZE_VAR_##sl(m_sclOld) \
-	STATE_SERIALIZE_VAR_##sl(m_sdaOld) \
-STATE_SERIALIZE_END_##sl(X24C02)
-
-X24C02_STATE_SERIALIZE_BUILDER(SAVE)
-X24C02_STATE_SERIALIZE_BUILDER(LOAD)
+void X24C02::sl(const QString &groupName) {
+	emsl.begin(groupName);
+	emsl.var("nowState", m_nowState);
+	emsl.var("nextState", m_nextState);
+	emsl.var("bitCounter", m_bitCounter);
+	emsl.var("address", m_address);
+	emsl.var("data", m_data);
+	emsl.var("rw", m_rw);
+	emsl.var("sda", m_sda);
+	emsl.var("sclOld", m_sclOld);
+	emsl.var("sdaOld", m_sdaOld);
+	emsl.end();
+}

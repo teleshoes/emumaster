@@ -453,102 +453,107 @@ void NesMapper::extensionLatch(u16 address, u8 *plane1, u8 *plane2, u8 *attribut
 	Q_UNUSED(attribute)
 }
 
-bool NesMapper::save(QDataStream &s) {
-	// CPU
-	for (int i = 0; i < 8; i++) {
-		u8 *bank = nesCpuBanks[i];
-		u8 type;
-		u32 offset;
-		if (bank >= nesRom && bank < (nesRom + nesRomSizeInBytes)) {
-			type = 0;
-			offset = bank - nesRom;
-		} else if (bank >= nesRam && bank < (nesRam + sizeof(nesRam))) {
-			type = 1;
-			offset = bank - nesRam;
-		} else if (bank >= nesWram && bank < (nesWram + sizeof(nesWram))) {
-			type = 2;
-			offset = bank - nesWram;
-		} else if (bank >= nesXram && bank < (nesXram + sizeof(nesXram))) {
-			type = 3;
-			offset = bank - nesXram;
-		} else {
-			return false;
-		}
-		s << type;
-		s << offset;
-	}
-	if (s.writeRawData((const char *)nesRam, sizeof(nesRam)) != sizeof(nesRam))
-		return false;
-	if (s.writeRawData((const char *)nesWram, sizeof(nesWram)) != sizeof(nesWram))
-		return false;
-	if (s.writeRawData((const char *)nesXram, sizeof(nesXram)) != sizeof(nesXram))
-		return false;
-	s << m_irqOut;
-	// PPU
-	if (s.writeRawData((const char *)nesVram, sizeof(nesVram)) != sizeof(nesVram))
-		return false;
-	if (s.writeRawData((const char *)nesCram, sizeof(nesCram)) != sizeof(nesCram))
-		return false;
-	for (int i = 0; i < 16; i++) {
-		u8 type = nesPpuBanksType[i];
-		u32 offset = 0;
-		if (nesPpuBanksType[i] == VromBank)
-			offset = nesPpuBanks[i] - nesVrom;
-		else if (nesPpuBanksType[i] == CramBank)
-			offset = nesPpuBanks[i] - nesCram;
-		else if (nesPpuBanksType[i] == VramBank)
-			offset = nesPpuBanks[i] - nesVram;
-		s << type;
-		s << offset;
-	}
-	return true;
+void NesMapper::extSl() {
 }
 
-bool NesMapper::load(QDataStream &s) {
+void NesMapper::sl() {
 	// CPU
-	for (int i = 0; i < 8; i++) {
-		u8 type;
-		u32 offset;
-		s >> type;
-		s >> offset;
-		if (type == 0)
-			nesCpuBanks[i] = nesRom + offset;
-		else if (type == 1)
-			nesCpuBanks[i] = nesRam + offset;
-		else if (type == 2)
-			nesCpuBanks[i] = nesWram + offset;
-		else if (type == 3)
-			nesCpuBanks[i] = nesXram + offset;
-		else
-			return false;
+	emsl.begin("mapper.cpu");
+	emsl.array("ram", nesRam, sizeof(nesRam));
+	emsl.array("wram", nesWram, sizeof(nesWram));
+	emsl.array("xram", nesXram, sizeof(nesXram));
+	emsl.var("irqOut", m_irqOut);
+	if (emsl.save) {
+		for (int i = 0; i < 8; i++) {
+			u8 *bank = nesCpuBanks[i];
+			u8 type;
+			u32 offset;
+			if (bank >= nesRom && bank < (nesRom + nesRomSizeInBytes)) {
+				type = 0;
+				offset = bank - nesRom;
+			} else if (bank >= nesRam && bank < (nesRam + sizeof(nesRam))) {
+				type = 1;
+				offset = bank - nesRam;
+			} else if (bank >= nesWram && bank < (nesWram + sizeof(nesWram))) {
+				type = 2;
+				offset = bank - nesWram;
+			} else if (bank >= nesXram && bank < (nesXram + sizeof(nesXram))) {
+				type = 3;
+				offset = bank - nesXram;
+			} else {
+				emsl.error = "unknown cpu bank type";
+				return;
+			}
+			emsl.var(QString("cpuBankType%1").arg(i), type);
+			emsl.var(QString("cpuBankOffset%1").arg(i), offset);
+		}
+	} else {
+		for (int i = 0; i < 8; i++) {
+			u8 type;
+			u32 offset;
+			emsl.var(QString("cpuBankType%1").arg(i), type);
+			emsl.var(QString("cpuBankOffset%1").arg(i), offset);
+			if (type == 0) {
+				nesCpuBanks[i] = nesRom + offset;
+			} else if (type == 1) {
+				nesCpuBanks[i] = nesRam + offset;
+			} else if (type == 2) {
+				nesCpuBanks[i] = nesWram + offset;
+			} else if (type == 3) {
+				nesCpuBanks[i] = nesXram + offset;
+			} else {
+				emsl.error = "unknown cpu bank type";
+				return;
+			}
+		}
 	}
-	if (s.readRawData((char *)nesRam, sizeof(nesRam)) != sizeof(nesRam))
-		return false;
-	if (s.readRawData((char *)nesWram, sizeof(nesWram)) != sizeof(nesWram))
-		return false;
-	if (s.readRawData((char *)nesXram, sizeof(nesXram)) != sizeof(nesXram))
-		return false;
-	s >> m_irqOut;
-	// PPU
-	if (s.readRawData((char *)nesVram, sizeof(nesVram)) != sizeof(nesVram))
-		return false;
-	if (s.readRawData((char *)nesCram, sizeof(nesCram)) != sizeof(nesCram))
-		return false;
-	for (int i = 0; i < 16; i++) {
-		u8 bType;
-		s >> bType;
-		nesPpuBanksType[i] = static_cast<NesPpuBankType>(bType);
+	emsl.end();
 
-		u32 offset;
-		s >> offset;
-		if (nesPpuBanksType[i] == VromBank)
-			nesPpuBanks[i] = nesVrom + offset;
-		else if (nesPpuBanksType[i] == CramBank)
-			nesPpuBanks[i] = nesCram + offset;
-		else if (nesPpuBanksType[i] == VramBank)
-			nesPpuBanks[i] = nesVram + offset;
-		else
-			return false;
+	// PPU
+	emsl.begin("mapper.ppu");
+	emsl.array("vram", nesVram, sizeof(nesVram));
+	emsl.array("cram", nesCram, sizeof(nesCram));
+	if (emsl.save) {
+		for (int i = 0; i < 16; i++) {
+			u8 type = nesPpuBanksType[i];
+			u32 offset = 0;
+			if (nesPpuBanksType[i] == VromBank) {
+				offset = nesPpuBanks[i] - nesVrom;
+			} else if (nesPpuBanksType[i] == CramBank) {
+				offset = nesPpuBanks[i] - nesCram;
+			} else if (nesPpuBanksType[i] == VramBank) {
+				offset = nesPpuBanks[i] - nesVram;
+			} else {
+				emsl.error = "unknown ppu bank type";
+				return;
+			}
+			emsl.var(QString("ppuBankType%1").arg(i), type);
+			emsl.var(QString("ppuBankOffset%1").arg(i), offset);
+		}
+	} else {
+		for (int i = 0; i < 16; i++) {
+			u8 bType;
+			u32 offset;
+			emsl.var(QString("ppuBankType%1").arg(i), bType);
+			emsl.var(QString("ppuBankOffset%1").arg(i), offset);
+			nesPpuBanksType[i] = static_cast<NesPpuBankType>(bType);
+
+			if (nesPpuBanksType[i] == VromBank) {
+				nesPpuBanks[i] = nesVrom + offset;
+			} else if (nesPpuBanksType[i] == CramBank) {
+				nesPpuBanks[i] = nesCram + offset;
+			} else if (nesPpuBanksType[i] == VramBank) {
+				nesPpuBanks[i] = nesVram + offset;
+			} else {
+				emsl.error = "unknown ppu bank type";
+				return;
+			}
+		}
 	}
-	return true;
+	emsl.end();
+
+	emsl.begin("mapper.ext");
+	extSl();
+	emsl.end();
+	return;
 }

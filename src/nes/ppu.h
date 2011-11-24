@@ -201,8 +201,7 @@ public:
 	void processDummyScanline();
 	bool checkSprite0HitHere() const;
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void sl();
 signals:
 	void renderMethodChanged();
 private:

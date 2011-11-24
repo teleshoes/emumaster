@@ -43,11 +43,6 @@ void Mapper046::updateBanks() {
 	setVrom8KBank(reg[1]*8+reg[3]);
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper046, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
-STATE_SERIALIZE_END_##sl(Mapper046)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper046::extSl() {
+	emsl.array("reg", reg, sizeof(reg));
+}

@@ -861,37 +861,33 @@ static void fillPens() {
 	}
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(NesPpu, 1) \
-	u8 type_ = ppuType; \
-	u8 renderMethod_ = ppuRenderMethod; \
-	STATE_SERIALIZE_VAR_##sl(type_) \
-	STATE_SERIALIZE_VAR_##sl(nesPpuScanlinesPerFrame) \
-	STATE_SERIALIZE_VAR_##sl(renderMethod_) \
-	STATE_SERIALIZE_VAR_##sl(nesVramAddress) \
-	STATE_SERIALIZE_VAR_##sl(refreshLatch) \
-	STATE_SERIALIZE_VAR_##sl(scrollTileXOffset) \
-	STATE_SERIALIZE_VAR_##sl(nesPpuScrollTileYOffset) \
-	STATE_SERIALIZE_VAR_##sl(nesPpuTilePageOffset) \
-	STATE_SERIALIZE_VAR_##sl(spritePageOffset) \
-	STATE_SERIALIZE_VAR_##sl(loopyShift) \
-	STATE_SERIALIZE_VAR_##sl(vBlankOut) \
-	STATE_SERIALIZE_ARRAY_##sl(spriteMem, sizeof(spriteMem)) \
-	ppuType = static_cast<ChipType>(type_); \
-	ppuRenderMethod = static_cast<RenderMethod>(renderMethod_); \
-	\
-	STATE_SERIALIZE_ARRAY_##sl(nesPpuRegs, 4) \
-	STATE_SERIALIZE_VAR_##sl(regToggle) \
-	STATE_SERIALIZE_VAR_##sl(dataLatch) \
-	STATE_SERIALIZE_VAR_##sl(incrementValue) \
-	STATE_SERIALIZE_VAR_##sl(bufferedData) \
-	STATE_SERIALIZE_VAR_##sl(securityValue) \
-	\
-	STATE_SERIALIZE_ARRAY_##sl(paletteMem, sizeof(paletteMem)) \
-	STATE_SERIALIZE_VAR_##sl(paletteMask) \
-	STATE_SERIALIZE_VAR_##sl(paletteEmphasis) \
-	palettePenLutNeedsRebuild = true; \
-STATE_SERIALIZE_END_##sl(NesPpu)
+void NesPpu::sl() {
+	// TODO ppu type to hard configuration
+	u8 renderMethod_ = ppuRenderMethod;
+	emsl.begin("ppu");
+	emsl.var("scanlinesPerFrame", nesPpuScanlinesPerFrame);
+	emsl.var("renderMethod", renderMethod_);
+	emsl.var("vramAddress", nesVramAddress);
+	emsl.var("refreshLatch", refreshLatch);
+	emsl.var("scrollTileXOffset", scrollTileXOffset);
+	emsl.var("scrollTileYOffset", nesPpuScrollTileYOffset);
+	emsl.var("tilePageOffset", nesPpuTilePageOffset);
+	emsl.var("spritePageOffset", spritePageOffset);
+	emsl.var("loopyShift", loopyShift);
+	emsl.var("vBlankOut", vBlankOut);
+	emsl.array("spriteMem", spriteMem, sizeof(spriteMem));
+	ppuRenderMethod = static_cast<RenderMethod>(renderMethod_);
 
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+	emsl.array("regs", nesPpuRegs, sizeof(nesPpuRegs));
+	emsl.var("regToggle", regToggle);
+	emsl.var("dataLatch", dataLatch);
+	emsl.var("incrementValue", incrementValue);
+	emsl.var("bufferedData", bufferedData);
+	emsl.var("securityValue", securityValue);
+
+	emsl.array("paletteMem", paletteMem, sizeof(paletteMem));
+	emsl.var("paletteMask", paletteMask);
+	emsl.var("paletteEmphasis", paletteEmphasis);
+	emsl.end();
+	palettePenLutNeedsRebuild = true;
+}

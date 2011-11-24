@@ -28,8 +28,7 @@ public:
 
 	void horizontalSync();
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 
 	void updateBanks();
 private:

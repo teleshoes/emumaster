@@ -190,17 +190,12 @@ void Mapper064::horizontalSync() {
 	}
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper064, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
-	STATE_SERIALIZE_VAR_##sl(irq_enable) \
-	STATE_SERIALIZE_VAR_##sl(irq_mode) \
-	STATE_SERIALIZE_VAR_##sl(irq_counter) \
-	STATE_SERIALIZE_VAR_##sl(irq_counter2) \
-	STATE_SERIALIZE_VAR_##sl(irq_latch) \
-	STATE_SERIALIZE_VAR_##sl(irq_reset) \
-STATE_SERIALIZE_END_##sl(Mapper064)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper064::extSl() {
+	emsl.array("reg", reg, sizeof(reg));
+	emsl.var("irq_enable", irq_enable);
+	emsl.var("irq_mode", irq_mode);
+	emsl.var("irq_counter", irq_counter);
+	emsl.var("irq_counter2", irq_counter2);
+	emsl.var("irq_latch", irq_latch);
+	emsl.var("irq_reset", irq_reset);
+}

@@ -83,18 +83,13 @@ int NesApuRectangleChannel::m_dutyLUT[32] = {
 	1, 0, 0, 1, 1, 1, 1, 1
 };
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(NesApuRectangleChannel, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesApuChannel) \
-	STATE_SERIALIZE_VAR_##sl(m_sweepShiftAmount) \
-	STATE_SERIALIZE_VAR_##sl(m_sweepDirection) \
-	STATE_SERIALIZE_VAR_##sl(m_sweepUpdateRate) \
-	STATE_SERIALIZE_VAR_##sl(m_sweepEnable) \
-	STATE_SERIALIZE_VAR_##sl(m_sweepCounter) \
-	STATE_SERIALIZE_VAR_##sl(m_sweepCarry) \
-	STATE_SERIALIZE_VAR_##sl(m_updateSweepPeriod) \
-	STATE_SERIALIZE_VAR_##sl(m_rectangleCounter) \
-STATE_SERIALIZE_END_##sl(NesApuRectangleChannel)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void NesApuRectangleChannel::extSl() {
+	emsl.var("sweepShiftAmount", m_sweepShiftAmount);
+	emsl.var("sweepDirection", m_sweepDirection);
+	emsl.var("sweepUpdateRate", m_sweepUpdateRate);
+	emsl.var("sweepEnable", m_sweepEnable);
+	emsl.var("sweepCounter", m_sweepCounter);
+	emsl.var("sweepCarry", m_sweepCarry);
+	emsl.var("updateSweepPeriod", m_updateSweepPeriod);
+	emsl.var("rectangleCounter", m_rectangleCounter);
+}

@@ -234,30 +234,25 @@ void Mapper045::horizontalSync() {
 	}
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper045, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
-	STATE_SERIALIZE_VAR_##sl(prg0) \
-	STATE_SERIALIZE_VAR_##sl(prg1) \
-	STATE_SERIALIZE_VAR_##sl(prg2) \
-	STATE_SERIALIZE_VAR_##sl(prg3) \
-	STATE_SERIALIZE_VAR_##sl(chr0) \
-	STATE_SERIALIZE_VAR_##sl(chr1) \
-	STATE_SERIALIZE_VAR_##sl(chr2) \
-	STATE_SERIALIZE_VAR_##sl(chr3) \
-	STATE_SERIALIZE_VAR_##sl(chr4) \
-	STATE_SERIALIZE_VAR_##sl(chr5) \
-	STATE_SERIALIZE_VAR_##sl(chr6) \
-	STATE_SERIALIZE_VAR_##sl(chr7) \
-	STATE_SERIALIZE_ARRAY_##sl(p, sizeof(p)) \
-	STATE_SERIALIZE_ARRAY_##sl(c, sizeof(c)) \
-	STATE_SERIALIZE_VAR_##sl(irq_enable) \
-	STATE_SERIALIZE_VAR_##sl(irq_counter) \
-	STATE_SERIALIZE_VAR_##sl(irq_latch) \
-	STATE_SERIALIZE_VAR_##sl(irq_latched) \
-	STATE_SERIALIZE_VAR_##sl(irq_reset) \
-STATE_SERIALIZE_END_##sl(Mapper045)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper045::extSl() {
+	emsl.array("reg", reg, sizeof(reg));
+	emsl.var("prg0", prg0);
+	emsl.var("prg1", prg1);
+	emsl.var("prg2", prg2);
+	emsl.var("prg3", prg3);
+	emsl.var("chr0", chr0);
+	emsl.var("chr1", chr1);
+	emsl.var("chr2", chr2);
+	emsl.var("chr3", chr3);
+	emsl.var("chr4", chr4);
+	emsl.var("chr5", chr5);
+	emsl.var("chr6", chr6);
+	emsl.var("chr7", chr7);
+	emsl.array("p", p, sizeof(p));
+	emsl.array("c", c, sizeof(c));
+	emsl.var("irq_enable", irq_enable);
+	emsl.var("irq_counter", irq_counter);
+	emsl.var("irq_latch", irq_latch);
+	emsl.var("irq_latched", irq_latched);
+	emsl.var("irq_reset", irq_reset);
+}

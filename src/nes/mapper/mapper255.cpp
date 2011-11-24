@@ -84,11 +84,6 @@ void Mapper255::writeHigh(u16 address, u8 data) {
 	setVrom1KBank(7, 0x200*bank+chr*8+7);
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper255, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
-STATE_SERIALIZE_END_##sl(Mapper255)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper255::extSl() {
+	emsl.array("reg", reg, sizeof(reg));
+}

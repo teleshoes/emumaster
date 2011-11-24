@@ -30,8 +30,7 @@ public:
 
 	void clock(uint cycles);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 private:
 	u8 patch;
 	u8 exsound_enable;

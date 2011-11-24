@@ -29,8 +29,7 @@ public:
 
 	void setBank();
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void extSl();
 private:
 	u8 reg[11];
 	u8 breg[4];

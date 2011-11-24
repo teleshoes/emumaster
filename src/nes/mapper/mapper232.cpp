@@ -45,11 +45,6 @@ void Mapper232::writeHigh(u16 address, u8 data) {
 	setRom8KBank(7, (reg[0]|0x03)*2+1);
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper232, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_ARRAY_##sl(reg, sizeof(reg)) \
-STATE_SERIALIZE_END_##sl(Mapper232)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper232::extSl() {
+	emsl.array("reg", reg, sizeof(reg));
+}

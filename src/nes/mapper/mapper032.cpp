@@ -77,11 +77,6 @@ void Mapper032::writeHigh(u16 address, u8 data) {
 	}
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(Mapper032, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesMapper) \
-	STATE_SERIALIZE_VAR_##sl(reg) \
-STATE_SERIALIZE_END_##sl(Mapper032)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void Mapper032::extSl() {
+	emsl.var("reg", reg);
+}

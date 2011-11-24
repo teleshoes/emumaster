@@ -117,25 +117,20 @@ int NesApuDMChannel::m_frequencyLUT[16] = {
 	0x350, 0x2A0, 0x240, 0x1B0
 };
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(NesApuDMChannel, 1) \
-	STATE_SERIALIZE_PARENT_##sl(NesApuChannel) \
-	int playMode_ = m_playMode; \
-	STATE_SERIALIZE_VAR_##sl(irqGenerated) \
-	STATE_SERIALIZE_VAR_##sl(m_hasSample) \
-	STATE_SERIALIZE_VAR_##sl(playMode_) \
-	STATE_SERIALIZE_VAR_##sl(m_dmaFrequency) \
-	STATE_SERIALIZE_VAR_##sl(m_dmaCounter) \
-	STATE_SERIALIZE_VAR_##sl(m_deltaCounter) \
-	STATE_SERIALIZE_VAR_##sl(m_playLength) \
-	STATE_SERIALIZE_VAR_##sl(m_shiftCounter) \
-	STATE_SERIALIZE_VAR_##sl(m_status) \
-	STATE_SERIALIZE_VAR_##sl(m_dacLsb) \
-	STATE_SERIALIZE_VAR_##sl(m_shiftReg) \
-	STATE_SERIALIZE_VAR_##sl(m_playStartAddress) \
-	STATE_SERIALIZE_VAR_##sl(m_playAddress) \
-	m_playMode = static_cast<Mode>(playMode_); \
-STATE_SERIALIZE_END_##sl(NesApuDMChannel)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void NesApuDMChannel::extSl() {
+	int playMode_ = m_playMode;
+	emsl.var("irqGenerated", irqGenerated);
+	emsl.var("hasSample", m_hasSample);
+	emsl.var("playMode", playMode_);
+	emsl.var("dmaFrequency", m_dmaFrequency);
+	emsl.var("dmaCounter", m_dmaCounter);
+	emsl.var("deltaCounter", m_deltaCounter);
+	emsl.var("playLength", m_playLength);
+	emsl.var("shiftCounter", m_shiftCounter);
+	emsl.var("status", m_status);
+	emsl.var("dacLsb", m_dacLsb);
+	emsl.var("shiftReg", m_shiftReg);
+	emsl.var("playStartAddress", m_playStartAddress);
+	emsl.var("playAddress", m_playAddress);
+	m_playMode = static_cast<Mode>(playMode_);
+}
