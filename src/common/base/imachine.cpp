@@ -16,6 +16,8 @@
 #include "imachine.h"
 #include <QSettings>
 
+EMSL emsl;
+
 IMachine::IMachine(const QString &name, QObject *parent) :
 	QObject(parent),
 	m_name(name),
@@ -47,3 +49,44 @@ void IMachine::setAudioEnabled(bool on)
 { Q_UNUSED(on) }
 void IMachine::setAudioSampleRate(int sampleRate)
 { Q_UNUSED(sampleRate) }
+
+void EMSL::varNotExist(const QString &name)
+{ error = QObject::tr("\"%1\" not exist").arg(name); }
+
+void EMSL::ioError()
+{ error = QObject::tr("IO error"); }
+
+bool IMachine::save(QDataStream *stream) {
+	QByteArray ba;
+	ba.reserve(1024 * 1024 * 2);
+	QDataStream baStream(&ba, QIODevice::WriteOnly);
+
+	emsl.save = true;
+	emsl.stream = &baStream;
+	emsl.currAddr.clear();
+	emsl.currGroup.clear();
+	emsl.allAddr.clear();
+	emsl.error.clear();
+	sl();
+	bool succeded = emsl.error.isEmpty();
+	if (succeded) {
+		*stream << emsl.allAddr;
+		*stream << ba;
+	}
+	return succeded;
+}
+
+bool IMachine::load(QDataStream *stream) {
+	QByteArray ba;
+	*stream >> emsl.allAddr;
+	*stream >> ba;
+	QDataStream baStream(&ba, QIODevice::ReadOnly);
+
+	emsl.save = false;
+	emsl.stream = &baStream;
+	emsl.currGroup.clear();
+	emsl.currAddr.clear();
+	emsl.error.clear();
+	sl();
+	return emsl.error.isEmpty();
+}

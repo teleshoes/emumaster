@@ -18,6 +18,7 @@
 
 #include "base_global.h"
 #include <QObject>
+#include <QHash>
 #include <QRectF>
 class QImage;
 class QSettings;
@@ -72,14 +73,15 @@ public:
 	virtual int fillAudioBuffer(char *stream, int streamSize) = 0;
 	virtual void setPadKeys(int pad, int keys) = 0;
 
-	virtual bool save(QDataStream &s) = 0;
-	virtual bool load(QDataStream &s) = 0;
+	bool save(QDataStream *stream);
+	bool load(QDataStream *stream);
 
 	virtual void saveSettings(QSettings &s);
 	virtual void loadSettings(QSettings &s);
 signals:
 	void videoSrcRectChanged();
 protected:
+	virtual void sl() = 0;
 	void setFrameRate(qreal rate);
 	void setVideoSrcRect(const QRectF &rect);
 
@@ -100,46 +102,83 @@ inline qreal IMachine::frameRate() const
 inline QRectF IMachine::videoSrcRect() const
 { return m_videoSrcRect; }
 
-#define STATE_SERIALIZE_BEGIN_SAVE(t_,version_) \
-	bool t_::save(QDataStream &s) { \
-		int version__ = version_; \
-		s << QString(#t_); \
-		s << version__;
+// EmuMaster Save/Load functionality
 
-#define STATE_SERIALIZE_BEGIN_LOAD(t_,version_) \
-	bool t_::load(QDataStream &s) { \
-		QString ts_; \
-		s >> ts_; \
-		if (ts_ != #t_) \
-			return false; \
-		int version__; \
-		s >> version__; \
-		if (version__ > version_) \
-			return false;
+class EMSL {
+public:
+	void begin(const QString &groupName, int version);
+	void end();
 
-#define STATE_SERIALIZE_VERSION version__
+	template <typename T>
+	void var(const QString &name, T &t);
 
-#define STATE_SERIALIZE_END_SAVE(t) return true; }
-#define STATE_SERIALIZE_END_LOAD(t) return true; }
+	void array(const QString &name, void *data, int size);
 
-#define STATE_SERIALIZE_PARENT_SAVE(t) if (!t::save(s)) return false;
-#define STATE_SERIALIZE_PARENT_LOAD(t) if (!t::load(s)) return false;
+	QHash<QString, QHash<QString, int> > allAddr;
 
-#define STATE_SERIALIZE_VAR_SAVE(v) s << (v);
-#define STATE_SERIALIZE_VAR_LOAD(v) s >> (v);
-#define STATE_SERIALIZE_SUBCALL_SAVE(v) if (!(v).save(s)) return false;
-#define STATE_SERIALIZE_SUBCALL_LOAD(v) if (!(v).load(s)) return false;
-#define STATE_SERIALIZE_SUBCALL_PTR_SAVE(v) if (!(v)->save(s)) return false;
-#define STATE_SERIALIZE_SUBCALL_PTR_LOAD(v) if (!(v)->load(s)) return false;
+	QString currGroup;
+	QHash<QString, int> currAddr;
+	QDataStream *stream;
+	bool save;
+	int groupVersion;
 
-#define STATE_SERIALIZE_TEST_TYPE_SAVE true
-#define STATE_SERIALIZE_TEST_TYPE_LOAD false
+	QString error;
+private:
+	void varNotExist(const QString &name);
+	void ioError();
+};
 
-#define STATE_SERIALIZE_ARRAY_SAVE(array,size) \
-	if (s.writeRawData(reinterpret_cast<const char *>(array), (size)) != (size)) \
-		return false;
-#define STATE_SERIALIZE_ARRAY_LOAD(array,size) \
-	if (s.readRawData(reinterpret_cast<char *>(array), (size)) != (size)) \
-		return false;
+extern EMSL emsl;
+
+// TODO save/load begin/end checker
+
+inline void EMSL::begin(const QString &groupName, int version = 1) {
+	currGroup = groupName;
+	currAddr = allAddr.value(groupName);
+	var("v", version);
+	groupVersion = version;
+}
+
+inline void EMSL::end() {
+	if (save)
+		allAddr[currGroup] = currAddr;
+}
+
+template <typename T>
+inline void EMSL::var(const QString &name, T &t) {
+	if (save) {
+		currAddr.insert(name, stream->device()->pos());
+		*stream << t;
+	} else {
+		int addr = currAddr.value(name, -1);
+		if (addr < 0) {
+			varNotExist(name);
+			return;
+		}
+		stream->device()->seek(addr);
+		*stream >> t;
+	}
+}
+
+inline void EMSL::array(const QString &name, void *data, int size) {
+	if (save) {
+		currAddr.insert(name, stream->device()->pos());
+		if (stream->writeRawData((const char *)data, size) != size) {
+			ioError();
+			return;
+		}
+	} else {
+		int addr = currAddr.value(name, -1);
+		if (addr < 0) {
+			varNotExist(name);
+			return;
+		}
+		stream->device()->seek(addr);
+		if (stream->readRawData((char *)data, size) != size) {
+			ioError();
+			return;
+		}
+	}
+}
 
 #endif // IMACHINE_H

@@ -96,11 +96,9 @@ typedef struct
 
 #if defined(__cplusplus)
 
-class GbaSpu : public QObject {
-	Q_OBJECT
+class GbaSpu {
 public:
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void sl();
 	int fillBuffer(char *stream, int streamSize);
 	void setEnabled(bool on);
 };

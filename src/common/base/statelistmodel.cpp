@@ -92,7 +92,7 @@ bool StateListModel::saveState(int i) {
 	QDataStream s(&data, QIODevice::WriteOnly);
 	s.setByteOrder(QDataStream::LittleEndian);
 	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
-	if (!m_machine->save(s))
+	if (!m_machine->save(&s))
 		return false;
 
 	QString name = QString::number(i);
@@ -150,7 +150,7 @@ bool StateListModel::loadState(int i) {
 	QDataStream s(&data, QIODevice::ReadOnly);
 	s.setByteOrder(QDataStream::LittleEndian);
 	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
-	bool ok = m_machine->load(s);
+	bool ok = m_machine->load(&s);
 	if (!ok)
 		m_machine->reset();
 	return ok;

@@ -66,7 +66,7 @@ typedef enum
   IRQ_DMA2 = 0x0400,
   IRQ_DMA3 = 0x0800,
   IRQ_KEYPAD = 0x1000,
-  IRQ_GAMEPAK = 0x2000,
+  IRQ_GAMEPAK = 0x2000
 } irq_type;
 
 typedef enum
@@ -111,11 +111,9 @@ typedef enum
 
 #include <QObject>
 
-class GbaCpu : public QObject {
-	Q_OBJECT
+class GbaCpu {
 public:
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void sl();
 };
 
 extern GbaCpu gbaCpu;
@@ -123,7 +121,6 @@ extern GbaCpu gbaCpu;
 extern "C" {
 #endif
 
-extern debug_state current_debug_state;
 extern u32 instruction_count;
 extern u32 last_instruction;
 
@@ -191,23 +188,6 @@ extern u32 cpu_modes[32];
 extern const u32 psr_masks[16];
 
 extern u32 breakpoint_value;
-
-extern u32 memory_region_access_read_u8[16];
-extern u32 memory_region_access_read_s8[16];
-extern u32 memory_region_access_read_u16[16];
-extern u32 memory_region_access_read_s16[16];
-extern u32 memory_region_access_read_u32[16];
-extern u32 memory_region_access_write_u8[16];
-extern u32 memory_region_access_write_u16[16];
-extern u32 memory_region_access_write_u32[16];
-extern u32 memory_reads_u8;
-extern u32 memory_reads_s8;
-extern u32 memory_reads_u16;
-extern u32 memory_reads_s16;
-extern u32 memory_reads_u32;
-extern u32 memory_writes_u8;
-extern u32 memory_writes_u16;
-extern u32 memory_writes_u32;
 
 void init_cpu();
 void set_cpu_mode(u32 new_mode);

@@ -161,11 +161,9 @@ typedef enum
 #include <QObject>
 #include <QPair>
 
-class GbaMem : public QObject {
-	Q_OBJECT
+class GbaMem {
 public:
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void sl();
 	bool loadGamePack(const QString &fileName);
 private:
 	void loadConfig();

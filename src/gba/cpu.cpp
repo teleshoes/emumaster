@@ -26,23 +26,6 @@
 #include "mem.h"
 #include "machine.h"
 
-u32 memory_region_access_read_u8[16];
-u32 memory_region_access_read_s8[16];
-u32 memory_region_access_read_u16[16];
-u32 memory_region_access_read_s16[16];
-u32 memory_region_access_read_u32[16];
-u32 memory_region_access_write_u8[16];
-u32 memory_region_access_write_u16[16];
-u32 memory_region_access_write_u32[16];
-u32 memory_reads_u8;
-u32 memory_reads_s8;
-u32 memory_reads_u16;
-u32 memory_reads_s16;
-u32 memory_reads_u32;
-u32 memory_writes_u8;
-u32 memory_writes_u16;
-u32 memory_writes_u32;
-
 const u8 bit_count[256] =
 {
   0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3,
@@ -4064,14 +4047,6 @@ u32 last_instruction = 0;
 
 u32 in_interrupt = 0;
 
-void debug_on() {
-	current_debug_state = STEP;
-}
-
-void debug_off(debug_state new_debug_state) {
-	current_debug_state = new_debug_state;
-}
-
 void function_cc step_debug(u32 pc, u32 cycles) {
   u32 thumb = 0;
 
@@ -4322,12 +4297,10 @@ void move_reg(u32 *new_reg) {
 
 GbaCpu gbaCpu;
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(GbaCpu, 1) \
-	STATE_SERIALIZE_ARRAY_##sl(reg, 0x100) \
-	STATE_SERIALIZE_ARRAY_##sl(spsr, sizeof(spsr)) \
-	STATE_SERIALIZE_ARRAY_##sl(reg_mode, sizeof(reg_mode)) \
-STATE_SERIALIZE_END_##sl(GbaCpu)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void GbaCpu::sl() {
+	emsl.begin("cpu");
+	emsl.array("regs", reg, 0x100);
+	emsl.array("spsr", spsr, sizeof(spsr));
+	emsl.array("reg_mode", reg_mode, sizeof(reg_mode));
+	emsl.end();
+}

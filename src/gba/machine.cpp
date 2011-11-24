@@ -13,7 +13,6 @@
 timer_type timer[4];
 
 u32 breakpoint_value = 0x7c5000;
-debug_state current_debug_state = RUN;
 
 u32 global_cycles_per_instruction = 1;
 
@@ -225,6 +224,7 @@ void GbaThread::run() {
 u32 update_gba() {
 	int irq_raised = IRQ_NONE;
 	do {
+		bool do_sync = false;
 		cpu_ticks += execute_cycles;
 		reg[CHANGED_PC_STATUS] = 0;
 		if (gbc_sound_update) {
@@ -286,7 +286,7 @@ u32 update_gba() {
 					update_gbc_sound(cpu_ticks);
 					process_cheats();
 					vcount = 0;
-					gbaMachine.sync();
+					do_sync = true;
 				}
 				if (vcount == (dispstat >> 8)) {
 					// vcount trigger
@@ -308,24 +308,11 @@ u32 update_gba() {
 		check_timer(1);
 		check_timer(2);
 		check_timer(3);
+		if (do_sync)
+			gbaMachine.sync();
 	} while (reg[CPU_HALT_STATE] != CPU_ACTIVE);
 	return execute_cycles;
 }
-
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(GbaMachine, 1) \
-	STATE_SERIALIZE_VAR_##sl(cpu_ticks) \
-	STATE_SERIALIZE_VAR_##sl(execute_cycles) \
-	STATE_SERIALIZE_VAR_##sl(video_count) \
-	STATE_SERIALIZE_ARRAY_##sl(timer, sizeof(timer)) \
-	STATE_SERIALIZE_SUBCALL_##sl(gbaCpu) \
-	STATE_SERIALIZE_SUBCALL_##sl(gbaSpu) \
-	STATE_SERIALIZE_SUBCALL_##sl(gbaGpu) \
-	STATE_SERIALIZE_SUBCALL_##sl(gbaMem) \
-STATE_SERIALIZE_END_##sl(GbaMachine)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
 
 int main(int argc, char *argv[]) {
 	if (argc < 2)
@@ -333,4 +320,18 @@ int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
 	MachineView view(&gbaMachine, argv[1]);
 	return app.exec();
+}
+
+void GbaMachine::sl() {
+	emsl.begin("machine");
+	emsl.var("cpu_ticks", cpu_ticks);
+	emsl.var("execute_cycles", execute_cycles);
+	emsl.var("video_count", video_count);
+	emsl.array("timer", timer, sizeof(timer));
+	emsl.end();
+
+	gbaCpu.sl();
+	gbaSpu.sl();
+	gbaGpu.sl();
+	gbaMem.sl();
 }

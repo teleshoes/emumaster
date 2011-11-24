@@ -2838,51 +2838,47 @@ void GbaMem::invalidate() {
 	for(int i = 0; i < 4; i++)
 		gbc_sound_channel[i].sample_data = square_pattern_duty[2];
 
-	current_debug_state = STEP;
 	instruction_count = 0;
 
 	reg[CHANGED_PC_STATUS] = 1;
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(GbaMem, 1) \
-	int flash_bank_ptr_offset = flash_bank_ptr - gamepak_backup; \
-	STATE_SERIALIZE_VAR_##sl(backup_type) \
-	STATE_SERIALIZE_VAR_##sl(sram_size) \
-	STATE_SERIALIZE_VAR_##sl(flash_mode) \
-	STATE_SERIALIZE_VAR_##sl(flash_command_position) \
-	STATE_SERIALIZE_VAR_##sl(flash_bank_ptr_offset) \
-	STATE_SERIALIZE_VAR_##sl(flash_device_id) \
-	STATE_SERIALIZE_VAR_##sl(flash_manufacturer_id) \
-	STATE_SERIALIZE_VAR_##sl(flash_size) \
-	STATE_SERIALIZE_VAR_##sl(eeprom_size) \
-	STATE_SERIALIZE_VAR_##sl(eeprom_mode) \
-	STATE_SERIALIZE_VAR_##sl(eeprom_address_length) \
-	STATE_SERIALIZE_VAR_##sl(eeprom_address) \
-	STATE_SERIALIZE_VAR_##sl(eeprom_counter) \
-	STATE_SERIALIZE_VAR_##sl(rtc_state) \
-	STATE_SERIALIZE_VAR_##sl(rtc_write_mode) \
-	STATE_SERIALIZE_ARRAY_##sl(rtc_registers, sizeof(rtc_registers)) \
-	STATE_SERIALIZE_VAR_##sl(rtc_command) \
-	STATE_SERIALIZE_ARRAY_##sl(rtc_data, sizeof(rtc_data)) \
-	STATE_SERIALIZE_VAR_##sl(rtc_status) \
-	STATE_SERIALIZE_VAR_##sl(rtc_data_bytes) \
-	STATE_SERIALIZE_VAR_##sl(rtc_bit_count) \
-	STATE_SERIALIZE_ARRAY_##sl(eeprom_buffer, sizeof(eeprom_buffer)) \
-	STATE_SERIALIZE_ARRAY_##sl(dma, sizeof(dma)) \
-	STATE_SERIALIZE_ARRAY_##sl(iwram + 0x8000, 0x8000) \
-	for (int i = 0; i < 8; i++) { \
-		STATE_SERIALIZE_ARRAY_##sl(ewram + (i * 0x10000) + 0x8000, 0x8000) \
-	} \
-	STATE_SERIALIZE_ARRAY_##sl(vram, 0x18000) \
-	STATE_SERIALIZE_ARRAY_##sl(oam_ram, 0x400) \
-	STATE_SERIALIZE_ARRAY_##sl(palette_ram, 0x400) \
-	STATE_SERIALIZE_ARRAY_##sl(io_registers, 0x8000) \
-	flash_bank_ptr = gamepak_backup + flash_bank_ptr_offset; \
-	if (!STATE_SERIALIZE_TEST_TYPE_##sl) {\
-		invalidate(); \
-	} \
-STATE_SERIALIZE_END_##sl(GbaMem)
+void GbaMem::sl() {
+	emsl.begin("mem");
+	int flash_bank_ptr_offset = flash_bank_ptr - gamepak_backup;
+	emsl.var("backup_type", backup_type);
+	emsl.var("sram_size", sram_size);
+	emsl.var("flash_mode", flash_mode);
+	emsl.var("flash_command_position", flash_command_position);
+	emsl.var("flash_bank_ptr_offset", flash_bank_ptr_offset);
+	emsl.var("flash_device_id", flash_device_id);
+	emsl.var("flash_manufacturer_id", flash_manufacturer_id);
+	emsl.var("flash_size", flash_size);
+	emsl.var("eeprom_size", eeprom_size);
+	emsl.var("eeprom_mode", eeprom_mode);
+	emsl.var("eeprom_address_length", eeprom_address_length);
+	emsl.var("eeprom_address", eeprom_address);
+	emsl.var("eeprom_counter", eeprom_counter);
+	emsl.var("rtc_state", rtc_state);
+	emsl.var("rtc_write_mode", rtc_write_mode);
+	emsl.array("rtc_regs", rtc_registers, sizeof(rtc_registers));
+	emsl.var("rtc_command", rtc_command);
+	emsl.array("rtc_data", rtc_data, sizeof(rtc_data));
+	emsl.var("rtc_status", rtc_status);
+	emsl.var("rtc_data_bytes", rtc_data_bytes);
+	emsl.var("rtc_bit_count", rtc_bit_count);
+	emsl.array("eeprom_buffer", eeprom_buffer, sizeof(eeprom_buffer));
+	emsl.array("dma", dma, sizeof(dma));
+	emsl.array("iwram", iwram + 0x8000, 0x8000);
+	for (int i = 0; i < 8; i++)
+		emsl.array("ewram", ewram + (i * 0x10000) + 0x8000, 0x8000);
+	emsl.array("vram", vram, sizeof(vram));
+	emsl.array("oam_ram", oam_ram, sizeof(oam_ram));
+	emsl.array("palette_ram", palette_ram, sizeof(palette_ram));
+	emsl.array("io_registers", io_registers, sizeof(io_registers));
+	flash_bank_ptr = gamepak_backup + flash_bank_ptr_offset;
+	emsl.end();
 
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+	if (!emsl.save)
+		invalidate();
+}

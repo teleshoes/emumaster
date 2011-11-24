@@ -69,7 +69,7 @@ void PathManager::setMachine(const QString &name) {
 
 QString PathManager::stateDirPath(const QString &machine,
 								  const QString &title) const {
-	return QString("%1/state/%2_%3.png")
+	return QString("%1/state/%2/%3")
 			.arg(userDataDirPath())
 			.arg(machine)
 			.arg(title);

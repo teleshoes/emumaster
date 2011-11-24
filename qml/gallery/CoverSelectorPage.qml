@@ -38,7 +38,7 @@ Page {
 		id: helpLabel
 		anchors.centerIn: parent
 		width: parent.width
-		text: qsTr("Copy your covers (.jpg and .png files) to\n\"emumaster/covers\"")
+		text: qsTr("Copy your covers (.jpg files) to\n\"emumaster/covers\"")
 		color: "white"
 		font.bold: true
 		horizontalAlignment: Text.AlignHCenter
@@ -48,7 +48,7 @@ Page {
 	FolderListModel {
 		id: folderModel
 		folder: "file:/home/user/MyDocs/emumaster/covers"
-		nameFilters: ["*.jpg","*.png"]
+		nameFilters: ["*.jpg"]
 		showDirs: false
 	}
 	ListView {

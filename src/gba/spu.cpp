@@ -530,21 +530,19 @@ int GbaSpu::fillBuffer(char *stream, int length) {
 	return sample_length * 2;
 }
 
-#define STATE_SERIALIZE_BUILDER(sl) \
-STATE_SERIALIZE_BEGIN_##sl(GbaSpu, 1) \
-	STATE_SERIALIZE_VAR_##sl(sound_on) \
-	STATE_SERIALIZE_VAR_##sl(sound_buffer_base) \
-	STATE_SERIALIZE_VAR_##sl(sound_last_cpu_ticks) \
-	STATE_SERIALIZE_VAR_##sl(gbc_sound_buffer_index) \
-	STATE_SERIALIZE_VAR_##sl(gbc_sound_last_cpu_ticks) \
-	STATE_SERIALIZE_VAR_##sl(gbc_sound_partial_ticks) \
-	STATE_SERIALIZE_VAR_##sl(gbc_sound_master_volume_left) \
-	STATE_SERIALIZE_VAR_##sl(gbc_sound_master_volume_right) \
-	STATE_SERIALIZE_VAR_##sl(gbc_sound_master_volume) \
-	STATE_SERIALIZE_ARRAY_##sl(wave_samples, sizeof(wave_samples)) \
-	STATE_SERIALIZE_ARRAY_##sl(direct_sound_channel, sizeof(direct_sound_channel)) \
-	STATE_SERIALIZE_ARRAY_##sl(gbc_sound_channel, sizeof(gbc_sound_channel)) \
-STATE_SERIALIZE_END_##sl(GbaSpu)
-
-STATE_SERIALIZE_BUILDER(SAVE)
-STATE_SERIALIZE_BUILDER(LOAD)
+void GbaSpu::sl() {
+	emsl.begin("spu");
+	emsl.var("sound_on", sound_on);
+	emsl.var("sound_buffer_base", sound_buffer_base);
+	emsl.var("sound_last_cpu_ticks", sound_last_cpu_ticks);
+	emsl.var("gbc_sound_buffer_index", gbc_sound_buffer_index);
+	emsl.var("gbc_sound_last_cpu_ticks", gbc_sound_last_cpu_ticks);
+	emsl.var("gbc_sound_partial_ticks", gbc_sound_partial_ticks);
+	emsl.var("gbc_sound_master_volume_left", gbc_sound_master_volume_left);
+	emsl.var("gbc_sound_master_volume_right", gbc_sound_master_volume_right);
+	emsl.var("gbc_sound_master_volume", gbc_sound_master_volume);
+	emsl.array("wave_samples", wave_samples, sizeof(wave_samples));
+	emsl.array("direct_sound_channel", direct_sound_channel, sizeof(direct_sound_channel));
+	emsl.array("gbc_sound_channel", gbc_sound_channel, sizeof(gbc_sound_channel));
+	emsl.end();
+}

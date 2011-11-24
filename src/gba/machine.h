@@ -27,14 +27,12 @@ public:
 	int fillAudioBuffer(char *stream, int streamSize);
 	void setPadKeys(int pad, int keys);
 
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
-
 	void sync();
 
 	QSemaphore m_prodSem;
 	QSemaphore m_consSem;
 protected:
+	void sl();
 	void setAudioEnabled(bool on);
 private:
 	QString loadBios();

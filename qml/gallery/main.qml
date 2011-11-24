@@ -69,6 +69,7 @@ PageStackWindow {
 						"before you make a review in the Store since I cannot " +
 						"answer you there. You can find contact info at the about " +
 						"page:\n MainWindow->Menu->About EmuMaster...\n Enjoy :)\n " +
+						"Have you got some idea? Share it with me.\n" +
 						"Consider a donation if you find this software useful.") +
 						(diskGallery.runCount < 10
 							?	qsTr("\n\nThis message will be shown %1 more times")

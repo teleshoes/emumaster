@@ -23,11 +23,9 @@
 #include "common.h"
 
 #if defined(__cplusplus)
-class GbaGpu : public QObject {
-	Q_OBJECT
+class GbaGpu {
 public:
-	bool save(QDataStream &s);
-	bool load(QDataStream &s);
+	void sl();
 };
 
 extern GbaGpu gbaGpu;
