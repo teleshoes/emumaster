@@ -58,7 +58,6 @@ Page {
 		y: 10
 		anchors.horizontalCenter: parent.horizontalCenter
 		text: qsTr("Select Icon Area")
-		color: "white"
 		font.bold: true
 	}
 

@@ -13,8 +13,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef MACHINESTATELISTMODEL_H
-#define MACHINESTATELISTMODEL_H
+#ifndef STATELISTMODEL_H
+#define STATELISTMODEL_H
 
 class IMachine;
 #include <QAbstractListModel>
@@ -58,4 +58,4 @@ private:
 	int m_screenShotUpdateCounter;
 };
 
-#endif // MACHINESTATELISTMODEL_H
+#endif // STATELISTMODEL_H

@@ -88,6 +88,9 @@ bool IMachine::load(QDataStream *stream) {
 	emsl.currAddr.clear();
 	emsl.error.clear();
 	sl();
+	if (!emsl.error.isEmpty()) {
+		qDebug("bad load %s", qPrintable(emsl.error));
+	}
 	return emsl.error.isEmpty();
 }
 

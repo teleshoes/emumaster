@@ -35,7 +35,7 @@ DiskImageProvider::DiskImageProvider() :
 	painter.setFont(font);
 	QTextOption option;
 	option.setAlignment(Qt::AlignCenter);
-	painter.drawText(m_noScreenShot.rect(), "NO SCREENSHOT", option);
+	painter.drawText(m_noScreenShot.rect(), QObject::tr("NO SCREENSHOT"), option);
 	painter.end();
 }
 

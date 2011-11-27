@@ -15,6 +15,7 @@
 
 #include "hostinput.h"
 #include "imachine.h"
+#include <sixaxis.h>
 #include <QKeyEvent>
 #include <QTouchEvent>
 
@@ -22,9 +23,14 @@ HostInput::HostInput(IMachine *machine) :
 	m_machine(machine) {
 	m_keysPhone = 0;
 	m_accelerometer = 0;
+
+	SixAxisDaemon *daemon = SixAxisDaemon::instance();
+	QObject::connect(daemon, SIGNAL(newPad()), SLOT(sixAxisDetected()));
+	daemon->start();
 }
 
 HostInput::~HostInput() {
+	SixAxisDaemon::instance()->stop();
 }
 
 bool HostInput::eventFilter(QObject *o, QEvent *e) {
@@ -217,7 +223,7 @@ void HostInput::accelerometerUpdated() {
 		m_machine->setPadKeys(0, m_keysPhone);
 }
 
-/*static const int sixAxisMapping[] = {
+static const int sixAxisMapping[] = {
 	IMachine::Select_PadKey,
 	0,
 	0,
@@ -236,11 +242,9 @@ void HostInput::accelerometerUpdated() {
 	IMachine::Y_PadKey
 };
 
-void HostInput::sixAxisChanged(int n, SixAxis *sixAxis) {
-	if (!m_running)
-		return;
-	int b = sixAxis->buttons();
-	if (b & SixAxis::PS) {
+void HostInput::sixAxisUpdated() {
+	int b = m_sixAxis->buttons();
+	if (b & (1<<SixAxis::PS)) {
 		emit pauseClicked();
 		return;
 	}
@@ -249,5 +253,13 @@ void HostInput::sixAxisChanged(int n, SixAxis *sixAxis) {
 		if (b & (1 << i))
 			keys |= sixAxisMapping[i];
 	}
-	m_machine->setPadKeys(n, keys);
-}*/
+	m_machine->setPadKeys(0, keys);
+}
+
+void HostInput::sixAxisDetected() {
+	SixAxisDaemon *daemon = SixAxisDaemon::instance();
+	if (daemon->hasNewPad()) {
+		m_sixAxis = daemon->nextNewPad();
+		QObject::connect(m_sixAxis, SIGNAL(updated()), SLOT(sixAxisUpdated()));
+	}
+}

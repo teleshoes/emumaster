@@ -4298,6 +4298,8 @@ void move_reg(u32 *new_reg) {
 GbaCpu gbaCpu;
 
 void GbaCpu::sl() {
+	if (!emsl.save)
+		init_cpu();
 	emsl.begin("cpu");
 	emsl.array("regs", reg, 0x100);
 	emsl.array("spsr", spsr, sizeof(spsr));

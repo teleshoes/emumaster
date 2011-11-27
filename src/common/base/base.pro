@@ -1,6 +1,6 @@
 include(../common.pri)
 QT += declarative opengl network
-LIBS += -lpulse
+LIBS += -L../../../lib -lpulse -lsixaxisclient
 CONFIG += mobility
 MOBILITY += sensors
 
@@ -17,7 +17,7 @@ HEADERS += \
 	base_global.h \
     pathmanager.h \
     statelistmodel.h \
-    stateimageprovider.h
+	stateimageprovider.h
 
 SOURCES += \
     machineview.cpp \
@@ -29,7 +29,7 @@ SOURCES += \
 	settingsview.cpp \
     pathmanager.cpp \
     statelistmodel.cpp \
-    stateimageprovider.cpp
+	stateimageprovider.cpp
 
 unix {
 	qml.path = /opt/emumaster/qml/base
@@ -59,6 +59,8 @@ unix {
 	qmlimg.files = ../../../qml/img/*
 	INSTALLS += qml qmlimg pad
 }
+
+
 
 
 

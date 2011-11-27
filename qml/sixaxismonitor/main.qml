@@ -17,48 +17,18 @@
 import QtQuick 1.1
 import com.nokia.meego 1.0
 
-Item {
-	id: imageListViewDelegate
-	width: 480
-	height: 280
+PageStackWindow {
+	id: appWindow
+	initialPage: mainPage
 
-	property alias imgSource: screenShot.source
-	property alias text: itemLabel.text
-	signal clicked
-	signal pressAndHold
+	style: PageStackWindowStyle {
+		id: customStyle;
+		background: "image://theme/meegotouch-video-background"
+		backgroundFillMode: Image.Stretch
+	}
+	MainPage { id: mainPage }
 
-	Image {
-		id: screenShot
-		x: 10
-		width: parent.width-20
-		height: parent.height-30
+	Component.onCompleted: {
+		theme.inverted = true
 	}
-	Label {
-		id: itemLabel
-		x: 10
-		anchors.top: screenShot.bottom
-		anchors.topMargin: 8
-		font.bold: true
-	}
-
-	MouseArea {
-		id: mouseArea
-		anchors.fill: parent
-		onClicked: imageListViewDelegate.clicked()
-		onPressAndHold: imageListViewDelegate.pressAndHold()
-	}
-	Behavior on scale {
-		NumberAnimation { duration: 100 }
-	}
-
-	states: [
-		State {
-			name: "pressed"
-			when: mouseArea.pressed
-			PropertyChanges {
-				target: imageListViewDelegate
-				scale: 0.85
-			}
-		}
-	]
 }

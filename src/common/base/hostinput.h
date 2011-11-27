@@ -17,6 +17,8 @@
 #define HOSTINPUT_H
 
 class IMachine;
+class JoystickDevice;
+class SixAxis;
 #include <QAccelerometer>
 #include <QObject>
 
@@ -37,6 +39,8 @@ protected:
 	bool eventFilter(QObject *o, QEvent *e);
 private slots:
 	void accelerometerUpdated();
+	void sixAxisUpdated();
+	void sixAxisDetected();
 private:
 	void processKey(Qt::Key key, bool state);
 	void processTouch(QEvent *e);
@@ -45,6 +49,8 @@ private:
 	IMachine *m_machine;
 	int m_keysPhone;
 	QAccelerometer *m_accelerometer;
+	SixAxis *m_sixAxis;
+	JoystickDevice *m_joy;
 };
 
 #endif // HOSTINPUT_H

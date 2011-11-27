@@ -13,8 +13,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef MACHINEIMAGEPROVIDER_H
-#define MACHINEIMAGEPROVIDER_H
+#ifndef STATEIMAGEPROVIDER_H
+#define STATEIMAGEPROVIDER_H
 
 class StateListModel;
 #include <QDeclarativeImageProvider>
@@ -29,4 +29,4 @@ private:
 	StateListModel *m_stateListModel;
 };
 
-#endif // MACHINEIMAGEPROVIDER_H
+#endif // STATEIMAGEPROVIDER_H

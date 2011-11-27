@@ -37,7 +37,6 @@ Page {
 			text: qsTr("EmuMaster 0.1.0\nAuthor: Elemental\nWant new features?\nFound bug?\nGo to homepage")
 			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignHCenter
-			color: "white"
 		}
 		Image {
 			source: "image://theme/icon-l-browser"
@@ -53,7 +52,6 @@ Page {
 			text: qsTr("If you find this software useful please donate")
 			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignHCenter
-			color: "white"
 		}
 		Image {
 			source: "../img/btn_donateCC_LG.png"
@@ -66,4 +64,5 @@ Page {
 			}
 		}
 	}
+	// TODO wiki here
 }

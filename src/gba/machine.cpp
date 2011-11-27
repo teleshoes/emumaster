@@ -45,6 +45,7 @@ static u32 return_to_host_regs[2];
 
 static QImage gpuFrame;
 static GbaThread gbaThread;
+static volatile bool lastSyncLoad = false;
 
 GbaMachine gbaMachine;
 
@@ -224,7 +225,6 @@ void GbaThread::run() {
 u32 update_gba() {
 	int irq_raised = IRQ_NONE;
 	do {
-		bool do_sync = false;
 		cpu_ticks += execute_cycles;
 		reg[CHANGED_PC_STATUS] = 0;
 		if (gbc_sound_update) {
@@ -268,6 +268,7 @@ u32 update_gba() {
 				if (vcount == 160) {
 					// Transition from vrefresh to vblank
 					dispstat |= 0x01;
+
 					if (dispstat & 0x8)
 						irq_raised |= IRQ_VBLANK;
 
@@ -283,10 +284,16 @@ u32 update_gba() {
 				} else if (vcount == 228) {
 					// Transition from vblank to next screen
 					dispstat &= ~0x01;
+
+					gbaMachine.sync();
+					if (lastSyncLoad) {
+						lastSyncLoad = false;
+						return execute_cycles;
+					}
+
 					update_gbc_sound(cpu_ticks);
 					process_cheats();
 					vcount = 0;
-					do_sync = true;
 				}
 				if (vcount == (dispstat >> 8)) {
 					// vcount trigger
@@ -308,8 +315,6 @@ u32 update_gba() {
 		check_timer(1);
 		check_timer(2);
 		check_timer(3);
-		if (do_sync)
-			gbaMachine.sync();
 	} while (reg[CPU_HALT_STATE] != CPU_ACTIVE);
 	return execute_cycles;
 }
@@ -334,4 +339,9 @@ void GbaMachine::sl() {
 	gbaSpu.sl();
 	gbaGpu.sl();
 	gbaMem.sl();
+
+	if (!emsl.save)
+		lastSyncLoad = true;
+
+	qDebug("aa %x", reg[REG_PC]);
 }
