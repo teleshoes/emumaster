@@ -56,12 +56,13 @@ Page {
 		model: folderModel
 		spacing: 10
 		delegate: ImageListViewDelegate {
+			id: coverViewDelegate
 			property string filePath: coverSelector.folder + "/" + fileName
 			imgSource: filePath
 			onClicked: {
-				appWindow.pageStack.pop()
 				diskListModel.setDiskCover(coverSelector.diskIndex,
 										   coverViewDelegate.filePath)
+				appWindow.pageStack.pop()
 			}
 		}
 	}
