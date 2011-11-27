@@ -88,13 +88,13 @@ void DiskGallery::launch(int index, bool autoload) {
 void DiskGallery::donate() {
 	QStringList args;
 	args << "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=WUG37X8GMW9PQ&lc=US&item_number=emumaster&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted";
-	QProcess::execute("grob", args);
+	QProcess::startDetached("grob", args);
 }
 
 void DiskGallery::homepage() {
 	QStringList args;
 	args << "http://elemental-mk.blogspot.com";
-	QProcess::execute("grob", args);
+	QProcess::startDetached("grob", args);
 }
 
 void DiskGallery::emitDiskUpdate() {
@@ -112,4 +112,10 @@ void DiskGallery::receiveDatagram() {
 	QString diskFileName;
 	s >> diskFileName;
 	m_diskListModel->updateScreenShot(diskFileName);
+}
+
+void DiskGallery::sixAxisMonitor() {
+	QStringList args;
+	args << (PathManager::instance()->installationDirPath() + "/bin/sixaxismonitor");
+	QProcess::startDetached("/usr/bin/single-instance", args);
 }

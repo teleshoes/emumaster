@@ -1,5 +1,6 @@
 emumaster (0.0.3) unstable; urgency=low
 
+  * sixaxis support
   * completely redesigned UI
   * favourites category
   * workaround for sound bug (e.g. fix Mario Kart) - thanks to javispedro

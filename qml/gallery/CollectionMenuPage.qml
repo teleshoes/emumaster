@@ -33,6 +33,10 @@ Page {
 
 		MenuLayout {
 			MenuItem {
+				text: qsTr("SixAxis Monitor")
+				onClicked: diskGallery.sixAxisMonitor()
+			}
+			MenuItem {
 				text: qsTr("About EmuMaster ...")
 				onClicked: appWindow.pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
 			}

@@ -34,6 +34,7 @@ public:
 
 	Q_INVOKABLE void donate();
 	Q_INVOKABLE void homepage();
+	Q_INVOKABLE void sixAxisMonitor();
 signals:
 	void diskUpdate();
 	void detachUsb();

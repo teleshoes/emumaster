@@ -35,14 +35,14 @@ SixAxisServer::~SixAxisServer() {
 }
 
 QString SixAxisServer::open() {
-	if (!m_localServer->listen("emumaster.sixaxis"))
-		return tr("Unable to initialize local server");
 	m_ctrl = l2Listen(BTCTRL);
 	if (m_ctrl < 0)
 		return tr("Can't bind to psm %1").arg(BTCTRL);
 	m_data = l2Listen(BTDATA);
 	if (m_data < 0)
 		return tr("Can't bind to psm %1").arg(BTDATA);
+	if (!m_localServer->listen("emumaster.sixaxis"))
+		return tr("Unable to initialize local server");
 	QSocketNotifier *ctrlNotify = new QSocketNotifier(m_ctrl, QSocketNotifier::Read, this);
 	QObject::connect(ctrlNotify, SIGNAL(activated(int)), SLOT(acceptNewDevice()));
 	return QString();

@@ -44,6 +44,7 @@ Page {
 				startButton.visible = false
 			} else {
 				errDialog.message = qsTr("Something went wrong: ") + err
+				errDialog.open()
 			}
 		}
 	}

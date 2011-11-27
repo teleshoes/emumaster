@@ -97,8 +97,7 @@ PageStackWindow {
 		id: errorDialog
 		titleText: qsTr("Oops")
 		message: qsTr("Something went wrong!")
-		acceptButtonText: qsTr("Close")
-		rejectButtonText: ""
+		rejectButtonText: qsTr("Close")
 	}
 
 	Component.onCompleted: {
