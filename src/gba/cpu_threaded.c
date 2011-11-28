@@ -2736,7 +2736,6 @@ u32 bios_block_tag_top = 0x0101;
 u32 translation_recursion_level = 0;
 u32 translation_flush_count = 0;
 
-
 #define block_lookup_address_builder(type)                                    \
 u8 function_cc *block_lookup_address_##type(u32 pc)                           \
 {                                                                             \
@@ -3394,11 +3393,6 @@ translate_block_builder(thumb);
 
 void flush_translation_cache_ram()
 {
-  flush_ram_count++;
-/*  printf("ram flush %d (pc %x), %x to %x, %x to %x\n",
-   flush_ram_count, reg[REG_PC], iwram_code_min, iwram_code_max,
-   ewram_code_min, ewram_code_max); */
-
   invalidate_icache_region(ram_translation_cache,
    (ram_translation_ptr - ram_translation_cache) + 0x100);
 

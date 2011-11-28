@@ -1,5 +1,6 @@
 emumaster (0.0.3) unstable; urgency=low
 
+  * added search field
   * sixaxis support
   * completely redesigned UI
   * favourites category

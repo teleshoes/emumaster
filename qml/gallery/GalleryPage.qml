@@ -79,23 +79,67 @@ Page {
 	function updateModel() {
 		diskListView.model = nullModel
 		diskListView.model = diskListModel
+		diskListView.contentY = diskListView.searchHeight
+		diskListView.searchVisible = false
 	}
 	ListView {
 		id: diskListView
 		anchors.fill: parent
 		spacing: 10
+
+		property bool searchVisible: false
+		property int searchHeight
+
+		header: TextField {
+			id: searchField
+			width: parent.width-20
+			anchors.horizontalCenter: parent.horizontalCenter
+			placeholderText: qsTr("Search")
+			opacity: diskListView.searchVisible ? 1.0 : 0.0
+			inputMethodHints: Qt.ImhNoPredictiveText|Qt.ImhNoAutoUppercase
+
+			Behavior on opacity { NumberAnimation { duration: 300 } }
+			Image {
+				anchors {
+					right: parent.right
+					verticalCenter: parent.verticalCenter
+				}
+				source: "image://theme/icon-m-common-search"
+			}
+			Connections {
+				target: diskListView
+				onSearchVisibleChanged: searchField.text = ""
+			}
+			onTextChanged: {
+				if (diskListView.searchVisible)
+					diskListModel.setNameFilter(searchField.text)
+			}
+
+			Component.onCompleted: diskListView.searchHeight = height
+		}
 		delegate: ImageListViewDelegate {
 			imgSource: qsTr("image://disk/%1/%2*%3")
 						.arg(diskListModel.getDiskMachine(index))
 						.arg(title)
 						.arg(screenShotUpdate)
 			text: title
+			visible: itemVisible
+			height: itemVisible ? 280 : 0
 			onClicked: diskGallery.launch(index, true)
 			onPressAndHold: mainMenu.prepareAndOpen(index)
 		}
 		section.property: "alphabet"
 		section.criteria: ViewSection.FullString
 		section.delegate: SectionSeperator { text: section }
+
+		onContentYChanged: {
+			if (contentY <= 0)
+				searchVisible = true
+		}
+		onSearchVisibleChanged: {
+			if (!searchVisible)
+				contentY = searchHeight
+		}
 	}
 	MySectionScroller {
 		id: sectionScroller

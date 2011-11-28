@@ -14,30 +14,12 @@ timer_type timer[4];
 
 u32 breakpoint_value = 0x7c5000;
 
-u32 global_cycles_per_instruction = 1;
-
 u32 cpu_ticks = 0;
 
 u32 execute_cycles = 960;
 s32 video_count = 960;
-u32 ticks;
-
-u32 arm_frame = 0;
-u32 thumb_frame = 0;
 
 u32 skip_next_frame = 0;
-
-u32 cycle_memory_access = 0;
-u32 cycle_pc_relative_access = 0;
-u32 cycle_sp_relative_access = 0;
-u32 cycle_block_memory_access = 0;
-u32 cycle_block_memory_sp_access = 0;
-u32 cycle_block_memory_words = 0;
-u32 cycle_dma16_words = 0;
-u32 cycle_dma32_words = 0;
-u32 flush_ram_count = 0;
-u32 gbc_update_count = 0;
-u32 oam_update_count = 0;
 
 extern "C" u16 *screen_pixels_ptr;
 extern "C" void return_to_host(u32 *returnRegs);
@@ -228,7 +210,6 @@ u32 update_gba() {
 		cpu_ticks += execute_cycles;
 		reg[CHANGED_PC_STATUS] = 0;
 		if (gbc_sound_update) {
-			gbc_update_count++;
 			update_gbc_sound(cpu_ticks);
 			gbc_sound_update = 0;
 		}
@@ -249,8 +230,6 @@ u32 update_gba() {
 				dispstat |= 0x02;
 
 				if ((dispstat & 0x01) == 0) {
-					if (oam_update)
-						oam_update_count++;
 					update_scanline();
 					// If in visible area also fire HDMA
 					for (int i = 0; i < 4; i++) {
@@ -286,8 +265,10 @@ u32 update_gba() {
 					dispstat &= ~0x01;
 
 					gbaMachine.sync();
+					qDebug("%x", reg[REG_PC]);
 					if (lastSyncLoad) {
 						lastSyncLoad = false;
+						__asm__ volatile ("" : : : "memory");
 						return execute_cycles;
 					}
 

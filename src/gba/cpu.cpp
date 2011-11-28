@@ -4196,7 +4196,6 @@ void function_cc step_debug(u32 pc, u32 cycles) {
         break;
 
       case 't':
-        global_cycles_per_instruction = 0;
         debug_off(RUN);
         break;
     }

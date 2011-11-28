@@ -30,7 +30,8 @@ DiskListModel::DiskListModel(QObject *parent) :
 	roles.insert(TitleRole, "title");
 	roles.insert(MachineRole, "machine");
 	roles.insert(AlphabetRole, "alphabet");
-	roles.insert(ScreenShotUpdate, "screenShotUpdate");
+	roles.insert(ScreenShotUpdateRole, "screenShotUpdate");
+	roles.insert(ItemVisibleRole, "itemVisible");
 	setRoleNames(roles);
 
 	setupFilters();
@@ -56,6 +57,7 @@ void DiskListModel::setCollection(const QString &name) {
 		beginRemoveRows(QModelIndex(), 0, m_list.size()-1);
 		m_list.clear();
 		m_listMachine.clear();
+		m_visibility.clear();
 		endRemoveRows();
 	}
 	m_collection = name;
@@ -68,6 +70,7 @@ void DiskListModel::setCollection(const QString &name) {
 
 	if (!m_list.isEmpty()) {
 		beginInsertRows(QModelIndex(), 0, m_list.size()-1);
+		m_visibility = QVector<bool>(m_list.size(), true);
 		endInsertRows();
 	}
 }
@@ -103,8 +106,10 @@ QVariant DiskListModel::data(const QModelIndex &index, int role) const {
 	} else if (role == AlphabetRole) {
 		QString title = getDiskTitle(index.row());
 		return title.isEmpty() ? QVariant() : title.at(0).toUpper();
-	} else if (role == ScreenShotUpdate) {
+	} else if (role == ScreenShotUpdateRole) {
 		return getScreenShotUpdate(index.row());
+	} else if (role == ItemVisibleRole) {
+		return getItemVisible(index.row());
 	}
 	return QVariant();
 }
@@ -160,6 +165,12 @@ int DiskListModel::getScreenShotUpdate(int i) const {
 		return m_screenShotUpdateCounter;
 	else
 		return -1;
+}
+
+bool DiskListModel::getItemVisible(int i) const {
+	if (i < 0 || i >= m_visibility.size())
+		return false;
+	return m_visibility.at(i);
 }
 
 void DiskListModel::trash(int i) {
@@ -264,4 +275,14 @@ void DiskListModel::setupFilters() {
 	setupSnesFilter();
 	setupPsxFilter();
 	setupAmigaFilter();
+}
+
+void DiskListModel::setNameFilter(const QString &filter) {
+	for (int i = 0; i < m_list.size(); i++) {
+		bool visible = m_list.at(i).contains(filter, Qt::CaseInsensitive);
+		if (visible != m_visibility.at(i)) {
+			m_visibility[i] = visible;
+			emit dataChanged(index(i), index(i));
+		}
+	}
 }

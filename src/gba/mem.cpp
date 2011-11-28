@@ -28,7 +28,7 @@
 
 // This table is configured for sequential access on system defaults
 
-u32 waitstate_cycles_sequential[16][3] =
+const u32 waitstate_cycles_sequential[16][3] =
 {
   { 1, 1, 1 }, // BIOS
   { 1, 1, 1 }, // Invalid
@@ -46,22 +46,6 @@ u32 waitstate_cycles_sequential[16][3] =
   { 9, 9, 17 }, // Gamepak (wait 2)
 };
 
-// Different settings for gamepak ws0-2 sequential (2nd) access
-
-u32 gamepak_waitstate_sequential[2][3][3] =
-{
-  {
-    { 3, 3, 6 },
-    { 5, 5, 9 },
-    { 9, 9, 17 }
-  },
-  {
-    { 2, 2, 3 },
-    { 2, 2, 3 },
-    { 2, 2, 3 }
-  }
-};
-
 u16 palette_ram[512];
 u16 oam_ram[512];
 u16 palette_ram_converted[512];
@@ -76,7 +60,6 @@ u32 bios_read_protect;
 // Up to 128kb, store SRAM, flash ROM, or EEPROM here.
 u8 gamepak_backup[1024 * 128];
 
-// Keeps us knowing how much we have left.
 u8 *gamepak_rom;
 u32 gamepak_size;
 
@@ -97,8 +80,6 @@ u32 gamepak_ram_pages;
 // Enough to map the gamepak RAM space.
 gamepak_swap_entry_type *gamepak_memory_map;
 
-u32 direct_map_vram = 0;
-
 // Writes to these respective locations should trigger an update
 // so the related subsystem may react to it.
 
@@ -110,14 +91,6 @@ u32 gbc_sound_update = 0;
 
 // If the GBC audio waveform is modified:
 u32 gbc_sound_wave_update = 0;
-
-// If the backup space is written (only update once this hits 0)
-u32 backup_update = 0;
-
-// Write out backup file this many cycles after the most recent
-// backup write.
-const u32 write_backup_delay = 10;
-
 
 typedef enum
 {
@@ -303,7 +276,6 @@ void function_cc write_eeprom(u32 address, u32 value)
       eeprom_counter++;
       if(eeprom_counter == 64)
       {
-        backup_update = write_backup_delay;
         eeprom_counter = 0;
         eeprom_mode = EEPROM_WRITE_FOOTER_MODE;
       }
@@ -1350,7 +1322,6 @@ void function_cc write_backup(u32 address, u32 value)
               memset(gamepak_backup, 0xFF, 1024 * 64);
             else
               memset(gamepak_backup, 0xFF, 1024 * 128);
-            backup_update = write_backup_delay;
             flash_mode = FLASH_BASE_MODE;
           }
           break;
@@ -1377,8 +1348,7 @@ void function_cc write_backup(u32 address, u32 value)
     {
       // Erase sector
       memset(flash_bank_ptr + (address & 0xF000), 0xFF, 1024 * 4);
-      backup_update = write_backup_delay;
-      flash_mode = FLASH_BASE_MODE;
+	  flash_mode = FLASH_BASE_MODE;
       flash_command_position = 0;
     }
     else
@@ -1395,17 +1365,14 @@ void function_cc write_backup(u32 address, u32 value)
     if((flash_command_position == 0) && (flash_mode == FLASH_WRITE_MODE))
     {
       // Write value to flash ROM
-      backup_update = write_backup_delay;
-      flash_bank_ptr[address] = value;
+	  flash_bank_ptr[address] = value;
       flash_mode = FLASH_BASE_MODE;
     }
     else
 
     if(backup_type == BACKUP_SRAM)
     {
-      // Write value to SRAM
-      backup_update = write_backup_delay;
-      // Hit 64KB territory?
+	  // Hit 64KB territory?
       if(address >= 0x8000)
         sram_size = SRAM_SIZE_64KB;
       gamepak_backup[address] = value;
@@ -2420,14 +2387,12 @@ cpu_alert_type dma_transfer(dma_transfer_type *dma)
   {
     src_ptr &= ~0x01;
     dest_ptr &= ~0x01;
-    cycle_dma16_words += length;
     dma_transfer_expand(16);
   }
   else
   {
     src_ptr &= ~0x03;
     dest_ptr &= ~0x03;
-    cycle_dma32_words += length;
     dma_transfer_expand(32);
   }
 
@@ -2635,26 +2600,7 @@ void init_memory()
   map_null(write, 0x4000000, 0x5000000);
   map_null(write, 0x5000000, 0x6000000);
 
-  // The problem here is that the current method of handling self-modifying code
-  // requires writeable memory to be proceeded by 32KB SMC data areas or be
-  // indirectly writeable. It's possible to get around this if you turn off the SMC
-  // check altogether, but this will make a good number of ROMs crash (perhaps most
-  // of the ones that actually need it? This has yet to be determined).
-
-  // This is because VRAM cannot be efficiently made incontiguous, and still allow
-  // the renderer to work as efficiently. It would, at the very least, require a
-  // lot of hacking of the renderer which I'm not prepared to do.
-
-  // However, it IS possible to directly map the first page no matter what because
-  // there's 32kb of blank stuff sitting beneath it.
-  if(direct_map_vram)
-  {
-    map_vram(write);
-  }
-  else
-  {
-    map_null(write, 0x6000000, 0x7000000);
-  }
+  map_null(write, 0x6000000, 0x7000000);
 
   map_null(write, 0x7000000, 0x8000000);
   map_null(write, 0x8000000, 0xE000000);
@@ -2847,6 +2793,8 @@ void GbaMem::sl() {
 	emsl.begin("mem");
 	int flash_bank_ptr_offset = flash_bank_ptr - gamepak_backup;
 	emsl.var("backup_type", backup_type);
+	emsl.array("backup", gamepak_backup, sizeof(gamepak_backup));
+	emsl.var("bios_read_protect", bios_read_protect);
 	emsl.var("sram_size", sram_size);
 	emsl.var("flash_mode", flash_mode);
 	emsl.var("flash_command_position", flash_command_position);

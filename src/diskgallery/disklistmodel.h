@@ -20,6 +20,7 @@
 #include <QAbstractListModel>
 #include <QStringList>
 #include <QDir>
+#include <QVector>
 
 class DiskListModel : public QAbstractListModel {
     Q_OBJECT
@@ -31,7 +32,8 @@ public:
 		TitleRole = Qt::UserRole+1,
 		MachineRole,
 		AlphabetRole,
-		ScreenShotUpdate
+		ScreenShotUpdateRole,
+		ItemVisibleRole
 	};
 	explicit DiskListModel(QObject *parent = 0);
 	~DiskListModel();
@@ -46,11 +48,14 @@ public:
 	QVariant data(const QModelIndex &index, int role) const;
 	void updateScreenShot(const QString &name);
 
+	Q_INVOKABLE void setNameFilter(const QString &filter);
+
 	Q_INVOKABLE QString getDiskFileName(int i) const;
 	Q_INVOKABLE QString getDiskTitle(int i) const;
 	Q_INVOKABLE QString getDiskMachine(int i) const;
 	Q_INVOKABLE QString getAlphabet(int i) const;
 	Q_INVOKABLE int getScreenShotUpdate(int i) const;
+	Q_INVOKABLE bool getItemVisible(int i) const;
 	Q_INVOKABLE void trash(int i);
 	Q_INVOKABLE void setDiskCover(int i, const QUrl &coverUrl);
 
@@ -101,6 +106,8 @@ private:
 
 	QStringList m_favList;
 	QList<int> m_favListMachine;
+
+	QVector<bool> m_visibility;
 };
 
 inline QString DiskListModel::collection() const

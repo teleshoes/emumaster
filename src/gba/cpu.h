@@ -165,7 +165,6 @@ extern u32 iwram_stack_optimize;
 extern u32 allow_smc_ram_u8;
 extern u32 allow_smc_ram_u16;
 extern u32 allow_smc_ram_u32;
-extern u32 direct_map_vram;
 extern u32 translation_gate_targets;
 extern u32 translation_gate_target_pc[MAX_TRANSLATION_GATES];
 

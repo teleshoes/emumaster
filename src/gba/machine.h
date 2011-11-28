@@ -84,21 +84,10 @@ extern "C" {
 
 extern u32 cpu_ticks;
 extern u32 execute_cycles;
-extern u32 global_cycles_per_instruction;
 extern u32 skip_next_frame;
 
 extern timer_type timer[4];
 static u32 prescale_table[] = { 0, 6, 8, 10 };
-
-extern u32 cycle_memory_access;
-extern u32 cycle_pc_relative_access;
-extern u32 cycle_sp_relative_access;
-extern u32 cycle_block_memory_access;
-extern u32 cycle_block_memory_sp_access;
-extern u32 cycle_block_memory_words;
-extern u32 cycle_dma16_words;
-extern u32 cycle_dma32_words;
-extern u32 flush_ram_count;
 
 extern u64 base_timestamp;
 

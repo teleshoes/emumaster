@@ -37,6 +37,7 @@ DiskGallery::DiskGallery(QWidget *parent) :
 DiskGallery::~DiskGallery() {
 }
 
+/** Configures QML window. */
 void DiskGallery::setupQml() {
 	engine()->addImageProvider("disk", new DiskImageProvider());
 	rootContext()->setContextProperty("diskListModel", m_diskListModel);
@@ -52,6 +53,7 @@ void DiskGallery::setupQml() {
 		QMetaObject::invokeMethod(this, "emitDiskUpdate", Qt::QueuedConnection);
 }
 
+/** Increments emumaster execute counter. */
 void DiskGallery::incrementRunCount() {
 	QSettings s("elemental", "emumaster");
 	s.beginGroup("diskgallery");
@@ -60,6 +62,7 @@ void DiskGallery::incrementRunCount() {
 	s.endGroup();
 }
 
+/** Returns how many times emumaster was executed. */
 int DiskGallery::runCount() const {
 	return m_runCount;
 }
@@ -85,18 +88,21 @@ void DiskGallery::launch(int index, bool autoload) {
 #endif
 }
 
+/** Starts web browser with PayPal address for donation. */
 void DiskGallery::donate() {
 	QStringList args;
 	args << "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=WUG37X8GMW9PQ&lc=US&item_number=emumaster&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted";
 	QProcess::startDetached("grob", args);
 }
 
+/** Starts web browser with blog address. */
 void DiskGallery::homepage() {
 	QStringList args;
 	args << "http://elemental-mk.blogspot.com";
 	QProcess::startDetached("grob", args);
 }
 
+/** Emitted on start if the phone uses USB mass storage. */
 void DiskGallery::emitDiskUpdate() {
 	if (!QFile::exists(PathManager::instance()->diskDirPath("nes"))) {
 		emit detachUsb();
@@ -105,6 +111,8 @@ void DiskGallery::emitDiskUpdate() {
 	emit diskUpdate();
 }
 
+/** Received from one of emulated systems. Decodes the packet,
+	and updates the screen shot. */
 void DiskGallery::receiveDatagram() {
 	QByteArray ba(m_sock.pendingDatagramSize(), Qt::Uninitialized);
 	m_sock.readDatagram(ba.data(), ba.size());
@@ -114,6 +122,7 @@ void DiskGallery::receiveDatagram() {
 	m_diskListModel->updateScreenShot(diskFileName);
 }
 
+/** Starts SixAxis Monitor app. */
 void DiskGallery::sixAxisMonitor() {
 	QStringList args;
 	args << (PathManager::instance()->installationDirPath() + "/bin/sixaxismonitor");

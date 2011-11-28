@@ -3122,7 +3122,7 @@ void update_scanline()
 
   order_layers((dispcnt >> 8) & active_layers[video_mode]);
 
-  if(skip_next_frame)
+  if (skip_next_frame)
 	return;
 
   // If the screen is in in forced blank draw pure white.
