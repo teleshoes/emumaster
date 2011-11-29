@@ -15,6 +15,7 @@
 
 #include "machineview.h"
 #include "imachine.h"
+#include "configuration.h"
 #include "machinethread.h"
 #include "hostvideo.h"
 #include "hostaudio.h"
@@ -33,6 +34,8 @@
 #include <QSettings>
 #include <QUdpSocket>
 
+// TODO accelerometer
+
 MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_machine(machine),
 	m_diskFileName(diskFileName),
@@ -40,46 +43,31 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_backgroundCounter(qAbs(qrand())/2),
 	m_wantClose(false),
 	m_pauseRequested(false),
-	m_audioEnable(true) {
+	m_audioEnable(true),
+	m_autoSaveLoadEnable(true) {
 	Q_ASSERT(m_machine != 0);
 
 	PathManager::instance()->setMachine(machine->name());
 
 	m_thread = new MachineThread(m_machine);
-	bool autoLoadOnStart = !qApp->arguments().contains("-noautoload");
-	if (autoLoadOnStart)
-		m_thread->setLoadSlot(StateListModel::AutoSlot);
-
 	m_hostInput = new HostInput(m_machine);
 	m_hostAudio = new HostAudio(m_machine);
-
 	m_hostVideo = new HostVideo(m_machine, m_thread);
 	m_hostVideo->installEventFilter(m_hostInput);
 	QObject::connect(m_hostVideo, SIGNAL(wantClose()), SLOT(close()));
 	QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
 
-	QString error = m_machine->init();
+	loadConfiguration();
 
-	if (error.isEmpty()) {
-		error = m_machine->setDisk(QString("%1/%2")
-								   .arg(PathManager::instance()->diskDirPath())
-								   .arg(m_diskFileName));
-	}
-
-	loadSettings();
+	QString diskPath = QString("%1/%2")
+			.arg(PathManager::instance()->diskDirPath())
+			.arg(m_diskFileName);
+	QString error = m_machine->init(diskPath);
 
 	m_stateListModel = new StateListModel(m_machine, m_diskFileName);
 	m_thread->setStateListModel(m_stateListModel);
 
-	m_settingsView = new SettingsView();
-	QObject::connect(m_settingsView->engine(), SIGNAL(quit()), SLOT(close()));
-	QObject::connect(m_settingsView, SIGNAL(wantClose()), SLOT(close()));
-
-	m_settingsView->engine()->addImageProvider("state", new StateImageProvider(m_stateListModel));
-	m_settingsView->rootContext()->setContextProperty("backgroundPath", "");
-	m_settingsView->rootContext()->setContextProperty("machineView", static_cast<QObject *>(this));
-	m_settingsView->rootContext()->setContextProperty("machine", static_cast<QObject *>(m_machine));
-	m_settingsView->rootContext()->setContextProperty("stateListModel", static_cast<QObject *>(m_stateListModel));
+	setupSettingsView();
 
 	if (!error.isEmpty())
 		showError(error);
@@ -95,18 +83,10 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 
 MachineView::~MachineView() {
 	if (m_hostVideo->m_error.isEmpty()) {
-		if (m_thread->isRunning())
-			m_thread->wait();
-
-		saveSettings();
-		m_stateListModel->saveState(StateListModel::AutoSlot);
-
+		if (m_autoSaveLoadEnable)
+			m_stateListModel->saveState(StateListModel::AutoSaveLoadSlot);
 		// auto save screenshot
-		QString title = QFileInfo(m_diskFileName).completeBaseName();
-		QString path = PathManager::instance()->screenShotPath(title);
-		if (!QFile::exists(path))
-			saveScreenShot();
-
+		saveScreenShotIfNotExists();
 		m_machine->shutdown();
 	}
 	delete m_thread;
@@ -115,6 +95,19 @@ MachineView::~MachineView() {
 	delete m_hostVideo;
 	delete m_hostAudio;
 	delete m_hostInput;
+}
+
+void MachineView::setupSettingsView() {
+	m_settingsView = new SettingsView();
+	QObject::connect(m_settingsView->engine(), SIGNAL(quit()), SLOT(close()));
+	QObject::connect(m_settingsView, SIGNAL(wantClose()), SLOT(close()));
+
+	m_settingsView->engine()->addImageProvider("state", new StateImageProvider(m_stateListModel));
+	QDeclarativeContext *context = m_settingsView->rootContext();
+	context->setContextProperty("backgroundPath", "");
+	context->setContextProperty("machineView", static_cast<QObject *>(this));
+	context->setContextProperty("machine", static_cast<QObject *>(m_machine));
+	context->setContextProperty("stateListModel", static_cast<QObject *>(m_stateListModel));
 }
 
 void MachineView::showError(const QString &text) {
@@ -199,6 +192,13 @@ bool MachineView::close() {
 	}
 }
 
+void MachineView::saveScreenShotIfNotExists() {
+	QString diskTitle = QFileInfo(m_diskFileName).completeBaseName();
+	QString path = PathManager::instance()->screenShotPath(diskTitle);
+	if (!QFile::exists(path))
+		saveScreenShot();
+}
+
 void MachineView::saveScreenShot() {
 	QImage img = m_machine->frame().copy(m_machine->videoSrcRect().toRect());
 	img = img.convertToFormat(QImage::Format_ARGB32);
@@ -211,59 +211,42 @@ void MachineView::saveScreenShot() {
 	sock.writeDatagram(ba, QHostAddress::LocalHost, 5798);
 }
 
-void MachineView::saveSettings() {
-	QSettings s("elemental", "emumaster");
-	s.setValue("swipeEnable", m_hostVideo->isSwipeEnabled());
-
-	s.setValue("audioEnable", m_audioEnable);
-
-	s.setValue("fpsVisible", m_hostVideo->isFpsVisible());
-	s.setValue("keepAspectRatio", m_hostVideo->keepApsectRatio());
-	s.setValue("padOpacity", padOpacity());
-
-	s.beginGroup(m_machine->name());
-	s.setValue("frameSkip", m_thread->frameSkip());
-
-	QStringList accelDisks = s.value("accelerometerEnabledDisks", QStringList()).toStringList();
-	bool accelDisksChanged = false;
-	if (m_hostInput->isAccelerometerEnabled()) {
-		if (!accelDisks.contains(m_diskFileName)) {
-			accelDisks.append(m_diskFileName);
-			accelDisksChanged = true;
-		}
-	} else {
-		if (accelDisks.contains(m_diskFileName)) {
-			accelDisks.removeOne(m_diskFileName);
-			accelDisksChanged = true;
-		}
-	}
-	if (accelDisksChanged)
-		s.setValue("accelerometerEnabledDisks", accelDisks);
-
-	m_machine->saveSettings(s);
-	s.endGroup();
-}
-
 void MachineView::loadSettings() {
 	QSettings s("elemental", "emumaster");
 	m_hostVideo->setSwipeEnabled(s.value("swipeEnable", false).toBool());
+	m_hostVideo->setPadOpacity(loadOptionFromSettings(s, "padOpacity", 0.45f).toReal());
+	m_thread->setFrameSkip(loadOptionFromSettings(s, "frameSkip", 1).toInt());
+	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible", false).toBool());
+	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio", true).toBool());
+}
 
-	m_audioEnable = s.value("audioEnable", true).toBool();
-	m_machine->setAudioEnabled(m_audioEnable);
+QVariant MachineView::loadOptionFromSettings(QSettings &s,
+											 const QString &name,
+											 const QVariant &defaultValue) {
+	QVariant option = m_machine->conf()->item(name);
+	if (option.isNull())
+		option = s.value(name, defaultValue);
+	return option;
+}
 
-	m_hostVideo->setFpsVisible(s.value("fpsVisible", false).toBool());
-	m_hostVideo->setKeepAspectRatio(s.value("keepAspectRatio", true).toBool());
-	m_hostVideo->setPadOpacity(s.value("padOpacity", 0.45f).toReal());
+QString MachineView::extractArg(const QStringList &args,
+								const QString &argName) {
+	int optionArgIndex = args.indexOf(argName);
+	if (optionArgIndex >= 0) {
+		if (args.size() > optionArgIndex+1)
+			return args.at(optionArgIndex+1);
+	}
+	return QString();
+}
 
-	s.beginGroup(m_machine->name());
-	m_thread->setFrameSkip(s.value("frameSkip", 1).toInt());
-
-	QStringList accelDisks = s.value("accelerometerEnabledDisks", QStringList()).toStringList();
-	if (accelDisks.contains(m_diskFileName))
-		m_hostInput->setAccelerometerEnabled(true);
-
-	m_machine->loadSettings(s);
-	s.endGroup();
+void MachineView::parseConfArg(const QString &arg) {
+	QByteArray ba = QByteArray::fromBase64(arg.toAscii());
+	QDataStream stream(&ba, QIODevice::ReadOnly);
+	QMap<QString, QVariant> conf;
+	stream >> conf;
+	QMap<QString, QVariant>::ConstIterator i = conf.constBegin();
+	for (; i != conf.constEnd(); i++)
+		m_machine->conf()->setItem(i.key(), i.value());
 }
 
 void MachineView::onFrameGenerated(bool videoOn) {
@@ -273,70 +256,91 @@ void MachineView::onFrameGenerated(bool videoOn) {
 		m_hostVideo->repaint();
 }
 
-bool MachineView::isFpsVisible() const
-{ return m_hostVideo->isFpsVisible(); }
-int MachineView::frameSkip() const
-{ return m_thread->frameSkip(); }
-bool MachineView::isAudioEnabled() const
-{ return m_audioEnable; }
-bool MachineView::isSwipeEnabled() const
-{ return m_hostVideo->isSwipeEnabled(); }
-qreal MachineView::padOpacity() const
-{ return m_hostVideo->padOpacity(); }
-bool MachineView::keepAspectRatio() const
-{ return m_hostVideo->keepApsectRatio(); }
-bool MachineView::isAccelerometerEnabled() const
-{ return m_hostInput->isAccelerometerEnabled(); }
+bool MachineView::isFpsVisible() const {
+	return m_hostVideo->isFpsVisible();
+}
 
 void MachineView::setFpsVisible(bool on) {
 	if (m_hostVideo->isFpsVisible() != on) {
 		m_hostVideo->setFpsVisible(on);
+		m_machine->conf()->setItem("fpsVisible", on);
 		emit fpsVisibleChanged();
 	}
+}
+
+int MachineView::frameSkip() const {
+	return m_thread->frameSkip();
 }
 
 void MachineView::setFrameSkip(int n) {
 	if (m_thread->frameSkip() != n) {
 		m_thread->setFrameSkip(n);
+		m_machine->conf()->setItem("frameSkip", n);
 		emit frameSkipChanged();
 	}
+}
+
+bool MachineView::isAudioEnabled() const {
+	return m_audioEnable;
 }
 
 void MachineView::setAudioEnabled(bool on) {
 	if (m_audioEnable != on) {
 		m_audioEnable = on;
 		m_machine->setAudioEnabled(on);
+		m_machine->conf()->setItem("audioEnable", on);
 		emit audioEnableChanged();
 	}
 }
 
-void MachineView::setSwipeEnabled(bool on) {
-	if (m_hostVideo->isSwipeEnabled() != on) {
-		m_hostVideo->setSwipeEnabled(on);
-		emit swipeEnableChanged();
-	}
+qreal MachineView::padOpacity() const {
+	return m_hostVideo->padOpacity();
 }
 
 void MachineView::setPadOpacity(qreal opacity) {
 	if (m_hostVideo->padOpacity() != opacity) {
 		m_hostVideo->setPadOpacity(opacity);
+		m_machine->conf()->setItem("padOpacity", opacity);
 		emit padOpacityChanged();
 	}
+}
+
+bool MachineView::keepAspectRatio() const {
+	return m_hostVideo->keepApsectRatio();
 }
 
 void MachineView::setKeepAspectRatio(bool on) {
 	if (m_hostVideo->keepApsectRatio() != on) {
 		m_hostVideo->setKeepAspectRatio(on);
+		m_machine->conf()->setItem("keepAspectRatio", on);
 		emit keepAspectRatioChanged();
 	}
 }
 
-QDeclarativeView *MachineView::settingsView() const
-{ return m_settingsView; }
+void MachineView::loadConfiguration() {
+	// TODO change on every release        major       minor      rev
+	m_machine->conf()->setItem("version", (0 << 16) | (1 << 8) | (0 << 0));
 
-void MachineView::setAccelerometerEnabled(bool on) {
-	if (m_hostInput->isAccelerometerEnabled() != on) {
-		m_hostInput->setAccelerometerEnabled(on);
-		emit accelerometerEnableChanged();
+	QStringList args = QCoreApplication::arguments();
+
+	// determine load state
+	int state = StateListModel::AutoSaveLoadSlot;
+	if (args.contains("-noautoload")) {
+		m_autoSaveLoadEnable = false;
+		state = StateListModel::InvalidSlot;
+	} else {
+		QString stateArg = extractArg(args, "-state");
+		if (!stateArg.isEmpty())
+			state = stateArg.toInt();
 	}
+	m_thread->setLoadSlot(state);
+
+	loadSettings();
+	// TODO load conf from state
+
+	QString confArg = extractArg(args, "-conf");
+	parseConfArg(confArg);
+
+	if (!m_machine->conf()->item("audioEnable", true).toBool())
+		m_machine->setAudioEnabled(false);
 }

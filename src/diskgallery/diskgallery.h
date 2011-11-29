@@ -20,6 +20,7 @@
 class DiskListModel;
 #include <QDeclarativeView>
 #include <QUdpSocket>
+#include <QSettings>
 
 class DiskGallery : public QDeclarativeView {
     Q_OBJECT
@@ -35,6 +36,9 @@ public:
 	Q_INVOKABLE void donate();
 	Q_INVOKABLE void homepage();
 	Q_INVOKABLE void sixAxisMonitor();
+
+	Q_INVOKABLE QVariant globalOption(const QString &name, const QVariant &defaultValue);
+	Q_INVOKABLE void setGlobalOption(const QString &name, const QVariant &value);
 signals:
 	void diskUpdate();
 	void detachUsb();
@@ -49,6 +53,7 @@ private:
 	DiskListModel *m_diskListModel;
 	int m_runCount;
 	QUdpSocket m_sock;
+	QSettings m_settings;
 };
 
 #endif // ROMGALLERY_H

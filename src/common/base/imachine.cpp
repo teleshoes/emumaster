@@ -14,6 +14,7 @@
  */
 
 #include "imachine.h"
+#include "configuration.h"
 #include <QSettings>
 
 EMSL emsl;
@@ -22,6 +23,7 @@ IMachine::IMachine(const QString &name, QObject *parent) :
 	QObject(parent),
 	m_name(name),
 	m_frameRate(1) {
+	m_conf = new Configuration(this);
 }
 
 IMachine::~IMachine() {
@@ -39,11 +41,6 @@ void IMachine::setVideoSrcRect(const QRectF &rect) {
 		emit videoSrcRectChanged();
 	}
 }
-
-void IMachine::saveSettings(QSettings &s)
-{ Q_UNUSED(s) }
-void IMachine::loadSettings(QSettings &s)
-{ Q_UNUSED(s) }
 
 void IMachine::setAudioEnabled(bool on)
 { Q_UNUSED(on) }

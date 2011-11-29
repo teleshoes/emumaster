@@ -27,16 +27,15 @@ class StateListModel;
 #include <QGLWidget>
 class QThread;
 class QDeclarativeView;
+class QSettings;
 
 class BASE_EXPORT MachineView : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(bool fpsVisible READ isFpsVisible WRITE setFpsVisible NOTIFY fpsVisibleChanged)
 	Q_PROPERTY(int frameSkip READ frameSkip WRITE setFrameSkip NOTIFY frameSkipChanged)
 	Q_PROPERTY(bool audioEnable READ isAudioEnabled WRITE setAudioEnabled NOTIFY audioEnableChanged)
-	Q_PROPERTY(bool swipeEnable READ isSwipeEnabled WRITE setSwipeEnabled NOTIFY swipeEnableChanged)
 	Q_PROPERTY(qreal padOpacity READ padOpacity WRITE setPadOpacity NOTIFY padOpacityChanged)
 	Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged)
-	Q_PROPERTY(bool accelerometerEnable READ isAccelerometerEnabled WRITE setAccelerometerEnabled NOTIFY accelerometerEnableChanged)
 public:
 	explicit MachineView(IMachine *machine, const QString &diskFileName);
 	~MachineView();
@@ -52,18 +51,12 @@ public:
 	void setFrameSkip(int n);
 	bool isAudioEnabled() const;
 	void setAudioEnabled(bool on);
-	bool isSwipeEnabled() const;
-	void setSwipeEnabled(bool on);
 	qreal padOpacity() const;
 	void setPadOpacity(qreal opacity);
 	bool keepAspectRatio() const;
 	void setKeepAspectRatio(bool on);
-	bool isAccelerometerEnabled() const;
-	void setAccelerometerEnabled(bool on);
 
 	Q_INVOKABLE void saveScreenShot();
-
-	QDeclarativeView *settingsView() const;
 public slots:
 	void pause();
 	void resume();
@@ -75,13 +68,19 @@ signals:
 	void swipeEnableChanged();
 	void padOpacityChanged();
 	void keepAspectRatioChanged();
-	void accelerometerEnableChanged();
 private slots:
 	void pauseStage2();
 	void onFrameGenerated(bool videoOn);
 private:
-	void saveSettings();
+	void loadConfiguration();
 	void loadSettings();
+	QVariant loadOptionFromSettings(QSettings &s,
+									const QString &name,
+									const QVariant &defaultValue);
+	QString extractArg(const QStringList &args, const QString &argName);
+	void parseConfArg(const QString &arg);
+	void setupSettingsView();
+	void saveScreenShotIfNotExists();
 
 	IMachine *m_machine;
 	QString m_diskFileName;
@@ -97,8 +96,10 @@ private:
 	int m_backgroundCounter;
 	bool m_wantClose;
 	bool m_pauseRequested;
-	bool m_audioEnable;
 	int m_closeTries;
+
+	bool m_audioEnable;
+	bool m_autoSaveLoadEnable;
 };
 
 inline IMachine *MachineView::machine() const

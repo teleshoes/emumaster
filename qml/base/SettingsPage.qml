@@ -18,6 +18,8 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 import "../base"
 
+// TODO input devices config
+
 Page {
 	orientationLock: PageOrientation.LockPortrait
 	tools: ToolBarLayout {
@@ -61,6 +63,7 @@ Page {
 		contentHeight: column.height+20
 
 	Column {
+		// TODO really y == 20 ??
 		id: column
 		y: 20
 		width: parent.width
@@ -83,15 +86,14 @@ Page {
 
 				BorderImage {
 					source: "image://theme/meegotouch-video-duration-background"
-					anchors.right: parent.right
-					anchors.rightMargin: 30
-					anchors.top: parent.top
-					anchors.topMargin: 20
+					anchors {
+						right: parent.right; rightMargin: 30
+						top: parent.top; topMargin: 20
+					}
 					width: childrenRect.width+20
 					height: childrenRect.height+10
 					visible: title == -2
-					border.left: 10
-					border.right: 10
+					border { left: 10; right: 10 }
 
 					Label { x: 10; y: 5; text: "AUTOSAVE"; color: "blue" }
 				}
@@ -120,15 +122,6 @@ Page {
 		}
 
 		SectionSeperator { text: qsTr("INPUT"); rightPad: 150 }
-		EMSwitchOption {
-			text: qsTr("Swipe Enabled")
-			checked: machineView.swipeEnable
-			onCheckedChanged: machineView.swipeEnable = checked
-		}
-		EMSwitchOption {
-			text: qsTr("Use Accelerometer")
-			checked: machineView.accelerometerEnable; onCheckedChanged: machineView.accelerometerEnable = checked
-		}
 		Label {
 			id: padOpacityLabel
 			text: qsTr("Pad Opacity")

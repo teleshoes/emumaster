@@ -22,10 +22,11 @@
 #include <QDeclarativeContext>
 #include <QFile>
 #include <QProcess>
-#include <QSettings>
 
 DiskGallery::DiskGallery(QWidget *parent) :
-	QDeclarativeView(parent) {
+	QDeclarativeView(parent),
+	m_settings("elemental", "emumaster") {
+
 	m_diskListModel = new DiskListModel(this);
 	incrementRunCount();
 	setupQml();
@@ -55,11 +56,11 @@ void DiskGallery::setupQml() {
 
 /** Increments emumaster execute counter. */
 void DiskGallery::incrementRunCount() {
-	QSettings s("elemental", "emumaster");
-	s.beginGroup("diskgallery");
-	m_runCount = s.value("runCount", 0).toInt() + 1;
-	s.setValue("runCount", m_runCount);
-	s.endGroup();
+	m_settings.beginGroup("diskgallery");
+	m_runCount = m_settings.value("runCount", 0).toInt() + 1;
+	m_settings.setValue("runCount", m_runCount);
+	m_settings.endGroup();
+	m_settings.sync();
 }
 
 /** Returns how many times emumaster was executed. */
@@ -127,4 +128,13 @@ void DiskGallery::sixAxisMonitor() {
 	QStringList args;
 	args << (PathManager::instance()->installationDirPath() + "/bin/sixaxismonitor");
 	QProcess::startDetached("/usr/bin/single-instance", args);
+}
+
+QVariant DiskGallery::globalOption(const QString &name, const QVariant &defaultValue) {
+	return m_settings.value(name, defaultValue);
+}
+
+void DiskGallery::setGlobalOption(const QString &name, const QVariant &value) {
+	m_settings.setValue(name, value);
+	m_settings.sync();
 }

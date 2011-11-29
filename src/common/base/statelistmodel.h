@@ -26,9 +26,9 @@ class StateListModel : public QAbstractListModel {
 	Q_OBJECT
 	Q_PROPERTY(int count READ count NOTIFY countChanged)
 public:
-	static const int NewSlot		= -1;
-	static const int AutoSlot		= -2;
-	static const int InvalidSlot	= -3;
+	static const int NewSlot				= -1;
+	static const int AutoSaveLoadSlot		= -2;
+	static const int InvalidSlot			= -3;
 
 	enum RoleType {
 		NameRole = Qt::UserRole+1,

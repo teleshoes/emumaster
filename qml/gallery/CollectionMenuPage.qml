@@ -33,6 +33,10 @@ Page {
 
 		MenuLayout {
 			MenuItem {
+				text: qsTr("Global Settings")
+				onClicked: appWindow.pageStack.push(Qt.resolvedUrl("GlobalSettings.qml"))
+			}
+			MenuItem {
 				text: qsTr("SixAxis Monitor")
 				onClicked: diskGallery.sixAxisMonitor()
 			}

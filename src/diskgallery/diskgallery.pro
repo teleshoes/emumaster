@@ -35,7 +35,8 @@ unix {
 		../../qml/gallery/HomeScreenIconSheet.qml \
 		../../qml/gallery/CollectionMenuPage.qml \
 		../../qml/gallery/CollectionTypeButton.qml \
-		../../qml/gallery/GalleryPage.qml
+		../../qml/gallery/GalleryPage.qml \
+		../../qml/gallery/GlobalSettings.qml
 
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = \

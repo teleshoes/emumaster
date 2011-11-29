@@ -195,6 +195,7 @@ void HostInput::processTouch(QEvent *e) {
 bool HostInput::isAccelerometerEnabled() const
 { return m_accelerometer != 0; }
 
+// TODO accelerometer
 void HostInput::setAccelerometerEnabled(bool on) {
 	if (on && m_accelerometer != 0)
 		return;

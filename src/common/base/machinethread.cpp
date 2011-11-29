@@ -56,10 +56,8 @@ void MachineThread::run() {
 	if (m_firstRun) {
 		for (int i = 0; i < 60; i++)
 			m_machine->emulateFrame(false);
-		if (m_loadSlot != StateListModel::InvalidSlot) {
-			m_stateListModel->loadState(StateListModel::AutoSlot);
-			m_loadSlot = StateListModel::AutoSlot;
-		}
+		if (m_loadSlot != StateListModel::InvalidSlot)
+			m_stateListModel->loadState(m_loadSlot);
 		m_firstRun = false;
 	}
 	qreal frameTime = 1000.0 / m_machine->frameRate();
@@ -95,9 +93,14 @@ void MachineThread::run() {
 	}
 }
 
-void MachineThread::setFrameSkip(int n)
-{ m_frameSkip = n; }
-void MachineThread::setStateListModel(StateListModel *stateListModel)
-{ m_stateListModel = stateListModel; }
-void MachineThread::setLoadSlot(int i)
-{ m_loadSlot = i; }
+void MachineThread::setFrameSkip(int n) {
+	m_frameSkip = n;
+}
+
+void MachineThread::setStateListModel(StateListModel *stateListModel) {
+	m_stateListModel = stateListModel;
+}
+
+void MachineThread::setLoadSlot(int i) {
+	m_loadSlot = i;
+}

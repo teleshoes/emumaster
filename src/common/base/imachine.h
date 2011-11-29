@@ -23,6 +23,7 @@
 class QImage;
 class QSettings;
 class QProcess;
+class Configuration;
 
 typedef qint8 s8;
 typedef quint8 u8;
@@ -60,14 +61,15 @@ public:
 	~IMachine();
 	QString name() const;
 
+	Configuration *conf() const;
+
 	qreal frameRate() const;
 	QRectF videoSrcRect() const;
 
-	virtual QString init() = 0;
+	virtual QString init(const QString &diskPath) = 0;
 	virtual void shutdown() = 0;
 	Q_INVOKABLE virtual void reset();
 
-	virtual QString setDisk(const QString &path) = 0;
 	virtual void emulateFrame(bool drawEnabled) = 0;
 	virtual const QImage &frame() const = 0;
 	virtual int fillAudioBuffer(char *stream, int streamSize) = 0;
@@ -75,9 +77,6 @@ public:
 
 	bool save(QDataStream *stream);
 	bool load(QDataStream *stream);
-
-	virtual void saveSettings(QSettings &s);
-	virtual void loadSettings(QSettings &s);
 signals:
 	void videoSrcRectChanged();
 protected:
@@ -91,12 +90,15 @@ private:
 	QString m_name;
 	qreal m_frameRate;
 	QRectF m_videoSrcRect;
+	Configuration *m_conf;
 
 	friend class MachineView;
 };
 
 inline QString IMachine::name() const
 { return m_name; }
+inline Configuration *IMachine::conf() const
+{ return m_conf; }
 inline qreal IMachine::frameRate() const
 { return m_frameRate; }
 inline QRectF IMachine::videoSrcRect() const

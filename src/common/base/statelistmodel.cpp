@@ -84,8 +84,8 @@ bool StateListModel::saveState(int i) {
 	if (i == NewSlot) {
 		i = ++m_maxSaveIndex;
 		newState = true;
-	} else if (i == AutoSlot) {
-		newState = (indexOf(AutoSlot) < 0);
+	} else if (i == AutoSaveLoadSlot) {
+		newState = (indexOf(AutoSaveLoadSlot) < 0);
 	}	
 	QByteArray data;
 	data.reserve(10*1024*1024);
