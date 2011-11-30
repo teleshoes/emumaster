@@ -40,18 +40,18 @@ public:
 	int rowCount(const QModelIndex &parent) const;
 	int count() const;
 	QVariant data(const QModelIndex &index, int role) const;
-	Q_INVOKABLE QString get(int i) const;
-	QImage screenShot(int i) const;
+	QImage screenShot(int slot) const;
 
-	Q_INVOKABLE bool saveState(int i);
-	Q_INVOKABLE bool loadState(int i);
-	Q_INVOKABLE void removeState(int i);
+	Q_INVOKABLE QString indexToSlot(int i) const;
+	Q_INVOKABLE bool saveState(int slot);
+	Q_INVOKABLE bool loadState(int slot);
+	Q_INVOKABLE void removeState(int slot);
 	Q_INVOKABLE void removeAll();
 signals:
 	void countChanged();
 	void slFailed();
 private:
-	int indexOf(int i) const;
+	int indexOfSlot(int i) const;
 
 	IMachine *m_machine;
 	QDir m_dir;

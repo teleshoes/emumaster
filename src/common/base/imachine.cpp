@@ -16,6 +16,8 @@
 #include "imachine.h"
 #include "configuration.h"
 #include <QSettings>
+#include <QFile>
+#include <QImage>
 
 EMSL emsl;
 
@@ -53,12 +55,14 @@ void EMSL::varNotExist(const QString &name)
 void EMSL::ioError()
 { error = QObject::tr("IO error"); }
 
-bool IMachine::save(QDataStream *stream) {
+bool IMachine::saveInternal(QDataStream *stream) {
 	QByteArray ba;
 	ba.reserve(1024 * 1024 * 2);
-	QDataStream baStream(&ba, QIODevice::WriteOnly);
 
-	emsl.save = true;
+	QDataStream baStream(&ba, QIODevice::WriteOnly);
+	baStream.setByteOrder(QDataStream::LittleEndian);
+	baStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+
 	emsl.stream = &baStream;
 	emsl.currAddr.clear();
 	emsl.currGroup.clear();
@@ -76,11 +80,14 @@ bool IMachine::save(QDataStream *stream) {
 	return succeded;
 }
 
-bool IMachine::load(QDataStream *stream) {
+bool IMachine::loadInternal(QDataStream *stream) {
 	QByteArray ba;
 	*stream >> emsl.allAddr;
 	*stream >> ba;
+
 	QDataStream baStream(&ba, QIODevice::ReadOnly);
+	baStream.setByteOrder(QDataStream::LittleEndian);
+	baStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
 	emsl.save = false;
 	emsl.stream = &baStream;
@@ -93,9 +100,6 @@ bool IMachine::load(QDataStream *stream) {
 	if (!emsl.loadConfOnly && emsl.error.isEmpty())
 		sl();
 
-	if (!emsl.error.isEmpty()) {
-		qDebug("bad load %s", qPrintable(emsl.error));
-	}
 	return emsl.error.isEmpty();
 }
 
@@ -106,4 +110,58 @@ void EMSL::push() {
 
 void EMSL::pop() {
 	begin(groupStack.takeLast());
+}
+
+bool IMachine::saveState(const QString &diskPath) {
+	emsl.save = true;
+
+	QByteArray data;
+	data.reserve(10*1024*1024);
+
+	QDataStream s(&data, QIODevice::WriteOnly);
+	s.setByteOrder(QDataStream::LittleEndian);
+	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
+	if (!saveInternal(&s))
+		return false;
+
+	QFile file(diskPath);
+	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+		emsl.error = tr("Could not open file for writing.");
+		return false;
+	}
+
+	s.setDevice(&file);
+	s << frame().copy(videoSrcRect().toRect());
+	QByteArray compressed = qCompress(data);
+	bool ok = (file.write(compressed) == compressed.size());
+	file.close();
+	if (!ok)
+		file.remove();
+	return ok;
+}
+
+bool IMachine::loadState(const QString &diskPath) {
+	emsl.save = false;
+
+	QFile file(diskPath);
+	if (!file.open(QIODevice::ReadOnly)) {
+		emsl.error = tr("Could not open file for writing.");
+		return false;
+	}
+
+	QDataStream sOmit(&file);
+	sOmit.setByteOrder(QDataStream::LittleEndian);
+	sOmit.setFloatingPointPrecision(QDataStream::SinglePrecision);
+	QImage omitFrame;
+	sOmit >> omitFrame;
+
+	QByteArray compressed = file.read(file.size() - file.pos());
+	QByteArray data = qUncompress(compressed);
+	file.close();
+	compressed.clear();
+
+	QDataStream s(&data, QIODevice::ReadOnly);
+	s.setByteOrder(QDataStream::LittleEndian);
+	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
+	return loadInternal(&s);
 }

@@ -73,6 +73,7 @@ signals:
 private slots:
 	void pauseStage2();
 	void onFrameGenerated(bool videoOn);
+	void onSlFailed();
 private:
 	bool loadConfiguration();
 	void loadSettings();
@@ -83,6 +84,8 @@ private:
 	void parseConfArg(const QString &arg);
 	void setupSettingsView();
 	void saveScreenShotIfNotExists();
+	int determineLoadState(const QStringList &args);
+	void constructSlErrorString();
 
 	IMachine *m_machine;
 	QString m_diskFileName;

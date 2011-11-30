@@ -63,18 +63,21 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_stateListModel = new StateListModel(m_machine, m_diskFileName);
 	m_thread->setStateListModel(m_stateListModel);
 
-	// TODO check ok, always abort if false
-	loadConfiguration();
+	if (!loadConfiguration())
+		constructSlErrorString();
 
-	QString diskPath = QString("%1/%2")
-			.arg(PathManager::instance()->diskDirPath())
-			.arg(m_diskFileName);
-	m_error = m_machine->init(diskPath);
+	if (m_error.isEmpty()) {
+		QString diskPath = QString("%1/%2")
+				.arg(PathManager::instance()->diskDirPath())
+				.arg(m_diskFileName);
+		m_error = m_machine->init(diskPath);
+	}
 
 	setupSettingsView();
 
 	const char *method = "resume";
 	if (m_error.isEmpty()) {
+		QObject::connect(m_stateListModel, SIGNAL(slFailed()), SLOT(onSlFailed()));
 		#if defined(Q_WS_MAEMO_5)
 			method = "pauseStage2";
 		#endif
@@ -315,15 +318,9 @@ void MachineView::setKeepAspectRatio(bool on) {
 	}
 }
 
-bool MachineView::loadConfiguration() {
-	Configuration *conf = m_machine->conf();
-	conf->setItem("version", QCoreApplication::applicationVersion());
-
-	QStringList args = QCoreApplication::arguments();
-
-	// determine load state
+int MachineView::determineLoadState(const QStringList &args) {
 	int state = StateListModel::AutoSaveLoadSlot;
-	if (args.contains("-noautoload")) {
+	if (args.contains("-noAutoSaveLoad")) {
 		m_autoSaveLoadEnable = false;
 		state = StateListModel::InvalidSlot;
 	} else {
@@ -331,6 +328,16 @@ bool MachineView::loadConfiguration() {
 		if (!stateArg.isEmpty())
 			state = stateArg.toInt();
 	}
+	return state;
+}
+
+bool MachineView::loadConfiguration() {
+	Configuration *conf = m_machine->conf();
+	conf->setItem("version", QCoreApplication::applicationVersion());
+
+	QStringList args = QCoreApplication::arguments();
+
+	int state = determineLoadState(args);
 	m_thread->setLoadSlot(state);
 
 	// load conf from state
@@ -352,4 +359,12 @@ bool MachineView::loadConfiguration() {
 		m_machine->setAudioEnabled(false);
 
 	return true;
+}
+
+void MachineView::onSlFailed() {
+	// TODO
+}
+
+void MachineView::constructSlErrorString() {
+	// TODO
 }

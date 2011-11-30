@@ -69,21 +69,8 @@ void HostVideo::paintEvent(QPaintEvent *) {
 
 	if (m_thread->m_inFrameGenerated) {
 		painter.drawImage(m_dstRect, m_machine->frame(), m_srcRect);
-		if (m_fpsVisible) {
-			m_fpsCounter++;
-			if (m_fpsCounterTime.elapsed() >= 1000) {
-				m_fpsCounterTime.restart();
-				m_fpsCount = m_fpsCounter;
-				m_fpsCounter = 0;
-			}
-			QFont font = painter.font();
-			font.setPointSize(12);
-			painter.setFont(font);
-			painter.setPen(Qt::white);
-			painter.drawText(QRectF(0.0f, 0.0f, 100.0f, 40.0f),
-							 Qt::AlignCenter,
-							 QString("%1 FPS").arg(m_fpsCount));
-		}
+		if (m_fpsVisible)
+			paintFps(painter);
 	}
 	if (m_padOpacity != 0.0f) {
 		painter.setOpacity(m_padOpacity);
@@ -91,6 +78,22 @@ void HostVideo::paintEvent(QPaintEvent *) {
 		painter.drawImage(QPoint(854-240, 0), m_padRightImage);
 	}
 	painter.end();
+}
+
+void HostVideo::paintFps(QPainter &painter) {
+	m_fpsCounter++;
+	if (m_fpsCounterTime.elapsed() >= 1000) {
+		m_fpsCounterTime.restart();
+		m_fpsCount = m_fpsCounter;
+		m_fpsCounter = 0;
+	}
+	QFont font = painter.font();
+	font.setPointSize(12);
+	painter.setFont(font);
+	painter.setPen(Qt::red);
+	painter.drawText(QRectF(0.0f, 0.0f, 100.0f, 40.0f),
+					 Qt::AlignCenter,
+					 QString("%1 FPS").arg(m_fpsCount));
 }
 
 void HostVideo::setFpsVisible(bool on) {

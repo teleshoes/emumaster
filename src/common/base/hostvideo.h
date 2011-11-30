@@ -54,6 +54,8 @@ protected:
 private slots:
 	void updateRects();
 private:
+	void paintFps(QPainter &painter);
+
 	IMachine *m_machine;
 	MachineThread *m_thread;
 

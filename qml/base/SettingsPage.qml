@@ -31,20 +31,17 @@ Page {
 
 	Menu {
 		id: stateMenu
-		property int stateIndex
+		property int stateSlot
 
 		function prepareAndOpen(index) {
-			stateMenu.stateIndex = index
+			stateMenu.stateSlot = stateListModel.indexToSlot(index)
 			stateMenu.open()
 		}
 
 		MenuLayout {
 			MenuItem {
 				text: qsTr("Load")
-				onClicked: {
-					if (!stateListModel.loadState(stateListModel.get(stateMenu.stateIndex)))
-						errorDialog.open()
-				}
+				onClicked: stateListModel.loadState(stateMenu.slot)
 			}
 			MenuItem {
 				text: qsTr("Overwrite")
@@ -209,10 +206,7 @@ Page {
 		message: qsTr("Do you really want to overwrite the state with current one?")
 		acceptButtonText: qsTr("Yes")
 		rejectButtonText: qsTr("No")
-		onAccepted: {
-			if (!stateListModel.saveState(stateListModel.get(stateMenu.stateIndex)))
-				errorDialog.open()
-		}
+		onAccepted: stateListModel.saveState(stateMenu.slot)
 	}
 
 	QueryDialog {
@@ -221,7 +215,7 @@ Page {
 		message: qsTr("Do you really want to delete the state?")
 		acceptButtonText: qsTr("Yes")
 		rejectButtonText: qsTr("No")
-		onAccepted: stateListModel.removeState(stateListModel.get(stateMenu.stateIndex))
+		onAccepted: stateListModel.removeState(stateMenu.slot)
 	}
 
 	QueryDialog {

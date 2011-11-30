@@ -62,13 +62,15 @@ int StateListModel::rowCount(const QModelIndex &parent) const {
 int StateListModel::count() const
 { return m_list.size(); }
 
-QString StateListModel::get(int i) const
+QString StateListModel::indexToSlot(int i) const
 { return m_list.at(i).fileName(); }
 
-QImage StateListModel::screenShot(int i) const {
-	QFile file(m_dir.filePath(QString::number(i)));
+QImage StateListModel::screenShot(int slot) const {
+	QString diskPath = m_dir.filePath(QString::number(slot));
+	QFile file(diskPath);
 	if (!file.open(QIODevice::ReadOnly))
 		return QImage();
+
 	QDataStream s(&file);
 	s.setByteOrder(QDataStream::LittleEndian);
 	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
@@ -77,87 +79,55 @@ QImage StateListModel::screenShot(int i) const {
 	return screenShot;
 }
 
-bool StateListModel::saveState(int i) {
+bool StateListModel::saveState(int slot) {
 	if (!m_machine)
 		return false;
 	bool newState = false;
-	if (i == NewSlot) {
-		i = ++m_maxSaveIndex;
+	if (slot == NewSlot) {
+		slot = ++m_maxSaveIndex;
 		newState = true;
-	} else if (i == AutoSaveLoadSlot) {
-		newState = (indexOf(AutoSaveLoadSlot) < 0);
+	} else if (slot == AutoSaveLoadSlot) {
+		newState = (indexOfSlot(AutoSaveLoadSlot) < 0);
 	}
-	// TODO move to imachine
-	QByteArray data;
-	data.reserve(10*1024*1024);
-	QDataStream s(&data, QIODevice::WriteOnly);
-	s.setByteOrder(QDataStream::LittleEndian);
-	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
-	if (!m_machine->save(&s))
-		return false;
 
-	QString name = QString::number(i);
-	QFile file(m_dir.filePath(name));
-	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
-		return false;
-	s.setDevice(&file);
-	s << m_machine->frame().copy(m_machine->videoSrcRect().toRect());
-	QByteArray compressed = qCompress(data);
-	bool ok = (file.write(compressed) == compressed.size());
-	file.close();
-	if (!ok) {
-		file.remove();
+	QString diskPath = m_dir.filePath(QString::number(slot));
+	if (!m_machine->saveState(diskPath)) {
+		emit slFailed();
 		return false;
 	}
+
 	m_screenShotUpdateCounter++;
 	if (newState) {
 		beginInsertRows(QModelIndex(), 0, 0);
-		m_list.prepend(QFileInfo(m_dir.filePath(name)));
+		m_list.prepend(QFileInfo(diskPath));
 		endInsertRows();
 		emit countChanged();
 	} else {
-		int x = indexOf(i);
-		if (x >= 0) {
-			m_list[x] = QFileInfo(m_list.at(x).filePath());
-			emit dataChanged(index(x), index(x));
+		int i = indexOfSlot(slot);
+		if (i >= 0) {
+			m_list[i] = QFileInfo(m_list.at(i).filePath());
+			emit dataChanged(index(i), index(i));
 		}
 	}
 	return true;
 }
 
-bool StateListModel::loadState(int i) {
-	if (!m_machine)
-		return false;
-	QString name = QString::number(i);
-	QFile file(m_dir.filePath(name));
-	if (!file.open(QIODevice::ReadOnly))
-		return false;
-	QDataStream sOmit(&file);
-	sOmit.setByteOrder(QDataStream::LittleEndian);
-	sOmit.setFloatingPointPrecision(QDataStream::SinglePrecision);
-	QImage omitFrame;
-	sOmit >> omitFrame;
+bool StateListModel::loadState(int slot) {
+	Q_ASSERT(m_machine != 0);
 
-	QByteArray compressed = file.readAll();
-	QByteArray data = qUncompress(compressed);
-	file.close();
-	compressed.clear();
-
-	QDataStream s(&data, QIODevice::ReadOnly);
-	s.setByteOrder(QDataStream::LittleEndian);
-	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
-	bool ok = m_machine->load(&s);
+	QString diskPath = m_dir.filePath(QString::number(slot));
+	bool ok = m_machine->loadState(diskPath);
 	if (!ok)
-		m_machine->reset();
+		emit slFailed();
 	return ok;
 }
 
-void StateListModel::removeState(int i) {
-	int x = indexOf(i);
-	if (x >= 0) {
-		beginRemoveRows(QModelIndex(), x, x);
-		m_dir.remove(QString::number(i));
-		m_list.removeAt(x);
+void StateListModel::removeState(int slot) {
+	int i = indexOfSlot(slot);
+	if (i >= 0) {
+		beginRemoveRows(QModelIndex(), i, i);
+		m_dir.remove(QString::number(slot));
+		m_list.removeAt(i);
 		endRemoveRows();
 	}
 }
@@ -167,9 +137,9 @@ void StateListModel::removeAll() {
 		removeState(m_list.at(0).fileName().toInt());
 }
 
-int StateListModel::indexOf(int i) const {
+int StateListModel::indexOfSlot(int slot) const {
 	for (int x = 0; x < m_list.size(); x++) {
-		if (m_list.at(x).fileName().toInt() == i)
+		if (m_list.at(x).fileName().toInt() == slot)
 			return x;
 	}
 	return -1;

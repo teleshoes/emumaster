@@ -75,8 +75,8 @@ public:
 	virtual int fillAudioBuffer(char *stream, int streamSize) = 0;
 	virtual void setPadKeys(int pad, int keys) = 0;
 
-	bool save(QDataStream *stream);
-	bool load(QDataStream *stream);
+	bool saveState(const QString &diskPath);
+	bool loadState(const QString &diskPath);
 signals:
 	void videoSrcRectChanged();
 protected:
@@ -87,6 +87,9 @@ protected:
 	virtual void setAudioEnabled(bool on);
 	virtual void setAudioSampleRate(int sampleRate);
 private:
+	bool saveInternal(QDataStream *stream);
+	bool loadInternal(QDataStream *stream);
+
 	QString m_name;
 	qreal m_frameRate;
 	QRectF m_videoSrcRect;

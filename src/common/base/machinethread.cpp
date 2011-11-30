@@ -56,6 +56,7 @@ void MachineThread::run() {
 	if (m_firstRun) {
 		for (int i = 0; i < 60; i++)
 			m_machine->emulateFrame(false);
+		// TODO handle errors
 		if (m_loadSlot != StateListModel::InvalidSlot)
 			m_stateListModel->loadState(m_loadSlot);
 		m_firstRun = false;
