@@ -20,7 +20,7 @@
 #include <QDateTime>
 #include <QImage>
 
-StateListModel::StateListModel(IMachine *machine, const QString &diskName) :
+StateListModel::StateListModel(IMachine *machine, const QString &diskFileName) :
 	m_machine(machine),
 	m_screenShotUpdateCounter(0) {
 
@@ -30,7 +30,7 @@ StateListModel::StateListModel(IMachine *machine, const QString &diskName) :
 	roles.insert(DateTimeRole, "saveDateTime");
 	setRoleNames(roles);
 
-	QString diskTitle = QFileInfo(diskName).completeBaseName();
+	QString diskTitle = QFileInfo(diskFileName).completeBaseName();
 	QString path = PathManager::instance()->stateDirPath(diskTitle);
 	m_dir.mkpath(path);
 	m_dir = QDir(path);
@@ -86,7 +86,8 @@ bool StateListModel::saveState(int i) {
 		newState = true;
 	} else if (i == AutoSaveLoadSlot) {
 		newState = (indexOf(AutoSaveLoadSlot) < 0);
-	}	
+	}
+	// TODO move to imachine
 	QByteArray data;
 	data.reserve(10*1024*1024);
 	QDataStream s(&data, QIODevice::WriteOnly);

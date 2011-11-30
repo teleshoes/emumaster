@@ -47,6 +47,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_autoSaveLoadEnable(true) {
 	Q_ASSERT(m_machine != 0);
 
+	Configuration::setupAppInfo();
 	PathManager::instance()->setMachine(machine->name());
 
 	m_thread = new MachineThread(m_machine);
@@ -57,6 +58,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	QObject::connect(m_hostVideo, SIGNAL(wantClose()), SLOT(close()));
 	QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
 
+	// TODO check ok, always abort if false
 	loadConfiguration();
 
 	QString diskPath = QString("%1/%2")
@@ -212,7 +214,7 @@ void MachineView::saveScreenShot() {
 }
 
 void MachineView::loadSettings() {
-	QSettings s("elemental", "emumaster");
+	QSettings s;
 	m_hostVideo->setSwipeEnabled(s.value("swipeEnable", false).toBool());
 	m_hostVideo->setPadOpacity(loadOptionFromSettings(s, "padOpacity", 0.45f).toReal());
 	m_thread->setFrameSkip(loadOptionFromSettings(s, "frameSkip", 1).toInt());
@@ -317,9 +319,9 @@ void MachineView::setKeepAspectRatio(bool on) {
 	}
 }
 
-void MachineView::loadConfiguration() {
-	// TODO change on every release        major       minor      rev
-	m_machine->conf()->setItem("version", (0 << 16) | (1 << 8) | (0 << 0));
+bool MachineView::loadConfiguration() {
+	Configuration *conf = m_machine->conf();
+	conf->setItem("version", QCoreApplication::applicationVersion());
 
 	QStringList args = QCoreApplication::arguments();
 
@@ -335,12 +337,23 @@ void MachineView::loadConfiguration() {
 	}
 	m_thread->setLoadSlot(state);
 
-	loadSettings();
-	// TODO load conf from state
+	// load conf from state
+	if (state != StateListModel::InvalidSlot) {
+		emsl.loadConfOnly = true;
+		if (!m_stateListModel->loadState(state))
+			return false;
+		emsl.loadConfOnly = false;
+	}
 
+	// load conf from arg
 	QString confArg = extractArg(args, "-conf");
 	parseConfArg(confArg);
 
-	if (!m_machine->conf()->item("audioEnable", true).toBool())
+	// load conf from global settings
+	loadSettings();
+
+	if (!conf->item("audioEnable", true).toBool())
 		m_machine->setAudioEnabled(false);
+
+	return true;
 }

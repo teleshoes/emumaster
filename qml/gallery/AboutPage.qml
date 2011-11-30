@@ -34,7 +34,9 @@ Page {
 
 		Label {
 			width: parent.width
-			text: qsTr("EmuMaster 0.1.0\nAuthor: Elemental\nWant new features?\nFound bug?\nGo to homepage")
+			text: qsTr("EmuMaster %1\nAuthor: elemental\n" +
+					   "Want new features?\nFound bug?\nGo to homepage")
+						.arg(appVersion)
 			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignHCenter
 		}

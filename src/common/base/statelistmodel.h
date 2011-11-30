@@ -35,7 +35,8 @@ public:
 		ScreenShotUpdate,
 		DateTimeRole
 	};
-	explicit StateListModel(IMachine *machine, const QString &diskName);
+
+	explicit StateListModel(IMachine *machine, const QString &diskFileName);
 	int rowCount(const QModelIndex &parent) const;
 	int count() const;
 	QVariant data(const QModelIndex &index, int role) const;

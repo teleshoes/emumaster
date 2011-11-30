@@ -104,7 +104,7 @@ inline qreal IMachine::frameRate() const
 inline QRectF IMachine::videoSrcRect() const
 { return m_videoSrcRect; }
 
-// EmuMaster Save/Load functionality
+// emumaster save/load functionality
 
 class EMSL {
 public:
@@ -126,6 +126,9 @@ public:
 	QDataStream *stream;
 	bool save;
 	int groupVersion;
+
+	bool abortIfLoadFails;
+	bool loadConfOnly;
 
 	QString error;
 private:

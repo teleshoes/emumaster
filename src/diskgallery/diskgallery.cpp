@@ -22,10 +22,10 @@
 #include <QDeclarativeContext>
 #include <QFile>
 #include <QProcess>
+#include <QCoreApplication>
 
 DiskGallery::DiskGallery(QWidget *parent) :
-	QDeclarativeView(parent),
-	m_settings("elemental", "emumaster") {
+	QDeclarativeView(parent) {
 
 	m_diskListModel = new DiskListModel(this);
 	incrementRunCount();
@@ -41,8 +41,12 @@ DiskGallery::~DiskGallery() {
 /** Configures QML window. */
 void DiskGallery::setupQml() {
 	engine()->addImageProvider("disk", new DiskImageProvider());
-	rootContext()->setContextProperty("diskListModel", m_diskListModel);
-	rootContext()->setContextProperty("diskGallery", this);
+
+	QDeclarativeContext *context = rootContext();
+	context->setContextProperty("diskListModel", m_diskListModel);
+	context->setContextProperty("diskGallery", this);
+	context->setContextProperty("appVersion", QCoreApplication::applicationVersion());
+
 	QObject::connect(engine(), SIGNAL(quit()), SLOT(close()));
 	QString qmlPath = QString("%1/qml/gallery/main.qml")
 			.arg(PathManager::instance()->installationDirPath());

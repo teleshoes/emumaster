@@ -37,7 +37,7 @@ DiskListModel::DiskListModel(QObject *parent) :
 	setupFilters();
 	loadFav();
 
-	QSettings s("elemental", "emumaster");
+	QSettings s;
 	s.beginGroup("diskgallery");
 	m_collectionLastUsed = s.value("collectionLastUsed", "").toString();
 	if (m_collectionLastUsed.isEmpty())
@@ -46,7 +46,7 @@ DiskListModel::DiskListModel(QObject *parent) :
 }
 
 DiskListModel::~DiskListModel() {
-	QSettings s("elemental", "emumaster");
+	QSettings s;
 	s.beginGroup("diskgallery");
 	s.setValue("collectionLastUsed", m_collection);
 	s.endGroup();

@@ -12,7 +12,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Emulator of popular consoles
  The main goal of the EmuMaster project is to create
  emulator of popular consoles with the great and easy
- ui so anyone can use it. Fantastic ROM gallery, use of
+ ui so anyone can use it. Fantastic disk gallery, use of
  fast scroll and possibility to make icons in home screen
  makes this software elegant. Try it! If you find this
  useful please donate.

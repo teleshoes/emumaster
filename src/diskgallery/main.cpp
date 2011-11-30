@@ -15,11 +15,13 @@
  */
 
 #include "diskgallery.h"
+#include <configuration.h>
 #include <pathmanager.h>
 #include <QApplication>
 
 int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
+	Configuration::setupAppInfo();
 	PathManager::instance()->buildLocalDirTree();
 
 	DiskGallery view;

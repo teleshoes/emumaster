@@ -64,7 +64,10 @@ bool IMachine::save(QDataStream *stream) {
 	emsl.currGroup.clear();
 	emsl.allAddr.clear();
 	emsl.error.clear();
+
+	conf()->sl();
 	sl();
+
 	bool succeded = emsl.error.isEmpty();
 	if (succeded) {
 		*stream << emsl.allAddr;
@@ -84,7 +87,12 @@ bool IMachine::load(QDataStream *stream) {
 	emsl.currGroup.clear();
 	emsl.currAddr.clear();
 	emsl.error.clear();
-	sl();
+
+	emsl.abortIfLoadFails = true;
+	conf()->sl();
+	if (!emsl.loadConfOnly && emsl.error.isEmpty())
+		sl();
+
 	if (!emsl.error.isEmpty()) {
 		qDebug("bad load %s", qPrintable(emsl.error));
 	}

@@ -72,7 +72,7 @@ private slots:
 	void pauseStage2();
 	void onFrameGenerated(bool videoOn);
 private:
-	void loadConfiguration();
+	bool loadConfiguration();
 	void loadSettings();
 	QVariant loadOptionFromSettings(QSettings &s,
 									const QString &name,
