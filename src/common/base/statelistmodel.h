@@ -49,6 +49,7 @@ public:
 	Q_INVOKABLE void removeAll();
 signals:
 	void countChanged();
+	void slFailed();
 private:
 	int indexOf(int i) const;
 

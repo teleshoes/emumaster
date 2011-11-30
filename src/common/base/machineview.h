@@ -36,13 +36,13 @@ class BASE_EXPORT MachineView : public QObject {
 	Q_PROPERTY(bool audioEnable READ isAudioEnabled WRITE setAudioEnabled NOTIFY audioEnableChanged)
 	Q_PROPERTY(qreal padOpacity READ padOpacity WRITE setPadOpacity NOTIFY padOpacityChanged)
 	Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged)
+	Q_PROPERTY(QString error READ error CONSTANT)
 public:
 	explicit MachineView(IMachine *machine, const QString &diskFileName);
 	~MachineView();
 
 	IMachine *machine() const;
 
-	void showError(const QString &text);
 	bool isRunning() const;
 
 	bool isFpsVisible() const;
@@ -57,6 +57,8 @@ public:
 	void setKeepAspectRatio(bool on);
 
 	Q_INVOKABLE void saveScreenShot();
+
+	QString error() const;
 public slots:
 	void pause();
 	void resume();
@@ -100,11 +102,14 @@ private:
 
 	bool m_audioEnable;
 	bool m_autoSaveLoadEnable;
+	QString m_error;
 };
 
 inline IMachine *MachineView::machine() const
 { return m_machine; }
 inline bool MachineView::isRunning() const
 { return m_running; }
+inline QString MachineView::error() const
+{ return m_error; }
 
 #endif // MACHINEVIEW_H

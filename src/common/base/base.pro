@@ -37,6 +37,7 @@ unix {
 	qml.path = /opt/emumaster/qml/base
 	qml.files = \
 		../../../qml/base/main.qml \
+		../../../qml/base/error.qml \
 		../../../qml/base/SettingsPage.qml \
 		../../../qml/base/NesCheatPage.qml \
 		\

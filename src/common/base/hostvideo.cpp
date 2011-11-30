@@ -58,6 +58,7 @@ HostVideo::HostVideo(IMachine *machine, MachineThread *thread) :
 HostVideo::~HostVideo() {
 }
 
+// TODO needed ???
 void HostVideo::initializeGL()
 { glClearColor(0.0f, 0.0f, 0.0f, 1.0f); }
 
@@ -66,31 +67,22 @@ void HostVideo::paintEvent(QPaintEvent *) {
 	painter.begin(this);
 	painter.fillRect(rect(), Qt::black);
 
-	if (!m_error.isEmpty()) {
-		QFont font = painter.font();
-		font.setPointSize(12);
-		font.setBold(true);
-		painter.setFont(font);
-		painter.setPen(Qt::red);
-		painter.drawText(rect(), Qt::AlignCenter, m_error);
-	} else {
-		if (m_thread->m_inFrameGenerated) {
-			painter.drawImage(m_dstRect, m_machine->frame(), m_srcRect);
-			if (m_fpsVisible) {
-				m_fpsCounter++;
-				if (m_fpsCounterTime.elapsed() >= 1000) {
-					m_fpsCounterTime.restart();
-					m_fpsCount = m_fpsCounter;
-					m_fpsCounter = 0;
-				}
-				QFont font = painter.font();
-				font.setPointSize(12);
-				painter.setFont(font);
-				painter.setPen(Qt::white);
-				painter.drawText(QRectF(0.0f, 0.0f, 100.0f, 40.0f),
-								 Qt::AlignCenter,
-								 QString("%1 FPS").arg(m_fpsCount));
+	if (m_thread->m_inFrameGenerated) {
+		painter.drawImage(m_dstRect, m_machine->frame(), m_srcRect);
+		if (m_fpsVisible) {
+			m_fpsCounter++;
+			if (m_fpsCounterTime.elapsed() >= 1000) {
+				m_fpsCounterTime.restart();
+				m_fpsCount = m_fpsCounter;
+				m_fpsCounter = 0;
 			}
+			QFont font = painter.font();
+			font.setPointSize(12);
+			painter.setFont(font);
+			painter.setPen(Qt::white);
+			painter.drawText(QRectF(0.0f, 0.0f, 100.0f, 40.0f),
+							 Qt::AlignCenter,
+							 QString("%1 FPS").arg(m_fpsCount));
 		}
 	}
 	if (m_padOpacity != 0.0f) {
@@ -101,10 +93,13 @@ void HostVideo::paintEvent(QPaintEvent *) {
 	painter.end();
 }
 
-void HostVideo::setFpsVisible(bool on)
-{ m_fpsVisible = on; }
-void HostVideo::setPadOpacity(qreal opacity)
-{ m_padOpacity = opacity; }
+void HostVideo::setFpsVisible(bool on) {
+	m_fpsVisible = on;
+}
+
+void HostVideo::setPadOpacity(qreal opacity) {
+	m_padOpacity = opacity;
+}
 
 void HostVideo::setSwipeEnabled(bool on) {
 #if defined(MEEGO_EDITION_HARMATTAN)

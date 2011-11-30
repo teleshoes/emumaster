@@ -57,6 +57,11 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_hostVideo->installEventFilter(m_hostInput);
 	QObject::connect(m_hostVideo, SIGNAL(wantClose()), SLOT(close()));
 	QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
+	QObject::connect(m_hostInput, SIGNAL(wantClose()), SLOT(close()));
+	QObject::connect(m_hostInput, SIGNAL(pauseClicked()), SLOT(pause()));
+
+	m_stateListModel = new StateListModel(m_machine, m_diskFileName);
+	m_thread->setStateListModel(m_stateListModel);
 
 	// TODO check ok, always abort if false
 	loadConfiguration();
@@ -64,27 +69,23 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	QString diskPath = QString("%1/%2")
 			.arg(PathManager::instance()->diskDirPath())
 			.arg(m_diskFileName);
-	QString error = m_machine->init(diskPath);
-
-	m_stateListModel = new StateListModel(m_machine, m_diskFileName);
-	m_thread->setStateListModel(m_stateListModel);
+	m_error = m_machine->init(diskPath);
 
 	setupSettingsView();
 
-	if (!error.isEmpty())
-		showError(error);
-	else
-		QObject::connect(m_hostInput, SIGNAL(pauseClicked()), SLOT(pause()));
-	QObject::connect(m_hostInput, SIGNAL(wantClose()), SLOT(close()));
-#if defined(MEEGO_EDITION_HARMATTAN)
-	QMetaObject::invokeMethod(this, "resume", Qt::QueuedConnection);
-#elif defined(Q_WS_MAEMO_5)
-	QMetaObject::invokeMethod(this, "pauseStage2", Qt::QueuedConnection);
-#endif
+	const char *method = "resume";
+	if (m_error.isEmpty()) {
+		#if defined(Q_WS_MAEMO_5)
+			method = "pauseStage2";
+		#endif
+	} else {
+		method = "pauseStage2";
+	}
+	QMetaObject::invokeMethod(this, method, Qt::QueuedConnection);
 }
 
 MachineView::~MachineView() {
-	if (m_hostVideo->m_error.isEmpty()) {
+	if (m_error.isEmpty()) {
 		if (m_autoSaveLoadEnable)
 			m_stateListModel->saveState(StateListModel::AutoSaveLoadSlot);
 		// auto save screenshot
@@ -110,13 +111,6 @@ void MachineView::setupSettingsView() {
 	context->setContextProperty("machineView", static_cast<QObject *>(this));
 	context->setContextProperty("machine", static_cast<QObject *>(m_machine));
 	context->setContextProperty("stateListModel", static_cast<QObject *>(m_stateListModel));
-}
-
-void MachineView::showError(const QString &text) {
-	Q_ASSERT(!text.isEmpty());
-	m_hostVideo->m_error = text;
-	m_hostVideo->setMyVisible(true);
-	m_settingsView->setMyVisible(false);
 }
 
 // two-stage pause preventing deadlocks
@@ -149,9 +143,14 @@ void MachineView::pauseStage2() {
 	m_pauseRequested = false;
 	m_running = false;
 	if (!m_wantClose) {
-		if (m_settingsView->source().isEmpty()) {
-			QUrl url = QUrl::fromLocalFile(QString("%1/qml/base/main.qml")
-										   .arg(PathManager::instance()->installationDirPath()));
+		if (m_settingsView->source().isEmpty() || !m_error.isEmpty()) {
+			QString path;
+			if (m_error.isEmpty())
+				path = "%1/qml/base/main.qml";
+			else
+				path = "%1/qml/base/error.qml";
+			path = path.arg(PathManager::instance()->installationDirPath());
+			QUrl url = QUrl::fromLocalFile(path);
 			m_settingsView->setSource(url);
 		}
 		if (m_audioEnable)
@@ -164,23 +163,20 @@ void MachineView::pauseStage2() {
 }
 
 void MachineView::resume() {
+	Q_ASSERT(m_error.isEmpty());
 	if (m_running)
 		return;
 	m_hostVideo->setMyVisible(true);
 	m_settingsView->setMyVisible(false);
 
-	if (m_hostVideo->m_error.isEmpty()) {
-		QObject::connect(m_thread, SIGNAL(frameGenerated(bool)),
-						 this, SLOT(onFrameGenerated(bool)),
-						 Qt::BlockingQueuedConnection);
-		if (m_audioEnable)
-			m_hostAudio->open();
-		m_running = true;
-		// use delay to wait for animation end
-		QTimer::singleShot(500, m_thread, SLOT(resume()));
-	} else {
-		m_hostVideo->repaint();
-	}
+	QObject::connect(m_thread, SIGNAL(frameGenerated(bool)),
+					 this, SLOT(onFrameGenerated(bool)),
+					 Qt::BlockingQueuedConnection);
+	if (m_audioEnable)
+		m_hostAudio->open();
+	m_running = true;
+	// use delay to wait for animation end
+	QTimer::singleShot(500, m_thread, SLOT(resume()));
 }
 
 bool MachineView::close() {

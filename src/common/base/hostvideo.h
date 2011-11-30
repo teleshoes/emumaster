@@ -60,8 +60,6 @@ private:
 	QRectF m_srcRect;
 	QRectF m_dstRect;
 
-	QString m_error;
-
 	bool m_fpsVisible;
 	int m_fpsCount;
 	int m_fpsCounter;
@@ -73,8 +71,6 @@ private:
 
 	bool m_swipeEnabled;
 	bool m_keepAspectRatio;
-
-	friend class MachineView;
 };
 
 inline QRectF HostVideo::dstRect() const
