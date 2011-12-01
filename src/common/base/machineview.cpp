@@ -64,7 +64,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_thread->setStateListModel(m_stateListModel);
 
 	if (!loadConfiguration())
-		constructSlErrorString();
+		m_error = constructSlErrorString();
 
 	if (m_error.isEmpty()) {
 		QString diskPath = QString("%1/%2")
@@ -77,7 +77,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 
 	const char *method = "resume";
 	if (m_error.isEmpty()) {
-		QObject::connect(m_stateListModel, SIGNAL(slFailed()), SLOT(onSlFailed()));
+		QObject::connect(m_stateListModel, SIGNAL(slFailed()), SLOT(onSlFailed()), Qt::QueuedConnection);
 		#if defined(Q_WS_MAEMO_5)
 			method = "pauseStage2";
 		#endif
@@ -362,9 +362,27 @@ bool MachineView::loadConfiguration() {
 }
 
 void MachineView::onSlFailed() {
-	// TODO
+	if (!emsl.save && emsl.abortIfLoadFails) {
+		fatalError(constructSlErrorString());
+	} else {
+		emit faultOccured(constructSlErrorString());
+	}
 }
 
-void MachineView::constructSlErrorString() {
-	// TODO
+QString MachineView::constructSlErrorString() const {
+	QString result;
+	if (emsl.save)
+		result = tr("Save failed: ");
+	else
+		result = tr("Load failed: ");
+	result += emsl.error;
+	return result;
+}
+
+void MachineView::fatalError(const QString &errorStr) {
+	m_error = errorStr;
+	if (m_running)
+		pause();
+	else
+		pauseStage2();
 }

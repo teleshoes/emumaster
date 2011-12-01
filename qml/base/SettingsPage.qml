@@ -200,6 +200,14 @@ Page {
 
 	}
 
+	Connections {
+		target: machineView
+		onFaultOccured: {
+			machineFaultDialog.message = faultStr
+			machineFaultDialog.open()
+		}
+	}
+
 	QueryDialog {
 		id: overwriteStateDialog
 		titleText: qsTr("Really?")
@@ -233,6 +241,12 @@ Page {
 		message: qsTr("Something went wrong!")
 		rejectButtonText: qsTr("Close")
 	}
+	QueryDialog {
+		id: machineFaultDialog
+		titleText: qsTr("Oops")
+		rejectButtonText: qsTr("Close")
+	}
+
 	ListModel {
 		id: nesRenderMethodModel
 		ListElement { name: "Post All Render" }

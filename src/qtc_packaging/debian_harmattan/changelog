@@ -1,5 +1,6 @@
 emumaster (0.0.3) unstable; urgency=low
 
+  * save/load error handling
   * global/local settings introduced
   * added search field
   * sixaxis support

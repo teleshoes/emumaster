@@ -95,10 +95,13 @@ bool IMachine::loadInternal(QDataStream *stream) {
 	emsl.currAddr.clear();
 	emsl.error.clear();
 
-	emsl.abortIfLoadFails = true;
 	conf()->sl();
-	if (!emsl.loadConfOnly && emsl.error.isEmpty())
+	if (!emsl.loadConfOnly && emsl.error.isEmpty()) {
+		emsl.abortIfLoadFails = true;
 		sl();
+	} else {
+		emsl.abortIfLoadFails = false;
+	}
 
 	return emsl.error.isEmpty();
 }
@@ -142,6 +145,7 @@ bool IMachine::saveState(const QString &diskPath) {
 
 bool IMachine::loadState(const QString &diskPath) {
 	emsl.save = false;
+	emsl.abortIfLoadFails = false;
 
 	QFile file(diskPath);
 	if (!file.open(QIODevice::ReadOnly)) {
@@ -163,5 +167,6 @@ bool IMachine::loadState(const QString &diskPath) {
 	QDataStream s(&data, QIODevice::ReadOnly);
 	s.setByteOrder(QDataStream::LittleEndian);
 	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
+
 	return loadInternal(&s);
 }

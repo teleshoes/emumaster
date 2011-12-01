@@ -70,6 +70,7 @@ signals:
 	void swipeEnableChanged();
 	void padOpacityChanged();
 	void keepAspectRatioChanged();
+	void faultOccured(QString faultStr);
 private slots:
 	void pauseStage2();
 	void onFrameGenerated(bool videoOn);
@@ -85,7 +86,8 @@ private:
 	void setupSettingsView();
 	void saveScreenShotIfNotExists();
 	int determineLoadState(const QStringList &args);
-	void constructSlErrorString();
+	QString constructSlErrorString() const;
+	void fatalError(const QString &faultStr);
 
 	IMachine *m_machine;
 	QString m_diskFileName;
