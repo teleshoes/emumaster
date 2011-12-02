@@ -18,20 +18,26 @@
 
 class IMachine;
 class MachineThread;
+class HostInput;
 #include <QGLWidget>
 #include <QTime>
 
 class HostVideo : public QGLWidget {
     Q_OBJECT
 public:
-	explicit HostVideo(IMachine *machine, MachineThread *thread);
+#if defined(MEEGO_EDITION_HARMATTAN)
+	static const int Width = 854.0f;
+	static const int Height = 480.0f;
+#elif defined(Q_WS_MAEMO_5)
+	static const int Width = 800.0f;
+	static const int Height = 480.0f;
+#endif
+
+	explicit HostVideo(HostInput *hostInput, IMachine *machine, MachineThread *thread);
 	~HostVideo();
 
 	bool isFpsVisible() const;
 	void setFpsVisible(bool on);
-
-	qreal padOpacity() const;
-	void setPadOpacity(qreal opacity);
 
 	bool isSwipeEnabled() const;
 	void setSwipeEnabled(bool on);
@@ -43,7 +49,7 @@ public:
 
 	QRectF dstRect() const;
 signals:
-	void wantClose();
+	void quit();
 	void minimized();
 protected:
 	void initializeGL();
@@ -56,6 +62,7 @@ private slots:
 private:
 	void paintFps(QPainter &painter);
 
+	HostInput *m_hostInput;
 	IMachine *m_machine;
 	MachineThread *m_thread;
 
@@ -67,10 +74,6 @@ private:
 	int m_fpsCounter;
 	QTime m_fpsCounterTime;
 
-	qreal m_padOpacity;
-	QImage m_padLeftImage;
-	QImage m_padRightImage;
-
 	bool m_swipeEnabled;
 	bool m_keepAspectRatio;
 };
@@ -79,8 +82,6 @@ inline QRectF HostVideo::dstRect() const
 { return m_dstRect; }
 inline bool HostVideo::isFpsVisible() const
 { return m_fpsVisible; }
-inline qreal HostVideo::padOpacity() const
-{ return m_padOpacity; }
 inline bool HostVideo::isSwipeEnabled() const
 { return m_swipeEnabled; }
 inline bool HostVideo::keepApsectRatio() const

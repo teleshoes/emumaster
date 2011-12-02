@@ -17,12 +17,11 @@
 #define HOSTINPUT_H
 
 class IMachine;
-class JoystickDevice;
-class SixAxis;
-#include <QAccelerometer>
+class TouchInputDevice;
+class AccelInputDevice;
+class SixAxisInputDevice;
 #include <QObject>
-
-QTM_USE_NAMESPACE
+class QPainter;
 
 class HostInput : public QObject {
     Q_OBJECT
@@ -30,27 +29,35 @@ public:
 	explicit HostInput(IMachine *machine);
 	~HostInput();
 
-	bool isAccelerometerEnabled() const;
-	void setAccelerometerEnabled(bool on);
+	qreal padOpacity() const;
+	void setPadOpacity(qreal opacity);
+
+	QList<QObject *> devices() const;
+
+	void update();
+
+	void paint(QPainter &painter);
 signals:
-	void pauseClicked();
-	void wantClose();
+	void pause();
+	void quit();
+	void devicesChanged();
 protected:
 	bool eventFilter(QObject *o, QEvent *e);
 private slots:
-	void accelerometerUpdated();
-	void sixAxisUpdated();
-	void sixAxisDetected();
+	void onSixAxisDetected();
+	void onSixAxisDestroyed();
 private:
 	void processKey(Qt::Key key, bool state);
 	void processTouch(QEvent *e);
-	void setKeyState(int key, bool state);
 
 	IMachine *m_machine;
-	int m_keysPhone;
-	QAccelerometer *m_accelerometer;
-	SixAxis *m_sixAxis;
-	JoystickDevice *m_joy;
+	TouchInputDevice *m_touchInputDevice;
+	AccelInputDevice *m_accelInputDevice;
+	QList<SixAxisInputDevice *> m_sixAxisInputDevices;
+	qreal m_padOpacity;
 };
+
+inline qreal HostInput::padOpacity() const
+{ return m_padOpacity; }
 
 #endif // HOSTINPUT_H

@@ -24,7 +24,7 @@ public:
 	SettingsView();
 	void setMyVisible(bool visible);
 signals:
-	void wantClose();
+	void quit();
 protected:
 	void closeEvent(QCloseEvent *e);
 };

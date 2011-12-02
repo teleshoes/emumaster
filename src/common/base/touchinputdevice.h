@@ -13,23 +13,36 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "settingsview.h"
-#include <QCloseEvent>
+#ifndef TOUCHINPUTDEVICE_H
+#define TOUCHINPUTDEVICE_H
 
-SettingsView::SettingsView() {
-	setAttribute(Qt::WA_QuitOnClose, false);
-}
+#include "hostinputdevice.h"
+#include <QPoint>
+class QPainter;
 
-void SettingsView::closeEvent(QCloseEvent *e) {
-	e->ignore();
-	emit quit();
-}
+class TouchInputDevice : public HostInputDevice {
+    Q_OBJECT
+public:
+    explicit TouchInputDevice(QObject *parent = 0);
+	void update(int *data);
+	void processTouch(QEvent *e);
+	void paint(QPainter &painter, qreal opacity);
+private slots:
+	void onConfChanged();
+private:
+	static const int MaxPoints = 4;
 
-void SettingsView::setMyVisible(bool visible) {
-	if (visible) {
-		showFullScreen();
-		setFocus();
-	} else {
-		setVisible(false);
-	}
-}
+	void convertPad();
+	void convertMouse();
+	int buttonsInCircle(int x, int y) const;
+
+	int m_numPoints;
+	QPoint m_points[MaxPoints];
+
+	int m_converted;
+	int m_buttons;
+	int m_mouseX;
+	int m_mouseY;
+};
+
+#endif // TOUCHINPUTDEVICE_H

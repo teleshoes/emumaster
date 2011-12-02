@@ -34,29 +34,10 @@ typedef quint32 u32;
 typedef qint64 s64;
 typedef quint64 u64;
 
-// TODO consolide init with setDisk
-
 class BASE_EXPORT IMachine : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(QString name READ name CONSTANT)
 public:
-	enum PadKey {
-		Left_PadKey		= (1 <<  0),
-		Right_PadKey	= (1 <<  1),
-		Up_PadKey		= (1 <<  2),
-		Down_PadKey		= (1 <<  3),
-		A_PadKey		= (1 <<  4),
-		B_PadKey		= (1 <<  5),
-		X_PadKey		= (1 <<  6),
-		Y_PadKey		= (1 <<  7),
-		L_PadKey		= (1 <<  8),
-		R_PadKey		= (1 <<  9),
-		L2_PadKey		= (1 <<  8),
-		R2_PadKey		= (1 <<  9),
-		Start_PadKey	= (1 << 10),
-		Select_PadKey	= (1 << 11)
-	};
-
 	explicit IMachine(const QString &name, QObject *parent = 0);
 	~IMachine();
 	QString name() const;
@@ -85,7 +66,6 @@ protected:
 	void setVideoSrcRect(const QRectF &rect);
 
 	virtual void setAudioEnabled(bool on);
-	virtual void setAudioSampleRate(int sampleRate);
 private:
 	bool saveInternal(QDataStream *stream);
 	bool loadInternal(QDataStream *stream);
@@ -94,8 +74,10 @@ private:
 	qreal m_frameRate;
 	QRectF m_videoSrcRect;
 	Configuration *m_conf;
+	int m_inputData[8*4];
 
 	friend class MachineView;
+	friend class HostInput;
 };
 
 inline QString IMachine::name() const

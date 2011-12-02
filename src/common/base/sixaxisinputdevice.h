@@ -13,23 +13,32 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "settingsview.h"
-#include <QCloseEvent>
+#ifndef SIXAXISINPUTDEVICE_H
+#define SIXAXISINPUTDEVICE_H
 
-SettingsView::SettingsView() {
-	setAttribute(Qt::WA_QuitOnClose, false);
-}
+class SixAxis;
+#include "hostinputdevice.h"
 
-void SettingsView::closeEvent(QCloseEvent *e) {
-	e->ignore();
-	emit quit();
-}
+class SixAxisInputDevice : public HostInputDevice {
+    Q_OBJECT
+public:
+	explicit SixAxisInputDevice(SixAxis *sixAxis, QObject *parent = 0);
+	void update(int *data);
+private slots:
+	void onSixAxisUpdated();
+	void onConfChanged();
+private:
+	void convertPad();
+	void convertMouse();
 
-void SettingsView::setMyVisible(bool visible) {
-	if (visible) {
-		showFullScreen();
-		setFocus();
-	} else {
-		setVisible(false);
-	}
-}
+	SixAxis *m_sixAxis;
+	int m_buttons;
+	int m_mouseX;
+	int m_mouseY;
+	int m_mouseButtons;
+	bool m_converted;
+
+	static const int m_buttonsMapping[];
+};
+
+#endif // SIXAXISINPUTDEVICE_H

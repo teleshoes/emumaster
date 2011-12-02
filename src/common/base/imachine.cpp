@@ -46,8 +46,6 @@ void IMachine::setVideoSrcRect(const QRectF &rect) {
 
 void IMachine::setAudioEnabled(bool on)
 { Q_UNUSED(on) }
-void IMachine::setAudioSampleRate(int sampleRate)
-{ Q_UNUSED(sampleRate) }
 
 void EMSL::varNotExist(const QString &name)
 { error = QObject::tr("\"%1\" not exist").arg(name); }

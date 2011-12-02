@@ -13,23 +13,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "settingsview.h"
-#include <QCloseEvent>
+#ifndef CRC32_H
+#define CRC32_H
 
-SettingsView::SettingsView() {
-	setAttribute(Qt::WA_QuitOnClose, false);
-}
+#include <QtGlobal>
 
-void SettingsView::closeEvent(QCloseEvent *e) {
-	e->ignore();
-	emit quit();
-}
+#if defined(CRC32_PROJECT)
+# define CRC32_EXPORT Q_DECL_EXPORT
+#else
+# define CRC32_EXPORT Q_DECL_IMPORT
+#endif
 
-void SettingsView::setMyVisible(bool visible) {
-	if (visible) {
-		showFullScreen();
-		setFocus();
-	} else {
-		setVisible(false);
-	}
-}
+Q_DECL_EXPORT quint32 qChecksum32(const char *data, uint len);
+
+#endif // CRC32_H

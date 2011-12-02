@@ -17,6 +17,7 @@
 #include "imachine.h"
 #include "machinethread.h"
 #include "pathmanager.h"
+#include "hostinput.h"
 #include <QPainter>
 #include <QKeyEvent>
 
@@ -26,7 +27,8 @@
 #include <X11/Xlib.h>
 #endif
 
-HostVideo::HostVideo(IMachine *machine, MachineThread *thread) :
+HostVideo::HostVideo(HostInput *hostInput, IMachine *machine, MachineThread *thread) :
+	m_hostInput(hostInput),
 	m_machine(machine),
 	m_thread(thread) {
 
@@ -41,15 +43,6 @@ HostVideo::HostVideo(IMachine *machine, MachineThread *thread) :
 	m_fpsCount = 0;
 	m_fpsCounter = 0;
 	m_fpsCounterTime.start();
-
-	m_padOpacity = 0.45f;
-	QString dirPath = QString("%1/data").arg(PathManager::instance()->installationDirPath());
-
-	m_padLeftImage.load(dirPath + "/pad-left.png");
-	if (machine->name() == "psx")
-		m_padRightImage.load(dirPath + "/pad-right-psx.png");
-	else
-		m_padRightImage.load(dirPath + "/pad-right-abxy.png");
 
 	m_swipeEnabled = true;
 	m_keepAspectRatio = false;
@@ -72,12 +65,9 @@ void HostVideo::paintEvent(QPaintEvent *) {
 		if (m_fpsVisible)
 			paintFps(painter);
 	}
-	if (m_padOpacity != 0.0f) {
-		painter.setOpacity(m_padOpacity);
-		painter.drawImage(QPoint(), m_padLeftImage);
-		painter.drawImage(QPoint(854-240, 0), m_padRightImage);
-	}
+	m_hostInput->paint(painter);
 	painter.end();
+	m_hostInput->update();
 }
 
 void HostVideo::paintFps(QPainter &painter) {
@@ -98,10 +88,6 @@ void HostVideo::paintFps(QPainter &painter) {
 
 void HostVideo::setFpsVisible(bool on) {
 	m_fpsVisible = on;
-}
-
-void HostVideo::setPadOpacity(qreal opacity) {
-	m_padOpacity = opacity;
 }
 
 void HostVideo::setSwipeEnabled(bool on) {
@@ -144,7 +130,7 @@ void HostVideo::setMyVisible(bool visible) {
 
 void HostVideo::closeEvent(QCloseEvent *e) {
 	e->ignore();
-	emit wantClose();
+	emit quit();
 }
 
 void HostVideo::changeEvent(QEvent *e) {
@@ -156,13 +142,8 @@ void HostVideo::changeEvent(QEvent *e) {
 void HostVideo::updateRects() {
 	m_srcRect = m_machine->videoSrcRect();
 	Q_ASSERT_X(m_srcRect.width() != 0.0f && m_srcRect.height() != 0.0f, "HostVideo", "Define source rect!");
-#if defined(MEEGO_EDITION_HARMATTAN)
-		qreal ww = width();
-		qreal wh = height();
-#elif defined(Q_WS_MAEMO_5)
-		qreal ww = 800.0f;
-		qreal wh = 480.0f;
-#endif
+	qreal ww = Width;
+	qreal wh = Height;
 	if (m_keepAspectRatio) {
 		qreal scale = qMin(ww/m_srcRect.width(), wh/m_srcRect.height());
 		qreal w = m_srcRect.width() * scale;

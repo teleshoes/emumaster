@@ -18,7 +18,13 @@ HEADERS += \
     pathmanager.h \
     statelistmodel.h \
 	stateimageprovider.h \
-    configuration.h
+    configuration.h \
+    hostinputdevice.h \
+    accelinputdevice.h \
+    touchinputdevice.h \
+    sixaxisinputdevice.h \
+    keybinputdevice.h \
+    crc32.h
 
 SOURCES += \
     machineview.cpp \
@@ -31,7 +37,13 @@ SOURCES += \
     pathmanager.cpp \
     statelistmodel.cpp \
 	stateimageprovider.cpp \
-    configuration.cpp
+    configuration.cpp \
+    hostinputdevice.cpp \
+    accelinputdevice.cpp \
+    touchinputdevice.cpp \
+    sixaxisinputdevice.cpp \
+    keybinputdevice.cpp \
+    crc32.cpp
 
 unix {
 	qml.path = /opt/emumaster/qml/base
@@ -62,6 +74,18 @@ unix {
 	qmlimg.files = ../../../qml/img/*
 	INSTALLS += qml qmlimg pad
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

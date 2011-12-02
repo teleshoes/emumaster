@@ -55,6 +55,7 @@ public:
 	void setPadOpacity(qreal opacity);
 	bool keepAspectRatio() const;
 	void setKeepAspectRatio(bool on);
+	QList<QObject *> inputDevices() const;
 
 	Q_INVOKABLE void saveScreenShot();
 
@@ -67,10 +68,10 @@ signals:
 	void fpsVisibleChanged();
 	void frameSkipChanged();
 	void audioEnableChanged();
-	void swipeEnableChanged();
 	void padOpacityChanged();
 	void keepAspectRatioChanged();
 	void faultOccured(QString faultStr);
+	void inputDevicesChanged();
 private slots:
 	void pauseStage2();
 	void onFrameGenerated(bool videoOn);
@@ -101,7 +102,7 @@ private:
 
 	bool m_running;
 	int m_backgroundCounter;
-	bool m_wantClose;
+	bool m_quit;
 	bool m_pauseRequested;
 	int m_closeTries;
 

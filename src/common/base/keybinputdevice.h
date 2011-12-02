@@ -13,23 +13,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "settingsview.h"
-#include <QCloseEvent>
+#ifndef KEYBINPUTDEVICE_H
+#define KEYBINPUTDEVICE_H
 
-SettingsView::SettingsView() {
-	setAttribute(Qt::WA_QuitOnClose, false);
-}
+#include "hostinputdevice.h"
 
-void SettingsView::closeEvent(QCloseEvent *e) {
-	e->ignore();
-	emit quit();
-}
+class KeybInputDevice : public HostInputDevice {
+    Q_OBJECT
+public:
+    explicit KeybInputDevice(QObject *parent = 0);
+};
 
-void SettingsView::setMyVisible(bool visible) {
-	if (visible) {
-		showFullScreen();
-		setFocus();
-	} else {
-		setVisible(false);
-	}
-}
+#endif // KEYBINPUTDEVICE_H
