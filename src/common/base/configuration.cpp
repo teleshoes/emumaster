@@ -17,6 +17,7 @@
 #include <QCoreApplication>
 
 // TODO when configuration mismatch on load - show info as bubble
+// TODO hard config
 
 Configuration::Configuration(QObject *parent) :
 	QObject(parent) {
@@ -26,6 +27,7 @@ void Configuration::setItem(const QString &name, const QVariant &value) {
 }
 
 QVariant Configuration::item(const QString &name, const QVariant &defaultValue) {
+	return defaultValue;
 }
 
 void Configuration::sl() {

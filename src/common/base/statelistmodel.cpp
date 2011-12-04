@@ -144,3 +144,7 @@ int StateListModel::indexOfSlot(int slot) const {
 	}
 	return -1;
 }
+
+bool StateListModel::exists(int slot) const {
+	return m_dir.exists(QString::number(slot));
+}

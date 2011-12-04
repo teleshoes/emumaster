@@ -20,7 +20,6 @@ import com.nokia.meego 1.0
 PageStackWindow {
 	id: appWindow
 	showStatusBar: false
-	initialPage: settingsPage
 
 	style: PageStackWindowStyle {
 		id: customStyle
@@ -28,7 +27,7 @@ PageStackWindow {
 		backgroundFillMode: Image.Stretch
 	}
 
-	Page {
+	initialPage: Page {
 		Timer {
 			interval: 1
 			repeat: false
@@ -41,6 +40,8 @@ PageStackWindow {
 			id: errorDialog
 			titleText: qsTr("Error")
 			message: machineView.error + qsTr("\n Application is going to shutdown :(")
+			rejectButtonText: tr("Exit")
+			onRejected: Qt.quit()
 		}
 	}
 

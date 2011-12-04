@@ -1,5 +1,4 @@
 include(../machine.pri)
-LIBS += -lcrc32
 QT += opengl declarative
 
 HEADERS += \

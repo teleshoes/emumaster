@@ -18,6 +18,7 @@
 
 #include "hostinputdevice.h"
 #include <QPoint>
+#include <QImage>
 class QPainter;
 
 class TouchInputDevice : public HostInputDevice {
@@ -26,15 +27,19 @@ public:
     explicit TouchInputDevice(QObject *parent = 0);
 	void update(int *data);
 	void processTouch(QEvent *e);
-	void paint(QPainter &painter, qreal opacity);
+	void paint(QPainter &painter);
 private slots:
 	void onConfChanged();
 private:
 	static const int MaxPoints = 4;
+	static const int CircleSize = 240;
+	static const int ButtonWidth = 80;
+	static const int ButtonHeight = 64;
 
 	void convertPad();
 	void convertMouse();
 	int buttonsInCircle(int x, int y) const;
+	void paintCircle(QPainter &painter, int buttons);
 
 	int m_numPoints;
 	QPoint m_points[MaxPoints];
@@ -43,6 +48,8 @@ private:
 	int m_buttons;
 	int m_mouseX;
 	int m_mouseY;
+
+	QImage m_padImage;
 };
 
 #endif // TOUCHINPUTDEVICE_H

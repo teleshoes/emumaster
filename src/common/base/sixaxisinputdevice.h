@@ -24,6 +24,8 @@ class SixAxisInputDevice : public HostInputDevice {
 public:
 	explicit SixAxisInputDevice(SixAxis *sixAxis, QObject *parent = 0);
 	void update(int *data);
+signals:
+	void pause();
 private slots:
 	void onSixAxisUpdated();
 	void onConfChanged();

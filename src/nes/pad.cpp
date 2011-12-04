@@ -27,19 +27,20 @@ static u8 padAReg;
 static u8 padBReg;
 
 static const int keyMapping[8] = {
-	IMachine::A_PadKey,
-	IMachine::B_PadKey,
-	IMachine::Select_PadKey,
-	IMachine::Start_PadKey,
-	IMachine::Up_PadKey,
-	IMachine::Down_PadKey,
-	IMachine::Left_PadKey,
-	IMachine::Right_PadKey
+	IMachine::PadKey_A,
+	IMachine::PadKey_B,
+	IMachine::PadKey_Select,
+	IMachine::PadKey_Start,
+	IMachine::PadKey_Up,
+	IMachine::PadKey_Down,
+	IMachine::PadKey_Left,
+	IMachine::PadKey_Right
 };
 
 void NesMachine::setPadKeys(int pad, int keys) {
 	if (pad > 1)
 		return;
+
 	int nesKeys = 0;
 	for (int i = 0; i < 8; i++) {
 		if (keys & keyMapping[i])

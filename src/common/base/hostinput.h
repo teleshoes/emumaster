@@ -47,7 +47,6 @@ private slots:
 	void onSixAxisDetected();
 	void onSixAxisDestroyed();
 private:
-	void processKey(Qt::Key key, bool state);
 	void processTouch(QEvent *e);
 
 	IMachine *m_machine;

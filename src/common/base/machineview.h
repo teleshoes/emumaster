@@ -40,6 +40,7 @@ class BASE_EXPORT MachineView : public QObject {
 public:
 	explicit MachineView(IMachine *machine, const QString &diskFileName);
 	~MachineView();
+	QDeclarativeView *settingsView() const;
 
 	IMachine *machine() const;
 

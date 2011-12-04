@@ -42,6 +42,8 @@ public:
 	QVariant data(const QModelIndex &index, int role) const;
 	QImage screenShot(int slot) const;
 
+	bool exists(int slot) const;
+
 	Q_INVOKABLE QString indexToSlot(int i) const;
 	Q_INVOKABLE bool saveState(int slot);
 	Q_INVOKABLE bool loadState(int slot);

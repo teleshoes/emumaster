@@ -66,9 +66,7 @@ unix {
 
 	pad.path = /opt/emumaster/data
 	pad.files = \
-		../../../data/pad-left.png \
-		../../../data/pad-right-abxy.png \
-		../../../data/pad-right-psx.png
+		../../../data/pad.png
 
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = ../../../qml/img/*

@@ -328,6 +328,10 @@ int MachineView::determineLoadState(const QStringList &args) {
 		if (!stateArg.isEmpty())
 			state = stateArg.toInt();
 	}
+	if (state == StateListModel::AutoSaveLoadSlot) {
+		if (!m_stateListModel->exists(StateListModel::AutoSaveLoadSlot))
+			state = StateListModel::InvalidSlot;
+	}
 	return state;
 }
 
@@ -372,9 +376,9 @@ void MachineView::onSlFailed() {
 QString MachineView::constructSlErrorString() const {
 	QString result;
 	if (emsl.save)
-		result = tr("Save failed: ");
+		result = tr("Saving state failed: ");
 	else
-		result = tr("Load failed: ");
+		result = tr("Loading state failed: ");
 	result += emsl.error;
 	return result;
 }
@@ -389,4 +393,8 @@ void MachineView::fatalError(const QString &errorStr) {
 
 QList<QObject *> MachineView::inputDevices() const {
 	return m_hostInput->devices();
+}
+
+QDeclarativeView *MachineView::settingsView() const {
+	return m_settingsView;
 }

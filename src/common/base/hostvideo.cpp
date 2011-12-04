@@ -32,7 +32,7 @@ HostVideo::HostVideo(HostInput *hostInput, IMachine *machine, MachineThread *thr
 	m_machine(machine),
 	m_thread(thread) {
 
-	QObject::connect(machine, SIGNAL(videoSrcRectChanged()), SLOT(updateRects()));
+	QObject::connect(m_machine, SIGNAL(videoSrcRectChanged()), SLOT(updateRects()));
 
 	setAttribute(Qt::WA_NoSystemBackground);
 	setAttribute(Qt::WA_AcceptTouchEvents);
@@ -158,5 +158,6 @@ void HostVideo::updateRects() {
 
 void HostVideo::setKeepAspectRatio(bool on) {
 	m_keepAspectRatio = on;
-	updateRects();
+	if (m_srcRect.width() != 0.0f)
+		updateRects();
 }

@@ -1,5 +1,8 @@
 emumaster (0.0.3) unstable; urgency=low
 
+  * new look of the pad
+  * created icons in home screen are removable now
+  * configurable input devices
   * save/load error handling
   * global/local settings introduced
   * added search field

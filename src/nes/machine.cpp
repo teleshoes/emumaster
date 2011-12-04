@@ -46,7 +46,7 @@ NesMachine::NesMachine() :
 	IMachine("nes") {
 }
 
-QString NesMachine::init() {
+QString NesMachine::init(const QString &diskPath) {
 	qmlRegisterType<GameGenieCodeListModel>();
 	setVideoSrcRect(QRectF(8.0f, 1.0f, NesPpu::VisibleScreenWidth, NesPpu::VisibleScreenHeight));
 	nesCpu.init();
@@ -54,7 +54,7 @@ QString NesMachine::init() {
 	nesPad.init();
 	nesPpu.init();
 	qmlRegisterType<NesPpu>();
-	return QString();
+	return setDisk(diskPath);
 }
 
 void NesMachine::shutdown() {
@@ -73,11 +73,14 @@ void NesMachine::reset() {
 
 QString NesMachine::setDisk(const QString &path) {
 	if (!nesDisk.load(path))
-		return "Could not load ROM file";
+		return tr("Could not load ROM file");
 
 	nesMapper = NesMapper::create(nesMapperType);
 	if (!nesMapper)
-		return QString("Mapper %1 is not supported").arg(nesMapperType);
+		return tr("Mapper %1 is not supported").arg(nesMapperType);
+
+	if (path.contains("(E)"))
+		nesSystemType = NES_PAL;
 
 	QString diskInfo = QString("Disk Info: Mapper %1(%2), CRC: %3, %4 System\n")
 			.arg(nesMapper->name())
@@ -122,6 +125,9 @@ const QImage &NesMachine::frame() const
 { return nesPpuFrame; }
 
 void NesMachine::emulateFrame(bool drawEnabled) {
+	setPadKeys(0, *padOffset(m_inputData, 0));
+	setPadKeys(1, *padOffset(m_inputData, 1));
+
 	bZapper = false;
 	if (nesPpu.renderMethod() == NesPpu::TileRender)
 		emulateFrameTile(drawEnabled);

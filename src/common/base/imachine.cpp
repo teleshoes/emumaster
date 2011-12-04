@@ -147,7 +147,7 @@ bool IMachine::loadState(const QString &diskPath) {
 
 	QFile file(diskPath);
 	if (!file.open(QIODevice::ReadOnly)) {
-		emsl.error = tr("Could not open file for writing.");
+		emsl.error = tr("Could not open file.");
 		return false;
 	}
 

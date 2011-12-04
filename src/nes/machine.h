@@ -39,7 +39,7 @@ class NesMachine : public IMachine {
 	Q_PROPERTY(NesPpu *ppu READ ppu CONSTANT)
 public:
 	NesMachine();
-	QString init();
+	QString init(const QString &diskPath);
 	void shutdown();
 	void reset();
 
@@ -51,8 +51,6 @@ public:
 	const QImage &frame() const;
 	void emulateFrame(bool drawEnabled);
 	int fillAudioBuffer(char *stream, int streamSize);
-	void setPadKeys(int pad, int keys);
-
 protected:
 	void sl();
 private:
@@ -63,6 +61,7 @@ private:
 	void emulateVisibleScanlineTile();
 
 	void updateZapper();
+	void setPadKeys(int pad, int keys);
 };
 
 extern NesMachine nesMachine;

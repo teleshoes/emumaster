@@ -1,3 +1,18 @@
+/*
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 #ifndef HOSTINPUTDEVICE_H
 #define HOSTINPUTDEVICE_H
 
@@ -10,30 +25,6 @@ class HostInputDevice : public QObject {
 	Q_PROPERTY(QString conf READ conf WRITE setConf NOTIFY confChanged)
 	Q_PROPERTY(QStringList confList READ confList CONSTANT)
 public:
-	// TODO rename keys
-	enum PadKey {
-		Right_PadKey	= (1 <<  0),
-		Down_PadKey		= (1 <<  1),
-		Up_PadKey		= (1 <<  2),
-		Left_PadKey		= (1 <<  3),
-
-		A_PadKey		= (1 <<  4),
-		B_PadKey		= (1 <<  5),
-		X_PadKey		= (1 <<  6),
-		Y_PadKey		= (1 <<  7),
-
-		L_PadKey		= (1 <<  8),
-		R_PadKey		= (1 <<  9),
-		L2_PadKey		= (1 <<  8),
-		R2_PadKey		= (1 <<  9),
-
-		Start_PadKey	= (1 << 10),
-		Select_PadKey	= (1 << 11)
-	};
-
-	static int *padOffset(int *data, int pad);
-	static int *mouseOffset(int *data, int mouse);
-
 	explicit HostInputDevice(const QString &name, QObject *parent = 0);
 	QString name() const;
 
@@ -57,10 +48,7 @@ inline QString HostInputDevice::name() const
 { return m_name; }
 inline QStringList HostInputDevice::confList() const
 { return m_confList; }
-
-inline int *HostInputDevice::padOffset(int *data, int pad)
-{ Q_ASSERT(pad >= 0 && pad < 2); return &data[pad*4]; }
-inline int *HostInputDevice::mouseOffset(int *data, int mouse)
-{ Q_ASSERT(mouse >= 0 && mouse < 2); return &data[(mouse+2)*4]; }
+inline int HostInputDevice::confIndex() const
+{ return m_confIndex; }
 
 #endif // HOSTINPUTDEVICE_H

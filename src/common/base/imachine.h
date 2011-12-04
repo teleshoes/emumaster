@@ -38,6 +38,29 @@ class BASE_EXPORT IMachine : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(QString name READ name CONSTANT)
 public:
+	enum PadKey {
+		PadKey_Right	= (1 <<  0),
+		PadKey_Down		= (1 <<  1),
+		PadKey_Up		= (1 <<  2),
+		PadKey_Left		= (1 <<  3),
+
+		PadKey_A		= (1 <<  4),
+		PadKey_B		= (1 <<  5),
+		PadKey_X		= (1 <<  6),
+		PadKey_Y		= (1 <<  7),
+
+		PadKey_L1		= (1 <<  8),
+		PadKey_R1		= (1 <<  9),
+		PadKey_L2		= (1 <<  8),
+		PadKey_R2		= (1 <<  9),
+
+		PadKey_Start	= (1 << 10),
+		PadKey_Select	= (1 << 11)
+	};
+
+	static int *padOffset(int *data, int pad);
+	static int *mouseOffset(int *data, int mouse);
+
 	explicit IMachine(const QString &name, QObject *parent = 0);
 	~IMachine();
 	QString name() const;
@@ -54,7 +77,6 @@ public:
 	virtual void emulateFrame(bool drawEnabled) = 0;
 	virtual const QImage &frame() const = 0;
 	virtual int fillAudioBuffer(char *stream, int streamSize) = 0;
-	virtual void setPadKeys(int pad, int keys) = 0;
 
 	bool saveState(const QString &diskPath);
 	bool loadState(const QString &diskPath);
@@ -66,6 +88,8 @@ protected:
 	void setVideoSrcRect(const QRectF &rect);
 
 	virtual void setAudioEnabled(bool on);
+
+	int m_inputData[8*4];
 private:
 	bool saveInternal(QDataStream *stream);
 	bool loadInternal(QDataStream *stream);
@@ -74,7 +98,6 @@ private:
 	qreal m_frameRate;
 	QRectF m_videoSrcRect;
 	Configuration *m_conf;
-	int m_inputData[8*4];
 
 	friend class MachineView;
 	friend class HostInput;
@@ -88,6 +111,11 @@ inline qreal IMachine::frameRate() const
 { return m_frameRate; }
 inline QRectF IMachine::videoSrcRect() const
 { return m_videoSrcRect; }
+
+inline int *IMachine::padOffset(int *data, int pad)
+{ Q_ASSERT(pad >= 0 && pad < 2); return &data[pad*4]; }
+inline int *IMachine::mouseOffset(int *data, int mouse)
+{ Q_ASSERT(mouse >= 0 && mouse < 2); return &data[(mouse+2)*4]; }
 
 // emumaster save/load functionality
 

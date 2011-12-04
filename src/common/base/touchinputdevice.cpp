@@ -15,11 +15,14 @@
 
 #include "touchinputdevice.h"
 #include "hostvideo.h"
+#include "pathmanager.h"
+#include "imachine.h"
 #include <QTouchEvent>
 #include <QPainter>
 
 TouchInputDevice::TouchInputDevice(QObject *parent) :
 	HostInputDevice("touch", parent) {
+	m_numPoints = 0;
 
 	QStringList confList;
 	confList << tr("None");
@@ -28,8 +31,13 @@ TouchInputDevice::TouchInputDevice(QObject *parent) :
 	confList << tr("Mouse A");
 	confList << tr("Mouse B");
 	setConfList(confList);
+#if defined(MEEGO_EDITION_HARMATTAN)
+	setConf(tr("Pad A"));
+#endif
 
 	QObject::connect(this, SIGNAL(confChanged()), SLOT(onConfChanged()));
+
+	m_padImage.load(PathManager::instance()->installationDirPath()+"/data/pad.png");
 }
 
 void TouchInputDevice::processTouch(QEvent *e) {
@@ -68,14 +76,14 @@ void TouchInputDevice::update(int *data) {
 			convertPad();
 			m_converted = true;
 		}
-		int *pad = padOffset(data, confIndex()-1);
+		int *pad = IMachine::padOffset(data, confIndex()-1);
 		*pad |= m_buttons;
 	} else if (confIndex() <= 4) {
 		if (!m_converted) {
 			convertMouse();
 			m_converted = true;
 		}
-		int *mouse = mouseOffset(data, confIndex()-3);
+		int *mouse = IMachine::mouseOffset(data, confIndex()-3);
 		mouse[0] = m_buttons;
 		mouse[1] = m_mouseX;
 		mouse[2] = m_mouseY;
@@ -88,16 +96,33 @@ void TouchInputDevice::convertPad() {
 	for (int i = 0; i < m_numPoints; i++) {
 		int x = m_points[i].x();
 		int y = m_points[i].y();
-		if (y >= HostVideo::Height-240) {
-			y -= HostVideo::Height-240;
-			if (x < 240) {
+		if (y >= HostVideo::Height-CircleSize) {
+			y -= HostVideo::Height-CircleSize;
+			if (x < CircleSize) {
+				// directions
 				m_buttons |= buttonsInCircle(x, y);
-			} else if (x >= HostVideo::Width-240) {
-				x -= HostVideo::Width-240;
+			} else if (x >= HostVideo::Width-CircleSize) {
+				// a,b,x,y
+				x -= HostVideo::Width-CircleSize;
 				m_buttons |= buttonsInCircle(x, y) << 4;
+			} else if (x >= HostVideo::Width/2-ButtonWidth &&
+					   x < HostVideo::Width/2+ButtonWidth) {
+				// select, start
+				if (y >= CircleSize/2-ButtonHeight/2 &&
+						y < CircleSize/2+ButtonHeight/2) {
+					if (x < HostVideo::Width/2)
+						m_buttons |= IMachine::PadKey_Select;
+					else
+						m_buttons |= IMachine::PadKey_Start;
+				}
 			}
+		} else if (y >= 120 && y < 120+ButtonHeight) {
+			// l1,r1
+			if (x < ButtonWidth)
+				m_buttons |= IMachine::PadKey_L1;
+			else if (x >= HostVideo::Width-ButtonWidth)
+				m_buttons |= IMachine::PadKey_R1;
 		}
-		//TODO select,start,l1,r1,l2,r2
 	}
 }
 
@@ -108,13 +133,13 @@ void TouchInputDevice::convertMouse() {
 	for (int i = 0; i < m_numPoints; i++) {
 		int x = m_points[i].x();
 		int y = m_points[i].y();
-		if (y >= HostVideo::Height-240) {
-			y -= HostVideo::Height-240;
-			if (x < 240) {
-				m_mouseX = x - 120;
-				m_mouseY = y - 120;
-			} else if (x >= HostVideo::Width-240) {
-				x -= HostVideo::Width-240;
+		if (y >= HostVideo::Height-CircleSize) {
+			y -= HostVideo::Height-CircleSize;
+			if (x < CircleSize) {
+				m_mouseX = x - CircleSize/2;
+				m_mouseY = y - CircleSize/2;
+			} else if (x >= HostVideo::Width-CircleSize) {
+				x -= HostVideo::Width-CircleSize;
 				m_buttons |= buttonsInCircle(x, y);
 			}
 		}
@@ -123,45 +148,78 @@ void TouchInputDevice::convertMouse() {
 
 int TouchInputDevice::buttonsInCircle(int x, int y) const {
 	int buttons = 0;
-	if (x < 60) {
-		buttons |= Left_PadKey;
-		if (y < 60)
-			buttons |= Up_PadKey;
-		else if (y >= 180)
-			buttons |= Down_PadKey;
-	} else if (x >= 180) {
-		buttons |= Right_PadKey;
-		if (y < 60)
-			buttons |= Up_PadKey;
-		else if (y >= 180)
-			buttons |= Down_PadKey;
+	if (x < CircleSize/4) {
+		buttons |= IMachine::PadKey_Left;
+		if (y < CircleSize/4)
+			buttons |= IMachine::PadKey_Up;
+		else if (y >= CircleSize/4*3)
+			buttons |= IMachine::PadKey_Down;
+	} else if (x >= CircleSize/4*3) {
+		buttons |= IMachine::PadKey_Right;
+		if (y < CircleSize/4)
+			buttons |= IMachine::PadKey_Up;
+		else if (y >= CircleSize/4*3)
+			buttons |= IMachine::PadKey_Down;
 	} else {
-		if (y < 60) {
-			buttons |= Up_PadKey;
-		} else if (y >= 180) {
-			buttons |= Down_PadKey;
+		if (y < CircleSize/4) {
+			buttons |= IMachine::PadKey_Up;
+		} else if (y >= CircleSize/4*3) {
+			buttons |= IMachine::PadKey_Down;
 		} else {
-			x -= 120;
-			y -= 120;
+			x -= CircleSize/2;
+			y -= CircleSize/2;
 			if (qAbs(x) > qAbs(y)) {
 				if (x > 0)
-					buttons |= Right_PadKey;
+					buttons |= IMachine::PadKey_Right;
 				else
-					buttons |= Left_PadKey;
+					buttons |= IMachine::PadKey_Left;
 			} else {
 				if (y > 0)
-					buttons |= Down_PadKey;
+					buttons |= IMachine::PadKey_Down;
 				else
-					buttons |= Up_PadKey;
+					buttons |= IMachine::PadKey_Up;
 			}
 		}
 	}
 	return buttons;
 }
 
-void TouchInputDevice::paint(QPainter &painter, qreal opacity) {
+void TouchInputDevice::paint(QPainter &painter) {
+	// pause,exit
+	painter.drawImage(0, 0, m_padImage,
+					  256, 128+64, ButtonWidth, ButtonHeight);
+	painter.drawImage(HostVideo::Width-ButtonWidth, 0, m_padImage,
+					  256+80, 128+64, ButtonWidth, ButtonHeight);
+
 	if (confIndex() <= 0)
 		return;
-	// TODO
-//	painter->setOpacity(opacity);
+
+	// l1,r1
+	painter.drawImage(0, 120, m_padImage,
+					  256, 256, ButtonWidth, ButtonHeight);
+	painter.drawImage(HostVideo::Width-ButtonWidth, 120, m_padImage,
+					  256+80, 256, ButtonWidth, ButtonHeight);
+
+	// select, start
+	painter.drawImage(HostVideo::Width/2-ButtonWidth,
+					  HostVideo::Height-CircleSize/2-ButtonHeight/2,
+					  m_padImage,
+					  256, 128, ButtonWidth*2, ButtonHeight);
+
+	// left and right circle
+	painter.translate(0, HostVideo::Height-CircleSize);
+	paintCircle(painter, (m_buttons >> 0) & 0x0F);
+	painter.translate(HostVideo::Width-CircleSize, 0);
+	paintCircle(painter, (m_buttons >> 4) & 0x0F);
+}
+
+void TouchInputDevice::paintCircle(QPainter &painter, int buttons) {
+	painter.drawImage(0, 48, m_padImage,
+					  0, ((buttons & IMachine::PadKey_Left) ? 256 : 0)+48, 64, 240-48*2);
+	painter.drawImage(0, 0, m_padImage,
+					  0, (buttons & IMachine::PadKey_Up) ? 256 : 0, 240, 48);
+	painter.drawImage(240-64, 48, m_padImage,
+					  240-64, ((buttons & IMachine::PadKey_Right) ? 256 : 0)+48, 64, 240-48*2);
+	painter.drawImage(0, 240-48, m_padImage,
+					  0, ((buttons & IMachine::PadKey_Down) ? 256 : 0)+240-48, 240, 48);
 }

@@ -14,6 +14,7 @@
  */
 
 #include "sixaxisinputdevice.h"
+#include "imachine.h"
 #include <sixaxis.h>
 
 SixAxisInputDevice::SixAxisInputDevice(SixAxis *sixAxis, QObject *parent) :
@@ -23,6 +24,8 @@ SixAxisInputDevice::SixAxisInputDevice(SixAxis *sixAxis, QObject *parent) :
 	QObject::connect(m_sixAxis, SIGNAL(onSixAxisUpdated()), SLOT(onSixAxisUpdated()));
 	QObject::connect(m_sixAxis, SIGNAL(disconnected()), SLOT(deleteLater()));
 	QObject::connect(this, SIGNAL(confChanged()), SLOT(onConfChanged()));
+
+	m_sixAxis->setParent(this);
 
 	QStringList confList;
 	confList << tr("None");
@@ -36,22 +39,22 @@ SixAxisInputDevice::SixAxisInputDevice(SixAxis *sixAxis, QObject *parent) :
 }
 
 const int SixAxisInputDevice::m_buttonsMapping[] = {
-	Select_PadKey,
+	IMachine::PadKey_Select,
 	0,
 	0,
-	Start_PadKey,
-	Up_PadKey,
-	Right_PadKey,
-	Down_PadKey,
-	Left_PadKey,
-	L2_PadKey,
-	R2_PadKey,
-	L_PadKey,
-	R_PadKey,
-	X_PadKey,
-	A_PadKey,
-	B_PadKey,
-	Y_PadKey
+	IMachine::PadKey_Start,
+	IMachine::PadKey_Up,
+	IMachine::PadKey_Right,
+	IMachine::PadKey_Down,
+	IMachine::PadKey_Left,
+	IMachine::PadKey_L2,
+	IMachine::PadKey_R2,
+	IMachine::PadKey_L1,
+	IMachine::PadKey_R1,
+	IMachine::PadKey_X,
+	IMachine::PadKey_A,
+	IMachine::PadKey_B,
+	IMachine::PadKey_Y
 };
 
 void SixAxisInputDevice::onConfChanged() {
@@ -81,7 +84,7 @@ void SixAxisInputDevice::convertPad() {
 void SixAxisInputDevice::convertMouse() {
 	m_mouseButtons = 0;
 
-	if (m_sixAxis->buttons() & (1<<SixAxis::L2))
+	if (m_sixAxis->buttons() & (1<<SixAxis::L3))
 		m_mouseButtons |= 1;
 	if (m_sixAxis->buttons() & (1<<SixAxis::R2))
 		m_mouseButtons |= 2;
@@ -119,11 +122,11 @@ void SixAxisInputDevice::update(int *data) {
 	}
 
 	if (pad >= 0) {
-		int *padData = padOffset(data, pad);
+		int *padData = IMachine::padOffset(data, pad);
 		*padData |= m_buttons;
 	}
 	if (mouse >= 0) {
-		int *mouseData = mouseOffset(data, mouse);
+		int *mouseData = IMachine::mouseOffset(data, mouse);
 		mouseData[0] = m_mouseButtons;
 		mouseData[1] = m_mouseX;
 		mouseData[2] = m_mouseY;

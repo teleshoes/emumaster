@@ -44,8 +44,8 @@ bool HostInput::eventFilter(QObject *o, QEvent *e) {
 	if (e->type() == QEvent::KeyPress || e->type() == QKeyEvent::KeyRelease) {
 		bool state = (e->type() == QEvent::KeyPress);
 		QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-		if (!ke->isAutoRepeat())
-			processKey(static_cast<Qt::Key>(ke->key()), state);
+//		TODO if (!ke->isAutoRepeat())
+//			processKey(static_cast<Qt::Key>(ke->key()), state);
 		ke->accept();
 		return true;
 	} else if (e->type() == QEvent::TouchBegin ||
@@ -68,10 +68,10 @@ void HostInput::processTouch(QEvent *e) {
 			continue;
 		int x = point.pos().x();
 		int y = point.pos().y();
-		if (y < 60) {
-			if (x < 60)
+		if (y < 64) {
+			if (x < 80)
 				emit pause();
-			else if (x > HostVideo::Width-60)
+			else if (x > HostVideo::Width-80)
 				emit quit();
 		}
 	}
@@ -84,14 +84,16 @@ void HostInput::onSixAxisDetected() {
 		SixAxis *sixAxis = daemon->nextNewPad();
 		SixAxisInputDevice *sixAxisDev = new SixAxisInputDevice(sixAxis, this);
 		QObject::connect(sixAxisDev, SIGNAL(destroyed()), SLOT(onSixAxisDestroyed()));
+		QObject::connect(sixAxisDev, SIGNAL(pause()), SIGNAL(pause()));
 		m_sixAxisInputDevices.append(sixAxisDev);
 		emit devicesChanged();
 	}
 }
 
 void HostInput::onSixAxisDestroyed() {
-	m_sixAxisInputDevices.removeOne(static_cast<SixAxisInputDevice *>(sender()));
-	emit devicesChanged();
+	SixAxisInputDevice *sixAxisInputDevice = static_cast<SixAxisInputDevice *>(sender());
+	if (m_sixAxisInputDevices.removeOne(sixAxisInputDevice))
+		emit devicesChanged();
 }
 
 void HostInput::setPadOpacity(qreal opacity) {
@@ -99,7 +101,11 @@ void HostInput::setPadOpacity(qreal opacity) {
 }
 
 void HostInput::paint(QPainter &painter) {
-	m_touchInputDevice->paint(painter, m_padOpacity);
+	if (m_padOpacity <= 0.0f)
+		return;
+
+	painter.setOpacity(m_padOpacity);
+	m_touchInputDevice->paint(painter);
 }
 
 QList<QObject *> HostInput::devices() const {
@@ -113,6 +119,7 @@ QList<QObject *> HostInput::devices() const {
 
 void HostInput::update() {
 	int *data = m_machine->m_inputData;
+	qMemSet(data, 0, sizeof(m_machine->m_inputData));
 	m_touchInputDevice->update(data);
 	m_accelInputDevice->update(data);
 	for (int i = 0; i < m_sixAxisInputDevices.size(); i++)

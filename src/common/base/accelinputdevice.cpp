@@ -14,6 +14,7 @@
  */
 
 #include "accelinputdevice.h"
+#include "imachine.h"
 
 // TODO configure possibilty
 
@@ -41,7 +42,7 @@ void AccelInputDevice::onConfChanged() {
 }
 
 void AccelInputDevice::setEnabled(bool on) {
-	if (on && m_accelerometer != 0)
+	if (on == (m_accelerometer != 0))
 		return;
 	if (!on) {
 		delete m_accelerometer;
@@ -69,7 +70,7 @@ void AccelInputDevice::update(int *data) {
 		convert();
 		m_converted = true;
 	}
-	int *pad = padOffset(data, confIndex()-1);
+	int *pad = IMachine::padOffset(data, confIndex()-1);
 	*pad |= m_buttons;
 }
 
@@ -86,12 +87,12 @@ void AccelInputDevice::convert() {
 	qreal level = (9.8f*2.0f/3.0f) * (9.8f*2.0f/3.0f);
 
 	if (up > level)
-		m_buttons |= Up_PadKey;
+		m_buttons |= IMachine::PadKey_Up;
 	else if (up < -level)
-		m_buttons |= Down_PadKey;
+		m_buttons |= IMachine::PadKey_Down;
 
 	if (right > level)
-		m_buttons |= Left_PadKey;
+		m_buttons |= IMachine::PadKey_Left;
 	else if (right < -level)
-		m_buttons |= Right_PadKey;
+		m_buttons |= IMachine::PadKey_Right;
 }
