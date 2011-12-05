@@ -40,7 +40,7 @@ PageStackWindow {
 			id: errorDialog
 			titleText: qsTr("Error")
 			message: machineView.error + qsTr("\n Application is going to shutdown :(")
-			rejectButtonText: tr("Exit")
+			rejectButtonText: qsTr("Close")
 			onRejected: Qt.quit()
 		}
 	}

@@ -56,11 +56,16 @@ void MachineThread::run() {
 	if (m_firstRun) {
 		for (int i = 0; i < 60; i++)
 			m_machine->emulateFrame(false);
-		// TODO handle errors
-		if (m_loadSlot != StateListModel::InvalidSlot)
-			m_stateListModel->loadState(m_loadSlot);
+		if (m_loadSlot != StateListModel::InvalidSlot) {
+			if (!m_stateListModel->loadState(m_loadSlot))
+				return;
+		}
 		m_firstRun = false;
 	}
+#if defined(MEEGO_EDITION_HARMATTAN)
+	int blankinkgPauseCounter = 0;
+	m_displayState.setBlankingPause();
+#endif
 	qreal frameTime = 1000.0 / m_machine->frameRate();
 	QTime time;
 	time.start();
@@ -91,7 +96,14 @@ void MachineThread::run() {
 		}
 		if (++frameCounter > m_frameSkip)
 			frameCounter = 0;
+#if defined(MEEGO_EDITION_HARMATTAN)
+		if (++blankinkgPauseCounter > 1000)
+			m_displayState.setBlankingPause();
+#endif
 	}
+#if defined(MEEGO_EDITION_HARMATTAN)
+	m_displayState.cancelBlankingPause();
+#endif
 }
 
 void MachineThread::setFrameSkip(int n) {

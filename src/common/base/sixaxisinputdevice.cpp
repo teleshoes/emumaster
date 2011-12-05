@@ -21,7 +21,7 @@ SixAxisInputDevice::SixAxisInputDevice(SixAxis *sixAxis, QObject *parent) :
 	HostInputDevice("sixaxis", parent),
 	m_sixAxis(sixAxis) {
 
-	QObject::connect(m_sixAxis, SIGNAL(onSixAxisUpdated()), SLOT(onSixAxisUpdated()));
+	QObject::connect(m_sixAxis, SIGNAL(updated()), SLOT(onSixAxisUpdated()));
 	QObject::connect(m_sixAxis, SIGNAL(disconnected()), SLOT(deleteLater()));
 	QObject::connect(this, SIGNAL(confChanged()), SLOT(onConfChanged()));
 

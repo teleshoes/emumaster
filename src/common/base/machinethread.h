@@ -20,6 +20,9 @@ class IMachine;
 class HostAudio;
 class StateListModel;
 #include <QThread>
+#if defined(MEEGO_EDITION_HARMATTAN)
+#include <qmsystem2/qmdisplaystate.h>
+#endif
 
 class MachineThread : public QThread {
     Q_OBJECT
@@ -49,6 +52,9 @@ private:
 	bool m_firstRun;
 	int m_loadSlot;
 	StateListModel *m_stateListModel;
+#if defined(MEEGO_EDITION_HARMATTAN)
+	MeeGo::QmDisplayState m_displayState;
+#endif
 
 	friend class HostVideo;
 };

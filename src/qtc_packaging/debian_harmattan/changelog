@@ -1,7 +1,8 @@
 emumaster (0.0.3) unstable; urgency=low
 
+  * better error handling
+  * display is not suspending while playing game
   * new look of the pad
-  * created icons in home screen are removable now
   * configurable input devices
   * save/load error handling
   * global/local settings introduced

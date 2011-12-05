@@ -73,26 +73,6 @@ unix {
 	INSTALLS += qml qmlimg pad
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+contains(MEEGO_EDITION,harmattan) {
+	CONFIG += qmsystem2
+}

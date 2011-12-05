@@ -133,15 +133,19 @@ void MachineView::pauseStage2() {
 	// we are waiting for the thread to exit, but at the same
 	// we allow blocking queued repaints from the thread
 	if (m_thread->isRunning()) {
-		if (m_quit) {
-			m_closeTries++;
-			if (m_closeTries > 400) {
-				m_thread->terminate();
+		m_closeTries++;
+		if (m_closeTries > 40) {
+			m_thread->terminate();
+			if (m_quit) {
 				close();
 				return;
+			} else {
+				m_error = tr("Emulated system is not responding.");
 			}
+		} else {
+			QTimer::singleShot(10, this, SLOT(pauseStage2()));
+			return;
 		}
-		QTimer::singleShot(10, this, SLOT(pauseStage2()));
 	}
 	m_pauseRequested = false;
 	m_running = false;
@@ -369,6 +373,7 @@ void MachineView::onSlFailed() {
 	if (!emsl.save && emsl.abortIfLoadFails) {
 		fatalError(constructSlErrorString());
 	} else {
+		// TODO handle faultOccured
 		emit faultOccured(constructSlErrorString());
 	}
 }
