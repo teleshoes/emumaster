@@ -18,8 +18,6 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 import "../base"
 
-// TODO input devices config
-
 Page {
 	orientationLock: PageOrientation.LockPortrait
 	tools: ToolBarLayout {
@@ -41,7 +39,7 @@ Page {
 		MenuLayout {
 			MenuItem {
 				text: qsTr("Load")
-				onClicked: stateListModel.loadState(stateMenu.slot)
+				onClicked: stateListModel.loadState(stateMenu.stateSlot)
 			}
 			MenuItem {
 				text: qsTr("Overwrite")
@@ -55,14 +53,13 @@ Page {
 	}
 
 	Flickable {
+		id: flickable
 		anchors.fill: parent
 		flickableDirection: Flickable.VerticalFlick
-		contentHeight: column.height+20
+		contentHeight: column.height
 
 	Column {
-		// TODO really y == 20 ??
 		id: column
-		y: 20
 		width: parent.width
 		height: childrenRect.height
 		spacing: 20
@@ -101,12 +98,7 @@ Page {
 			anchors.horizontalCenter: parent.horizontalCenter
 			Button {
 				text: qsTr("Save in New Slot")
-				onClicked: {
-					if (!stateListModel.saveState(-1))
-						errorDialog.open()
-					else
-						stateListView.currentIndex = 0
-				}
+				onClicked: stateListModel.saveState(-1)
 			}
 			Button {
 				text: qsTr("Reset System")
@@ -120,12 +112,10 @@ Page {
 
 		SectionSeperator { text: qsTr("INPUT"); rightPad: 150 }
 		Label {
-			id: padOpacityLabel
 			text: qsTr("Pad Opacity")
 			font.bold: true
 		}
 		Slider {
-			id: padOpacitySlider
 			width: parent.width
 			minimumValue: 0.0
 			maximumValue: 1.0
@@ -134,15 +124,77 @@ Page {
 			stepSize: 0.05
 			valueIndicatorVisible: true
 		}
+		Repeater {
+			id: inputDevicesView
+			model: machineView.inputDevices
+
+			Column {
+				id: inputDeviceConfigurator
+				spacing: 8
+
+				property ListModel inputDeviceConfList: prepareModel()
+
+				function prepareModel() {
+					if (modelData.name == "touch")
+						return inputTouchConfList
+					else if (modelData.name == "accel")
+						return inputAccelConfList
+					else if (modelData.name == "keyb")
+						return inputKeybConfList
+					else if (modelData.name == "sixaxis")
+						return inputSixAxisConfList
+				}
+
+				Row {
+					spacing: 8
+					Image {
+						id: inputDeviceIcon
+						source: qsTr("../img/input-%1.png").arg(modelData.name)
+					}
+
+					Label {
+						id: inputDeviceNameLabel
+						anchors.verticalCenter: inputDeviceIcon.verticalCenter
+						text: {
+							if (modelData.name == "touch")
+								return qsTr("Touch Screen")
+							else if (modelData.name == "accel")
+								return qsTr("Accelerometer")
+							else if (modelData.name == "keyb")
+								return qsTr("Keyboard")
+							else if (modelData.name == "sixaxis")
+								return qsTr("SixAxis")
+						}
+						font.bold: true
+					}
+					Button {
+						id: inputDeviceConfButton
+						width: 250
+						text: getConf()
+						onClicked: {
+							inputDeviceConfSelector.inputDevice = modelData
+							inputDeviceConfSelector.model = inputDeviceConfigurator.inputDeviceConfList
+							inputDeviceConfSelector.selectedIndex = modelData.confIndex
+							inputDeviceConfSelector.open()
+						}
+						function getConf() {
+							return inputDeviceConfigurator.inputDeviceConfList.get(modelData.confIndex)["name"]
+						}
+						Connections {
+							target: modelData
+							onConfIndexChanged: inputDeviceConfButton.text = inputDeviceConfButton.getConf()
+						}
+					}
+				}
+			}
+		}
 
 		SectionSeperator { text: qsTr("VIDEO"); rightPad: 150 }
 		Label {
-			id: frameSkipLabel
 			text: qsTr("Frameskip")
 			font.bold: true
 		}
 		Slider {
-			id: frameSkipSlider
 			width: parent.width
 			minimumValue: 0
 			maximumValue: 5
@@ -168,9 +220,13 @@ Page {
 
 			Component.onCompleted: {
 				if (machine.name == "nes")
-					nesRenderMethodButton.buttonText = nesRenderMethodModel.get(machine.ppu.renderMethod)["name"]
+					nesRenderMethodButton.refreshText()
 				else
 					nesRenderMethodButton.visible = false
+			}
+			function refreshText() {
+				var text = nesRenderMethodModel.get(machine.ppu.renderMethod)["name"]
+				nesRenderMethodButton.buttonText = text
 			}
 		}
 
@@ -199,6 +255,7 @@ Page {
 	}
 
 	}
+	ScrollDecorator { flickableItem: flickable }
 
 	Connections {
 		target: machineView
@@ -214,7 +271,7 @@ Page {
 		message: qsTr("Do you really want to overwrite the state with current one?")
 		acceptButtonText: qsTr("Yes")
 		rejectButtonText: qsTr("No")
-		onAccepted: stateListModel.saveState(stateMenu.slot)
+		onAccepted: stateListModel.saveState(stateMenu.stateSlot)
 	}
 
 	QueryDialog {
@@ -223,7 +280,7 @@ Page {
 		message: qsTr("Do you really want to delete the state?")
 		acceptButtonText: qsTr("Yes")
 		rejectButtonText: qsTr("No")
-		onAccepted: stateListModel.removeState(stateMenu.slot)
+		onAccepted: stateListModel.removeState(stateMenu.stateSlot)
 	}
 
 	QueryDialog {
@@ -249,16 +306,59 @@ Page {
 
 	ListModel {
 		id: nesRenderMethodModel
-		ListElement { name: "Post All Render" }
-		ListElement { name: "Pre All Render" }
-		ListElement { name: "Post Render" }
-		ListElement { name: "Pre Render" }
-		ListElement { name: "Tile Render" }
+		ListElement { name: QT_TR_NOOP("Post All Render") }
+		ListElement { name: QT_TR_NOOP("Pre All Render") }
+		ListElement { name: QT_TR_NOOP("Post Render") }
+		ListElement { name: QT_TR_NOOP("Pre Render") }
+		ListElement { name: QT_TR_NOOP("Tile Render") }
 	}
 	SelectionDialog {
 		id: nesRenderMethodDialog
 		titleText: qsTr("Select Render Method")
 		model: nesRenderMethodModel
-		onAccepted: machine.ppu.renderMethod = selectedIndex
+		onAccepted: {
+			machine.ppu.renderMethod = selectedIndex
+			nesRenderMethodButton.refreshText()
+		}
+	}
+	ListModel {
+		id: inputTouchConfList
+		ListElement { name: QT_TR_NOOP("None") }
+		ListElement { name: QT_TR_NOOP("Pad A") }
+		ListElement { name: QT_TR_NOOP("Pad B") }
+		ListElement { name: QT_TR_NOOP("Mouse A") }
+		ListElement { name: QT_TR_NOOP("Mouse B") }
+	}
+	ListModel {
+		id: inputAccelConfList
+		ListElement { name: QT_TR_NOOP("None") }
+		ListElement { name: QT_TR_NOOP("Pad A") }
+		ListElement { name: QT_TR_NOOP("Pad B") }
+	}
+	ListModel {
+		id: inputSixAxisConfList
+		ListElement { name: QT_TR_NOOP("None") }
+		ListElement { name: QT_TR_NOOP("Pad A") }
+		ListElement { name: QT_TR_NOOP("Pad B") }
+		ListElement { name: QT_TR_NOOP("Mouse A") }
+		ListElement { name: QT_TR_NOOP("Mouse B") }
+		ListElement { name: QT_TR_NOOP("Pad B + Mouse A") }
+		ListElement { name: QT_TR_NOOP("Pad A + Mouse B") }
+	}
+	ListModel {
+		id: inputKeybConfList
+		ListElement { name: QT_TR_NOOP("None") }
+		ListElement { name: QT_TR_NOOP("Pad A") }
+		ListElement { name: QT_TR_NOOP("Pad B") }
+		ListElement { name: QT_TR_NOOP("Keyboard") }
+	}
+
+	SelectionDialog {
+		property variant inputDevice
+
+		id: inputDeviceConfSelector
+		model: []
+		titleText: qsTr("Select Configuration")
+		onAccepted: inputDevice.confIndex = selectedIndex
 	}
 }

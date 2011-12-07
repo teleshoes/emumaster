@@ -242,7 +242,8 @@ void NesMapper::reset() {
 	nesCpuBanks[2] = nesXram;
 	nesCpuBanks[3] = nesWram;
 
-	m_irqOut = false;
+	m_irqOut = true;
+	setIrqSignalOut(false);
 
 	setRom32KBank(0);
 

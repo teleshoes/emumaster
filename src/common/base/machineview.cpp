@@ -63,6 +63,8 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_stateListModel = new StateListModel(m_machine, m_diskFileName);
 	m_thread->setStateListModel(m_stateListModel);
 
+	QSettings s;
+	m_autoSaveLoadEnable = s.value("autoSaveLoadEnable", true).toBool();
 	if (!loadConfiguration())
 		m_error = constructSlErrorString();
 
@@ -324,8 +326,10 @@ void MachineView::setKeepAspectRatio(bool on) {
 
 int MachineView::determineLoadState(const QStringList &args) {
 	int state = StateListModel::AutoSaveLoadSlot;
-	if (args.contains("-noAutoSaveLoad")) {
+	if (args.contains("-noAutoSaveLoad"))
 		m_autoSaveLoadEnable = false;
+
+	if (!m_autoSaveLoadEnable) {
 		state = StateListModel::InvalidSlot;
 	} else {
 		QString stateArg = extractArg(args, "-state");
@@ -366,6 +370,7 @@ bool MachineView::loadConfiguration() {
 	if (!conf->item("audioEnable", true).toBool())
 		m_machine->setAudioEnabled(false);
 
+	conf->setItem("version", QCoreApplication::applicationVersion());
 	return true;
 }
 
@@ -373,7 +378,6 @@ void MachineView::onSlFailed() {
 	if (!emsl.save && emsl.abortIfLoadFails) {
 		fatalError(constructSlErrorString());
 	} else {
-		// TODO handle faultOccured
 		emit faultOccured(constructSlErrorString());
 	}
 }

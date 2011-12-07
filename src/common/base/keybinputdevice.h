@@ -17,11 +17,20 @@
 #define KEYBINPUTDEVICE_H
 
 #include "hostinputdevice.h"
+#include <QHash>
 
 class KeybInputDevice : public HostInputDevice {
     Q_OBJECT
 public:
     explicit KeybInputDevice(QObject *parent = 0);
+	void update(int *data);
+	void processKey(Qt::Key key, bool state);
+private slots:
+	void onConfChanged();
+private:
+	QHash<int, int> m_mapping;
+	int m_buttons;
+	QList<int> m_keys;
 };
 
 #endif // KEYBINPUTDEVICE_H

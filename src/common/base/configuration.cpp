@@ -14,9 +14,10 @@
  */
 
 #include "configuration.h"
+#include "imachine.h"
 #include <QCoreApplication>
 
-// TODO when configuration mismatch on load - show info as bubble
+// TODO when hard configuration mismatch on load - show info as bubble
 // TODO hard config
 
 Configuration::Configuration(QObject *parent) :
@@ -24,13 +25,19 @@ Configuration::Configuration(QObject *parent) :
 }
 
 void Configuration::setItem(const QString &name, const QVariant &value) {
+	m_data[name] = value;
 }
 
 QVariant Configuration::item(const QString &name, const QVariant &defaultValue) {
-	return defaultValue;
+	if (!m_data.contains(name))
+		return defaultValue;
+	return m_data.value(name);
 }
 
 void Configuration::sl() {
+	emsl.begin("conf");
+	emsl.var("data", m_data);
+	emsl.end();
 }
 
 void Configuration::setupAppInfo() {

@@ -21,7 +21,6 @@ class GameGenieCode;
 class NesMachine;
 #include <QAbstractListModel>
 #include <QStringList>
-#include <QFile>
 
 class GameGenieCodeListModel : public QAbstractListModel {
     Q_OBJECT
@@ -32,14 +31,12 @@ public:
 		DescriptionRole,
 		EnableRole
 	};
-	explicit GameGenieCodeListModel(QObject *parent = 0);
-	~GameGenieCodeListModel();
+	explicit GameGenieCodeListModel();
 	int count() const;
 	int rowCount(const QModelIndex &parent) const;
 	QVariant data(const QModelIndex &index, int role) const;
 
-	void save();
-	void load();
+	void sl();
 	QList<GameGenieCode> enabledList() const;
 	Q_INVOKABLE void setEnabled(int i, bool on);
 	Q_INVOKABLE void addNew(const QString &code, const QString &description);
@@ -52,7 +49,6 @@ private:
 	QStringList m_codes;
 	QStringList m_descriptions;
 	QList<bool> m_enable;
-	QFile m_file;
 };
 
 #endif // GAMEGENIECODELISTMODEL_H

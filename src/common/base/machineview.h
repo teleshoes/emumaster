@@ -37,6 +37,7 @@ class BASE_EXPORT MachineView : public QObject {
 	Q_PROPERTY(qreal padOpacity READ padOpacity WRITE setPadOpacity NOTIFY padOpacityChanged)
 	Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged)
 	Q_PROPERTY(QString error READ error CONSTANT)
+	Q_PROPERTY(QList<QObject *> inputDevices READ inputDevices NOTIFY inputDevicesChanged)
 public:
 	explicit MachineView(IMachine *machine, const QString &diskFileName);
 	~MachineView();

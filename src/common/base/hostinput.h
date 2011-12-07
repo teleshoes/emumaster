@@ -19,6 +19,7 @@
 class IMachine;
 class TouchInputDevice;
 class AccelInputDevice;
+class KeybInputDevice;
 class SixAxisInputDevice;
 #include <QObject>
 class QPainter;
@@ -52,6 +53,7 @@ private:
 	IMachine *m_machine;
 	TouchInputDevice *m_touchInputDevice;
 	AccelInputDevice *m_accelInputDevice;
+	KeybInputDevice *m_keybInputDevice;
 	QList<SixAxisInputDevice *> m_sixAxisInputDevices;
 	qreal m_padOpacity;
 };

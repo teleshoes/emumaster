@@ -52,8 +52,6 @@ signals:
 	void quit();
 	void minimized();
 protected:
-	void initializeGL();
-
 	void paintEvent(QPaintEvent *);
 	void closeEvent(QCloseEvent *e);
 	void changeEvent(QEvent *e);

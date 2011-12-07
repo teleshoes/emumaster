@@ -24,15 +24,8 @@ TouchInputDevice::TouchInputDevice(QObject *parent) :
 	HostInputDevice("touch", parent) {
 	m_numPoints = 0;
 
-	QStringList confList;
-	confList << tr("None");
-	confList << tr("Pad A");
-	confList << tr("Pad B");
-	confList << tr("Mouse A");
-	confList << tr("Mouse B");
-	setConfList(confList);
 #if defined(MEEGO_EDITION_HARMATTAN)
-	setConf(tr("Pad A"));
+	setConfIndex(1);
 #endif
 
 	QObject::connect(this, SIGNAL(confChanged()), SLOT(onConfChanged()));
@@ -108,8 +101,7 @@ void TouchInputDevice::convertPad() {
 			} else if (x >= HostVideo::Width/2-ButtonWidth &&
 					   x < HostVideo::Width/2+ButtonWidth) {
 				// select, start
-				if (y >= CircleSize/2-ButtonHeight/2 &&
-						y < CircleSize/2+ButtonHeight/2) {
+				if (y >= CircleSize-ButtonHeight) {
 					if (x < HostVideo::Width/2)
 						m_buttons |= IMachine::PadKey_Select;
 					else
@@ -202,7 +194,7 @@ void TouchInputDevice::paint(QPainter &painter) {
 
 	// select, start
 	painter.drawImage(HostVideo::Width/2-ButtonWidth,
-					  HostVideo::Height-CircleSize/2-ButtonHeight/2,
+					  HostVideo::Height-ButtonHeight,
 					  m_padImage,
 					  256, 128, ButtonWidth*2, ButtonHeight);
 

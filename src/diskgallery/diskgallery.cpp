@@ -107,6 +107,13 @@ void DiskGallery::homepage() {
 	QProcess::startDetached("grob", args);
 }
 
+/** Starts web browser with wiki address. */
+void DiskGallery::wiki() {
+	QStringList args;
+	args << "http://bitbucket.org/elemental/emumaster";
+	QProcess::startDetached("grob", args);
+}
+
 /** Emitted on start if the phone uses USB mass storage. */
 void DiskGallery::emitDiskUpdate() {
 	if (!QFile::exists(PathManager::instance()->diskDirPath("nes"))) {

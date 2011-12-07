@@ -40,13 +40,25 @@ Page {
 			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignHCenter
 		}
-		Image {
-			source: "image://theme/icon-l-browser"
+		Row {
 			anchors.horizontalCenter: parent.horizontalCenter
+			spacing: 50
 
-			MouseArea {
-				anchors.fill: parent
-				onClicked: diskGallery.homepage()
+			Image {
+				source: "image://theme/icon-l-browser"
+
+				MouseArea {
+					anchors.fill: parent
+					onClicked: diskGallery.homepage()
+				}
+			}
+			Image {
+				source: "../img/wiki.png"
+
+				MouseArea {
+					anchors.fill: parent
+					onClicked: diskGallery.wiki()
+				}
 			}
 		}
 		Label {
@@ -66,5 +78,4 @@ Page {
 			}
 		}
 	}
-	// TODO wiki here
 }

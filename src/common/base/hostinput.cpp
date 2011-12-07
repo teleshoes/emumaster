@@ -18,6 +18,7 @@
 #include "imachine.h"
 #include "touchinputdevice.h"
 #include "accelinputdevice.h"
+#include "keybinputdevice.h"
 #include "sixaxisinputdevice.h"
 #include <sixaxis.h>
 #include <QKeyEvent>
@@ -29,6 +30,7 @@ HostInput::HostInput(IMachine *machine) :
 
 	m_touchInputDevice = new TouchInputDevice(this);
 	m_accelInputDevice = new AccelInputDevice(this);
+	m_keybInputDevice = new KeybInputDevice(this);
 
 	SixAxisDaemon *daemon = SixAxisDaemon::instance();
 	QObject::connect(daemon, SIGNAL(newPad()), SLOT(onSixAxisDetected()));
@@ -44,8 +46,8 @@ bool HostInput::eventFilter(QObject *o, QEvent *e) {
 	if (e->type() == QEvent::KeyPress || e->type() == QKeyEvent::KeyRelease) {
 		bool state = (e->type() == QEvent::KeyPress);
 		QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-//		TODO if (!ke->isAutoRepeat())
-//			processKey(static_cast<Qt::Key>(ke->key()), state);
+		if (!ke->isAutoRepeat())
+			m_keybInputDevice->processKey(static_cast<Qt::Key>(ke->key()), state);
 		ke->accept();
 		return true;
 	} else if (e->type() == QEvent::TouchBegin ||
@@ -112,6 +114,7 @@ QList<QObject *> HostInput::devices() const {
 	QList<QObject *> list;
 	list.append(m_touchInputDevice);
 	list.append(m_accelInputDevice);
+	list.append(m_keybInputDevice);
 	for (int i = 0; i < m_sixAxisInputDevices.size(); i++)
 		list.append(m_sixAxisInputDevices.at(i));
 	return list;

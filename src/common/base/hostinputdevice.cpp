@@ -21,20 +21,11 @@ HostInputDevice::HostInputDevice(const QString &name, QObject *parent) :
 	m_confIndex(0) {
 }
 
-QString HostInputDevice::conf() const {
-	return m_confList.at(m_confIndex);
-}
-
-void HostInputDevice::setConf(const QString &type) {
-	int i = m_confList.indexOf(type);
-	if (i < 0)
-		i = 0;
-	if (i != m_confIndex) {
-		m_confIndex = i;
+void HostInputDevice::setConfIndex(int index) {
+	if (index < 0)
+		index = 0;
+	if (index != m_confIndex) {
+		m_confIndex = index;
 		emit confChanged();
 	}
-}
-
-void HostInputDevice::setConfList(const QStringList &list) {
-	m_confList = list;
 }

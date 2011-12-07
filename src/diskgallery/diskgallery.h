@@ -35,6 +35,7 @@ public:
 
 	Q_INVOKABLE void donate();
 	Q_INVOKABLE void homepage();
+	Q_INVOKABLE void wiki();
 	Q_INVOKABLE void sixAxisMonitor();
 
 	Q_INVOKABLE QVariant globalOption(const QString &name, const QVariant &defaultValue);

@@ -26,16 +26,6 @@ SixAxisInputDevice::SixAxisInputDevice(SixAxis *sixAxis, QObject *parent) :
 	QObject::connect(this, SIGNAL(confChanged()), SLOT(onConfChanged()));
 
 	m_sixAxis->setParent(this);
-
-	QStringList confList;
-	confList << tr("None");
-	confList << tr("Pad A");
-	confList << tr("Pad B");
-	confList << tr("Mouse A");
-	confList << tr("Mouse B");
-	confList << tr("Pad B + Mouse A");
-	confList << tr("Pad A + Mouse B");
-	setConfList(confList);
 }
 
 const int SixAxisInputDevice::m_buttonsMapping[] = {

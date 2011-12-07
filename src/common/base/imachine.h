@@ -60,6 +60,8 @@ public:
 
 	static int *padOffset(int *data, int pad);
 	static int *mouseOffset(int *data, int mouse);
+	static void keybEnqueue(int *data, int key);
+	static int keybDequeue(int *data);
 
 	explicit IMachine(const QString &name, QObject *parent = 0);
 	~IMachine();
@@ -78,8 +80,8 @@ public:
 	virtual const QImage &frame() const = 0;
 	virtual int fillAudioBuffer(char *stream, int streamSize) = 0;
 
-	bool saveState(const QString &diskPath);
-	bool loadState(const QString &diskPath);
+	bool saveState(const QString &statePath);
+	bool loadState(const QString &statePath);
 signals:
 	void videoSrcRectChanged();
 protected:
@@ -153,8 +155,6 @@ private:
 
 extern EMSL emsl;
 
-// TODO save/load begin/end checker
-
 inline void EMSL::begin(const QString &groupName, int version = 1) {
 	currGroup = groupName;
 	currAddr = allAddr.value(groupName);
@@ -178,7 +178,10 @@ inline void EMSL::var(const QString &name, T &t) {
 			varNotExist(name);
 			return;
 		}
-		stream->device()->seek(addr);
+		if (!stream->device()->seek(addr)) {
+			ioError();
+			return;
+		}
 		*stream >> t;
 	}
 }

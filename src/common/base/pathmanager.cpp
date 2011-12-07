@@ -28,11 +28,9 @@ void PathManager::buildLocalDirTree() {
 	dir.mkdir("state");
 	dir.mkdir("icon");
 	dir.mkdir("screenshot");
-	dir.mkdir("cheat");
 
 	dir.cd("state");		createMachineSubtree(dir); dir.cdUp();
 	dir.cd("screenshot");	createMachineSubtree(dir); dir.cdUp();
-	dir.cd("cheat");		createMachineSubtree(dir); dir.cdUp();
 
 	dir = QDir(getenv("HOME"));
 	dir.cd("MyDocs");

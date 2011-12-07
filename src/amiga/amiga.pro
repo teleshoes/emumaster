@@ -1,0 +1,119 @@
+include(../machine.pri)
+
+DEFINES += USE_CYCLONE_MEMHANDLERS
+
+unix {
+	qml.path = /opt/emumaster/qml/$${TARGET}
+	qml.files = \
+		../../qml/$${TARGET}/main.qml \
+		../../qml/$${TARGET}/MainPage.qml \
+		../../qml/$${TARGET}/SettingsPage.qml
+
+	gameclassify.path = /usr/share/policy/etc/syspart.conf.d
+	gameclassify.files += $${TARGET}.conf
+
+	INSTALLS += qml gameclassify
+}
+
+INCLUDEPATH += ../common/m68k
+
+HEADERS += \
+    zfile.h \
+    keybuf.h \
+    joystick.h \
+    events.h \
+    drawing.h \
+    disk.h \
+    custom.h \
+    cia.h \
+    blitter.h \
+    blitfunc.h \
+    blit.h \
+    ../common/m68k/cyclone.h \
+    machine.h \
+    spu.h \
+    cpu.h \
+    mem.h
+
+SOURCES += \
+	blitfunc.cpp \
+	blittable.cpp \
+	blitter.cpp \
+	cia.cpp \
+	custom.cpp \
+	disk.cpp \
+	drawing.cpp \
+	../common/m68k/cyclone.S \
+	machine.cpp \
+	spu.cpp \
+	mem.cpp \
+	mem_handlers.S \
+	cpu.cpp \
+    keyb.cpp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

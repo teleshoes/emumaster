@@ -30,6 +30,7 @@
 
 NesMachine nesMachine;
 SystemType nesSystemType;
+GameGenieCodeListModel nesGameGenie;
 
 static u32 scanlineCycles;
 static u32 scanlineEndCycles;
@@ -297,6 +298,7 @@ void NesMachine::sl() {
 	nesCpu.sl();
 	nesPpu.sl();
 	nesApu.sl();
+	nesGameGenie.sl();
 
 	emsl.begin("machine");
 	emsl.var("cpuCycleCounter", cpuCycleCounter);
@@ -308,9 +310,7 @@ int main(int argc, char *argv[]) {
 	if (argc < 2)
 		return -1;
 	QApplication app(argc, argv);
-	// TODO machine on stack
-	MachineView view(new NesMachine(), argv[1]);
-	GameGenieCodeListModel gameGenie(static_cast<NesMachine *>(view.machine()));
-	view.settingsView()->rootContext()->setContextProperty("gameGenie", static_cast<QObject *>(&gameGenie));
+	MachineView view(&nesMachine, argv[1]);
+	view.settingsView()->rootContext()->setContextProperty("gameGenie", static_cast<QObject *>(&nesGameGenie));
 	return app.exec();
 }

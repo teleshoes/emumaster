@@ -31,6 +31,8 @@ public:
 	void setItemHard(const QString &name, const QVariant &value);
 
 	void sl();
+private:
+	QHash<QString, QVariant> m_data;
 };
 
 #endif // CONFIGURATION_H

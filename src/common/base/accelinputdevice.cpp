@@ -22,15 +22,8 @@ AccelInputDevice::AccelInputDevice(QObject *parent) :
 	HostInputDevice("accel", parent) {
 	m_accelerometer = 0;
 
-	// TODO check
 	m_upVector = QVector3D(0.0f, 0.0f, 9.8f);
 	m_rightVector = QVector3D(0.0f, -9.8f, 0.0f);
-
-	QStringList confList;
-	confList << tr("None");
-	confList << tr("Pad A");
-	confList << tr("Pad B");
-	setConfList(confList);
 
 	QObject::connect(this, SIGNAL(confChanged()), SLOT(onConfChanged()));
 }
@@ -84,8 +77,9 @@ void AccelInputDevice::convert() {
 	qreal up = QVector3D::dotProduct(m_read, m_upVector);
 	qreal right = QVector3D::dotProduct(m_read, m_rightVector);
 
-	qreal level = (9.8f*2.0f/3.0f) * (9.8f*2.0f/3.0f);
+	qreal level = (9.8f*9.8f) * 0.5f;
 
+	m_buttons = 0;
 	if (up > level)
 		m_buttons |= IMachine::PadKey_Up;
 	else if (up < -level)

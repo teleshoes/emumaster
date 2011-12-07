@@ -90,8 +90,8 @@ bool StateListModel::saveState(int slot) {
 		newState = (indexOfSlot(AutoSaveLoadSlot) < 0);
 	}
 
-	QString diskPath = m_dir.filePath(QString::number(slot));
-	if (!m_machine->saveState(diskPath)) {
+	QString statePath = m_dir.filePath(QString::number(slot));
+	if (!m_machine->saveState(statePath)) {
 		emit slFailed();
 		return false;
 	}
@@ -99,7 +99,7 @@ bool StateListModel::saveState(int slot) {
 	m_screenShotUpdateCounter++;
 	if (newState) {
 		beginInsertRows(QModelIndex(), 0, 0);
-		m_list.prepend(QFileInfo(diskPath));
+		m_list.prepend(QFileInfo(statePath));
 		endInsertRows();
 		emit countChanged();
 	} else {
@@ -115,8 +115,8 @@ bool StateListModel::saveState(int slot) {
 bool StateListModel::loadState(int slot) {
 	Q_ASSERT(m_machine != 0);
 
-	QString diskPath = m_dir.filePath(QString::number(slot));
-	bool ok = m_machine->loadState(diskPath);
+	QString statePath = m_dir.filePath(QString::number(slot));
+	bool ok = m_machine->loadState(statePath);
 	if (!ok)
 		emit slFailed();
 	return ok;

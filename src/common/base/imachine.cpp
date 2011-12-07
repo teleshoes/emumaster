@@ -113,7 +113,7 @@ void EMSL::pop() {
 	begin(groupStack.takeLast());
 }
 
-bool IMachine::saveState(const QString &diskPath) {
+bool IMachine::saveState(const QString &statePath) {
 	emsl.save = true;
 
 	QByteArray data;
@@ -125,7 +125,7 @@ bool IMachine::saveState(const QString &diskPath) {
 	if (!saveInternal(&s))
 		return false;
 
-	QFile file(diskPath);
+	QFile file(statePath);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
 		emsl.error = tr("Could not open file for writing.");
 		return false;
@@ -141,11 +141,11 @@ bool IMachine::saveState(const QString &diskPath) {
 	return ok;
 }
 
-bool IMachine::loadState(const QString &diskPath) {
+bool IMachine::loadState(const QString &statePath) {
 	emsl.save = false;
 	emsl.abortIfLoadFails = false;
 
-	QFile file(diskPath);
+	QFile file(statePath);
 	if (!file.open(QIODevice::ReadOnly)) {
 		emsl.error = tr("Could not open file.");
 		return false;
@@ -167,4 +167,22 @@ bool IMachine::loadState(const QString &diskPath) {
 	s.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
 	return loadInternal(&s);
+}
+
+void IMachine::keybEnqueue(int *data, int key) {
+	int *keyb = &data[(2+2)*4];
+	keyb[3] = keyb[2];
+	keyb[2] = keyb[1];
+	keyb[1] = keyb[0];
+	keyb[0] = key;
+}
+
+int IMachine::keybDequeue(int *data) {
+	int *keyb = &data[(2+2)*4];
+	int key = keyb[0];
+	keyb[0] = keyb[1];
+	keyb[1] = keyb[2];
+	keyb[2] = keyb[3];
+	keyb[3] = 0;
+	return key;
 }

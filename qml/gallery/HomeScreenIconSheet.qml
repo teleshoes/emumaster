@@ -47,8 +47,6 @@ Page {
 					} else {
 						appWindow.pageStack.pop()
 					}
-				} else {
-					// TODO show help dialog
 				}
 			}
 		}

@@ -14,8 +14,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// TODO codes in state
-
 #include "gamegeniecodelistmodel.h"
 #include "machine.h"
 #include "mapper.h"
@@ -25,47 +23,22 @@
 #include <QFile>
 #include <QFileInfo>
 
-GameGenieCodeListModel::GameGenieCodeListModel(QObject *parent) :
-	QAbstractListModel(parent) {
+GameGenieCodeListModel::GameGenieCodeListModel() {
 	QHash<int, QByteArray> roles;
 	roles.insert(CodeRole, "code");
 	roles.insert(DescriptionRole, "description");
 	roles.insert(EnableRole, "isEnabled");
 	setRoleNames(roles);
-
-	QString title = QFileInfo(nesDiskFileName).completeBaseName();
-	m_file.setFileName(PathManager::instance()->cheatPath(title));
-	load();
 }
 
-GameGenieCodeListModel::~GameGenieCodeListModel() {
-	save();
-}
-
-void GameGenieCodeListModel::save() {
-	if (m_codes.isEmpty()) {
-		m_file.remove();
-		return;
-	}
-	if (!m_file.open(QIODevice::WriteOnly | QIODevice::Truncate))
-		return;
-	QDataStream s(&m_file);
-	s << m_codes;
-	s << m_descriptions;
-	s << m_enable;
-	m_file.close();
-}
-
-void GameGenieCodeListModel::load() {
-	if (!m_file.open(QIODevice::ReadOnly))
-		return;
-	QDataStream s(&m_file);
-	s >> m_codes;
-	s >> m_descriptions;
-	s >> m_enable;
-	m_file.close();
-
-	nesMapper->setGameGenieCodeList(enabledList());
+void GameGenieCodeListModel::sl() {
+	emsl.begin("cheats");
+	emsl.var("codes", m_codes);
+	emsl.var("descriptions", m_descriptions);
+	emsl.var("enable", m_enable);
+	emsl.end();
+	if (!emsl.save)
+		nesMapper->setGameGenieCodeList(enabledList());
 }
 
 QList<GameGenieCode> GameGenieCodeListModel::enabledList() const {
@@ -113,11 +86,13 @@ void GameGenieCodeListModel::addNew(const QString &code, const QString &descript
 	QString codeUpper = code.toUpper();
 	if (m_codes.contains(codeUpper))
 		return;
+
 	beginInsertRows(QModelIndex(), m_codes.size(), m_codes.size());
 	m_codes.append(codeUpper);
 	m_descriptions.append(description);
 	m_enable.append(false);
 	endInsertRows();
+
 	nesMapper->setGameGenieCodeList(enabledList());
 	emit modified();
 }
@@ -125,11 +100,13 @@ void GameGenieCodeListModel::addNew(const QString &code, const QString &descript
 void GameGenieCodeListModel::removeAt(int i) {
 	if (i < 0 || i >= m_codes.size())
 		return;
+
 	beginRemoveRows(QModelIndex(), i, i);
 	m_codes.removeAt(i);
 	m_descriptions.removeAt(i);
 	m_enable.removeAt(i);
 	endRemoveRows();
+
 	nesMapper->setGameGenieCodeList(enabledList());
 	emit modified();
 }

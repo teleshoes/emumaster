@@ -22,32 +22,24 @@
 class HostInputDevice : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(QString name READ name CONSTANT)
-	Q_PROPERTY(QString conf READ conf WRITE setConf NOTIFY confChanged)
-	Q_PROPERTY(QStringList confList READ confList CONSTANT)
+	Q_PROPERTY(int confIndex READ confIndex WRITE setConfIndex NOTIFY confChanged)
 public:
 	explicit HostInputDevice(const QString &name, QObject *parent = 0);
 	QString name() const;
 
 	int confIndex() const;
-	QString conf() const;
-	void setConf(const QString &type);
-	QStringList confList() const;
+	void setConfIndex(int index);
 
 	virtual void update(int *data) = 0;
 signals:
 	void confChanged();
-protected:
-	void setConfList(const QStringList &list);
 private:
 	QString m_name;
 	int m_confIndex;
-	QStringList m_confList;
 };
 
 inline QString HostInputDevice::name() const
 { return m_name; }
-inline QStringList HostInputDevice::confList() const
-{ return m_confList; }
 inline int HostInputDevice::confIndex() const
 { return m_confIndex; }
 

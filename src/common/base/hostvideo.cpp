@@ -51,10 +51,6 @@ HostVideo::HostVideo(HostInput *hostInput, IMachine *machine, MachineThread *thr
 HostVideo::~HostVideo() {
 }
 
-// TODO needed ???
-void HostVideo::initializeGL()
-{ glClearColor(0.0f, 0.0f, 0.0f, 1.0f); }
-
 void HostVideo::paintEvent(QPaintEvent *) {
 	QPainter painter;
 	painter.begin(this);
@@ -81,7 +77,7 @@ void HostVideo::paintFps(QPainter &painter) {
 	font.setPointSize(12);
 	painter.setFont(font);
 	painter.setPen(Qt::red);
-	painter.drawText(QRectF(0.0f, 0.0f, 100.0f, 40.0f),
+	painter.drawText(QRectF(80.0f, 0.0f, 100.0f, 60.0f),
 					 Qt::AlignCenter,
 					 QString("%1 FPS").arg(m_fpsCount));
 }

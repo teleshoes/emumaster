@@ -34,12 +34,10 @@ Page {
 			onCheckedChanged: diskGallery.setGlobalOption("swipeEnable", checked)
 		}
 		Label {
-			id: padOpacityLabel
 			text: qsTr("Pad Opacity")
 			font.bold: true
 		}
 		Slider {
-			id: padOpacitySlider
 			width: parent.width
 			minimumValue: 0.0
 			maximumValue: 1.0
@@ -51,12 +49,10 @@ Page {
 
 		SectionSeperator { text: qsTr("VIDEO"); rightPad: 150 }
 		Label {
-			id: frameSkipLabel
 			text: qsTr("Frameskip")
 			font.bold: true
 		}
 		Slider {
-			id: frameSkipSlider
 			width: parent.width
 			minimumValue: 0
 			maximumValue: 5

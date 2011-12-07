@@ -67,7 +67,7 @@ PageStackWindow {
 		rejectButtonText: qsTr("Close")
 		message:	qsTr("Hi! Few clues: Please let me know about any problems " +
 						"before you make a review in the Store since I cannot " +
-						"answer you there. You can find contact info at the about " +
+						"answer you there. You can find wiki address and contact info at the about " +
 						"page:\n MainWindow->Menu->About EmuMaster...\n Enjoy :)\n " +
 						"Have you got some idea? Share it with me.\n" +
 						"Consider a donation if you find this software useful.") +
