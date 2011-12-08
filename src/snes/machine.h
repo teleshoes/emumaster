@@ -11,22 +11,24 @@ class SnesMachine : public IMachine {
     Q_OBJECT
 public:
     explicit SnesMachine(QObject *parent = 0);
-	QString init();
+	QString init(const QString &diskPath);
 	void shutdown();
 
 	void reset();
 
-	QString setDisk(const QString &path);
 	void emulateFrame(bool drawEnabled);
 	const QImage &frame() const;
 	int fillAudioBuffer(char *stream, int streamSize);
-	void setPadKeys(int pad, int keys);
+	int gamePad(int i) const;
 
 	void sync(int width, int height);
 
 	QImage m_frame;
 protected:
 	void sl();
+	QString setDisk(const QString &path);
+
+	static const int m_keyMapping[];
 };
 
 extern SnesMachine snesMachine;

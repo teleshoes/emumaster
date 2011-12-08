@@ -47,8 +47,6 @@ PcsxConfig Config;
 
 static void dummy_lace() { }
 
-#define CONFIG_DIR		"/home/user/MyDocs/emumaster/psx"
-
 PsxMachine psxMachine;
 PsxThread psxThread;
 
@@ -56,7 +54,7 @@ PsxMachine::PsxMachine(QObject *parent) :
 	IMachine("psx", parent) {
 }
 
-QString PsxMachine::init() {
+QString PsxMachine::init(const QString &diskPath) {
 	Config.HLE = 0;
 
 	psxMcd1.init(PathManager::instance()->userDataDirPath() + "/psx_mcd1.mcr");
@@ -103,12 +101,12 @@ QString PsxMachine::init() {
 
 	cdrIsoInit();
 	if (CDR_init() < 0)
-		return "Could not initialize CD-ROM!";;
+		return tr("Could not initialize CD-ROM!");
 	if (!psxGpu->init())
-		return "Could not initialize GPU!";
+		return tr("Could not initialize GPU!");
 	if (!psxSpu->init())
-		return "Could not initialize SPU!";
-	return QString();
+		return tr("Could not initialize SPU!");
+	return setDisk(diskPath);
 }
 
 void PsxMachine::shutdown() {
@@ -171,10 +169,10 @@ QString PsxMachine::setDisk(const QString &path) {
 	SetIsoFile(path.toAscii().constData());
 	if (!psxThread.isRunning()) {
 		if (CDR_open() < 0)
-			return "Could not open CD-ROM.";
+			return tr("Could not open CD-ROM.");
 		reset();
 		if (CheckCdrom() == -1)
-			return "Could not load CD.";
+			return tr("Could not load CD.");
 
 		setFrameRate(systemType == NtscType ? 60 : 50);
 		psxThread.start();
@@ -187,6 +185,7 @@ void PsxMachine::emulateFrame(bool drawEnabled) {
 	psxGpu->setDrawEnabled(drawEnabled);
 	m_prodSem.release();
 	m_consSem.acquire();
+	setPadKeys(0, padOffset(m_inputData, 0)[0]);
 }
 
 const QImage &PsxMachine::frame() const

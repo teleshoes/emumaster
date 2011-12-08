@@ -69,7 +69,12 @@ unix {
 		../../../data/pad.png
 
 	qmlimg.path = /opt/emumaster/qml/img
-	qmlimg.files = ../../../qml/img/*
+	qmlimg.files = \
+		../../../qml/img/input-accel.png \
+		../../../qml/img/input-keyb.png \
+		../../../qml/img/input-sixaxis.png \
+		../../../qml/img/input-touch.png
+
 	INSTALLS += qml qmlimg pad
 }
 

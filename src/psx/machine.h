@@ -40,7 +40,7 @@ public:
 	};
 
 	explicit PsxMachine(QObject *parent = 0);
-	QString init();
+	QString init(const QString &diskPath);
 	void shutdown();
 	void reset();
 	void updateGpuScale(int w, int h);

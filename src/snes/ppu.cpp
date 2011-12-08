@@ -2527,7 +2527,7 @@ void S9xUpdateJoypads ()
 
     for (i = 0; i < 5; i++)
     {
-	IPPU.Joypads [i] = S9xReadJoypad (i);
+	IPPU.Joypads [i] = snesMachine.gamePad(i);
 	if (IPPU.Joypads [i] & SNES_LEFT_MASK)
 	    IPPU.Joypads [i] &= ~SNES_RIGHT_MASK;
 	if (IPPU.Joypads [i] & SNES_UP_MASK)

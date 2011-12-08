@@ -46,6 +46,9 @@ unix {
 		../../qml/img/collection-psx.png \
 		../../qml/img/collection-amiga.png \
 		../../qml/img/collection-fav.png \
+		../../qml/img/alpha-overlay.png \
+		../../qml/img/btn_donateCC_LG.png \
+		../../qml/img/wiki.png \
 
 	datafiles.path = /opt/emumaster/data
 	datafiles.files = \

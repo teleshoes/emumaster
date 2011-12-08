@@ -32,22 +32,22 @@
 #define PSE_PAD_TYPE_ANALOGPAD		7
 
 static const int mapping[16] = {
-	IMachine::Select_PadKey,
+	IMachine::PadKey_Select,
 	0,
 	0,
-	IMachine::Start_PadKey,
-	IMachine::Up_PadKey,
-	IMachine::Right_PadKey,
-	IMachine::Down_PadKey,
-	IMachine::Left_PadKey,
-	IMachine::L2_PadKey,
-	IMachine::R2_PadKey,
-	IMachine::L_PadKey,
-	IMachine::R_PadKey,
-	IMachine::X_PadKey,
-	IMachine::A_PadKey,
-	IMachine::B_PadKey,
-	IMachine::Y_PadKey
+	IMachine::PadKey_Start,
+	IMachine::PadKey_Up,
+	IMachine::PadKey_Right,
+	IMachine::PadKey_Down,
+	IMachine::PadKey_Left,
+	IMachine::PadKey_L2,
+	IMachine::PadKey_R2,
+	IMachine::PadKey_L1,
+	IMachine::PadKey_R1,
+	IMachine::PadKey_X,
+	IMachine::PadKey_A,
+	IMachine::PadKey_B,
+	IMachine::PadKey_Y
 };
 
 static int buttonStatus = 0xFFFF;

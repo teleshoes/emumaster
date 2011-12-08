@@ -17,7 +17,6 @@ SnesMachine snesMachine;
 static bool romLoaded = false;
 static int soundSampleCount;
 static volatile bool rendered = false;
-static int gamepad = 0;
 
 SnesMachine::SnesMachine(QObject *parent) :
 	IMachine("snes", parent) {
@@ -50,7 +49,7 @@ void setDefaultSettings() {
 	soundSampleCount *= 2;
 }
 
-QString SnesMachine::init() {
+QString SnesMachine::init(const QString &diskPath) {
 	S9xSetSoundMute(FALSE);
 	setDefaultSettings();
 	S9xSetPlaybackRate();
@@ -69,13 +68,13 @@ QString SnesMachine::init() {
 	GFX.Delta = (GFX.SubScreen - GFX.Screen) >> 1;
 
 	if (!GFX.Screen || !GFX.SubScreen || !GFX.ZBuffer || !Memory.Init() || !S9xInitAPU() || !GFX.SubZBuffer )
-		return QString("SNES emulation init failed!");
+		return tr("SNES emulation init failed!");
 	S9xInitSound();
 	if (!S9xGraphicsInit())
-		return QString("SNES emulation init failed!");
+		return tr("SNES emulation init failed!");
 	S9xReset();
 	setDefaultSettings();
-	return QString();
+	return setDisk(diskPath);
 }
 
 void SnesMachine::shutdown() {
@@ -89,12 +88,6 @@ void SnesMachine::reset() {
 void SnesMachine::sync(int width, int height) {
 	setVideoSrcRect(QRect(0, 0, width, height));
 	rendered = true;
-}
-
-extern "C" u32 S9xReadJoypad(int which1) {
-	if (which1)
-		return 0;
-	return gamepad;
 }
 
 extern "C" void S9xMessage(int type, int number, const char *message)
@@ -210,7 +203,7 @@ void _makepath(char *path, const char *, const char *dir, const char *fname,
 
 QString SnesMachine::setDisk(const QString &path) {
 	if (!Memory.LoadROM(path.toAscii().constData()))
-		return "Load disk failed!";
+		return tr("Load disk failed.");
 	Memory.ROMFramesPerSecond = Settings.PAL ? 50 : 60;
 	setFrameRate(Memory.ROMFramesPerSecond);
 
@@ -228,8 +221,9 @@ void SnesMachine::emulateFrame(bool drawEnabled) {
 		S9xMainLoop();
 }
 
-const QImage &SnesMachine::frame() const
-{ return m_frame; }
+const QImage &SnesMachine::frame() const {
+	return m_frame;
+}
 
 int SnesMachine::fillAudioBuffer(char *stream, int streamSize) {
 	int count = qMin(streamSize/4, soundSampleCount);
@@ -237,34 +231,36 @@ int SnesMachine::fillAudioBuffer(char *stream, int streamSize) {
 	return count * 4;
 }
 
-static const int keyMapping[16] = {
+const int SnesMachine::m_keyMapping[16] = {
 	0,
 	0,
 	0,
 	0,
-	IMachine::R_PadKey,
-	IMachine::L_PadKey,
-	IMachine::X_PadKey,
-	IMachine::A_PadKey,
-	IMachine::Right_PadKey,
-	IMachine::Left_PadKey,
-	IMachine::Down_PadKey,
-	IMachine::Up_PadKey,
-	IMachine::Start_PadKey,
-	IMachine::Select_PadKey,
-	IMachine::Y_PadKey,
-	IMachine::B_PadKey
+	PadKey_R1,
+	PadKey_L1,
+	PadKey_X,
+	PadKey_A,
+	PadKey_Right,
+	PadKey_Left,
+	PadKey_Down,
+	PadKey_Up,
+	PadKey_Start,
+	PadKey_Select,
+	PadKey_Y,
+	PadKey_B
 };
 
-void SnesMachine::setPadKeys(int pad, int keys) {
-	if (pad)
-		return;
-	int newPad = 0;
+int SnesMachine::gamePad(int i) const {
+	if (i > 1)
+		return 0;
+
+	int pad = padOffset(m_inputData, i)[0];
+	int snesPad = 0;
 	for (int i = 0; i < 16; i++) {
-		if (keys & keyMapping[i])
-			newPad |= 1 << i;
+		if (pad & m_keyMapping[i])
+			snesPad |= 1 << i;
 	}
-	gamepad = newPad;
+	return snesPad;
 }
 
 void SnesMachine::sl() {

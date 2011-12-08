@@ -35,29 +35,42 @@ Page {
 		Label {
 			width: parent.width
 			text: qsTr("EmuMaster %1\nAuthor: elemental\n" +
-					   "Want new features?\nFound bug?\nGo to homepage")
+					   "Want new features?\nFound bug?\nGo to homepage or wiki")
 						.arg(appVersion)
 			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignHCenter
 		}
 		Row {
 			anchors.horizontalCenter: parent.horizontalCenter
-			spacing: 50
+			spacing: 100
 
-			Image {
-				source: "image://theme/icon-l-browser"
-
-				MouseArea {
-					anchors.fill: parent
-					onClicked: diskGallery.homepage()
+			Column {
+				Image {
+					id: iconHome
+					source: "image://theme/icon-l-browser"
+					MouseArea {
+						anchors.fill: parent
+						onClicked: diskGallery.homepage()
+					}
+				}
+				Label {
+					anchors.horizontalCenter: iconHome.horizontalCenter
+					text: qsTr("Home")
 				}
 			}
-			Image {
-				source: "../img/wiki.png"
-
-				MouseArea {
-					anchors.fill: parent
-					onClicked: diskGallery.wiki()
+			Column {
+				Image {
+					id: iconWiki
+					source: "../img/wiki.png"
+					width: 80; height: 80
+					MouseArea {
+						anchors.fill: parent
+						onClicked: diskGallery.wiki()
+					}
+				}
+				Label {
+					anchors.horizontalCenter: iconWiki.horizontalCenter
+					text: qsTr("Wiki")
 				}
 			}
 		}

@@ -31,11 +31,12 @@ IMachine::IMachine(const QString &name, QObject *parent) :
 IMachine::~IMachine() {
 }
 
-void IMachine::reset()
-{}
+void IMachine::reset() {
+}
 
-void IMachine::setFrameRate(qreal rate)
-{ m_frameRate = rate; }
+void IMachine::setFrameRate(qreal rate) {
+	m_frameRate = rate;
+}
 
 void IMachine::setVideoSrcRect(const QRectF &rect) {
 	if (m_videoSrcRect != rect) {
@@ -44,14 +45,17 @@ void IMachine::setVideoSrcRect(const QRectF &rect) {
 	}
 }
 
-void IMachine::setAudioEnabled(bool on)
-{ Q_UNUSED(on) }
+void IMachine::setAudioEnabled(bool on) {
+	Q_UNUSED(on)
+}
 
-void EMSL::varNotExist(const QString &name)
-{ error = QObject::tr("\"%1->%2\" not exists").arg(currGroup).arg(name); }
+void EMSL::varNotExist(const QString &name) {
+	error = QObject::tr("\"%1->%2\" not exists").arg(currGroup).arg(name);
+}
 
-void EMSL::ioError()
-{ error = QObject::tr("IO error"); }
+void EMSL::ioError() {
+	error = QObject::tr("IO error");
+}
 
 bool IMachine::saveInternal(QDataStream *stream) {
 	QByteArray ba;

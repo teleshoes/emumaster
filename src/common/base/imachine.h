@@ -59,6 +59,7 @@ public:
 	};
 
 	static int *padOffset(int *data, int pad);
+	static const int *padOffset(const int *data, int pad);
 	static int *mouseOffset(int *data, int mouse);
 	static void keybEnqueue(int *data, int key);
 	static int keybDequeue(int *data);
@@ -115,6 +116,8 @@ inline QRectF IMachine::videoSrcRect() const
 { return m_videoSrcRect; }
 
 inline int *IMachine::padOffset(int *data, int pad)
+{ Q_ASSERT(pad >= 0 && pad < 2); return &data[pad*4]; }
+inline const int *IMachine::padOffset(const int *data, int pad)
 { Q_ASSERT(pad >= 0 && pad < 2); return &data[pad*4]; }
 inline int *IMachine::mouseOffset(int *data, int mouse)
 { Q_ASSERT(mouse >= 0 && mouse < 2); return &data[(mouse+2)*4]; }
