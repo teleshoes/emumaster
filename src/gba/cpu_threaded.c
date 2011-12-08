@@ -3274,7 +3274,7 @@ s32 translate_block_##type(u32 pc, translation_region_type                    \
   {                                                                           \
     block_data[block_data_position].block_offset = translation_ptr;           \
     type##_base_cycles();                                                     \
-    /*generate_step_debug();*/                                                \
+	/*generate_step_debug();*/                                                \
                                                                               \
     translate_##type##_instruction();                                         \
     block_data_position++;                                                    \

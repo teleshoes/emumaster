@@ -910,8 +910,8 @@ static void render_scanline_conditional_bitmap(u32 start, u32 end, u16 *scanline
 
 // Map widths and heights
 
-u32 map_widths[] = { 256, 512, 256, 512 };
-u32 map_heights[] = { 256, 256, 512, 512 };
+static const u32 map_widths[] = { 256, 512, 256, 512 };
+static const u32 map_heights[] = { 256, 256, 512, 512 };
 
 // Build text scanline rendering functions.
 

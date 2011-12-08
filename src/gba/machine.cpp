@@ -12,8 +12,6 @@
 
 timer_type timer[4];
 
-u32 breakpoint_value = 0x7c5000;
-
 u32 cpu_ticks = 0;
 
 u32 execute_cycles = 960;
@@ -35,14 +33,19 @@ GbaMachine::GbaMachine() :
 	IMachine("gba") {
 }
 
-QString GbaMachine::init() {
+QString GbaMachine::init(const QString &diskPath) {
 	gpuFrame = QImage(240, 160, QImage::Format_RGB16);
 	setVideoSrcRect(gpuFrame.rect());
 	setFrameRate(60);
 
 	screen_pixels_ptr = (quint16 *)gpuFrame.bits();
 	m_quit = false;
-	return loadBios();
+
+	QString error = loadBios();
+	if (!error.isEmpty())
+		return error;
+
+	return setDisk(diskPath);
 }
 
 void GbaMachine::shutdown() {
@@ -95,18 +98,18 @@ QString GbaMachine::loadBios() {
 	}
 	if (!loaded) {
 		return
-				"Sorry, but emulator requires a Gameboy Advance BIOS\n"
-				"image to run correctly. Make sure to get an        \n"
-				"authentic one, it'll be exactly 16384 bytes large  \n"
-				"and should have the following md5sum value:        \n"
-				"                                                   \n"
-				"a860e8c0b6d573d191e4ec7db1b1e4f6                   \n"
-				"                                                   \n"
-				"When you do get it name it gba_bios.bin and put it \n"
-				"in the \"emumaster/gba\" directory.                ";
+			tr(	"Sorry, but emulator requires a Gameboy Advance BIOS "
+				"image to run correctly. Make sure to get an "
+				"authentic one, it'll be exactly 16384 bytes large "
+				"and should have the following md5sum value: \n"
+				"\n"
+				"a860e8c0b6d573d191e4ec7db1b1e4f6\n"
+				"\n"
+				"When you do get it name it gba_bios.bin and put it "
+				"in the \"emumaster/gba\" directory.");
 
 	} else if (!supported) {
-		return "You have an incorrect BIOS image.";
+		return tr("You have an incorrect BIOS image.");
 	}
 	return QString();
 }
@@ -114,7 +117,7 @@ QString GbaMachine::loadBios() {
 QString GbaMachine::setDisk(const QString &path) {
 	init_gamepak_buffer();
 	if (!gbaMem.loadGamePack(path))
-		return "Could not load ROM";
+		return tr("Could not load disk");
 	reset();
 	skip_next_frame = 1;
 
@@ -131,6 +134,7 @@ void GbaMachine::emulateFrame(bool drawEnabled) {
 	screen_pixels_ptr = (quint16 *)gpuFrame.bits();
 	m_prodSem.release();
 	m_consSem.acquire();
+	updateInput();
 }
 
 void GbaMachine::sync() {
@@ -140,25 +144,24 @@ void GbaMachine::sync() {
 	m_prodSem.acquire();
 }
 
-static const int keyMapping[10] = {
-	IMachine::A_PadKey,
-	IMachine::B_PadKey,
-	IMachine::Select_PadKey,
-	IMachine::Start_PadKey,
-	IMachine::Right_PadKey,
-	IMachine::Left_PadKey,
-	IMachine::Up_PadKey,
-	IMachine::Down_PadKey,
-	IMachine::R_PadKey,
-	IMachine::L_PadKey
+const int GbaMachine::m_buttonsMapping[10] = {
+	PadKey_A,
+	PadKey_B,
+	PadKey_Select,
+	PadKey_Start,
+	PadKey_Right,
+	PadKey_Left,
+	PadKey_Up,
+	PadKey_Down,
+	PadKey_R1,
+	PadKey_L1
 };
 
-void GbaMachine::setPadKeys(int pad, int keys) {
-	if (pad)
-		return;
+void GbaMachine::updateInput() {
+	int keys = padOffset(m_inputData, 0)[0];
 	int gbaKeys = 0x3FF;
 	for (int i = 0; i < 10; i++) {
-		if (keys & keyMapping[i])
+		if (keys & m_buttonsMapping[i])
 			gbaKeys &= ~(1 << i);
 	}
 	io_registers[REG_P1] = gbaKeys;
@@ -265,10 +268,9 @@ u32 update_gba() {
 					dispstat &= ~0x01;
 
 					gbaMachine.sync();
-					qDebug("%x", reg[REG_PC]);
+
 					if (lastSyncLoad) {
 						lastSyncLoad = false;
-						__asm__ volatile ("" : : : "memory");
 						return execute_cycles;
 					}
 
@@ -323,6 +325,4 @@ void GbaMachine::sl() {
 
 	if (!emsl.save)
 		lastSyncLoad = true;
-
-	qDebug("aa %x", reg[REG_PC]);
 }

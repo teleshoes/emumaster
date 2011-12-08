@@ -88,7 +88,7 @@ PageStackWindow {
 
 	Connections {
 		target: diskGallery
-		onDiskUpdate: selectCollection(diskListModel.collectionLastUsed)
+		//onDiskUpdate: selectCollection(diskListModel.collectionLastUsed)
 		onDetachUsb: detachUsbDialog.open()
 		onShowFirstRunMsg: firstRunMsg.open()
 	}

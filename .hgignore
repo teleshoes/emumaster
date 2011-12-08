@@ -25,3 +25,5 @@ syntax: regexp
 \.so$
 syntax: regexp
 ^emumaster-build-
+syntax: regexp
+\.directory$

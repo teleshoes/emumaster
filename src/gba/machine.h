@@ -17,15 +17,13 @@ class GbaMachine : public IMachine {
 	Q_OBJECT
 public:
 	GbaMachine();
-	QString init();
+	QString init(const QString &diskPath);
 	void shutdown();
 	void reset();
 
-	QString setDisk(const QString &path);
 	void emulateFrame(bool drawEnabled);
 	const QImage &frame() const;
 	int fillAudioBuffer(char *stream, int streamSize);
-	void setPadKeys(int pad, int keys);
 
 	void sync();
 
@@ -35,10 +33,14 @@ protected:
 	void sl();
 	void setAudioEnabled(bool on);
 private:
+	QString setDisk(const QString &path);
 	QString loadBios();
+	void updateInput();
 
 	QString m_biosError;
 	volatile bool m_quit;
+
+	static const int m_buttonsMapping[];
 };
 
 extern GbaMachine gbaMachine;

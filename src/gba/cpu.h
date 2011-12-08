@@ -186,8 +186,6 @@ extern u32 spsr[6];
 extern u32 cpu_modes[32];
 extern const u32 psr_masks[16];
 
-extern u32 breakpoint_value;
-
 void init_cpu();
 void set_cpu_mode(u32 new_mode);
 void move_reg(u32 *new_reg);

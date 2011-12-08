@@ -2775,6 +2775,7 @@ void GbaMem::invalidate() {
 
 	oam_update = 1;
 	gbc_sound_update = 1;
+	gbc_sound_wave_update = 1;
 
 	for (int i = 0; i < 512; i++) {
 		u32 current_color = palette_ram[i];
@@ -2796,17 +2797,21 @@ void GbaMem::sl() {
 	emsl.array("backup", gamepak_backup, sizeof(gamepak_backup));
 	emsl.var("bios_read_protect", bios_read_protect);
 	emsl.var("sram_size", sram_size);
+
 	emsl.var("flash_mode", flash_mode);
 	emsl.var("flash_command_position", flash_command_position);
 	emsl.var("flash_bank_ptr_offset", flash_bank_ptr_offset);
 	emsl.var("flash_device_id", flash_device_id);
 	emsl.var("flash_manufacturer_id", flash_manufacturer_id);
 	emsl.var("flash_size", flash_size);
+
 	emsl.var("eeprom_size", eeprom_size);
 	emsl.var("eeprom_mode", eeprom_mode);
 	emsl.var("eeprom_address_length", eeprom_address_length);
 	emsl.var("eeprom_address", eeprom_address);
 	emsl.var("eeprom_counter", eeprom_counter);
+	emsl.array("eeprom_buffer", eeprom_buffer, sizeof(eeprom_buffer));
+
 	emsl.var("rtc_state", rtc_state);
 	emsl.var("rtc_write_mode", rtc_write_mode);
 	emsl.array("rtc_regs", rtc_registers, sizeof(rtc_registers));
@@ -2815,11 +2820,11 @@ void GbaMem::sl() {
 	emsl.var("rtc_status", rtc_status);
 	emsl.var("rtc_data_bytes", rtc_data_bytes);
 	emsl.var("rtc_bit_count", rtc_bit_count);
-	emsl.array("eeprom_buffer", eeprom_buffer, sizeof(eeprom_buffer));
+
 	emsl.array("dma", dma, sizeof(dma));
 	emsl.array("iwram", iwram + 0x8000, 0x8000);
 	for (int i = 0; i < 8; i++)
-		emsl.array("ewram", ewram + (i * 0x10000) + 0x8000, 0x8000);
+		emsl.array(QString("ewram+%1*0x10000").arg(i), ewram + (i * 0x10000) + 0x8000, 0x8000);
 	emsl.array("vram", vram, sizeof(vram));
 	emsl.array("oam_ram", oam_ram, sizeof(oam_ram));
 	emsl.array("palette_ram", palette_ram, sizeof(palette_ram));

@@ -48,7 +48,7 @@ void IMachine::setAudioEnabled(bool on)
 { Q_UNUSED(on) }
 
 void EMSL::varNotExist(const QString &name)
-{ error = QObject::tr("\"%1\" not exist").arg(name); }
+{ error = QObject::tr("\"%1->%2\" not exists").arg(currGroup).arg(name); }
 
 void EMSL::ioError()
 { error = QObject::tr("IO error"); }
