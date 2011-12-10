@@ -35,7 +35,7 @@ public:
 	void vSync();
 
 	void setJoy(int joy, int buttons);
-	void setMouse(int mouse, int dx, int dy, int buttons);
+	void setMouse(int mouse, int buttons, int dx, int dy);
 	void updateInput();
 
 	void sl();

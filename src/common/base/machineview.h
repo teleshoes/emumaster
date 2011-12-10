@@ -78,6 +78,7 @@ private slots:
 	void pauseStage2();
 	void onFrameGenerated(bool videoOn);
 	void onSlFailed();
+	void onSafetyEvent();
 private:
 	bool loadConfiguration();
 	void loadSettings();
@@ -111,6 +112,9 @@ private:
 	bool m_audioEnable;
 	bool m_autoSaveLoadEnable;
 	QString m_error;
+
+	bool m_safetyCheck;
+	QTimer *m_safetyTimer;
 };
 
 inline IMachine *MachineView::machine() const

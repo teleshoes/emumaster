@@ -577,6 +577,9 @@ void amigaCiaSl() {
 	emsl.begin("cia cmn");
 	emsl.var("div10", div10);
 	emsl.var("oldCycles", oldCycles);
+	emsl.var("rtcD", rtcD);
+	emsl.var("rtcE", rtcE);
+	emsl.var("rtcF", rtcF);
 	emsl.end();
 
 	amigaCiaA.sl(0);

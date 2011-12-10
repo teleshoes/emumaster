@@ -1,1 +1,5 @@
  b saves in gba tasmanian dont work
+ nes cheats regression
+ joys and mouses collides in amiga
+ run with autoload disabled
+ save input dev conf

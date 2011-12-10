@@ -24,7 +24,7 @@ class KeybInputDevice : public HostInputDevice {
 public:
     explicit KeybInputDevice(QObject *parent = 0);
 	void update(int *data);
-	void processKey(Qt::Key key, bool state);
+	void processKey(Qt::Key key, bool down);
 private slots:
 	void onConfChanged();
 private:

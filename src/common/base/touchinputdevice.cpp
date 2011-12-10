@@ -75,11 +75,11 @@ void TouchInputDevice::update(int *data) {
 		if (!m_converted) {
 			convertMouse();
 			m_converted = true;
+			int *mouse = IMachine::mouseOffset(data, confIndex()-3);
+			mouse[0] = m_buttons >> 4;
+			mouse[1] = m_mouseX - m_lastMouseX;
+			mouse[2] = m_mouseY - m_lastMouseY;
 		}
-		int *mouse = IMachine::mouseOffset(data, confIndex()-3);
-		mouse[0] = m_buttons;
-		mouse[1] = m_mouseX;
-		mouse[2] = m_mouseY;
 	}
 }
 
@@ -120,22 +120,32 @@ void TouchInputDevice::convertPad() {
 
 void TouchInputDevice::convertMouse() {
 	m_buttons = 0;
-	m_mouseX = m_mouseY = 0;
 
+	bool newMoving = false;
 	for (int i = 0; i < m_numPoints; i++) {
 		int x = m_points[i].x();
 		int y = m_points[i].y();
 		if (y >= HostVideo::Height-CircleSize) {
 			y -= HostVideo::Height-CircleSize;
 			if (x < CircleSize) {
+				if (m_mouseMoving) {
+					m_lastMouseX = m_mouseX;
+					m_lastMouseY = m_mouseY;
+				}
 				m_mouseX = x - CircleSize/2;
 				m_mouseY = y - CircleSize/2;
+				if (!m_mouseMoving) {
+					m_lastMouseX = m_mouseX;
+					m_lastMouseY = m_mouseY;
+				}
+				newMoving = true;
 			} else if (x >= HostVideo::Width-CircleSize) {
 				x -= HostVideo::Width-CircleSize;
-				m_buttons |= buttonsInCircle(x, y);
+				m_buttons |= buttonsInCircle(x, y) << 4;
 			}
 		}
 	}
+	m_mouseMoving = newMoving;
 }
 
 int TouchInputDevice::buttonsInCircle(int x, int y) const {
@@ -186,18 +196,19 @@ void TouchInputDevice::paint(QPainter &painter) {
 	if (confIndex() <= 0)
 		return;
 
-	// l1,r1
-	painter.drawImage(0, 120, m_padImage,
-					  256, 256, ButtonWidth, ButtonHeight);
-	painter.drawImage(HostVideo::Width-ButtonWidth, 120, m_padImage,
-					  256+80, 256, ButtonWidth, ButtonHeight);
+	if (confIndex() <= 2) {
+		// l1,r1
+		painter.drawImage(0, 120, m_padImage,
+						  256, 256, ButtonWidth, ButtonHeight);
+		painter.drawImage(HostVideo::Width-ButtonWidth, 120, m_padImage,
+						  256+80, 256, ButtonWidth, ButtonHeight);
 
-	// select, start
-	painter.drawImage(HostVideo::Width/2-ButtonWidth,
-					  HostVideo::Height-ButtonHeight,
-					  m_padImage,
-					  256, 128, ButtonWidth*2, ButtonHeight);
-
+		// select, start
+		painter.drawImage(HostVideo::Width/2-ButtonWidth,
+						  HostVideo::Height-ButtonHeight,
+						  m_padImage,
+						  256, 128, ButtonWidth*2, ButtonHeight);
+	}
 	// left and right circle
 	painter.translate(0, HostVideo::Height-CircleSize);
 	paintCircle(painter, (m_buttons >> 0) & 0x0F);

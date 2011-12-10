@@ -106,32 +106,33 @@ void AmigaMachine::setJoy(int joy, int buttons) {
 }
 
 void AmigaMachine::updateInput() {
+	// TODO joy and mouse colliding
 	amigaInputPortButtons[0] = 0;
 	amigaInputPortButtons[1] = 0;
 
 	setJoy(0, padOffset(m_inputData, 0)[0]);
-	setJoy(1, padOffset(m_inputData, 0)[1]);
+	setJoy(1, padOffset(m_inputData, 1)[0]);
 
 	int *mouse0Data = mouseOffset(m_inputData, 0);
-	setMouse(0, mouse0Data[1], mouse0Data[2], mouse0Data[0]);
+	setMouse(0, mouse0Data[0], mouse0Data[1], mouse0Data[2]);
 	int *mouse1Data = mouseOffset(m_inputData, 1);
-	setMouse(1, mouse1Data[1], mouse1Data[2], mouse1Data[0]);
+	setMouse(1, mouse1Data[0], mouse1Data[1], mouse1Data[2]);
 
 	int key;
 	do {
 		key = keybDequeue(m_inputData);
 		if (key)
-			amigaRecordKey(key & ~(1<<31), !(key & (1<<31)));
+			amigaRecordKey(key & ~(1<<31), key & (1<<31));
 	} while (key != 0);
 }
 
-void AmigaMachine::setMouse(int mouse, int dx, int dy, int buttons) {
-	dx = qBound(-127, dx, 127);
-	dy = qBound(-127, dy, 127);
-	amigaInputPortButtons[mouse] = buttons >> 4;
+void AmigaMachine::setMouse(int mouse, int buttons, int dx, int dy) {
+	dx = qBound(-127, dx/4, 127);
+	dy = qBound(-127, dy/4, 127);
+	amigaInputPortButtons[mouse] |= buttons;
 	u16 oldMouseRel = amigaInputPortDir[mouse];
-	u8 mouseX = (oldMouseRel >> 0) & 0xF;
-	u8 mouseY = (oldMouseRel >> 8) & 0xF;
+	u8 mouseX = (oldMouseRel >> 0) & 0xFF;
+	u8 mouseY = (oldMouseRel >> 8) & 0xFF;
 	mouseX += dx;
 	mouseY += dy;
 	amigaInputPortDir[mouse] = (mouseY << 8) | mouseX;

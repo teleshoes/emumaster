@@ -76,19 +76,19 @@ void KeybInputDevice::update(int *data) {
 	}
 }
 
-void KeybInputDevice::processKey(Qt::Key key, bool state) {
+void KeybInputDevice::processKey(Qt::Key key, bool down) {
 	if (confIndex() <= 0)
 		return;
 
 	if (confIndex() <= 2) {
 		int button = m_mapping[key];
-		if (state)
+		if (down)
 			m_buttons |=  button;
 		else
 			m_buttons &= ~button;
 	} else if (confIndex() == 3) {
 		int k = key;
-		if (!state)
+		if (down)
 			k |= (1 << 31);
 		m_keys.append(k);
 	}

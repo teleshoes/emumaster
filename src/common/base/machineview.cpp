@@ -77,6 +77,10 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 
 	setupSettingsView();
 
+	m_safetyTimer = new QTimer(this);
+	m_safetyTimer->setInterval(10000);
+	QObject::connect(m_safetyTimer, SIGNAL(timeout()), SLOT(onSafetyEvent()));
+
 	const char *method = "resume";
 	if (m_error.isEmpty()) {
 		QObject::connect(m_stateListModel, SIGNAL(slFailed()),
@@ -151,6 +155,7 @@ void MachineView::pauseStage2() {
 	}
 	m_pauseRequested = false;
 	m_running = false;
+	m_safetyTimer->stop();
 	if (!m_quit) {
 		if (m_settingsView->source().isEmpty() || !m_error.isEmpty()) {
 			QString path;
@@ -183,6 +188,10 @@ void MachineView::resume() {
 					 Qt::BlockingQueuedConnection);
 	if (m_audioEnable)
 		m_hostAudio->open();
+
+	m_safetyCheck = false;
+	m_safetyTimer->start();
+
 	m_running = true;
 	// use delay to wait for animation end
 	QTimer::singleShot(500, m_thread, SLOT(resume()));
@@ -257,6 +266,7 @@ void MachineView::parseConfArg(const QString &arg) {
 }
 
 void MachineView::onFrameGenerated(bool videoOn) {
+	m_safetyCheck = true;
 	if (m_audioEnable)
 		m_hostAudio->sendFrame();
 	if (videoOn)
@@ -406,4 +416,10 @@ QList<QObject *> MachineView::inputDevices() const {
 
 QDeclarativeView *MachineView::settingsView() const {
 	return m_settingsView;
+}
+
+void MachineView::onSafetyEvent() {
+	if (!m_safetyCheck)
+		fatalError(tr("Emulated system is not responding"));
+	m_safetyCheck = false;
 }

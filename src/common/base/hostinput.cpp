@@ -44,10 +44,10 @@ HostInput::~HostInput() {
 bool HostInput::eventFilter(QObject *o, QEvent *e) {
 	Q_UNUSED(o)
 	if (e->type() == QEvent::KeyPress || e->type() == QKeyEvent::KeyRelease) {
-		bool state = (e->type() == QEvent::KeyPress);
+		bool down = (e->type() == QEvent::KeyPress);
 		QKeyEvent *ke = static_cast<QKeyEvent *>(e);
 		if (!ke->isAutoRepeat())
-			m_keybInputDevice->processKey(static_cast<Qt::Key>(ke->key()), state);
+			m_keybInputDevice->processKey(static_cast<Qt::Key>(ke->key()), down);
 		ke->accept();
 		return true;
 	} else if (e->type() == QEvent::TouchBegin ||
@@ -125,6 +125,7 @@ void HostInput::update() {
 	qMemSet(data, 0, sizeof(m_machine->m_inputData));
 	m_touchInputDevice->update(data);
 	m_accelInputDevice->update(data);
+	m_keybInputDevice->update(data);
 	for (int i = 0; i < m_sixAxisInputDevices.size(); i++)
 		m_sixAxisInputDevices.at(i)->update(data);
 }

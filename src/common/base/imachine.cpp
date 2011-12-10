@@ -174,11 +174,15 @@ bool IMachine::loadState(const QString &statePath) {
 }
 
 void IMachine::keybEnqueue(int *data, int key) {
+	// TODO declare num of pads and mouses as constants
 	int *keyb = &data[(2+2)*4];
-	keyb[3] = keyb[2];
-	keyb[2] = keyb[1];
-	keyb[1] = keyb[0];
-	keyb[0] = key;
+	int i = 0;
+	for (; i < 4; i++) {
+		if (!keyb[i])
+			break;
+	}
+	if (i < 4)
+		keyb[i] = key;
 }
 
 int IMachine::keybDequeue(int *data) {

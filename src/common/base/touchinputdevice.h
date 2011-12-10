@@ -48,6 +48,9 @@ private:
 	int m_buttons;
 	int m_mouseX;
 	int m_mouseY;
+	int m_lastMouseX;
+	int m_lastMouseY;
+	bool m_mouseMoving;
 
 	QImage m_padImage;
 };

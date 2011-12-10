@@ -49,6 +49,7 @@ static int spuChannelVolume[4];
 static u32 spuChannelAdkMask[4];
 static int spuChannelState[4];
 static u32 spuChannelEvtime[4];
+
 static u32 spuScaledSampleEvtime;
 static u32 spuLastCycles;
 static u32 spuNextSampleEvtime;

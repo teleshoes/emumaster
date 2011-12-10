@@ -2641,14 +2641,10 @@ static void spriteSl(int i) {
 	emsl.var("armed", spr[i].armed);
 	emsl.var("pos", sprpos[i]);
 	emsl.var("ctl", sprctl[i]);
-	emsl.var("data0", sprdata[i][0]);
-	emsl.var("datb0", sprdatb[i][0]);
-	emsl.var("data1", sprdata[i][1]);
-	emsl.var("datb1", sprdatb[i][1]);
-	emsl.var("data2", sprdata[i][2]);
-	emsl.var("datb2", sprdatb[i][2]);
-	emsl.var("data3", sprdata[i][3]);
-	emsl.var("datb3", sprdatb[i][3]);
+	for (int j = 0; j < 4; j++) {
+		emsl.var(QString("data%1").arg(j), sprdata[i][j]);
+		emsl.var(QString("datb%1").arg(j), sprdatb[i][j]);
+	}
 	emsl.end();
 }
 
@@ -2668,9 +2664,18 @@ void amigaCustomSl() {
 	}
 	// custom
 	emsl.begin("custom");
+	if (!emsl.save) {
+		if (amigaEvents[AmigaEventBlitter].active) {
+			uint olddmacon = dmacon;
+			dmacon |= DMA_BLITTER; /* ugh.. */
+			amigaBlitterHandler();
+			dmacon = olddmacon;
+		}
+	}
 	emsl.var("dmacon", dmacon);
 	emsl.var("copcon", copcon);
 	emsl.var("potgo", potgo);
+	emsl.var("lof", lof);
 
 	emsl.var("bltcon0", bltcon0);
 	emsl.var("bltcon1", bltcon1);
@@ -2717,6 +2722,9 @@ void amigaCustomSl() {
 	emsl.var("bpl1mod", bpl1mod);
 	emsl.var("bpl2mod", bpl2mod);
 
+	emsl.array("colors", &currentColors, sizeof(currentColors));
+	emsl.var("last_custom_value", last_custom_value);
+
 	if (!emsl.save) {
 		COPCON(copcon);
 		POTGO(potgo);
@@ -2735,12 +2743,23 @@ void amigaCustomSl() {
 		BLTCDAT(blt_info.bltcdat);
 		BLTBDAT(blt_info.bltbdat);
 		BLTADAT(blt_info.bltadat);
-	}
-	emsl.end();
 
-	emsl.begin("colors");
-	for (int i = 0; i < 32; i++)
-		emsl.var(QString::number(i), currentColors.color_uae_regs_ecs[i]);
+		COPJMP1(0);
+
+		int savedbplcon0 = bplcon0;
+		BPLCON0(0, 0);
+		BPLCON0(0, savedbplcon0);
+
+		for (int i = 0 ; i < 32 ; i++) {
+			u32 vv = currentColors.color_uae_regs_ecs[i];
+			currentColors.color_uae_regs_ecs[i] = (unsigned)-1;
+			record_color_change (0, i, vv);
+			remembered_color_entry = -1;
+			currentColors.color_uae_regs_ecs[i] = vv;
+			currentColors.acolors[i] = xcolors[vv];
+		}
+		calcdiw();
+	}
 	emsl.end();
 
 	for (int i = 0; i < MaxSprites; i++)

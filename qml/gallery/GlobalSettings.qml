@@ -69,7 +69,7 @@ Page {
 		EMSwitchOption {
 			text: qsTr("Force Fullscreen")
 			checked: !diskGallery.globalOption("keepAspectRatio", true)
-			onCheckedChanged: diskGallery.setlobalOption("keepAspectRatio", !checked)
+			onCheckedChanged: diskGallery.setGlobalOption("keepAspectRatio", !checked)
 		}
 	}
 
