@@ -120,6 +120,8 @@ void TouchInputDevice::convertPad() {
 
 void TouchInputDevice::convertMouse() {
 	m_buttons = 0;
+	m_lastMouseX = m_mouseX;
+	m_lastMouseY = m_mouseY;
 
 	bool newMoving = false;
 	for (int i = 0; i < m_numPoints; i++) {
@@ -128,12 +130,9 @@ void TouchInputDevice::convertMouse() {
 		if (y >= HostVideo::Height-CircleSize) {
 			y -= HostVideo::Height-CircleSize;
 			if (x < CircleSize) {
-				if (m_mouseMoving) {
-					m_lastMouseX = m_mouseX;
-					m_lastMouseY = m_mouseY;
-				}
 				m_mouseX = x - CircleSize/2;
 				m_mouseY = y - CircleSize/2;
+				// when moving started
 				if (!m_mouseMoving) {
 					m_lastMouseX = m_mouseX;
 					m_lastMouseY = m_mouseY;

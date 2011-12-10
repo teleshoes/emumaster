@@ -39,6 +39,8 @@ public:
 	void updateInput();
 
 	void sl();
+private:
+	bool m_inputPortToggle[2];
 };
 
 extern AmigaMachine amigaMachine;

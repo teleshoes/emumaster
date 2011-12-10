@@ -92,8 +92,11 @@ int AmigaMachine::fillAudioBuffer(char *stream, int streamSize)
 void AmigaMachine::setJoy(int joy, int buttons) {
 	amigaInputPortButtons[joy] |= buttons >> 4;
 
-	if (buttons & 0xF) {
+	if (buttons)
+		m_inputPortToggle[joy] = false;
+	if (!m_inputPortToggle[joy])
 		amigaInputPortDir[joy] = 0;
+	if (buttons & 0xF) {
 		if (buttons & PadKey_Up)
 			amigaInputPortDir[joy] |= (1 << 8);
 		if (buttons & PadKey_Down)
@@ -106,7 +109,6 @@ void AmigaMachine::setJoy(int joy, int buttons) {
 }
 
 void AmigaMachine::updateInput() {
-	// TODO joy and mouse colliding
 	amigaInputPortButtons[0] = 0;
 	amigaInputPortButtons[1] = 0;
 
@@ -127,8 +129,12 @@ void AmigaMachine::updateInput() {
 }
 
 void AmigaMachine::setMouse(int mouse, int buttons, int dx, int dy) {
-	dx = qBound(-127, dx/4, 127);
-	dy = qBound(-127, dy/4, 127);
+	dx = qBound(-127, dx/2, 127);
+	dy = qBound(-127, dy/2, 127);
+	if (!(dx | dy | buttons))
+		return;
+
+	m_inputPortToggle[mouse] = true;
 	amigaInputPortButtons[mouse] |= buttons;
 	u16 oldMouseRel = amigaInputPortDir[mouse];
 	u8 mouseX = (oldMouseRel >> 0) & 0xFF;
