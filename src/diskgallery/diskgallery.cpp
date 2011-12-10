@@ -84,7 +84,7 @@ void DiskGallery::launch(int index, bool autoload) {
 			.arg(diskMachine);
 	args << diskFileName;
 	if (!autoload)
-		args << "-noautoload";
+		args << "-noAutoSaveLoad";
 #if defined(MEEGO_EDITION_HARMATTAN)
 	process.startDetached("/usr/bin/single-instance", args);
 #elif defined(Q_WS_MAEMO_5)

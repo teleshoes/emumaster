@@ -55,7 +55,7 @@ Page {
 		CollectionTypeButton { name: "nes" }
 		CollectionTypeButton { name: "snes" }
 		CollectionTypeButton { name: "gba" }
-		CollectionTypeButton { name: "psx"; alphaVersion: true }
+		CollectionTypeButton { name: "psx" }
 		CollectionTypeButton { name: "amiga" }
 		CollectionTypeButton { name: "fav" }
 	}

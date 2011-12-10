@@ -44,6 +44,10 @@ Page {
 
 		MenuLayout {
 			MenuItem {
+				text: qsTr("Run with Auto Save/Load Disabled")
+				onClicked: diskGallery.launch(mainMenu.diskIndex, false)
+			}
+			MenuItem {
 				text: qsTr("Select Cover")
 				onClicked: appWindow.pageStack.push(Qt.resolvedUrl("CoverSelectorPage.qml"),
 													{ diskIndex: mainMenu.diskIndex })

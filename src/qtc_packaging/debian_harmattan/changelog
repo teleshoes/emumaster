@@ -1,5 +1,7 @@
-emumaster (0.0.3) unstable; urgency=low
+emumaster (0.1.0) unstable; urgency=low
 
+  * amiga emulation added
+  * safety check for idle preventing battery drain
   * better error handling
   * display is not suspending while playing game
   * new look of the pad
