@@ -31,11 +31,16 @@ public:
 	void setConfIndex(int index);
 
 	virtual void update(int *data) = 0;
+
+	void setGlobalConfigurationName(const QString &name);
+	void updateConfFromGlobalConfiguration();
 signals:
 	void confChanged();
 private:
 	QString m_name;
 	int m_confIndex;
+
+	QString m_globalConfName;
 };
 
 inline QString HostInputDevice::name() const

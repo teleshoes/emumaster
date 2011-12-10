@@ -38,6 +38,8 @@ public:
 	void update();
 
 	void paint(QPainter &painter);
+public slots:
+	void updateConfFromGlobalConfiguration();
 signals:
 	void pause();
 	void quit();

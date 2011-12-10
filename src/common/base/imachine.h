@@ -68,8 +68,6 @@ public:
 	~IMachine();
 	QString name() const;
 
-	Configuration *conf() const;
-
 	qreal frameRate() const;
 	QRectF videoSrcRect() const;
 
@@ -100,7 +98,6 @@ private:
 	QString m_name;
 	qreal m_frameRate;
 	QRectF m_videoSrcRect;
-	Configuration *m_conf;
 
 	friend class MachineView;
 	friend class HostInput;
@@ -108,8 +105,6 @@ private:
 
 inline QString IMachine::name() const
 { return m_name; }
-inline Configuration *IMachine::conf() const
-{ return m_conf; }
 inline qreal IMachine::frameRate() const
 { return m_frameRate; }
 inline QRectF IMachine::videoSrcRect() const

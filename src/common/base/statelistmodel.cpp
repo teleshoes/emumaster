@@ -119,6 +119,8 @@ bool StateListModel::loadState(int slot) {
 	bool ok = m_machine->loadState(statePath);
 	if (!ok)
 		emit slFailed();
+	else
+		emit stateLoaded();
 	return ok;
 }
 

@@ -14,6 +14,7 @@
  */
 
 #include "hostinputdevice.h"
+#include "configuration.h"
 
 HostInputDevice::HostInputDevice(const QString &name, QObject *parent) :
 	QObject(parent),
@@ -25,7 +26,19 @@ void HostInputDevice::setConfIndex(int index) {
 	if (index < 0)
 		index = 0;
 	if (index != m_confIndex) {
+		if (!m_globalConfName.isEmpty())
+			Configuration::instance()->setItem(m_globalConfName, index);
 		m_confIndex = index;
 		emit confChanged();
 	}
+}
+
+void HostInputDevice::setGlobalConfigurationName(const QString &name) {
+	m_globalConfName = name;
+}
+
+void HostInputDevice::updateConfFromGlobalConfiguration() {
+	int conf = Configuration::instance()->item(m_globalConfName, -1).toInt();
+	if (conf >= 0)
+		setConfIndex(conf);
 }

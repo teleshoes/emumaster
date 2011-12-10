@@ -32,6 +32,10 @@ HostInput::HostInput(IMachine *machine) :
 	m_accelInputDevice = new AccelInputDevice(this);
 	m_keybInputDevice = new KeybInputDevice(this);
 
+	m_touchInputDevice->setGlobalConfigurationName("HostInput.Touch.Conf");
+	m_accelInputDevice->setGlobalConfigurationName("HostInput.Accel.Conf");
+	m_keybInputDevice->setGlobalConfigurationName("HostInput.Keyb.Conf");
+
 	SixAxisDaemon *daemon = SixAxisDaemon::instance();
 	QObject::connect(daemon, SIGNAL(newPad()), SLOT(onSixAxisDetected()));
 	daemon->start();
@@ -85,6 +89,8 @@ void HostInput::onSixAxisDetected() {
 	if (daemon->hasNewPad()) {
 		SixAxis *sixAxis = daemon->nextNewPad();
 		SixAxisInputDevice *sixAxisDev = new SixAxisInputDevice(sixAxis, this);
+		QString globalConfName = QString("HostInput.Touch.SixAxis%1").arg(m_sixAxisInputDevices.size());
+		sixAxisDev->setGlobalConfigurationName(globalConfName);
 		QObject::connect(sixAxisDev, SIGNAL(destroyed()), SLOT(onSixAxisDestroyed()));
 		QObject::connect(sixAxisDev, SIGNAL(pause()), SIGNAL(pause()));
 		m_sixAxisInputDevices.append(sixAxisDev);
@@ -128,4 +134,12 @@ void HostInput::update() {
 	m_keybInputDevice->update(data);
 	for (int i = 0; i < m_sixAxisInputDevices.size(); i++)
 		m_sixAxisInputDevices.at(i)->update(data);
+}
+
+void HostInput::updateConfFromGlobalConfiguration() {
+	m_touchInputDevice->updateConfFromGlobalConfiguration();
+	m_accelInputDevice->updateConfFromGlobalConfiguration();
+	m_keybInputDevice->updateConfFromGlobalConfiguration();
+	for (int i = 0; i < m_sixAxisInputDevices.size(); i++)
+		m_sixAxisInputDevices.at(i)->updateConfFromGlobalConfiguration();
 }

@@ -79,6 +79,7 @@ private slots:
 	void onFrameGenerated(bool videoOn);
 	void onSlFailed();
 	void onSafetyEvent();
+	void onStateLoaded();
 private:
 	bool loadConfiguration();
 	void loadSettings();

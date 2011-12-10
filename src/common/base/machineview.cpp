@@ -85,6 +85,8 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	if (m_error.isEmpty()) {
 		QObject::connect(m_stateListModel, SIGNAL(slFailed()),
 						 SLOT(onSlFailed()), Qt::QueuedConnection);
+		QObject::connect(m_stateListModel, SIGNAL(stateLoaded()),
+						 SLOT(onStateLoaded()), Qt::QueuedConnection);
 		#if defined(Q_WS_MAEMO_5)
 			method = "pauseStage2";
 		#endif
@@ -239,7 +241,7 @@ void MachineView::loadSettings() {
 QVariant MachineView::loadOptionFromSettings(QSettings &s,
 											 const QString &name,
 											 const QVariant &defaultValue) {
-	QVariant option = m_machine->conf()->item(name);
+	QVariant option = Configuration::instance()->item(name);
 	if (option.isNull())
 		option = s.value(name, defaultValue);
 	return option;
@@ -262,7 +264,7 @@ void MachineView::parseConfArg(const QString &arg) {
 	stream >> conf;
 	QMap<QString, QVariant>::ConstIterator i = conf.constBegin();
 	for (; i != conf.constEnd(); i++)
-		m_machine->conf()->setItem(i.key(), i.value());
+		Configuration::instance()->setItem(i.key(), i.value());
 }
 
 void MachineView::onFrameGenerated(bool videoOn) {
@@ -280,7 +282,7 @@ bool MachineView::isFpsVisible() const {
 void MachineView::setFpsVisible(bool on) {
 	if (m_hostVideo->isFpsVisible() != on) {
 		m_hostVideo->setFpsVisible(on);
-		m_machine->conf()->setItem("fpsVisible", on);
+		Configuration::instance()->setItem("fpsVisible", on);
 		emit fpsVisibleChanged();
 	}
 }
@@ -292,7 +294,7 @@ int MachineView::frameSkip() const {
 void MachineView::setFrameSkip(int n) {
 	if (m_thread->frameSkip() != n) {
 		m_thread->setFrameSkip(n);
-		m_machine->conf()->setItem("frameSkip", n);
+		Configuration::instance()->setItem("frameSkip", n);
 		emit frameSkipChanged();
 	}
 }
@@ -305,7 +307,7 @@ void MachineView::setAudioEnabled(bool on) {
 	if (m_audioEnable != on) {
 		m_audioEnable = on;
 		m_machine->setAudioEnabled(on);
-		m_machine->conf()->setItem("audioEnable", on);
+		Configuration::instance()->setItem("audioEnable", on);
 		emit audioEnableChanged();
 	}
 }
@@ -317,7 +319,7 @@ qreal MachineView::padOpacity() const {
 void MachineView::setPadOpacity(qreal opacity) {
 	if (m_hostInput->padOpacity() != opacity) {
 		m_hostInput->setPadOpacity(opacity);
-		m_machine->conf()->setItem("padOpacity", opacity);
+		Configuration::instance()->setItem("padOpacity", opacity);
 		emit padOpacityChanged();
 	}
 }
@@ -329,7 +331,7 @@ bool MachineView::keepAspectRatio() const {
 void MachineView::setKeepAspectRatio(bool on) {
 	if (m_hostVideo->keepApsectRatio() != on) {
 		m_hostVideo->setKeepAspectRatio(on);
-		m_machine->conf()->setItem("keepAspectRatio", on);
+		Configuration::instance()->setItem("keepAspectRatio", on);
 		emit keepAspectRatioChanged();
 	}
 }
@@ -354,7 +356,7 @@ int MachineView::determineLoadState(const QStringList &args) {
 }
 
 bool MachineView::loadConfiguration() {
-	Configuration *conf = m_machine->conf();
+	Configuration *conf = Configuration::instance();
 	conf->setItem("version", QCoreApplication::applicationVersion());
 
 	QStringList args = QCoreApplication::arguments();
@@ -422,4 +424,8 @@ void MachineView::onSafetyEvent() {
 	if (!m_safetyCheck)
 		fatalError(tr("Emulated system is not responding"));
 	m_safetyCheck = false;
+}
+
+void MachineView::onStateLoaded() {
+	m_hostInput->updateConfFromGlobalConfiguration();
 }

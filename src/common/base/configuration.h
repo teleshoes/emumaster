@@ -24,7 +24,8 @@ class Configuration : public QObject {
 public:
 	static void setupAppInfo();
 
-    explicit Configuration(QObject *parent = 0);
+	static Configuration *instance();
+
 	QVariant item(const QString &name,
 				  const QVariant &defaultValue = QVariant());
 	void setItem(const QString &name, const QVariant &value);
@@ -32,7 +33,11 @@ public:
 
 	void sl();
 private:
+	Configuration();
+
 	QHash<QString, QVariant> m_data;
+
+	static Configuration *m_instance;
 };
 
 #endif // CONFIGURATION_H

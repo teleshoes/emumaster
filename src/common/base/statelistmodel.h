@@ -52,6 +52,7 @@ public:
 signals:
 	void countChanged();
 	void slFailed();
+	void stateLoaded();
 private:
 	int indexOfSlot(int i) const;
 

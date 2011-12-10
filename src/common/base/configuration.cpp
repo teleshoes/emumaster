@@ -20,8 +20,9 @@
 // TODO when hard configuration mismatch on load - show info as bubble
 // TODO hard config
 
-Configuration::Configuration(QObject *parent) :
-	QObject(parent) {
+Configuration *Configuration::m_instance = 0;
+
+Configuration::Configuration() {
 }
 
 void Configuration::setItem(const QString &name, const QVariant &value) {
@@ -46,4 +47,10 @@ void Configuration::setupAppInfo() {
 	QCoreApplication::setApplicationName("emumaster");
 	// TODO change on every release
 	QCoreApplication::setApplicationVersion("0.1.0");
+}
+
+Configuration *Configuration::instance() {
+	if (!m_instance)
+		m_instance = new Configuration();
+	return m_instance;
 }

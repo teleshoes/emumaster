@@ -25,7 +25,6 @@ IMachine::IMachine(const QString &name, QObject *parent) :
 	QObject(parent),
 	m_name(name),
 	m_frameRate(1) {
-	m_conf = new Configuration(this);
 }
 
 IMachine::~IMachine() {
@@ -71,7 +70,7 @@ bool IMachine::saveInternal(QDataStream *stream) {
 	emsl.allAddr.clear();
 	emsl.error.clear();
 
-	conf()->sl();
+	Configuration::instance()->sl();
 	sl();
 
 	bool succeded = emsl.error.isEmpty();
@@ -97,7 +96,7 @@ bool IMachine::loadInternal(QDataStream *stream) {
 	emsl.currAddr.clear();
 	emsl.error.clear();
 
-	conf()->sl();
+	Configuration::instance()->sl();
 	if (!emsl.loadConfOnly && emsl.error.isEmpty()) {
 		emsl.abortIfLoadFails = true;
 		sl();
