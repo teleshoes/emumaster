@@ -14,7 +14,6 @@ unix {
 }
 
 SOURCES += \
-    main.cpp \
     sixaxismonitor.cpp \
     sixaxisserver.cpp \
     sixaxisdevice.cpp
@@ -23,3 +22,4 @@ HEADERS += \
     sixaxismonitor.h \
     sixaxisserver.h \
     sixaxisdevice.h
+

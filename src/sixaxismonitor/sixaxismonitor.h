@@ -32,8 +32,8 @@ public:
 	Q_INVOKABLE void identify(int i);
 	Q_INVOKABLE void disconnectDev(int i);
 private slots:
-	void identifyEvent();
-	void identifyDevDestroyed();
+	void onIdentifyEvent();
+	void onIdentifyDevDestroyed();
 signals:
 	void addressesChanged();
 private:

@@ -17,68 +17,102 @@
 #include "sixaxismonitor.h"
 #include "sixaxisserver.h"
 #include "sixaxisdevice.h"
+#include <pathmanager.h>
 #include <QTimer>
 #include <QtDeclarative>
+#include <QApplication>
 
+/**
+	\class SixAxisMonitor
+	QML window to show detected PS3 controllers.
+ */
+
+/** Creates SixAxisMonitor. */
 SixAxisMonitor::SixAxisMonitor() {
 	m_identifyDev = 0;
 	m_server = new SixAxisServer(this);
 	QObject::connect(m_server, SIGNAL(countChanged()), SIGNAL(addressesChanged()));
 
 	rootContext()->setContextProperty("sixAxisMonitor", this);
-	setSource(QUrl::fromLocalFile("/opt/emumaster/qml/sixaxismonitor/main.qml"));
+
+	QString qmlSrcPath = QString("%1/qml/sixaxismonitor/main.qml")
+			.arg(PathManager::instance()->installationDirPath());
+	setSource(QUrl::fromLocalFile(qmlSrcPath));
 }
 
+/**
+	Starts listening for new PS3 controllers.
+	Returns non-empty string on error.
+ */
 QString SixAxisMonitor::start() {
 	return m_server->open();
 }
 
+/** Starts the animation sequence of LEDs in sixaxis. */
 void SixAxisMonitor::identify(int i) {
 	if (m_identifyDev)
 		return;
-	if (i < m_server->numDevices()) {
-		SixAxisDevice *dev = m_server->device(i);
-		QObject::connect(dev, SIGNAL(destroyed()), SLOT(identifyDevDestroyed()));
-		m_identifyDev = dev;
-		m_identifyOldLeds = dev->leds();
-		m_identifyCounter = 0;
-		identifyEvent();
-	}
+	if (i < 0 || i >= m_server->numDevices())
+		return;
+
+	SixAxisDevice *dev = m_server->device(i);
+	QObject::connect(dev, SIGNAL(destroyed()),
+					 SLOT(onIdentifyDevDestroyed()));
+	m_identifyDev = dev;
+	m_identifyOldLeds = dev->leds();
+	m_identifyCounter = 0;
+	onIdentifyEvent();
 }
 
+/** Disconnects sixaxis with ID \a i. */
 void SixAxisMonitor::disconnectDev(int i) {
-	if (i < m_server->numDevices()) {
-		SixAxisDevice *dev = m_server->device(i);
-		m_server->disconnectDevice(dev);
-	}
+	if (i < 0 || i >= m_server->numDevices())
+		return;
+	SixAxisDevice *dev = m_server->device(i);
+	m_server->disconnectDevice(dev);
 }
 
-void SixAxisMonitor::identifyDevDestroyed() {
+/** Called when device was destroyed while identifying. */
+void SixAxisMonitor::onIdentifyDevDestroyed() {
 	m_identifyDev = 0;
 }
 
-void SixAxisMonitor::identifyEvent() {
+/** Advances LED animation. */
+void SixAxisMonitor::onIdentifyEvent() {
 	if (!m_identifyDev)
 		return;
 
-	static const int patterns[] = { 1, 2, 4, 8, 4, 2, 1, 0 };
-	int leds = patterns[m_identifyCounter];
+	static const int LedPatterns[] = { 1, 2, 4, 8, 4, 2, 1, 0 };
+	static const int NumOfPatterns = sizeof(LedPatterns);
+
+	int leds = LedPatterns[m_identifyCounter];
 
 	m_identifyCounter++;
-	if (m_identifyCounter == 8)
+	if (m_identifyCounter == NumOfPatterns)
 		leds = m_identifyOldLeds;
 
 	m_identifyDev->setLeds(leds);
 
-	if (m_identifyCounter == 8)
+	if (m_identifyCounter == NumOfPatterns) {
+		QObject::disconnect(m_identifyDev, SIGNAL(destroyed()),
+							this, SLOT(onIdentifyDevDestroyed()));
 		m_identifyDev = 0;
-	else
-		QTimer::singleShot(300, this, SLOT(identifyEvent()));
+	} else {
+		QTimer::singleShot(300, this, SLOT(onIdentifyEvent()));
+	}
 }
 
+/** Returns the list of addresses of connected controllers. */
 QStringList SixAxisMonitor::addresses() const {
 	QStringList result;
 	for (int i = 0; i < m_server->numDevices(); i++)
 		result << m_server->device(i)->addressString();
 	return result;
+}
+
+int main(int argc, char *argv[]) {
+	QApplication app(argc, argv);
+	SixAxisMonitor view;
+	view.showFullScreen();
+	return app.exec();
 }

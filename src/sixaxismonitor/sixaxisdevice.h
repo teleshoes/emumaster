@@ -33,7 +33,7 @@ public:
 	int leds() const;
 private slots:
 	void receiveData();
-	void disconnected();
+	void onDisconnected();
 private:
 	void enableReporting();
 

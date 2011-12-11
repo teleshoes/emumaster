@@ -110,7 +110,7 @@ void DiskGallery::homepage() {
 /** Starts web browser with wiki address. */
 void DiskGallery::wiki() {
 	QStringList args;
-	args << "http://bitbucket.org/elemental/emumaster";
+	args << "http://bitbucket.org/elemental/emumaster/wiki";
 	QProcess::startDetached("grob", args);
 }
 

@@ -26,7 +26,7 @@ Page {
 		id: helpLabel
 		anchors.horizontalCenter: parent.horizontalCenter
 		y: 10
-		text: qsTr("Visit wiki before using it !!!")
+		text: qsTr("Read wiki before using it !!!")
 	}
 
 	Button {
@@ -43,7 +43,7 @@ Page {
 				helpLabel.text = qsTr("Monitor Running")
 				startButton.visible = false
 			} else {
-				errDialog.message = qsTr("Something went wrong: ") + err
+				errDialog.message = err
 				errDialog.open()
 			}
 		}
@@ -64,7 +64,6 @@ Page {
 			width: childrenRect.width
 			spacing: 4
 			Label {
-				id: infoLabel
 				text: qsTr("%1. Bluetooth address: %2")
 							.arg(index+1)
 							.arg(modelData)
