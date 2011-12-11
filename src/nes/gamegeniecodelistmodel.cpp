@@ -90,7 +90,7 @@ void GameGenieCodeListModel::addNew(const QString &code, const QString &descript
 	beginInsertRows(QModelIndex(), m_codes.size(), m_codes.size());
 	m_codes.append(codeUpper);
 	m_descriptions.append(description);
-	m_enable.append(false);
+	m_enable.append(true);
 	endInsertRows();
 
 	nesMapper->setGameGenieCodeList(enabledList());

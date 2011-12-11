@@ -1,3 +1,1 @@
  b saves in gba tasmanian dont work
- nes cheats regression
- joys and mouses collides in amiga
