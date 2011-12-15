@@ -18,7 +18,7 @@
 #define AMIGACPU_H
 
 #include <imachine.h>
-#include <cyclone.h>
+#include "cyclone.h"
 
 enum SpcFlag {
 	SpcFlagStop			= 0x002,

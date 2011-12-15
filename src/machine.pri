@@ -1,7 +1,7 @@
 DESTDIR = ../../bin
 LIBS += -L../../lib -lbase
 INCLUDEPATH += ../../include
-QT += opengl
+QT += opengl declarative
 
 #contains(CONFIG,release) {
 #	QMAKE_CFLAGS_RELEASE -= -O2

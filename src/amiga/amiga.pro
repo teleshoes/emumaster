@@ -15,8 +15,6 @@ unix {
 	INSTALLS += qml gameclassify
 }
 
-INCLUDEPATH += ../common/m68k
-
 HEADERS += \
     zfile.h \
     keybuf.h \
@@ -29,7 +27,7 @@ HEADERS += \
     blitter.h \
     blitfunc.h \
     blit.h \
-    ../common/m68k/cyclone.h \
+    cyclone.h \
     machine.h \
     spu.h \
     cpu.h \
@@ -43,77 +41,10 @@ SOURCES += \
 	custom.cpp \
 	disk.cpp \
 	drawing.cpp \
-	../common/m68k/cyclone.S \
+    cyclone.S \
 	machine.cpp \
 	spu.cpp \
 	mem.cpp \
 	mem_handlers.S \
 	cpu.cpp \
     keyb.cpp
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
