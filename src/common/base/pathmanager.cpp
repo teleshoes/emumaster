@@ -88,13 +88,15 @@ QString PathManager::homeScreenIconPath(const QString &machine,
 QString PathManager::desktopFilePath(const QString &machine,
 									 const QString &title) const {
 #if defined(MEEGO_EDITION_HARMATTAN)
-	return QString("%1/.local/share/applications/emumaster_%2_%3.desktop")
+	return QString("%1/.local/share/applications/browser-%2-1.desktop")
+			.arg(getenv("HOME"))
+			.arg((machine+title).toAscii().toBase64().constData());
 #elif defined(Q_WS_MAEMO_5)
 	return QString("%1/.local/share/applications/hildon/emumaster_%2_%3.desktop")
-#endif
 			.arg(getenv("HOME"))
 			.arg(machine)
 			.arg(title);
+#endif
 }
 
 QString PathManager::cheatPath(const QString &machine,

@@ -25,12 +25,18 @@ public:
     explicit KeybInputDevice(QObject *parent = 0);
 	void update(int *data);
 	void processKey(Qt::Key key, bool down);
+
+	Q_INVOKABLE void setPadKey(int key, int hostKey);
+	Q_INVOKABLE int padKey(int key) const;
+	Q_INVOKABLE void resetToDefaults();
 private slots:
 	void onConfChanged();
 private:
 	QHash<int, int> m_mapping;
 	int m_buttons;
 	QList<int> m_keys;
+
+	static const int m_defaultMapping[14];
 };
 
 #endif // KEYBINPUTDEVICE_H

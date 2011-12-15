@@ -15,17 +15,26 @@
 
 #include "accelinputdevice.h"
 #include "imachine.h"
-
-// TODO configure possibilty
+#include <QSettings>
 
 AccelInputDevice::AccelInputDevice(QObject *parent) :
 	HostInputDevice("accel", parent) {
 	m_accelerometer = 0;
 
-	m_upVector = QVector3D(0.0f, 0.0f, 9.8f);
-	m_rightVector = QVector3D(0.0f, -9.8f, 0.0f);
-
 	QObject::connect(this, SIGNAL(confChanged()), SLOT(onConfChanged()));
+
+	QSettings s;
+	s.beginGroup("accelerometer");
+
+	m_upVector.setX(s.value("up.x", 0.0f).toReal());
+	m_upVector.setY(s.value("up.y", 0.0f).toReal());
+	m_upVector.setZ(s.value("up.z", 9.8f).toReal());
+
+	m_rightVector.setX(s.value("right.x", 0.0f).toReal());
+	m_rightVector.setY(s.value("right.y", -9.8f).toReal());
+	m_rightVector.setZ(s.value("right.z", 0.0f).toReal());
+
+	s.endGroup();
 }
 
 void AccelInputDevice::onConfChanged() {
@@ -53,6 +62,19 @@ void AccelInputDevice::calibrate(const QVector3D &init,
 								 const QVector3D &right) {
 	m_upVector = up - init;
 	m_rightVector = right - init;
+
+	QSettings s;
+	s.beginGroup("accelerometer");
+
+	s.setValue("up.x", m_upVector.x());
+	s.setValue("up.y", m_upVector.y());
+	s.setValue("up.z", m_upVector.z());
+
+	s.setValue("right.x", m_rightVector.x());
+	s.setValue("right.y", m_rightVector.y());
+	s.setValue("right.z", m_rightVector.z());
+
+	s.endGroup();
 }
 
 void AccelInputDevice::update(int *data) {

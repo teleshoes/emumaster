@@ -1,3 +1,9 @@
+emumaster (0.1.1) unstable; urgency=low
+
+  * icons are removable from home screen now
+
+ -- elemental <mar.kazmierczak@gmail.com>  Tue, 13 Dec 2011 08:39:17 +0100
+
 emumaster (0.1.0) unstable; urgency=low
 
   * amiga emulation added

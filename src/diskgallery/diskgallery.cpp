@@ -17,6 +17,8 @@
 #include "diskgallery.h"
 #include "disklistmodel.h"
 #include "diskimageprovider.h"
+#include "../common/base/accelinputdevice.h"
+#include "../common/base/keybinputdevice.h"
 #include <pathmanager.h>
 #include <QDeclarativeEngine>
 #include <QDeclarativeContext>
@@ -46,6 +48,8 @@ void DiskGallery::setupQml() {
 	context->setContextProperty("diskListModel", m_diskListModel);
 	context->setContextProperty("diskGallery", this);
 	context->setContextProperty("appVersion", QCoreApplication::applicationVersion());
+	context->setContextProperty("accelInputDevice", new AccelInputDevice(this));
+	context->setContextProperty("keybInputDevice", new KeybInputDevice(this));
 
 	QObject::connect(engine(), SIGNAL(quit()), SLOT(close()));
 	QString qmlPath = QString("%1/qml/gallery/main.qml")

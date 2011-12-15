@@ -102,7 +102,12 @@ Page {
 			opacity: diskListView.searchVisible ? 1.0 : 0.0
 			inputMethodHints: Qt.ImhNoPredictiveText|Qt.ImhNoAutoUppercase
 
-			Behavior on opacity { NumberAnimation { duration: 300 } }
+			Behavior on opacity {
+				NumberAnimation {
+					duration: 300
+					alwaysRunToEnd: true
+				}
+			}
 			Image {
 				anchors {
 					right: parent.right

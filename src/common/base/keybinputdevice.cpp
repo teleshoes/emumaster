@@ -25,37 +25,11 @@ KeybInputDevice::KeybInputDevice(QObject *parent) :
 	HostInputDevice("keyb", parent) {
 	QObject::connect(this, SIGNAL(confChanged()), SLOT(onConfChanged()));
 
-	QHash<int, int> defaultMapping;
-	defaultMapping[Qt::Key_Left] = IMachine::PadKey_Left;
-	defaultMapping[Qt::Key_Right] = IMachine::PadKey_Right;
-	defaultMapping[Qt::Key_Up] = IMachine::PadKey_Up;
-	defaultMapping[Qt::Key_Down] = IMachine::PadKey_Down;
-
-	defaultMapping[Qt::Key_C] = IMachine::PadKey_A;
-	defaultMapping[Qt::Key_X] = IMachine::PadKey_B;
-	defaultMapping[Qt::Key_S] = IMachine::PadKey_X;
-	defaultMapping[Qt::Key_D] = IMachine::PadKey_Y;
-
-	defaultMapping[Qt::Key_Q] = IMachine::PadKey_Start;
-	defaultMapping[Qt::Key_W] = IMachine::PadKey_Select;
-
-	defaultMapping[Qt::Key_G] = IMachine::PadKey_L1;
-	defaultMapping[Qt::Key_H] = IMachine::PadKey_R1;
-	defaultMapping[Qt::Key_T] = IMachine::PadKey_L2;
-	defaultMapping[Qt::Key_Z] = IMachine::PadKey_R2;
-
-	QByteArray ba;
-
-	QDataStream *stream = new QDataStream(&ba, QIODevice::WriteOnly);
-	*stream << defaultMapping;
-	delete stream;
-
 	QSettings s;
-	ba = s.value("keybMapping", ba).toByteArray();
-
-	stream = new QDataStream(&ba, QIODevice::ReadOnly);
-	*stream >> m_mapping;
-	delete stream;
+	s.beginGroup("keyboard");
+	for (uint i = 0;  i < sizeof(m_defaultMapping)/sizeof(int); i++)
+		m_mapping[1<<i] = s.value(QString::number(i), m_defaultMapping[i]).toInt();
+	s.endGroup();
 }
 
 void KeybInputDevice::onConfChanged() {
@@ -92,4 +66,46 @@ void KeybInputDevice::processKey(Qt::Key key, bool down) {
 			k |= (1 << 31);
 		m_keys.append(k);
 	}
+}
+
+const int KeybInputDevice::m_defaultMapping[14] = {
+	Qt::Key_Right,
+	Qt::Key_Down,
+	Qt::Key_Up,
+	Qt::Key_Left,
+
+	Qt::Key_C,
+	Qt::Key_X,
+	Qt::Key_S,
+	Qt::Key_D,
+
+	Qt::Key_Q,
+	Qt::Key_W,
+
+	Qt::Key_G,
+	Qt::Key_H,
+	Qt::Key_T,
+	Qt::Key_Z
+};
+
+void KeybInputDevice::setPadKey(int key, int hostKey) {
+	QSettings s;
+	s.beginGroup("keyboard");
+	s.setValue(QString::number(key), hostKey);
+	m_mapping[1 << key] = hostKey;
+	s.endGroup();
+}
+
+int KeybInputDevice::padKey(int key) const {
+	return m_mapping[1 << key];
+}
+
+void KeybInputDevice::resetToDefaults() {
+	QSettings s;
+	s.beginGroup("keyboard");
+	for (uint i = 0;  i < sizeof(m_defaultMapping)/sizeof(int); i++) {
+		s.setValue(QString::number(i), m_defaultMapping[i]);
+		m_mapping[1 << i] = m_defaultMapping[i];
+	}
+	s.endGroup();
 }

@@ -2,6 +2,8 @@ DESTDIR = ../../bin
 INCLUDEPATH += ../../include
 LIBS += -L../../lib -lbase
 QT += opengl declarative network
+CONFIG += mobility
+MOBILITY += sensors
 
 SOURCES += \
     main.cpp \
@@ -36,7 +38,9 @@ unix {
 		../../qml/gallery/CollectionMenuPage.qml \
 		../../qml/gallery/CollectionTypeButton.qml \
 		../../qml/gallery/GalleryPage.qml \
-		../../qml/gallery/GlobalSettings.qml
+		../../qml/gallery/GlobalSettings.qml \
+		../../qml/gallery/AccelCalibrationPage.qml \
+		../../qml/gallery/KeybMappingPage.qml
 
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = \

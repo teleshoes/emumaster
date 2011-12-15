@@ -46,6 +46,11 @@ Page {
 			stepSize: 0.05
 			valueIndicatorVisible: true
 		}
+		Button {
+			text: qsTr("Calibrate Accelerometer")
+			anchors.horizontalCenter: parent.horizontalCenter
+			onClicked: appWindow.pageStack.push(Qt.resolvedUrl("AccelCalibrationPage.qml"))
+		}
 
 		SectionSeperator { text: qsTr("VIDEO"); rightPad: 150 }
 		Label {
