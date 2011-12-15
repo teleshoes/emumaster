@@ -26,9 +26,11 @@ public:
 	void update(int *data);
 	void processKey(Qt::Key key, bool down);
 
-	Q_INVOKABLE void setPadKey(int key, int hostKey);
-	Q_INVOKABLE int padKey(int key) const;
+	Q_INVOKABLE void setPadButton(int buttonIndex, int hostKey, const QString hostKeyText);
+	Q_INVOKABLE int padButton(int buttonIndex) const;
+	Q_INVOKABLE QString padButtonText(int buttonIndex) const;
 	Q_INVOKABLE void resetToDefaults();
+	Q_INVOKABLE QString padButtonName(int buttonIndex) const;
 private slots:
 	void onConfChanged();
 private:
@@ -37,6 +39,8 @@ private:
 	QList<int> m_keys;
 
 	static const int m_defaultMapping[14];
+	static const char *m_defaultMappingText[];
+	static const char *m_padButtonName[];
 };
 
 #endif // KEYBINPUTDEVICE_H

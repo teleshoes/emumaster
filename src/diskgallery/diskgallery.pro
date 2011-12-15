@@ -40,7 +40,8 @@ unix {
 		../../qml/gallery/GalleryPage.qml \
 		../../qml/gallery/GlobalSettings.qml \
 		../../qml/gallery/AccelCalibrationPage.qml \
-		../../qml/gallery/KeybMappingPage.qml
+        ../../qml/gallery/KeybMappingPage.qml \
+        ../../qml/gallery/KeybMappingItem.qml
 
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = \

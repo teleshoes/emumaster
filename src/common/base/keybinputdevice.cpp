@@ -13,9 +13,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// TODO configurable keyboard
-// TODO when lost focus clear buttons
-
 #include "keybinputdevice.h"
 #include "imachine.h"
 #include <QSettings>
@@ -27,8 +24,11 @@ KeybInputDevice::KeybInputDevice(QObject *parent) :
 
 	QSettings s;
 	s.beginGroup("keyboard");
-	for (uint i = 0;  i < sizeof(m_defaultMapping)/sizeof(int); i++)
-		m_mapping[1<<i] = s.value(QString::number(i), m_defaultMapping[i]).toInt();
+    for (uint i = 0;  i < sizeof(m_defaultMapping)/sizeof(int); i++) {
+        int hostKey = s.value(QString::number(i), m_defaultMapping[i]).toInt();
+        int button = 1 << i;
+        m_mapping[hostKey] = button;
+    }
 	s.endGroup();
 }
 
@@ -88,24 +88,79 @@ const int KeybInputDevice::m_defaultMapping[14] = {
 	Qt::Key_Z
 };
 
-void KeybInputDevice::setPadKey(int key, int hostKey) {
+const char *KeybInputDevice::m_defaultMappingText[] = {
+	"Right",
+	"Down",
+	"Up",
+	"Left",
+
+	"c",
+	"x",
+	"s",
+	"d",
+
+	"q",
+	"w",
+
+	"g",
+	"h",
+	"t",
+	"z"
+};
+
+void KeybInputDevice::setPadButton(int buttonIndex, int hostKey, const QString hostKeyText) {
 	QSettings s;
 	s.beginGroup("keyboard");
-	s.setValue(QString::number(key), hostKey);
-	m_mapping[1 << key] = hostKey;
+	s.setValue(QString::number(buttonIndex), hostKey);
+	s.setValue(QString("%1.text").arg(buttonIndex), hostKeyText);
+	m_mapping[hostKey] = buttonIndex << 1;
 	s.endGroup();
 }
 
-int KeybInputDevice::padKey(int key) const {
-	return m_mapping[1 << key];
+int KeybInputDevice::padButton(int buttonIndex) const {
+	return m_mapping.key(buttonIndex << 1);
+}
+
+QString KeybInputDevice::padButtonText(int buttonIndex) const {
+	QSettings s;
+	s.beginGroup("keyboard");
+	QString text = s.value(QString("%1.text").arg(buttonIndex),
+						   m_defaultMappingText[buttonIndex]).toString();
+	s.endGroup();
+	return text;
 }
 
 void KeybInputDevice::resetToDefaults() {
 	QSettings s;
 	s.beginGroup("keyboard");
 	for (uint i = 0;  i < sizeof(m_defaultMapping)/sizeof(int); i++) {
-		s.setValue(QString::number(i), m_defaultMapping[i]);
-		m_mapping[1 << i] = m_defaultMapping[i];
+        int hostKey = m_defaultMapping[i];
+        s.setValue(QString::number(i), hostKey);
+        m_mapping[hostKey] = 1 << i;
 	}
 	s.endGroup();
+}
+
+const char *KeybInputDevice::m_padButtonName[] = {
+	"Right",
+	"Down",
+	"Up",
+	"Left",
+
+	"A",
+	"B",
+	"X",
+	"Y",
+
+	"Start",
+	"Select",
+
+	"L1",
+	"R1",
+	"L2",
+	"R2"
+};
+
+QString KeybInputDevice::padButtonName(int buttonIndex) const {
+	return m_padButtonName[buttonIndex];
 }

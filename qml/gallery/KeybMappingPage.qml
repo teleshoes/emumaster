@@ -21,13 +21,92 @@ Page {
 	id: keybMappingPage
 	orientationLock: PageOrientation.LockPortrait
 
+	property int currentChanging: -1
+	signal refreshText
+
 	tools: ToolBarLayout {
 		ToolIcon {
 			iconId: "toolbar-back"
 			onClicked: appWindow.pageStack.pop()
 		}
 	}
-	KeybMappingItem {
-		keyText: qsTr("Up")
+	Label {
+		id: titleLabel
+		text: qsTr("Keyboard to Pad mapping")
+		anchors.horizontalCenter: parent.horizontalCenter
+	}
+
+	Flickable {
+		anchors {
+			top: titleLabel.bottom
+			topMargin: 10
+			bottom: parent.bottom
+		}
+		width: parent.width
+		flickableDirection: Flickable.VerticalFlick
+		clip: true
+		contentHeight: items.height
+
+		Column {
+			id: items
+			width: parent.width
+			height: childrenRect.height
+			spacing: 10
+
+			Repeater {
+				model: 14
+
+				KeybMappingItem {
+					id: item
+					buttonName: keybInputDevice.padButtonName(index)
+					hostKeyName: keybInputDevice.padButtonText(index)
+					onClicked: {
+						if (keybMappingPage.currentChanging !== index)
+							keybMappingPage.currentChanging = index
+						else
+							keybMappingPage.currentChanging = -1
+					}
+					Connections {
+						target: keybMappingPage
+						onRefreshText: item.hostKeyName = keybInputDevice.padButtonText(index)
+					}
+					states: [
+						State {
+							name: "changing"; when: keybMappingPage.currentChanging === index
+							PropertyChanges {
+								target: item
+								hostKeyName: ".."
+							}
+						}
+					]
+				}
+			}
+		}
+	}
+	Keys.onPressed: {
+		if (keybMappingPage.currentChanging !== -1) {
+			var text = ""
+			switch (event.key) {
+			case Qt.Key_Backspace: text = "Backspace"; break
+			case Qt.Key_Return: text = "Enter"; break
+			case Qt.Key_Enter: text = "Enter"; break
+			case Qt.Key_Control: text = "Control"; break
+			case Qt.Key_Shift: text = "Shift"; break
+			case Qt.Key_Left: text = "Left"; break
+			case Qt.Key_Right: text = "Right"; break
+			case Qt.Key_Up: text = "Up"; break
+			case Qt.Key_Down: text = "Down"; break
+			case Qt.Key_Space: text = "Space"; break
+			default:
+				if (event.key < 0x100)
+					text = event.text
+				break
+			}
+
+			if (text !== "")
+				keybInputDevice.setPadButton(keybMappingPage.currentChanging, event.key, text)
+			keybMappingPage.currentChanging = -1
+			refreshText()
+		}
 	}
 }

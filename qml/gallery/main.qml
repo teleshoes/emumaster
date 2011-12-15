@@ -103,4 +103,12 @@ PageStackWindow {
 	Component.onCompleted: {
 		theme.inverted = true
 	}
+
+	property Item keysForwardedTo: mainPage
+
+	Connections {
+		target: pageStack
+		onCurrentPageChanged: keysForwardedTo = pageStack.currentPage
+	}
+	Keys.forwardTo: keysForwardedTo
 }

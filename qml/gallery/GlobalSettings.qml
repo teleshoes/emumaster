@@ -47,6 +47,11 @@ Page {
 			valueIndicatorVisible: true
 		}
 		Button {
+			text: qsTr("Keyboard Configuration")
+			anchors.horizontalCenter: parent.horizontalCenter
+			onClicked: appWindow.pageStack.push(Qt.resolvedUrl("KeybMappingPage.qml"))
+		}
+		Button {
 			text: qsTr("Calibrate Accelerometer")
 			anchors.horizontalCenter: parent.horizontalCenter
 			onClicked: appWindow.pageStack.push(Qt.resolvedUrl("AccelCalibrationPage.qml"))
