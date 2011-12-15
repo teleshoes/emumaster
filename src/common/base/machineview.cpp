@@ -54,7 +54,6 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_hostVideo = new HostVideo(m_hostInput, m_machine, m_thread);
 	m_hostVideo->installEventFilter(m_hostInput);
 	QObject::connect(m_hostVideo, SIGNAL(quit()), SLOT(close()));
-	QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
 	QObject::connect(m_hostInput, SIGNAL(quit()), SLOT(close()));
 	QObject::connect(m_hostInput, SIGNAL(pause()), SLOT(pause()));
 	QObject::connect(m_hostInput, SIGNAL(devicesChanged()),
@@ -236,6 +235,8 @@ void MachineView::loadSettings() {
 	m_thread->setFrameSkip(loadOptionFromSettings(s, "frameSkip", 1).toInt());
 	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible", false).toBool());
 	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio", true).toBool());
+	if (!loadOptionFromSettings(s, "runInBackground", false).toBool())
+		QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
 }
 
 QVariant MachineView::loadOptionFromSettings(QSettings &s,

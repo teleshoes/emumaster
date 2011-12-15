@@ -81,7 +81,28 @@ Page {
 			checked: !diskGallery.globalOption("keepAspectRatio", true)
 			onCheckedChanged: diskGallery.setGlobalOption("keepAspectRatio", !checked)
 		}
+		EMSwitchOption {
+			id: runInBackgroundSwitch
+			text: qsTr("Run in Background")
+			checked: diskGallery.globalOption("runInBackground", false)
+			onCheckedChanged: {
+				if (checked)
+					runInBackgroundDialog.open()
+				else
+					diskGallery.setGlobalOption("runInBackground", false)
+			}
+		}
 	}
 
+	}
+
+	QueryDialog {
+		id: runInBackgroundDialog
+		titleText: qsTr("Enabling the option will run the application in the background. " +
+						"This can consume a lot of battery!")
+		acceptButtonText: qsTr("Enable")
+		rejectButtonText: qsTr("Disable")
+		onRejected: runInBackgroundSwitch.checked = false
+		onAccepted: diskGallery.setGlobalOption("runInBackground", true)
 	}
 }
