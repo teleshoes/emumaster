@@ -1,5 +1,74 @@
 include(../machine.pri)
 
+DEFINES += EMU_C68K _USE_DRZ80 _ASM_DRAW_C _ASM_MEMORY_C _ASM_YM2612_C _ASM_MISC_C _ASM_CD_PICO_C _ASM_CD_MEMORY_C
+
 HEADERS += \
+    pico.h \
+    ym2612.h \
+    sn76496.h \
+    pico_int.h \
+    mix.h \
+    drz80.h \
+    port_config.h \
+    emu.h \
+    maemo.h \
+    pico_frame_hints.h \
+    memcmn.h \
+    arm_utils.h \
+    emu2.h \
+    lc89510.h \
+    cd_sys.h \
+    cd_pcm.h \
+    cd_gfx.h \
+    cd_file.h \
+    cd_cell_map.h \
+    cheat.h \
+    cart.h \
+    cyclone.h
+
+ASM_SOURCES += \
+    mix.S \
+    ym2612.S \
+    misc.S \
+    mem.S \
+    draw2.S \
+    draw.S \
+    port_config.S \
+    drz80.S \
+    cyclone.S \
+    arm_utils.S \
+    cd_pico.S \
+    cd_misc.S \
+    cd_mem.S
 
 SOURCES += \
+    ym2612.cpp \
+    sn76496.cpp \
+    pico.cpp \
+    video_port.cpp \
+    utils.cpp \
+    sek.cpp \
+    draw2.cpp \
+    draw.cpp \
+    misc.cpp \
+    mem.cpp \
+    area.cpp \
+    emu.cpp \
+    sound.cpp \
+    mix.cpp \
+    lc89510.cpp \
+    cd_sys.cpp \
+    cd_sek.cpp \
+    cd_pico.cpp \
+    cd_pcm.cpp \
+    cd_misc.cpp \
+    cd_mem.cpp \
+    cd_gfx.cpp \
+    cd_area.cpp \
+    cheat.cpp \
+    cd_file.cpp \
+    cd_buffering.cpp \
+    emu2.cpp \
+    $$ASM_SOURCES \
+    cart_old.cpp \
+    cart.cpp

@@ -17,6 +17,8 @@
 #include "imachine.h"
 #include <sixaxis.h>
 
+// TODO check mouse
+
 SixAxisInputDevice::SixAxisInputDevice(SixAxis *sixAxis, QObject *parent) :
 	HostInputDevice("sixaxis", parent),
 	m_sixAxis(sixAxis) {

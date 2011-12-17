@@ -141,6 +141,11 @@ void TouchInputDevice::convertMouse() {
 			} else if (x >= HostVideo::Width-CircleSize) {
 				x -= HostVideo::Width-CircleSize;
 				m_buttons |= buttonsInCircle(x, y) << 4;
+				// swap bits
+				int left   = (m_buttons & 2) >> 1;
+				int right  = (m_buttons & 1) >> 0;
+				int middle = (m_buttons & 4) >> 2;
+				m_buttons = (left << 0) | (right << 1) | (middle << 2);
 			}
 		}
 	}

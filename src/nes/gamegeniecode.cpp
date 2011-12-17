@@ -14,6 +14,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+// TODO consolide two gamegenie files and make one cheats
+// TODO make case-insensitive
+
 #include "gamegeniecode.h"
 
 bool GameGenieCode::parse(const QString &s) {
@@ -28,6 +31,7 @@ bool GameGenieCode::parse(const QString &s) {
 	m_eightChars = (s.size() == 8);
 
 	for (int i = 0; i < s.size(); i++) {
+		// TODO use strchr
 		switch (s.at(i).toLatin1()) {
 		case 'A': table[i] = 0x00; break;
 		case 'P': table[i] = 0x01; break;
