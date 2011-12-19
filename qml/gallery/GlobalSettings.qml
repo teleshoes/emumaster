@@ -12,10 +12,13 @@ Page {
 	}
 
 	Flickable {
+		id: flickable
 		anchors.fill: parent
 		flickableDirection: Flickable.VerticalFlick
+		contentHeight: column.height
 
 	Column {
+		id: column
 		width: parent.width
 		height: childrenRect.height
 		spacing: 20
@@ -86,15 +89,19 @@ Page {
 			text: qsTr("Run in Background")
 			checked: diskGallery.globalOption("runInBackground", false)
 			onCheckedChanged: {
-				if (checked)
-					runInBackgroundDialog.open()
-				else
+				if (checked) {
+					// special handling to prevent the dialog from showing at the start
+					if (diskGallery.globalOption("runInBackground", false) !== "true")
+						runInBackgroundDialog.open()
+				} else {
 					diskGallery.setGlobalOption("runInBackground", false)
+				}
 			}
 		}
 	}
 
 	}
+	ScrollDecorator { flickableItem: flickable }
 
 	QueryDialog {
 		id: runInBackgroundDialog

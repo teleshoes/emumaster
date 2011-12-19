@@ -5,7 +5,7 @@ Item {
 	id: keybMappingItem
 
     property alias buttonName: itemLabel.text
-    property alias hostKeyName: itemButton.text
+	property alias hostKeyText: itemButton.text
 
 	signal clicked
 

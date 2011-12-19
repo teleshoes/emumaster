@@ -6,7 +6,6 @@ HEADERS += \
     pico.h \
     ym2612.h \
     sn76496.h \
-    pico_int.h \
     mix.h \
     drz80.h \
     port_config.h \
@@ -14,7 +13,6 @@ HEADERS += \
     maemo.h \
     pico_frame_hints.h \
     memcmn.h \
-    arm_utils.h \
     emu2.h \
     lc89510.h \
     cd_sys.h \
@@ -24,36 +22,33 @@ HEADERS += \
     cd_cell_map.h \
     cheat.h \
     cart.h \
-    cyclone.h
+    cyclone.h \
+    machine.h
 
 ASM_SOURCES += \
-    mix.S \
-    ym2612.S \
-    misc.S \
-    mem.S \
-    draw2.S \
-    draw.S \
+    mix_asm.S \
+    ym2612_asm.S \
+    misc_asm.S \
+    mem_asm.S \
+    draw2_asm.S \
+    draw_asm.S \
     port_config.S \
     drz80.S \
     cyclone.S \
-    arm_utils.S \
-    cd_pico.S \
-    cd_misc.S \
-    cd_mem.S
+    cd_pico_asm.S \
+    cd_misc_asm.S \
+    cd_mem_asm.S
 
 SOURCES += \
     ym2612.cpp \
     sn76496.cpp \
     pico.cpp \
     video_port.cpp \
-    utils.cpp \
     sek.cpp \
     draw2.cpp \
     draw.cpp \
     misc.cpp \
     mem.cpp \
-    area.cpp \
-    emu.cpp \
     sound.cpp \
     mix.cpp \
     lc89510.cpp \
@@ -64,11 +59,11 @@ SOURCES += \
     cd_misc.cpp \
     cd_mem.cpp \
     cd_gfx.cpp \
-    cd_area.cpp \
     cheat.cpp \
+    cart.cpp \
     cd_file.cpp \
     cd_buffering.cpp \
     emu2.cpp \
     $$ASM_SOURCES \
-    cart_old.cpp \
-    cart.cpp
+    machine.cpp \
+    state.cpp

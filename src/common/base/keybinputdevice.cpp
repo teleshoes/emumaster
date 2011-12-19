@@ -43,7 +43,7 @@ void KeybInputDevice::update(int *data) {
 
 	if (confIndex() <= 2) {
 		int *pad = IMachine::padOffset(data, confIndex()-1);
-		pad[0] = m_buttons;
+		pad[0] |= m_buttons;
 	} else if (confIndex() == 3) {
 		while (!m_keys.isEmpty())
 			IMachine::keybEnqueue(data, m_keys.takeFirst());

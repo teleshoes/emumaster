@@ -70,7 +70,7 @@ void TouchInputDevice::update(int *data) {
 			m_converted = true;
 		}
 		int *pad = IMachine::padOffset(data, confIndex()-1);
-		*pad |= m_buttons;
+		pad[0] |= m_buttons;
 	} else if (confIndex() <= 4) {
 		if (!m_converted) {
 			convertMouse();

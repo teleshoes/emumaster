@@ -78,6 +78,7 @@ private:
 	void setupSnesFilter();
 	void setupPsxFilter();
 	void setupAmigaFilter();
+	void setupPicoFilter();
 
 	void loadFav();
 	void saveFav();

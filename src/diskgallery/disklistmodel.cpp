@@ -259,6 +259,7 @@ void DiskListModel::setupPsxFilter() {
 	DiskFilter filter;
 	filter.included.append(QRegExp("*.iso", Qt::CaseSensitive, QRegExp::Wildcard));
 	filter.included.append(QRegExp("*.bin", Qt::CaseSensitive, QRegExp::Wildcard));
+	filter.included.append(QRegExp("*.img", Qt::CaseSensitive, QRegExp::Wildcard));
 	filter.excluded.append(QRegExp("scph*.bin", Qt::CaseSensitive, QRegExp::Wildcard));
 	m_diskFilters.insert("psx", filter);
 }
@@ -269,12 +270,23 @@ void DiskListModel::setupAmigaFilter() {
 	m_diskFilters.insert("amiga", filter);
 }
 
+void DiskListModel::setupPicoFilter() {
+	DiskFilter filter;
+	filter.included.append(QRegExp("*.gen", Qt::CaseSensitive, QRegExp::Wildcard));
+	filter.included.append(QRegExp("*.smd", Qt::CaseSensitive, QRegExp::Wildcard));
+	filter.included.append(QRegExp("*.bin", Qt::CaseSensitive, QRegExp::Wildcard));
+	filter.included.append(QRegExp("*.iso", Qt::CaseSensitive, QRegExp::Wildcard));
+	m_diskFilters.insert("pico", filter);
+}
+
 void DiskListModel::setupFilters() {
 	setupNesFilter();
 	setupGbaFilter();
 	setupSnesFilter();
 	setupPsxFilter();
 	setupAmigaFilter();
+	setupPicoFilter();
+	// TODO on every new emulated system add a disk filter
 }
 
 void DiskListModel::setNameFilter(const QString &filter) {

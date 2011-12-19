@@ -59,7 +59,7 @@ Page {
 				KeybMappingItem {
 					id: item
 					buttonName: keybInputDevice.padButtonName(index)
-					hostKeyName: keybInputDevice.padButtonText(index)
+					hostKeyText: keybInputDevice.padButtonText(index)
 					onClicked: {
 						if (keybMappingPage.currentChanging !== index)
 							keybMappingPage.currentChanging = index
@@ -68,14 +68,14 @@ Page {
 					}
 					Connections {
 						target: keybMappingPage
-						onRefreshText: item.hostKeyName = keybInputDevice.padButtonText(index)
+						onRefreshText: item.hostKeyText = keybInputDevice.padButtonText(index)
 					}
 					states: [
 						State {
 							name: "changing"; when: keybMappingPage.currentChanging === index
 							PropertyChanges {
 								target: item
-								hostKeyName: ".."
+								hostKeyText: ".."
 							}
 						}
 					]

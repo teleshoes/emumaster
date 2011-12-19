@@ -78,6 +78,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 
 	m_safetyTimer = new QTimer(this);
 	m_safetyTimer->setInterval(10000);
+	m_safetyTimer->setSingleShot(false);
 	QObject::connect(m_safetyTimer, SIGNAL(timeout()), SLOT(onSafetyEvent()));
 
 	const char *method = "resume";

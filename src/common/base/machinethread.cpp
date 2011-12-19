@@ -97,8 +97,10 @@ void MachineThread::run() {
 		if (++frameCounter > m_frameSkip)
 			frameCounter = 0;
 #if defined(MEEGO_EDITION_HARMATTAN)
-		if (++blankinkgPauseCounter > 1000)
+		if (++blankinkgPauseCounter > 1000) {
 			m_displayState.setBlankingPause();
+			blankinkgPauseCounter = 0;
+		}
 #endif
 	}
 #if defined(MEEGO_EDITION_HARMATTAN)

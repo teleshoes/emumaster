@@ -4,6 +4,7 @@ emumaster (0.1.1) unstable; urgency=low
   * accelerometer calibration
   * keyboard configuration (gamepad mapping)
   * emulation can run in the background (global option)
+  * 10 seconds bug fixed
 
  -- elemental <mar.kazmierczak@gmail.com>  Tue, 13 Dec 2011 08:39:17 +0100
 

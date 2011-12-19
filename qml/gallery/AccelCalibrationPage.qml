@@ -100,9 +100,9 @@ Page {
 		}
 		text: qsTr("Reset to default")
 		onClicked: {
-            var defaultInitVec = Qt.vector3d(0.0, 0.0, 9.8)
+			var defaultInitVec = Qt.vector3d(0.0, 0.0, 0.0)
             var defaultUpVec = Qt.vector3d(0.0, 0.0, 9.8)
-			var defaultRightVec = Qt.vector3d(0.0, -9.8, 9.8)
+			var defaultRightVec = Qt.vector3d(0.0, 9.8, 0.0)
 			accelInputDevice.calibrate(defaultInitVec, defaultUpVec, defaultRightVec)
 			appWindow.pageStack.pop()
 		}

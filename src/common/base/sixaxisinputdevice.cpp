@@ -78,7 +78,7 @@ void SixAxisInputDevice::convertMouse() {
 
 	if (m_sixAxis->buttons() & (1<<SixAxis::L3))
 		m_mouseButtons |= 1;
-	if (m_sixAxis->buttons() & (1<<SixAxis::R2))
+	if (m_sixAxis->buttons() & (1<<SixAxis::R3))
 		m_mouseButtons |= 2;
 
 	m_mouseX = m_sixAxis->axis(SixAxis::LX);
@@ -115,7 +115,7 @@ void SixAxisInputDevice::update(int *data) {
 
 	if (pad >= 0) {
 		int *padData = IMachine::padOffset(data, pad);
-		*padData |= m_buttons;
+		padData[0] |= m_buttons;
 	}
 	if (mouse >= 0) {
 		int *mouseData = IMachine::mouseOffset(data, mouse);

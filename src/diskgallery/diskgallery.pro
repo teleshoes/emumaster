@@ -45,12 +45,13 @@ unix {
 
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = \
+        ../../qml/img/collection-fav.png \
+        ../../qml/img/collection-nes.png \
+        ../../qml/img/collection-snes.png \
 		../../qml/img/collection-gba.png \
-		../../qml/img/collection-nes.png \
-		../../qml/img/collection-snes.png \
 		../../qml/img/collection-psx.png \
 		../../qml/img/collection-amiga.png \
-		../../qml/img/collection-fav.png \
+        ../../qml/img/collection-pico.png \
 		../../qml/img/alpha-overlay.png \
 		../../qml/img/btn_donateCC_LG.png \
 		../../qml/img/wiki.png \

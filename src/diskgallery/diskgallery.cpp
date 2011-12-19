@@ -150,6 +150,8 @@ QVariant DiskGallery::globalOption(const QString &name, const QVariant &defaultV
 }
 
 void DiskGallery::setGlobalOption(const QString &name, const QVariant &value) {
-	m_settings.setValue(name, value);
-	m_settings.sync();
+	if (m_settings.value(name) != value) {
+		m_settings.setValue(name, value);
+		m_settings.sync();
+	}
 }

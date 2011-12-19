@@ -31,7 +31,7 @@ AccelInputDevice::AccelInputDevice(QObject *parent) :
 	m_upVector.setZ(s.value("up.z", 9.8f).toReal());
 
 	m_rightVector.setX(s.value("right.x", 0.0f).toReal());
-	m_rightVector.setY(s.value("right.y", -9.8f).toReal());
+	m_rightVector.setY(s.value("right.y", 9.8f).toReal());
 	m_rightVector.setZ(s.value("right.z", 0.0f).toReal());
 
 	s.endGroup();
@@ -86,7 +86,7 @@ void AccelInputDevice::update(int *data) {
 		m_converted = true;
 	}
 	int *pad = IMachine::padOffset(data, confIndex()-1);
-	*pad |= m_buttons;
+	pad[0] |= m_buttons;
 }
 
 void AccelInputDevice::onReadingChanged() {
@@ -108,7 +108,7 @@ void AccelInputDevice::convert() {
 		m_buttons |= IMachine::PadKey_Down;
 
 	if (right > level)
-		m_buttons |= IMachine::PadKey_Left;
-	else if (right < -level)
 		m_buttons |= IMachine::PadKey_Right;
+	else if (right < -level)
+		m_buttons |= IMachine::PadKey_Left;
 }

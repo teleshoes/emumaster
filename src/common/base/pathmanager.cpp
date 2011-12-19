@@ -10,6 +10,7 @@ PathManager::PathManager() {
 	m_machines << "snes";
 	m_machines << "psx";
 	m_machines << "amiga";
+	m_machines << "pico";
 
 	m_installationDirPath = "/opt/emumaster";
 	m_userDataDirPath = QString("%1/.emumaster").arg(getenv("HOME"));

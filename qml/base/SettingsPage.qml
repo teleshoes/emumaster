@@ -244,10 +244,10 @@ Page {
 
 		SectionSeperator {
 			text: qsTr("ChEaTs"); rightPad: 150
-			visible: machine.name == "nes"
+			visible: machine.name === "nes"
 		}
 		Component.onCompleted: {
-			if (machine.name == "nes") {
+			if (machine.name === "nes") {
 				var component = Qt.createComponent("NesCheatPage.qml")
 				component.createObject(column)
 			}

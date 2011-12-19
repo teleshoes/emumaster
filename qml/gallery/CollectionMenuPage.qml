@@ -47,16 +47,28 @@ Page {
 		}
 	}
 
-	Grid {
-		anchors.centerIn: parent
-		rows: 3
-		columns: 2
+	Flickable {
+		id: flickable
+		anchors.fill: parent
+		flickableDirection: Flickable.VerticalFlick
+		contentHeight: collectionGrid.height
 
-		CollectionTypeButton { name: "nes" }
-		CollectionTypeButton { name: "snes" }
-		CollectionTypeButton { name: "gba" }
-		CollectionTypeButton { name: "psx" }
-		CollectionTypeButton { name: "amiga" }
-		CollectionTypeButton { name: "fav" }
+		Grid {
+			id: collectionGrid
+			height: childrenRect.height
+			//rows: 4
+			rows: 3
+			columns: 2
+
+			CollectionTypeButton { name: "fav" }
+			CollectionTypeButton { name: "nes" }
+			CollectionTypeButton { name: "snes" }
+			CollectionTypeButton { name: "gba" }
+			CollectionTypeButton { name: "psx" }
+			CollectionTypeButton { name: "amiga" }
+			//CollectionTypeButton { name: "pico" }
+		}
+
 	}
+	ScrollDecorator { flickableItem: flickable }
 }

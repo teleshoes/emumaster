@@ -2,7 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
 	common \
-    pico nes \
+    snes \
 	diskgallery \
     sixaxismonitor \
     sixaxisclient
