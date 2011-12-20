@@ -2,7 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
 	common \
-    snes \
+    nes gba snes psx amiga \
 	diskgallery \
     sixaxismonitor \
     sixaxisclient

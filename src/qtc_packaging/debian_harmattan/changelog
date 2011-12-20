@@ -1,6 +1,5 @@
-emumaster (0.1.1) unstable; urgency=low
+emumaster (0.1.1) unstable; urgency=high
 
-  * icons are removable from the home screen now
   * accelerometer calibration
   * keyboard configuration (gamepad mapping)
   * emulation can run in the background (global option)

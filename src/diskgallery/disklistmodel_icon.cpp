@@ -88,7 +88,7 @@ bool DiskListModel::createDesktopFile(const QString &fileName,
 	QString desktopFileContent = QString(
 				"[Desktop Entry]\n"
 				"Version=1.0\n"
-				"Type=Link\n"
+				"Type=Application\n"
 				"Name=%1\n"
 				"Exec=%2\n"
 				"Icon=%3\n"
