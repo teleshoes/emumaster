@@ -219,7 +219,7 @@ Page {
 			onClicked: nesRenderMethodDialog.open()
 
 			Component.onCompleted: {
-				if (machine.name == "nes")
+				if (machine.name === "nes")
 					nesRenderMethodButton.refreshText()
 				else
 					nesRenderMethodButton.visible = false
@@ -237,7 +237,7 @@ Page {
 			onCheckedChanged: machineView.audioEnable = checked
 		}
 		EMButtonOption {
-			labelText: qsTr("Overwirte Image in Gallery")
+			labelText: qsTr("Overwrite Image in Gallery")
 			buttonText: qsTr("Take Screenshot")
 			onClicked: machineView.saveScreenShot()
 		}
@@ -268,7 +268,7 @@ Page {
 	QueryDialog {
 		id: overwriteStateDialog
 		titleText: qsTr("Really?")
-		message: qsTr("Do you really want to overwrite the state with current one?")
+		message: qsTr("Do you really want to overwrite the saved state with the current one?")
 		acceptButtonText: qsTr("Yes")
 		rejectButtonText: qsTr("No")
 		onAccepted: stateListModel.saveState(stateMenu.stateSlot)
@@ -277,7 +277,7 @@ Page {
 	QueryDialog {
 		id: deleteStateDialog
 		titleText: qsTr("Really?")
-		message: qsTr("Do you really want to delete the state?")
+		message: qsTr("Do you really want to delete the saved state?")
 		acceptButtonText: qsTr("Yes")
 		rejectButtonText: qsTr("No")
 		onAccepted: stateListModel.removeState(stateMenu.stateSlot)
@@ -286,7 +286,7 @@ Page {
 	QueryDialog {
 		id: deleteAllStateDialog
 		titleText: qsTr("Really?")
-		message: qsTr("Do you really want to delete all states?")
+		message: qsTr("Do you really want to delete all saved states?")
 		acceptButtonText: qsTr("Yes")
 		rejectButtonText: qsTr("No")
 		onAccepted: stateListModel.removeAll()

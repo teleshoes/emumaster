@@ -66,4 +66,5 @@ SOURCES += \
     emu2.cpp \
     $$ASM_SOURCES \
     machine.cpp \
-    state.cpp
+    state.cpp \
+    pad.cpp

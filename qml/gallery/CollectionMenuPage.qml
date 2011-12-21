@@ -56,8 +56,7 @@ Page {
 		Grid {
 			id: collectionGrid
 			height: childrenRect.height
-			//rows: 4
-			rows: 3
+			rows: 4
 			columns: 2
 
 			CollectionTypeButton { name: "fav" }
@@ -66,7 +65,7 @@ Page {
 			CollectionTypeButton { name: "gba" }
 			CollectionTypeButton { name: "psx" }
 			CollectionTypeButton { name: "amiga" }
-			//CollectionTypeButton { name: "pico" }
+			CollectionTypeButton { name: "pico" }
 		}
 
 	}
