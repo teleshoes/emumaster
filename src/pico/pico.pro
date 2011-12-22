@@ -6,7 +6,6 @@ HEADERS += \
     pico.h \
     ym2612.h \
     sn76496.h \
-    mix.h \
     drz80.h \
     port_config.h \
     emu.h \
@@ -26,7 +25,7 @@ HEADERS += \
     machine.h
 
 ASM_SOURCES += \
-    mix_asm.S \
+    sound_asm.S \
     ym2612_asm.S \
     misc_asm.S \
     mem_asm.S \
@@ -50,7 +49,6 @@ SOURCES += \
     misc.cpp \
     mem.cpp \
     sound.cpp \
-    mix.cpp \
     lc89510.cpp \
     cd_sys.cpp \
     cd_sek.cpp \

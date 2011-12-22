@@ -1563,16 +1563,9 @@ int   *ym2612_dacen;
 s32 *ym2612_dacout;
 FM_ST *ym2612_st;
 
-
 /* Generate samples for YM2612 */
-int YM2612UpdateOne(int *buffer, int length, int stereo, int is_buf_empty)
+void YM2612UpdateOne(int *buffer, int length)
 {
-	int pan;
-	int active_chs = 0;
-
-	// if !is_buf_empty, it means it has valid samples to mix with, else it may contain trash
-	if (is_buf_empty) memset32(buffer, 0, length<<stereo);
-
 /*
 	{
 		int c, s;
@@ -1609,19 +1602,17 @@ int YM2612UpdateOne(int *buffer, int length, int stereo, int is_buf_empty)
 	refresh_fc_eg_chan( &ym2612.CH[4] );
 	refresh_fc_eg_chan( &ym2612.CH[5] );
 
-	pan = ym2612.OPN.pan;
-	if (stereo) stereo = 1;
+	int pan = ym2612.OPN.pan;
 
+	int stereo = 1; // TODO remove, first in assembly
 	/* mix to 32bit dest */
 	// flags: stereo, ?, disabled, ?, pan_r, pan_l
-	if (ym2612.slot_mask & 0x00000f) active_chs |= chan_render(buffer, length, 0, stereo|((pan&0x003)<<4)) << 0;
-	if (ym2612.slot_mask & 0x0000f0) active_chs |= chan_render(buffer, length, 1, stereo|((pan&0x00c)<<2)) << 1;
-	if (ym2612.slot_mask & 0x000f00) active_chs |= chan_render(buffer, length, 2, stereo|((pan&0x030)   )) << 2;
-	if (ym2612.slot_mask & 0x00f000) active_chs |= chan_render(buffer, length, 3, stereo|((pan&0x0c0)>>2)) << 3;
-	if (ym2612.slot_mask & 0x0f0000) active_chs |= chan_render(buffer, length, 4, stereo|((pan&0x300)>>4)) << 4;
-	if (ym2612.slot_mask & 0xf00000) active_chs |= chan_render(buffer, length, 5, stereo|((pan&0xc00)>>6)|(ym2612.dacen<<2)) << 5;
-
-	return active_chs; // 1 if buffer updated
+	if (ym2612.slot_mask & 0x00000f) chan_render(buffer, length, 0, stereo|((pan&0x003)<<4)) << 0;
+	if (ym2612.slot_mask & 0x0000f0) chan_render(buffer, length, 1, stereo|((pan&0x00c)<<2)) << 1;
+	if (ym2612.slot_mask & 0x000f00) chan_render(buffer, length, 2, stereo|((pan&0x030)   )) << 2;
+	if (ym2612.slot_mask & 0x00f000) chan_render(buffer, length, 3, stereo|((pan&0x0c0)>>2)) << 3;
+	if (ym2612.slot_mask & 0x0f0000) chan_render(buffer, length, 4, stereo|((pan&0x300)>>4)) << 4;
+	if (ym2612.slot_mask & 0xf00000) chan_render(buffer, length, 5, stereo|((pan&0xc00)>>6)|(ym2612.dacen<<2)) << 5;
 }
 
 

@@ -876,15 +876,7 @@ m_write8_z80_not_ram:
     tst     r2, #1
     bxeq    lr
     stmfd   sp!,{lr}
-.if EXTERNAL_YM2612
-    tst     r2, #0x200
-    ldreq   r2, =YM2612Write
-#    ldrne   r2, =YM2612Write_940
-    mov     lr, pc
-    bx      r2
-.else
-    bl      YM2612Write_
-.endif
+    bl      YM2612Write
     ldr     r2, =emustatus
     ldmfd   sp!,{lr}
     ldr     r1, [r2]

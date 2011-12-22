@@ -60,7 +60,7 @@ void pcm_set_rate(int rate)
 }
 
 
-void pcm_update(int *buffer, int length, int stereo)
+void pcm_update(int *buffer, int length)
 {
 	struct pcm_chan *ch;
 	unsigned int step, addr;
@@ -88,8 +88,6 @@ void pcm_update(int *buffer, int length, int stereo)
 //		fprintf(stderr, "step=%i, cstep=%i, mul_l=%i, mul_r=%i, ch=%i, addr=%x, en=%02x\n",
 //			*(unsigned short *)&ch->regs[2], step, mul_l, mul_r, i, addr, Pico_mcd->pcm.enabled);
 
-		if (!stereo && mul_l < mul_r) mul_l = mul_r;
-
 		for (j = 0; j < length; j++)
 		{
 //			printf("addr=%08x\n", addr);
@@ -107,8 +105,7 @@ void pcm_update(int *buffer, int length, int stereo)
 			if (smp & 0x80) smp = -(smp & 0x7f);
 
 			*out++ += smp * mul_l; // max 128 * 119 = 15232
-			if(stereo)
-				*out++ += smp * mul_r;
+			*out++ += smp * mul_r;
 
 			// update address register
 			k = (addr >> PCM_STEP_SHIFT) + 1;

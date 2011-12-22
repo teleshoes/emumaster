@@ -171,8 +171,7 @@ WRITE8_HANDLER( SN76496_3_w ) {	SN76496Write(3,data); }
 WRITE8_HANDLER( SN76496_4_w ) {	SN76496Write(4,data); }
 */
 
-//static
-void SN76496Update(short *buffer, int length, int stereo)
+void SN76496Update(int *buffer, int length)
 {
 	int i;
 	SN76496 *R = &ono_sn;
@@ -192,10 +191,6 @@ void SN76496Update(short *buffer, int length, int stereo)
 	while (length > 0)
 	{
 		int vol[4];
-		unsigned int out;
-		int left;
-
-
 		/* vol[] keeps track of how long each square wave stays */
 		/* in the 1 position during the sample period. */
 		vol[0] = vol[1] = vol[2] = vol[3] = 0;
@@ -227,7 +222,7 @@ void SN76496Update(short *buffer, int length, int stereo)
 			if (R->Output[i]) vol[i] -= R->Count[i];
 		}
 
-		left = STEP;
+		int left = STEP;
 		do
 		{
 			int nextevent;
@@ -250,16 +245,17 @@ void SN76496Update(short *buffer, int length, int stereo)
 			left -= nextevent;
 		} while (left > 0);
 
-		out = vol[0] * R->Volume[0] + vol[1] * R->Volume[1] +
+		int out = vol[0] * R->Volume[0] + vol[1] * R->Volume[1] +
 				vol[2] * R->Volume[2] + vol[3] * R->Volume[3];
 
-		if (out > MAX_OUTPUT * STEP) out = MAX_OUTPUT * STEP;
+		if (out > MAX_OUTPUT * STEP)
+			out = MAX_OUTPUT * STEP;
 
-		if ((out /= STEP)) // will be optimized to shift; max 0x47ff = 18431
-			*buffer += out;
-		if(stereo) buffer+=2; // only left for stereo, to be mixed to right later
-		else buffer++;
-
+		if ((out /= STEP)) {// will be optimized to shift; max 0x47ff = 18431
+			// TODO only one channel is written two times
+			*buffer++ += out;
+			*buffer++ += out;
+		}
 		length--;
 	}
 }

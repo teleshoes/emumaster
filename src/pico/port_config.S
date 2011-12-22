@@ -8,7 +8,3 @@
 
 .equiv OVERRIDE_HIGHCOL,        0
 .equiv UNALIGNED_DRAWLINEDEST,  0
-
-@ this should be set to one only for GP2X port
-.equiv EXTERNAL_YM2612,         1
-

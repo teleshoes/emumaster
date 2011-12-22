@@ -9,8 +9,6 @@
 
 #include "pico.h"
 
-int (*PicoScan)(unsigned int num, void *data)=NULL;
-
 #if OVERRIDE_HIGHCOL
 static unsigned char DefHighCol[8+320+8];
 unsigned char *HighCol=DefHighCol;
@@ -1407,7 +1405,7 @@ int PicoLine(int scan)
   if (FinalizeLine != NULL)
     FinalizeLine(sh);
 
-  Skip=PicoScan(Scanline,DrawLineDest);
+  picoScanLine(Scanline);
 
   return 0;
 }

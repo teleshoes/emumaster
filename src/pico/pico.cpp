@@ -21,7 +21,6 @@ int PicoSkipFrame=0; // skip rendering frame?
 int PicoRegionOverride = 0; // override the region detection 0: Auto, 1: Japan NTSC, 2: Japan PAL, 4: US, 8: Europe
 int PicoAutoRgnOrder = 0;
 int emustatus = 0; // rapid_ym2612, multi_ym_updates
-void (*PicoWriteSound)(int len) = 0; // called once per frame at the best time to send sound buffer (PsndOut) to hardware
 
 struct PicoSRAM SRam = {0,};
 int z80startCycle, z80stopCycle; // in 68k cycles
@@ -51,7 +50,6 @@ void PicoExit(void)
 {
   if (PicoMCD&1)
     PicoExitMCD();
-  z80_exit();
 
   if(SRam.data) free(SRam.data); SRam.data=0;
 }
@@ -262,7 +260,6 @@ static __inline void getSamples(int y)
          curr_pos += PsndRender(curr_pos, PsndLen-PsndLen/2);
     else curr_pos  = PsndRender(0, PsndLen);
     if (emustatus&1) emustatus|=2; else emustatus&=~2;
-    if (PicoWriteSound) PicoWriteSound(curr_pos);
     // clear sound buffer
     PsndClear();
   }
@@ -299,8 +296,8 @@ static void PicoRunZ80Simple(int line_from, int line_to)
     // we have ym2612 enabled, so we have to run Z80 in lines, so we could update DAC and timers
     for (line = line_from; line < line_to; line++) {
       Psnd_timers_and_dac(line);
-      if ((line == 224 || line == line_sample) && PsndOut) getSamples(line);
-      if (line == 32 && PsndOut) emustatus &= ~1;
+      if ((line == 224 || line == line_sample) && picoSoundEnabled) getSamples(line);
+      if (line == 32 && picoSoundEnabled) emustatus &= ~1;
       if (line >= line_from_r && line < line_to_r)
         z80_run_nr(228);
     }
@@ -396,9 +393,8 @@ static int PicoFrameSimple(void)
   }
 
   // here we render sound if ym2612 is disabled
-  if (!(PicoOpt&1) && PsndOut) {
-    int len = PsndRender(0, PsndLen);
-    if (PicoWriteSound) PicoWriteSound(len);
+  if (!(PicoOpt&1) && picoSoundEnabled) {
+	PsndRender(0, PsndLen);
     // clear sound buffer
     PsndClear();
   }

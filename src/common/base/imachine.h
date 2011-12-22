@@ -34,6 +34,16 @@ typedef quint32 u32;
 typedef qint64 s64;
 typedef quint64 u64;
 
+#define S8_MIN SCHAR_MIN
+#define S8_MAX SCHAR_MAX
+#define U8_MAX UCHAR_MAX
+#define S16_MIN SHRT_MIN
+#define S16_MAX SHRT_MAX
+#define U16_MAX USHRT_MAX
+#define S32_MIN INT_MIN
+#define S32_MAX INT_MAX
+#define U32_MAX UINT_MAX
+
 class BASE_EXPORT IMachine : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(QString name READ name CONSTANT)

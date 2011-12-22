@@ -244,8 +244,7 @@ static __inline void update_chips(void)
 
 static __inline void getSamples(int y)
 {
-  int len = PsndRender(0, PsndLen);
-  if (PicoWriteSound) PicoWriteSound(len);
+  PsndRender(0, PsndLen);
   // clear sound buffer
   PsndClear();
 }

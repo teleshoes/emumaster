@@ -23,6 +23,10 @@ enum PicoMcdFlag {
 
 extern int picoMcdFlags;
 
+extern void picoScanLine(uint num);
+
+#define picoDebugSek(...)
+
 extern const unsigned char  hcounts_32[];
 extern const unsigned char  hcounts_40[];
 extern const unsigned short vcounts[];
@@ -43,7 +47,10 @@ void mp3_update(int *buffer, int length, int stereo);
 
 // Pico.c
 // PicoOpt bits LSb->MSb:
-// enable_ym2612&dac, enable_sn76496, enable_z80, stereo_sound,
+// 1 enable_ym2612&dac
+// 2 enable_sn76496
+// 4 enable_z80
+// 8 stereo_sound,
 // alt_renderer, 6button_gamepad, accurate_timing, accurate_sprites,
 // draw_no_32col_border, external_ym2612, enable_cd_pcm, enable_cd_cdda
 // enable_cd_gfx, cd_perfect_sync, soft_32col_scaling, enable_cd_ramcart
@@ -59,7 +66,6 @@ int PicoReset(int hard);
 int PicoFrame(void);
 void PicoFrameDrawOnly(void);
 extern int PicoPad[2]; // Joypads, format is MXYZ SACB RLDU
-extern void (*PicoWriteSound)(int len); // called once per frame at the best time to send sound buffer (PsndOut) to hardware
 #define PicoMessage qDebug
 
 unsigned int PicoRead16(unsigned int a);
@@ -90,7 +96,6 @@ extern void *DrawLineDest;
 #if OVERRIDE_HIGHCOL
 extern unsigned char *HighCol;
 #endif
-extern int (*PicoScan)(unsigned int num, void *data);
 // internals
 extern unsigned short HighPal[0x100];
 extern int rendstatus;
@@ -110,9 +115,8 @@ extern void (*PicoPrepareCram)();    // prepares PicoCramHigh for renderer to us
 
 // sound.c
 extern int PsndRate,PsndLen;
-extern short *PsndOut;
-extern void (*PsndMix_32_to_16l)(short *dest, int *src, int count);
 void PsndRerate(int preserve_state);
+extern bool picoSoundEnabled;
 
 #ifdef __cplusplus
 } // End of extern "C"
@@ -427,14 +431,12 @@ void PicoCDBufferRead(void *dest, int lba);
 void PsndReset(void);
 void Psnd_timers_and_dac(int raster);
 int  PsndRender(int offset, int length);
-void PsndClear(void);
+void PsndClear();
 // z80 functionality wrappers
 void z80_init(void);
 void z80_pack(unsigned char *data);
 void z80_unpack(unsigned char *data);
 void z80_reset(void);
-void z80_exit(void);
-
 
 #ifdef __cplusplus
 } // End of extern "C"

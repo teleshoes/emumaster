@@ -129,9 +129,9 @@ static int PicoFrameHints(void)
 
 #ifndef PICO_CD
     // get samples from sound chips
-    if(y == 32 && PsndOut)
+    if(y == 32 && picoSoundEnabled)
       emustatus &= ~1;
-    else if((y == 224 || y == line_sample) && PsndOut)
+    else if((y == 224 || y == line_sample) && picoSoundEnabled)
       getSamples(y);
 #endif
 
@@ -188,7 +188,7 @@ static int PicoFrameHints(void)
 #ifndef PICO_CD
   if (y == 224)
 #endif
-    if (PsndOut)
+    if (picoSoundEnabled)
       getSamples(y);
 
   // Run scanline:

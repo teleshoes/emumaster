@@ -152,7 +152,7 @@ static inline void YM2612PicoTick(int n) {
 
 void YM2612Init(int baseclock, int rate);
 void YM2612ResetChip(void);
-int  YM2612UpdateOne(int *buffer, int length, int stereo, int is_buf_empty);
+void YM2612UpdateOne(int *buffer, int length);
 
 extern "C" int  YM2612Write(unsigned int a, unsigned int v);
 
