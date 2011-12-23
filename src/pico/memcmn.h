@@ -170,7 +170,7 @@ extern "C"
 void OtherWrite8(u32 a,u32 d)
 {
 #if !defined(_ASM_MEMORY_C) || defined(_ASM_MEMORY_C_AMIPS)
-  if ((a&0xe700f9)==0xc00011||(a&0xff7ff9)==0xa07f11) { if(PicoOpt&2) SN76496Write(d); return; } // PSG Sound
+  if ((a&0xe700f9)==0xc00011||(a&0xff7ff9)==0xa07f11) { if(PicoOpt&2) sn76496Write(d); return; } // PSG Sound
   if ((a&0xff4000)==0xa00000)  { if(!(Pico.m.z80Run&1)) Pico.zram[a&0x1fff]=(u8)d; return; } // Z80 ram
   if ((a&0xff6000)==0xa04000)  { if(PicoOpt&1) emustatus|=YM2612Write(a&3, d)&1; return; } // FM Sound
   if ((a&0xffffe0)==0xa10000)  { IoWrite8(a, d); return; } // I/O ports
@@ -211,7 +211,7 @@ void OtherWrite16(u32 a,u32 d)
   if (a==0xa11200)            { elprintf(EL_BUSREQ, "write z80reset: %04x", d); if(!(d&0x100)) z80_reset(); return; }
   if ((a&0xffffe0)==0xa10000) { IoWrite8(a, d); return; } // I/O ports
   if ((a&0xff4000)==0xa00000) { if(!(Pico.m.z80Run&1)) Pico.zram[a&0x1fff]=(u8)(d>>8); return; } // Z80 ram (MSB only)
-  if ((a&0xe700f8)==0xc00010||(a&0xff7ff8)==0xa07f10) { if(PicoOpt&2) SN76496Write(d); return; } // PSG Sound
+  if ((a&0xe700f8)==0xc00010||(a&0xff7ff8)==0xa07f10) { if(PicoOpt&2) sn76496Write(d); return; } // PSG Sound
   if ((a&0xff6000)==0xa04000)  { if(PicoOpt&1) emustatus|=YM2612Write(a&3, d)&1; return; } // FM Sound (??)
   if ((a&0xff7f00)==0xa06000) // Z80 BANK register
   {

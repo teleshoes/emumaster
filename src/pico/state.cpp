@@ -1,9 +1,7 @@
 #include "machine.h"
 #include "pico.h"
 #include "ym2612.h"
-
-// TODO should be in .h
-extern int *sn76496_regs;
+#include "sn76496.h"
 
 static void cycloneSl(const QString &name, Cyclone *cyclone) {
 	u8 data[0x60];
@@ -53,7 +51,7 @@ void PicoMachine::sl() {
 	emsl.array("misc", &Pico.m, sizeof(Pico.m));
 	emsl.array("video", &Pico.video, sizeof(Pico.video));
 
-	emsl.array("psg", sn76496_regs, 28*4);
+	sn76496.sl("psg");
 
 	void *ym2612_regs = YM2612GetRegs();
 	emsl.array("fm", ym2612_regs, 0x200+4);

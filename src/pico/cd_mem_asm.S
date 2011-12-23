@@ -138,7 +138,7 @@ m_s68k_decode_write_table:
 .extern s68k_poll_adclk
 .extern PicoCpuMS68k
 .extern s68k_poll_detect
-.extern SN76496Write
+.extern sn76496Write
 .extern m_m68k_read8_misc
 .extern m_m68k_write8_misc
 
@@ -1129,7 +1129,7 @@ m_m68k_write8_vdp:
     and     r2, r0, #0x19
     cmp     r2, #0x11
     andeq   r0, r1, #0xff
-    beq     SN76496Write
+    beq     sn76496Write
     and     r1, r1, #0xff
     orr     r1, r1, r1, lsl #8          @ byte access gets mirrored
     b       PicoVideoWrite
@@ -1274,7 +1274,7 @@ m_m68k_write16_vdp:
     cmp     r2, #0x10
     bne     PicoVideoWrite
     and     r0, r1, #0xff
-    b       SN76496Write    @ lsb goes to 0x11
+    b       sn76496Write    @ lsb goes to 0x11
 
 
 m_m68k_write16_ram:
@@ -1482,7 +1482,7 @@ m_m68k_write32_vdp:
     and     r2, r0, #0x18
     cmp     r2, #0x10
     moveq   r0, r1, lsr #16
-    beq     SN76496Write    @ which game is crazy enough to do that?
+    beq     sn76496Write    @ which game is crazy enough to do that?
     stmfd   sp!,{r0,r1,lr}
     mov     r1, r1, lsr #16
     bl      PicoVideoWrite

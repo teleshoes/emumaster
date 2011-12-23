@@ -6,17 +6,12 @@
 
 // For commercial use, separate licencing terms must be obtained.
 
-#include <string.h>
-#include "ym2612.h"
-#include "sn76496.h"
-
 #include "machine.h"
 #include "pico.h"
 #include "cd_pcm.h"
+#include "ym2612.h"
+#include "sn76496.h"
 #include <QtEndian>
-
-// TODO in header
-extern int *sn76496_regs;
 
 static const int PicoSoundSampleRate = 44100;
 int picoSoundLen = 0; // number of mono samples, multiply by 2 for stereo
@@ -142,7 +137,7 @@ void picoSoundReset()
 
 	int osc = Pico.m.pal ? OSC_PAL : OSC_NTSC;
 	YM2612Init(osc/7, PicoSoundSampleRate);
-	SN76496Init(osc/15, PicoSoundSampleRate);
+	sn76496.init(osc/15);
 
 	// calculate picoSoundLen
 	int targetFps = Pico.m.pal ? 50 : 60;
@@ -158,10 +153,9 @@ void picoSoundReset()
 	memset32(picoSoundMixBuffer, 0, sizeof(picoSoundMixBuffer)/4);
 }
 
-// This is called once per raster (aka line), but not necessarily for every line
 void picoSoundTimersAndDac(int raster)
 {
-	// Our raster lasts 63.61323/64.102564 microseconds (NTSC/PAL)
+	// our raster lasts 63.61323/64.102564 microseconds (NTSC/PAL)
 	YM2612PicoTick(1);
 
 	bool doDac = picoSoundEnabled && (PicoOpt&1) && *ym2612_dacen;
@@ -191,7 +185,7 @@ int picoSoundRender(int offset, int length)
 	int *buf32 = picoSoundMixBuffer+offset;
 
 	if (PicoOpt & 2) // PSG
-		SN76496Update(buf32, length);
+		sn76496.update(buf32, length);
 	if (PicoOpt & 1) // FM
 		YM2612Update(buf32, length);
 	// emulating CD && PCM option enabled && PCM chip on && have enabled channels

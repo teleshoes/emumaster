@@ -919,4 +919,4 @@ m_write8_psg:
     ldr     r2, [r2]
     tst     r2, #2
     bxeq    lr
-    b       SN76496Write
+    b       sn76496Write

@@ -714,7 +714,7 @@ void z80_write(unsigned int a, unsigned char data)
 
   if ((a&0xfff9)==0x7f11) // 7f11 7f13 7f15 7f17
   {
-    if(PicoOpt&2) SN76496Write(data);
+	if(PicoOpt&2) sn76496Write(data);
     return;
   }
 
