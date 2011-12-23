@@ -5,7 +5,7 @@
 
 .text
 .align 4
-
+@ TODO rewrite
 @ limit
 @ reg=int_sample, lr=1, r3=tmp, kills flags
 .macro Limit reg

@@ -83,7 +83,7 @@ void SixAxisMonitor::onIdentifyEvent() {
 		return;
 
 	static const int LedPatterns[] = { 1, 2, 4, 8, 4, 2, 1, 0 };
-	static const int NumOfPatterns = sizeof(LedPatterns);
+	static const int NumOfPatterns = sizeof(LedPatterns)/sizeof(int);
 
 	int leds = LedPatterns[m_identifyCounter];
 

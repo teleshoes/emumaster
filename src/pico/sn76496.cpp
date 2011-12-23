@@ -188,8 +188,7 @@ void SN76496Update(int *buffer, int length)
 		}
 	}
 
-	while (length > 0)
-	{
+	for (; length > 0; length--) {
 		int vol[4];
 		/* vol[] keeps track of how long each square wave stays */
 		/* in the 1 position during the sample period. */
@@ -253,10 +252,10 @@ void SN76496Update(int *buffer, int length)
 
 		if ((out /= STEP)) {// will be optimized to shift; max 0x47ff = 18431
 			// TODO only one channel is written two times
-			*buffer++ += out;
-			*buffer++ += out;
+			buffer[0] += out;
+			buffer[1] += out;
 		}
-		length--;
+		buffer += 2;
 	}
 }
 

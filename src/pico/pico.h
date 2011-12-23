@@ -113,9 +113,8 @@ extern unsigned char  *PicoDraw2FB;  // buffer for fasr renderer in format (8+32
 extern unsigned short *PicoCramHigh; // pointer to CRAM buff (0x40 shorts), converted to native device color (works only with 16bit for now)
 extern void (*PicoPrepareCram)();    // prepares PicoCramHigh for renderer to use
 
-// sound.c
-extern int PsndRate,PsndLen;
-void PsndRerate(int preserve_state);
+// sound.cpp
+extern int picoSoundLen;
 extern bool picoSoundEnabled;
 
 #ifdef __cplusplus
@@ -404,8 +403,8 @@ int SekResetS68k(void);
 int SekInterruptS68k(int irq);
 
 // sound/sound.c
-extern int PsndLen_exc_cnt;
-extern int PsndLen_exc_add;
+extern int picoSoundLen_exc_cnt;
+extern int picoSoundLen_exc_add;
 
 // VideoPort.c
 void PicoVideoWrite(unsigned int a,unsigned short d);
@@ -428,10 +427,9 @@ void wram_1M_to_2M(unsigned char *m);
 void PicoCDBufferRead(void *dest, int lba);
 
 // sound/sound.c
-void PsndReset(void);
-void Psnd_timers_and_dac(int raster);
-int  PsndRender(int offset, int length);
-void PsndClear();
+void picoSoundReset();
+void picoSoundTimersAndDac(int raster);
+int  picoSoundRender(int offset, int length);
 // z80 functionality wrappers
 void z80_init(void);
 void z80_pack(unsigned char *data);

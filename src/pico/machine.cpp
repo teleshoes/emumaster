@@ -48,7 +48,6 @@ static void vidResetMode() {
 
 QString PicoMachine::init(const QString &diskPath) {
 	PicoOpt = 0x0f | 0x20 | 0xe00; // | use_940, cd_pcm, cd_cdda
-	PsndRate = 44100;
 	PicoAutoRgnOrder = 0x184; // US, EU, JP
 	PicoCDBuffers = 64;
 
@@ -70,13 +69,6 @@ QString PicoMachine::init(const QString &diskPath) {
 	// pal/ntsc might have changed, reset related stuff
 	int target_fps = Pico.m.pal ? 50 : 60;
 	setFrameRate(target_fps);
-
-	// prepare sound stuff
-	int snd_excess_add;
-	PsndRerate(0);
-	snd_excess_add = ((PsndRate - PsndLen*target_fps)<<16) / target_fps;
-	printf("starting audio: %i len: %i (ex: %04x) stereo: %i, pal: %i\n",
-		   PsndRate, PsndLen, snd_excess_add, (PicoOpt&8)>>3, Pico.m.pal);
 
 	// prepare CD buffer
 	if (PicoMCD & 1)

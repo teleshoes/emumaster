@@ -1564,7 +1564,7 @@ s32 *ym2612_dacout;
 FM_ST *ym2612_st;
 
 /* Generate samples for YM2612 */
-void YM2612UpdateOne(int *buffer, int length)
+void YM2612Update(int *buffer, int length)
 {
 /*
 	{

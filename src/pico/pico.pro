@@ -65,4 +65,5 @@ SOURCES += \
     $$ASM_SOURCES \
     machine.cpp \
     state.cpp \
-    pad.cpp
+    pad.cpp \
+    sound_z80.cpp
