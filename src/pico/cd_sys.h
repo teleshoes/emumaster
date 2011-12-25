@@ -11,6 +11,55 @@
 #define _CD_SYS_H
 
 #include "cd_file.h"
+#include <QFile>
+
+class PicoMcdMsf
+{
+public:
+	u8 M; // minutes
+	u8 S; // seconds
+	u8 F; // frames
+};
+
+class PicoMcdTrack
+{
+public:
+	enum Type { None, Iso, Bin, Mp3 };
+
+	Type type;
+	PicoMcdMsf MSF;
+	int Length;
+	QFile *file;
+};
+
+class PicoMcdToc
+{
+public:
+	bool open(const QString &fileName, QString *error);
+	void close();
+	int region() const;
+	bool playAudio();
+
+	PicoMcdTrack Tracks[100];
+	int Last_Track;
+private:
+	bool detectDataTypeAndRegion(QFile *file);
+	void searchForMp3Files();
+	void insertMp3File(int index, const QString &fileName);
+
+	int m_region;
+};
+
+class PicoMcdScd
+{
+public:
+	uint Status_CDD;
+	uint Status_CDC;
+	int Cur_LBA;
+	uint Cur_Track;
+	int File_Add_Delay;
+	int CDD_Complete;
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,45 +79,7 @@ extern "C" {
 (((c) >> 8) * 10) + ((c) & 0xF);
 
 
-typedef struct
-{
-  unsigned char M;
-  unsigned char S;
-  unsigned char F;
-} _msf;
-
-typedef struct
-{
-//	unsigned char Type; // always 1 (data) for 1st track, 0 (audio) for others
-//	unsigned char Num; // unused
-	_msf MSF;
-	//
-	char ftype; // TYPE_ISO, TYPE_BIN, TYPE_MP3
-	void *F;
-	int Length;
-	short KBtps; // kbytes per sec for mp3s (bitrate / 1000 / 8)
-	short pad;
-} _scd_track;
-
-typedef struct
-{
-//	unsigned char First_Track; // always 1
-	_scd_track Tracks[100];
-	unsigned int Last_Track;
-} _scd_toc;
-
-typedef struct {
-	unsigned int Status_CDD;
-	unsigned int Status_CDC;
-	int Cur_LBA;
-	unsigned int Cur_Track;
-	int File_Add_Delay;
-	char CDD_Complete;
-	int pad[6];
-} _scd;
-
-
-void LBA_to_MSF(int lba, _msf *MSF);
+void LBA_to_MSF(int lba, PicoMcdMsf *MSF);
 int  Track_to_LBA(int track);
 
 // moved to Pico.h
@@ -103,7 +114,7 @@ int CDD_Def(void);
 
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif

@@ -71,16 +71,14 @@ bool PicoCart::open(const QString &fileName, QString *error) {
 	Pico.romsize = picoRomSize;
 
 	// setup correct memory map for loaded ROM
-	if (picoMcdFlags & PicoMcdEnabled)
+	if (picoMcdOpt & PicoMcdEnabled)
 		PicoMemSetupCD();
 	else
 		PicoMemSetup();
 	PicoMemReset();
 
-	if (!(picoMcdFlags & PicoMcdEnabled))
+	if (!(picoMcdOpt & PicoMcdEnabled))
 		detect();
-
-	// TODO return PicoReset(1);
 
 	return true;
 }
@@ -107,9 +105,9 @@ bool PicoCart::openMegaCDBios(const QString &fileName, QString *error) {
 }
 
 void PicoCart::close() {
-	delete[] picoRom;
-	picoRom = 0;
-	picoRomSize = 0;
+//	TODO delete[] picoRom;
+//	picoRom = 0;
+//	picoRomSize = 0;
 }
 
 /** Decodes a SMD file. **/
@@ -127,6 +125,10 @@ void PicoCart::decodeSmd() {
 }
 
 bool PicoCart::allocateMem() {
+	// TODO
+	if (picoRom)
+		return true;
+
 	int allocSize = picoRomSize + 0x7FFFF;
 
 	if ((picoRomSize&0x3FFF) == 0x200)

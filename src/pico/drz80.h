@@ -56,6 +56,7 @@ struct DrZ80
   unsigned char Z80IM;          /*0x4E - Set IRQ Mode */
   unsigned char spare;          /*0x4F - N/A */
   unsigned int z80irqvector;    /*0x50 - Set IRQ Vector i.e. 0xFF=RST */
+
   void (*z80_irq_callback )(void);
   void (*z80_write8 )(unsigned char d,unsigned short a); 
   void (*z80_write16 )(unsigned short d,unsigned short a); 

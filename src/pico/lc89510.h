@@ -128,7 +128,7 @@ void CDD_Export_Status(void);
 void CDD_Import_Command(void);
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif

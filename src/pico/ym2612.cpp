@@ -113,16 +113,9 @@
 
 #include "ym2612.h"
 
-#ifndef EXTERNAL_YM2612
 #include <stdlib.h>
 // let it be 1 global to simplify things
 static YM2612 ym2612;
-
-#else
-extern YM2612 *ym2612_940;
-#define ym2612 (*ym2612_940)
-
-#endif
 
 extern "C" void memset32(int *dest, int c, int count);
 
@@ -690,7 +683,7 @@ INLINE signed int op_calc1(u32 phase, unsigned int env, signed int pm)
 	return neg ? -ret : ret;
 }
 
-#if !defined(_ASM_YM2612_C) || defined(EXTERNAL_YM2612)
+#if !defined(_ASM_YM2612_C)
 /* advance LFO to next sample */
 INLINE int advance_lfo(int lfo_ampm, u32 lfo_cnt_old, u32 lfo_cnt)
 {
@@ -842,7 +835,7 @@ typedef struct
 } chan_rend_context;
 
 
-#if !defined(_ASM_YM2612_C) || defined(EXTERNAL_YM2612)
+#if !defined(_ASM_YM2612_C)
 static void chan_render_loop(chan_rend_context *ct, int *buffer, int length)
 {
 	int scounter;					/* sample counter */
@@ -1566,24 +1559,6 @@ FM_ST *ym2612_st;
 /* Generate samples for YM2612 */
 void YM2612Update(int *buffer, int length)
 {
-/*
-	{
-		int c, s;
-		ppp();
-		for (c = 0; c < 6; c++) {
-			int slr = 0, slm;
-			printf("%i: ", c);
-			for (s = 0; s < 4; s++) {
-				if (ym2612.CH[c].SLOT[s].state != EG_OFF) slr = 1;
-				printf(" %i", ym2612.CH[c].SLOT[s].state != EG_OFF);
-			}
-			slm = (ym2612.slot_mask&(0xf<<(c*4))) ? 1 : 0;
-			printf(" | %i", slm);
-			printf(" | %i\n", ym2612.CH[c].SLOT[SLOT1].Incr==-1);
-			if (slr != slm) exit(1);
-		}
-	}
-*/
 	/* refresh PG and EG */
 	refresh_fc_eg_chan( &ym2612.CH[0] );
 	refresh_fc_eg_chan( &ym2612.CH[1] );
@@ -1607,12 +1582,12 @@ void YM2612Update(int *buffer, int length)
 	int stereo = 1; // TODO remove, first in assembly
 	/* mix to 32bit dest */
 	// flags: stereo, ?, disabled, ?, pan_r, pan_l
-	if (ym2612.slot_mask & 0x00000f) chan_render(buffer, length, 0, stereo|((pan&0x003)<<4)) << 0;
-	if (ym2612.slot_mask & 0x0000f0) chan_render(buffer, length, 1, stereo|((pan&0x00c)<<2)) << 1;
-	if (ym2612.slot_mask & 0x000f00) chan_render(buffer, length, 2, stereo|((pan&0x030)   )) << 2;
-	if (ym2612.slot_mask & 0x00f000) chan_render(buffer, length, 3, stereo|((pan&0x0c0)>>2)) << 3;
-	if (ym2612.slot_mask & 0x0f0000) chan_render(buffer, length, 4, stereo|((pan&0x300)>>4)) << 4;
-	if (ym2612.slot_mask & 0xf00000) chan_render(buffer, length, 5, stereo|((pan&0xc00)>>6)|(ym2612.dacen<<2)) << 5;
+	if (ym2612.slot_mask & 0x00000f) chan_render(buffer, length, 0, stereo|((pan&0x003)<<4));
+	if (ym2612.slot_mask & 0x0000f0) chan_render(buffer, length, 1, stereo|((pan&0x00c)<<2));
+	if (ym2612.slot_mask & 0x000f00) chan_render(buffer, length, 2, stereo|((pan&0x030)   ));
+	if (ym2612.slot_mask & 0x00f000) chan_render(buffer, length, 3, stereo|((pan&0x0c0)>>2));
+	if (ym2612.slot_mask & 0x0f0000) chan_render(buffer, length, 4, stereo|((pan&0x300)>>4));
+	if (ym2612.slot_mask & 0xf00000) chan_render(buffer, length, 5, stereo|((pan&0xc00)>>6)|(ym2612.dacen<<2));
 }
 
 
@@ -1636,7 +1611,7 @@ void YM2612Init(int clock, int rate)
 
 
 /* reset */
-void YM2612ResetChip(void)
+void YM2612ResetChip()
 {
 	int i;
 
@@ -1694,9 +1669,7 @@ int YM2612Write(unsigned int a, unsigned int v)
 		}
 
 		addr = ym2612.OPN.ST.address;
-#ifndef EXTERNAL_YM2612
 		ym2612.REGS[addr] = v;
-#endif
 
 		switch( addr & 0xf0 )
 		{
@@ -1792,9 +1765,7 @@ int YM2612Write(unsigned int a, unsigned int v)
 		}
 
 		addr = ym2612.OPN.ST.address | 0x100;
-#ifndef EXTERNAL_YM2612
 		ym2612.REGS[addr] = v;
-#endif
 
 		ret = OPNWriteReg(addr, v);
 		break;
@@ -1808,34 +1779,26 @@ int YM2612Write(unsigned int a, unsigned int v)
 	return ret;
 }
 
-void YM2612PicoStateLoad(void)
+void YM2612PicoStateLoad()
 {
-#ifndef EXTERNAL_YM2612
-	int i, real_A1 = ym2612.addr_A1;
-
-	reset_channels( &ym2612.CH[0] );
-
-	// feed all the registers and update internal state
-	for(i = 0; i < 0x100; i++) {
-		YM2612Write(0, i);
-		YM2612Write(1, ym2612.REGS[i]);
+	int real_A1 = ym2612.addr_A1;
+	for (int r = 0x30; r < 0x9E; r++) {
+		if ((r&3) != 3) {
+			OPNWriteReg(r, ym2612.REGS[r]);
+			OPNWriteReg(r|0x100, ym2612.REGS[r|0x100]);
+		}
 	}
-
-	for(i = 0; i < 0x100; i++) {
-		YM2612Write(2, i);
-		YM2612Write(3, ym2612.REGS[i|0x100]);
+	/* FB / CONNECT , L / R / AMS / PMS */
+	for (int r = 0xb0; r < 0xb6; r++) {
+		if ((r&3) != 3) {
+			OPNWriteReg(r, ym2612.REGS[r]);
+			OPNWriteReg(r|0x100,ym2612.REGS[r|0x100]);
+		}
 	}
-
 	ym2612.addr_A1 = real_A1;
-#else
-	reset_channels( &ym2612.CH[0] );
-#endif
 }
 
-#ifndef EXTERNAL_YM2612
-void *YM2612GetRegs(void)
+void *YM2612GetRegs()
 {
 	return ym2612.REGS;
 }
-#endif
-

@@ -186,6 +186,7 @@ void PsxMachine::emulateFrame(bool drawEnabled) {
 	m_prodSem.release();
 	m_consSem.acquire();
 	setPadKeys(0, padOffset(m_inputData, 0)[0]);
+	setPadKeys(1, padOffset(m_inputData, 1)[0]);
 }
 
 const QImage &PsxMachine::frame() const

@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <imachine.h>
+#include "cd_sys.h"
 
 extern u8 *picoRom;
 extern uint picoRomSize;
@@ -17,15 +17,28 @@ enum PicoFlag {
 
 extern int picoFlags;
 
-enum PicoMcdFlag {
+enum PicoMcdOpt {
 	PicoMcdEnabled		= 0x0001
 };
 
-extern int picoMcdFlags;
+enum PicoRegion {
+	PicoRegionAuto		= 0,
+	PicoRegionJapanNtsc	= 1,
+	PicoRegionJapanPal	= 2,
+	PicoRegionUsa		= 4,
+	PicoRegionEurope	= 8
+};
+
+extern int picoMcdOpt;
 
 extern void picoScanLine(uint num);
 
 #define picoDebugSek(...)
+#define picoDebugMcdToc(...)
+
+void mp3_start_play(QFile *file, int pos);
+int  mp3_get_offset(); // 0-1023
+void mp3_update(int *buffer, int length);
 
 extern const unsigned char  hcounts_32[];
 extern const unsigned char  hcounts_40[];
@@ -37,13 +50,6 @@ extern const unsigned short vcounts[];
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-// external funcs for Sega/Mega CD
-int  mp3_get_bitrate(FILE *f, int size);
-void mp3_start_play(FILE *f, int pos);
-int  mp3_get_offset(void); // 0-1023
-void mp3_update(int *buffer, int length, int stereo);
-
 
 // Pico.c
 // PicoOpt bits LSb->MSb:
@@ -74,14 +80,9 @@ void PicoWrite16(unsigned int a, unsigned short d);
 // cd/Pico.c
 extern void (*PicoMCDopenTray)(void);
 extern int  (*PicoMCDcloseTray)(void);
-extern int PicoCDBuffers;
-
-// cd/buffering.c
-void PicoCDBufferInit(void);
-void PicoCDBufferFree(void);
 
 // cd/cd_sys.c
-int Insert_CD(char *iso_name, int is_bin);
+bool Insert_CD(const QString &fileName, QString *error);
 void Stop_CD(void); // releases all resources taken when CD game was started.
 
 // TODO int PicoCartLoad(pm_file *f,unsigned char **prom,unsigned int *psize);
@@ -274,7 +275,6 @@ struct PicoSRAM
 };
 
 // MCD
-#include "cd_sys.h"
 #include "lc89510.h"
 #include "cd_gfx.h"
 
@@ -339,10 +339,10 @@ typedef struct
 	unsigned char bram[0x2000];			// 110200: 8K
 	struct mcd_misc m;				// 112200: misc
 	struct mcd_pcm pcm;				// 112240:
-	_scd_toc TOC;					// not to be saved
+	PicoMcdToc TOC;					// not to be saved
+	PicoMcdScd scd;
 	CDD  cdd;
 	CDC  cdc;
-	_scd scd;
 	Rot_Comp rot_comp;
 } mcd_state;
 
@@ -432,9 +432,8 @@ void picoSoundTimersAndDac(int raster);
 int  picoSoundRender(int offset, int length);
 // z80 functionality wrappers
 void z80_init(void);
-void z80_pack(unsigned char *data);
-void z80_unpack(unsigned char *data);
 void z80_reset(void);
+void z80Sl(const QString &name);
 
 #ifdef __cplusplus
 } // End of extern "C"

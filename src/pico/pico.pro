@@ -12,7 +12,6 @@ HEADERS += \
     maemo.h \
     pico_frame_hints.h \
     memcmn.h \
-    emu2.h \
     lc89510.h \
     cd_sys.h \
     cd_pcm.h \
@@ -59,11 +58,9 @@ SOURCES += \
     cd_gfx.cpp \
     cheat.cpp \
     cart.cpp \
-    cd_file.cpp \
-    cd_buffering.cpp \
-    emu2.cpp \
     $$ASM_SOURCES \
     machine.cpp \
     state.cpp \
     pad.cpp \
-    sound_z80.cpp
+    sound_z80.cpp \
+    cd_file.cpp

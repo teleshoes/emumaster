@@ -61,13 +61,13 @@ if (!CD_Present)					\
 }
 
 
-static int MSF_to_LBA(_msf *MSF)
+static int MSF_to_LBA(PicoMcdMsf *MSF)
 {
 	return (MSF->M * 60 * 75) + (MSF->S * 75) + MSF->F - 150;
 }
 
 
-void LBA_to_MSF(int lba, _msf *MSF)
+void LBA_to_MSF(int lba, PicoMcdMsf *MSF)
 {
 	if (lba < -150) lba = 0;
 	else lba += 150;
@@ -77,7 +77,7 @@ void LBA_to_MSF(int lba, _msf *MSF)
 }
 
 
-static unsigned int MSF_to_Track(_msf *MSF)
+static unsigned int MSF_to_Track(PicoMcdMsf *MSF)
 {
 	int i, Start, Cur;
 
@@ -103,14 +103,14 @@ static unsigned int MSF_to_Track(_msf *MSF)
 
 static unsigned int LBA_to_Track(int lba)
 {
-	_msf MSF;
+	PicoMcdMsf MSF;
 
 	LBA_to_MSF(lba, &MSF);
 	return MSF_to_Track(&MSF);
 }
 
 
-static void Track_to_MSF(int track, _msf *MSF)
+static void Track_to_MSF(int track, PicoMcdMsf *MSF)
 {
 	if (track < 1) track = 1;
 	else if (track > Pico_mcd->TOC.Last_Track) track = Pico_mcd->TOC.Last_Track;
@@ -123,7 +123,7 @@ static void Track_to_MSF(int track, _msf *MSF)
 
 int Track_to_LBA(int track)
 {
-	_msf MSF;
+	PicoMcdMsf MSF;
 
 	Track_to_MSF(track, &MSF);
 	return MSF_to_LBA(&MSF);
@@ -182,7 +182,7 @@ int Init_CD_Driver(void)
 
 void End_CD_Driver(void)
 {
-	Unload_ISO();
+	Pico_mcd->TOC.close();
 }
 
 
@@ -197,29 +197,25 @@ void Reset_CD(void)
 }
 
 
-int Insert_CD(char *iso_name, int is_bin)
+bool Insert_CD(const QString &fileName, QString *error)
 {
-	int ret = 0;
 
 	CD_Present = 0;
 	Pico_mcd->scd.Status_CDD = NOCD;
 
-	if (iso_name != NULL)
-	{
-		ret = Load_ISO(iso_name, is_bin);
-		if (ret == 0) {
-			CD_Present = 1;
-			Pico_mcd->scd.Status_CDD = READY;
-		}
+	bool ok = Pico_mcd->TOC.open(fileName, error);
+	if (ok) {
+		CD_Present = 1;
+		Pico_mcd->scd.Status_CDD = READY;
 	}
 
-	return ret;
+	return ok;
 }
 
 
 void Stop_CD(void)
 {
-	Unload_ISO();
+	Pico_mcd->TOC.close();
 	CD_Present = 0;
 }
 
@@ -275,7 +271,7 @@ int Stop_CDD_c1(void)
 
 int Get_Pos_CDD_c20(void)
 {
-	_msf MSF;
+	PicoMcdMsf MSF;
 
 	cdprintf("command 200 : Cur LBA = %d", Pico_mcd->scd.Cur_LBA);
 
@@ -308,7 +304,7 @@ int Get_Pos_CDD_c20(void)
 int Get_Track_Pos_CDD_c21(void)
 {
 	int elapsed_time;
-	_msf MSF;
+	PicoMcdMsf MSF;
 
 	cdprintf("command 201 : Cur LBA = %d", Pico_mcd->scd.Cur_LBA);
 
@@ -451,7 +447,7 @@ int Get_Track_Adr_CDD_c25(void)
 
 int Play_CDD_c3(void)
 {
-	_msf MSF;
+	PicoMcdMsf MSF;
 	int delay, new_lba;
 
 	CHECK_TRAY_OPEN
@@ -491,7 +487,7 @@ int Play_CDD_c3(void)
 	{
 		Pico_mcd->s68k_regs[0x36] &= ~0x01;				// AUDIO
 		//CD_Audio_Starting = 1;
-		FILE_Play_CD_LBA();
+		Pico_mcd->TOC.playAudio();
 	}
 
 	if (Pico_mcd->scd.Cur_Track == 100) Pico_mcd->cdd.Minute = 0x0A02;
@@ -509,7 +505,7 @@ int Play_CDD_c3(void)
 
 int Seek_CDD_c4(void)
 {
-	_msf MSF;
+	PicoMcdMsf MSF;
 
 	CHECK_TRAY_OPEN
 	CHECK_CD_PRESENT
@@ -577,7 +573,7 @@ int Resume_CDD_c7(void)
 
 #ifdef DEBUG_CD
 	{
-		_msf MSF;
+		PicoMcdMsf MSF;
 		LBA_to_MSF(Pico_mcd->scd.Cur_LBA, &MSF);
 		cdprintf("Resume read : Cur LBA = %d, M=%d, S=%d, F=%d", Pico_mcd->scd.Cur_LBA, MSF.M, MSF.S, MSF.F);
 	}
@@ -594,7 +590,7 @@ int Resume_CDD_c7(void)
 	{
 		Pico_mcd->s68k_regs[0x36] &= ~0x01;				// AUDIO
 		//CD_Audio_Starting = 1;
-		FILE_Play_CD_LBA();
+		Pico_mcd->TOC.playAudio();
 	}
 
 	if (Pico_mcd->scd.Cur_Track == 100) Pico_mcd->cdd.Minute = 0x0A02;
@@ -686,7 +682,7 @@ int Open_Tray_CDD_cD(void)
 
 	elprintf(EL_STATUS, "tray open\n");
 
-	Unload_ISO();
+	Pico_mcd->TOC.close();
 	CD_Present = 0;
 
 	if (PicoMCDopenTray != NULL)
@@ -738,5 +734,3 @@ int CDD_Def(void)
 
 	return 0;
 }
-
-

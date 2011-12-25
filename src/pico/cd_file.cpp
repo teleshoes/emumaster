@@ -9,189 +9,147 @@
 
 #include "pico.h"
 #include "cd_file.h"
+#include <QDir>
+#include <QFileInfo>
 
 #define cdprintf(x...)
-//#define cdprintf(f,...) printf(f "\n",##__VA_ARGS__) // tmp
 #define DEBUG_CD
 
-int Load_ISO(const char *iso_name, int is_bin)
+bool PicoMcdToc::open(const QString &fileName, QString *error)
 {
-/*	TODO int i, j, num_track, Cur_LBA, index, ret, iso_name_len;
-	_scd_track *Tracks = Pico_mcd->TOC.Tracks;
-	char tmp_name[1024], tmp_ext[10];
-	pm_file *pmf;
-	static char *exts[] = {
-		"%02d.mp3", " %02d.mp3", "-%02d.mp3", "_%02d.mp3", " - %02d.mp3",
-		"%d.mp3", " %d.mp3", "-%d.mp3", "_%d.mp3", " - %d.mp3",
-#if CASE_SENSITIVE_FS
-		"%02d.MP3", " %02d.MP3", "-%02d.MP3", "_%02d.MP3", " - %02d.MP3",
-#endif
-	};
+	close();
 
-	if (PicoCDLoadProgressCB != NULL) PicoCDLoadProgressCB(1);
-
-	Unload_ISO();
-
-	Tracks[0].ftype = is_bin ? TYPE_BIN : TYPE_ISO;
-
-	Tracks[0].F = pmf = pm_open(iso_name);
-	if (Tracks[0].F == NULL)
-	{
-		Tracks[0].ftype = 0;
-		Tracks[0].Length = 0;
-		return -1;
+	QFile *dataFile = new QFile(fileName);
+	if (!dataFile->open(QIODevice::ReadOnly)) {
+		delete dataFile;
+		*error = QObject::tr("Could not open CD file (%1)").arg(fileName);
+		return false;
 	}
 
-	if (Tracks[0].ftype == TYPE_ISO)
-		Tracks[0].Length = pmf->size >>= 11;	// size in sectors
-	else	Tracks[0].Length = pmf->size /= 2352;
-
-	Tracks[0].MSF.M = 0; // minutes
-	Tracks[0].MSF.S = 2; // seconds
-	Tracks[0].MSF.F = 0; // frames
-
-	cdprintf("Track 0 - %02d:%02d:%02d DATA", Tracks[0].MSF.M, Tracks[0].MSF.S, Tracks[0].MSF.F);
-
-	Cur_LBA = Tracks[0].Length;				// Size in sectors
-
-	iso_name_len = strlen(iso_name);
-	if (iso_name_len >= sizeof(tmp_name))
-		iso_name_len = sizeof(tmp_name) - 1;
-
-	for (num_track = 2, i = 0; i < 100; i++)
-	{
-		if (PicoCDLoadProgressCB != NULL && i > 1) PicoCDLoadProgressCB(i);
-
-		for (j = 0; j < sizeof(exts)/sizeof(char *); j++)
-		{
-			int ext_len;
-			FILE *tmp_file;
-			sprintf(tmp_ext, exts[j], i);
-			ext_len = strlen(tmp_ext);
-
-			memcpy(tmp_name, iso_name, iso_name_len + 1);
-			tmp_name[iso_name_len - 4] = 0;
-			strcat(tmp_name, tmp_ext);
-
-			tmp_file = fopen(tmp_name, "rb");
-			if (!tmp_file && i > 1 && iso_name_len > ext_len) {
-				tmp_name[iso_name_len - ext_len] = 0;
-				strcat(tmp_name, tmp_ext);
-				tmp_file = fopen(tmp_name, "rb");
-			}
-
-			if (tmp_file)
-			{
-				int fs;
-				index = num_track - 1;
-
-				ret = fseek(tmp_file, 0, SEEK_END);
-				fs = ftell(tmp_file);				// used to calculate lenght
-				fseek(tmp_file, 0, SEEK_SET);
-
-#if DONT_OPEN_MANY_FILES
-				// some systems (like PSP) can't have many open files at a time,
-				// so we work with their names instead.
-				fclose(tmp_file);
-				// TODO tmp_file = (void *) strdup(tmp_name);
-#endif
-				Tracks[index].KBtps = (short) mp3_get_bitrate(tmp_file, fs);
-				Tracks[index].KBtps >>= 3;
-				if (ret != 0 || Tracks[index].KBtps <= 0)
-				{
-					cdprintf("Error track %i: rate %i", index, Tracks[index].KBtps);
-#if !DONT_OPEN_MANY_FILES
-					fclose(tmp_file);
-#else
-					free(tmp_file);
-#endif
-					continue;
-				}
-
-				Tracks[index].F = tmp_file;
-
-				LBA_to_MSF(Cur_LBA, &Tracks[index].MSF);
-
-				// MP3 File
-				Tracks[index].ftype = TYPE_MP3;
-				fs *= 75;
-				fs /= Tracks[index].KBtps * 1000;
-				Tracks[index].Length = fs;
-				Cur_LBA += Tracks[index].Length;
-
-				cdprintf("Track %i: %s - %02d:%02d:%02d len=%i AUDIO", index, tmp_name, Tracks[index].MSF.M,
-					Tracks[index].MSF.S, Tracks[index].MSF.F, fs);
-
-				num_track++;
-				break;
-			}
-		}
+	if (!detectDataTypeAndRegion(dataFile)) {
+		delete dataFile;
+		*error = QObject::tr("Invalid header of CD file").arg(fileName);
+		return false;
 	}
 
-	Pico_mcd->TOC.Last_Track = num_track - 1;
+	Last_Track = 1;
+	Tracks[0].file = dataFile;
+	// size in sectors
+	if (Tracks[0].type == PicoMcdTrack::Iso)
+		Tracks[0].Length = dataFile->size() >> 11;
+	else
+		Tracks[0].Length = dataFile->size() / 2352;
 
-	index = num_track - 1;
+	searchForMp3Files();
 
-	LBA_to_MSF(Cur_LBA, &Tracks[index].MSF);
+	// fill msf structures
+	Tracks[0].MSF.M = 0;
+	Tracks[0].MSF.S = 2;
+	Tracks[0].MSF.F = 0;
 
-	cdprintf("End CD - %02d:%02d:%02d\n\n", Tracks[index].MSF.M,
-		Tracks[index].MSF.S, Tracks[index].MSF.F);
-
-	if (PicoCDLoadProgressCB != NULL) PicoCDLoadProgressCB(100);
-
-	return 0;*/
+	int curLba = Tracks[0].Length;
+	for (int i = 1; i < Last_Track; i++) {
+		LBA_to_MSF(curLba, &Tracks[i].MSF);
+		curLba += Tracks[i].Length;
+	}
+	LBA_to_MSF(curLba, &Tracks[Last_Track].MSF);
+	return true;
 }
 
-
-void Unload_ISO(void)
+void PicoMcdToc::close()
 {
-/*	TODO 	int i;
-
-	if (Pico_mcd == NULL) return;
-
-	if (Pico_mcd->TOC.Tracks[0].F) pm_close((pm_file*)Pico_mcd->TOC.Tracks[0].F);
-
-	for(i = 1; i < 100; i++)
-	{
-		if (Pico_mcd->TOC.Tracks[i].F != NULL)
-#if !DONT_OPEN_MANY_FILES
-			fclose(Pico_mcd->TOC.Tracks[i].F);
-#else
-			free(Pico_mcd->TOC.Tracks[i].F);
-#endif
-	}
-	memset(Pico_mcd->TOC.Tracks, 0, sizeof(Pico_mcd->TOC.Tracks));*/
+	for (int i = 1; i < 100; i++)
+		delete Tracks[i].file;
+	memset(Tracks, 0, sizeof(Tracks));
 }
 
-
-int FILE_Read_One_LBA_CDC(void)
+bool PicoMcdToc::detectDataTypeAndRegion(QFile *file)
 {
-/*	TODO //	static char cp_buf[2560];
+	char buf[0x20];
 
-	if (Pico_mcd->s68k_regs[0x36] & 1)					// DATA
-	{
-		if (Pico_mcd->TOC.Tracks[0].F == NULL) return -1;
+	file->seek(0);
+	if (file->read(buf, 32) != 32)
+		return false;
 
-		// moved below..
-		//fseek(Pico_mcd->TOC.Tracks[0].F, where_read, SEEK_SET);
-		//fread(cp_buf, 1, 2048, Pico_mcd->TOC.Tracks[0].F);
+	PicoMcdTrack::Type type = PicoMcdTrack::None;
+	if (!strncasecmp("SEGADISCSYSTEM", buf+0x00, 14))
+		type = PicoMcdTrack::Iso;
+	if (!strncasecmp("SEGADISCSYSTEM", buf+0x10, 14))
+		type = PicoMcdTrack::Bin;
 
-		cdprintf("Read file CDC 1 data sector :\n");
-	}
-	else									// AUDIO
-	{
-		// int rate, channel;
+	if (type == PicoMcdTrack::None)
+		return false;
 
-		// if (Pico_mcd->TOC.Tracks[Pico_mcd->scd.Cur_Track - 1].ftype == TYPE_MP3)
-		{
-			// TODO
-			// MP3_Update(cp_buf, &rate, &channel, 0);
-			// Write_CD_Audio((short *) cp_buf, rate, channel, 588);
+	Tracks[0].type = type;
+
+	m_region = PicoRegionUsa;
+
+	int pos = 0x100 + 0x10B;
+	if (type == PicoMcdTrack::Bin)
+		pos += 0x10;
+	file->seek(pos);
+	file->getChar(buf);
+
+	if (buf[0] == 0x64)
+		m_region = PicoRegionEurope;
+	if (buf[0] == 0xA1)
+		m_region = PicoRegionJapanNtsc;
+
+	return true;
+}
+
+void PicoMcdToc::searchForMp3Files()
+{
+	// list mp3 files
+	QString dataFileName = Tracks[0].file->fileName();
+	QDir dir = QFileInfo(dataFileName).dir();
+	QStringList list = dir.entryList(QStringList() << "*.mp3");
+
+	QString start = dataFileName.left(dataFileName.size() - 4);
+	foreach (QString name, list) {
+		if (name.startsWith(start)) {
+			// extract track index
+			QString mid = name.mid(start.size());
+			// remove .mp3 part
+			mid.truncate(mid.size() - 4);
+			QString dd = mid.right(2);
+			if (!dd.at(0).isDigit())
+				dd = dd.right(1);
+
+			bool ok;
+			// convert to int, filenames starts with 02 - decrement then
+			int index = dd.toInt(&ok) - 1;
+			if (ok)
+				insertMp3File(index, dir.filePath(name));
 		}
-
-		cdprintf("Read file CDC 1 audio sector :\n");
 	}
+}
 
+void PicoMcdToc::insertMp3File(int index, const QString &fileName)
+{
+	if (Tracks[index].file == 0) {
+		Tracks[index].type = PicoMcdTrack::Mp3;
+		QFile *file = new QFile(fileName);
+		if (file->open(QIODevice::ReadOnly)) {
+			Tracks[index].file = file;
+
+			int fs = file->size();
+			file->close();
+			fs *= 75;
+			fs /= 44100;
+			Tracks[index].Length = fs;
+			Last_Track = qMax(index+1, Last_Track);
+		} else {
+			delete file;
+		}
+	} else {
+		qDebug("mp3 already inserted, track:%d, file: %s", index, qPrintable(fileName));
+	}
+}
+
+// TODO move to cdc and toc
+int FILE_Read_One_LBA_CDC()
+{
 	// Update CDC stuff
 
 	CDC_Update_Header();
@@ -202,28 +160,22 @@ int FILE_Read_One_LBA_CDC(void)
 		{
 			if (Pico_mcd->cdc.CTRL.B.B0 & 0x04)	// WRRQ : this bit enable write to buffer
 			{
-				int where_read = 0;
-
 				// CAUTION : lookahead bit not implemented
-
-				if (Pico_mcd->scd.Cur_LBA < 0)
-					where_read = 0;
-				else if (Pico_mcd->scd.Cur_LBA >= Pico_mcd->TOC.Tracks[0].Length)
-					where_read = Pico_mcd->TOC.Tracks[0].Length - 1;
-				else where_read = Pico_mcd->scd.Cur_LBA;
-
+				int lba = qBound(0, Pico_mcd->scd.Cur_LBA, Pico_mcd->TOC.Tracks[0].Length-1);
 				Pico_mcd->scd.Cur_LBA++;
 
 				Pico_mcd->cdc.WA.N = (Pico_mcd->cdc.WA.N + 2352) & 0x7FFF;		// add one sector to WA
 				Pico_mcd->cdc.PT.N = (Pico_mcd->cdc.PT.N + 2352) & 0x7FFF;
 
-				*(unsigned int *)(Pico_mcd->cdc.Buffer + Pico_mcd->cdc.PT.N) = Pico_mcd->cdc.HEAD.N;
-				//memcpy(&Pico_mcd->cdc.Buffer[Pico_mcd->cdc.PT.N + 4], cp_buf, 2048);
+				*(u32 *)(Pico_mcd->cdc.Buffer + Pico_mcd->cdc.PT.N) = Pico_mcd->cdc.HEAD.N;
 
-				//pm_seek(Pico_mcd->TOC.Tracks[0].F, where_read, SEEK_SET);
-				//pm_read(Pico_mcd->cdc.Buffer + Pico_mcd->cdc.PT.N + 4, 2048, Pico_mcd->TOC.Tracks[0].F);
-				PicoCDBufferRead(Pico_mcd->cdc.Buffer + Pico_mcd->cdc.PT.N + 4, where_read);
-
+				u8 *dst = Pico_mcd->cdc.Buffer + Pico_mcd->cdc.PT.N + 4;
+				QFile *file = Pico_mcd->TOC.Tracks[0].file;
+				if (Pico_mcd->TOC.Tracks[0].type == PicoMcdTrack::Bin)
+					file->seek(lba * 2352 + 16);
+				else
+					file->seek(lba << 11);
+				file->read((char *)dst, 2048);
 #ifdef DEBUG_CD
 				cdprintf("Read -> WA = %d  Buffer[%d] =", Pico_mcd->cdc.WA.N, Pico_mcd->cdc.PT.N & 0x3FFF);
 				cdprintf("Header 1 = %.2X %.2X %.2X %.2X", Pico_mcd->cdc.HEAD.B.B0,
@@ -288,37 +240,37 @@ int FILE_Read_One_LBA_CDC(void)
 	}
 
 
-	return 0;*/
+	return 0;
 }
 
-
-int FILE_Play_CD_LBA(void)
+bool PicoMcdToc::playAudio()
 {
-/*	TODO 	int index = Pico_mcd->scd.Cur_Track - 1;
+	Q_ASSERT(Pico_mcd->scd.Cur_Track >= 1);
+	int index = Pico_mcd->scd.Cur_Track - 1;
 	Pico_mcd->m.audio_track = index;
 
-	cdprintf("Play track #%i", Pico_mcd->scd.Cur_Track);
+	picoDebugMcdToc("play track #%i", Pico_mcd->scd.Cur_Track);
 
-	if (Pico_mcd->TOC.Tracks[index].F == NULL)
-	{
-		return 1;
-	}
+	if (index >= 100 || !Tracks[index].file)
+		return false;
 
-	if (Pico_mcd->TOC.Tracks[index].ftype == TYPE_MP3)
-	{
-		int pos1024 = 0;
-		int Track_LBA_Pos = Pico_mcd->scd.Cur_LBA - Track_to_LBA(Pico_mcd->scd.Cur_Track);
-		if (Track_LBA_Pos < 0) Track_LBA_Pos = 0;
-		if (Track_LBA_Pos)
-			pos1024 = Track_LBA_Pos * 1024 / Pico_mcd->TOC.Tracks[index].Length;
+	if (Tracks[index].type != PicoMcdTrack::Mp3)
+		return false;
 
-		mp3_start_play((FILE*)Pico_mcd->TOC.Tracks[index].F, pos1024);
-	}
-	else
-	{
-		return 3;
-	}
+	int pos1024 = 0;
+	int trackLbaPos = Pico_mcd->scd.Cur_LBA - Track_to_LBA(Pico_mcd->scd.Cur_Track);
+	if (trackLbaPos < 0)
+		trackLbaPos = 0;
+	pos1024 = trackLbaPos * 1024 / Tracks[index].Length;
 
-	return 0;*/
+	// TODO mp3_start_play(Tracks[index].file, pos1024);
+	return true;
 }
 
+int PicoMcdToc::region() const
+{
+	if (PicoRegionOverride)
+		return PicoRegionOverride;
+	else
+		return m_region;
+}

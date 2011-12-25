@@ -18,6 +18,8 @@ protected:
 	void sl();
 	void setAudioEnabled(bool on);
 	void updateInput();
+private:
+	bool findMcdBios(QString *biosFileName, QString *error);
 };
 
 extern PicoMachine picoMachine;

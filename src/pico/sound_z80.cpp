@@ -60,26 +60,15 @@ void z80_reset(void)
 }
 
 
-void z80_pack(unsigned char *data)
+void z80Sl(const QString &name)
 {
-	*(int *)data = 0x015A7244; // "DrZ" v1
+	static const int Size = 0x54;
+	if (!emsl.save)
+		emsl.array(name, &drZ80, Size);
 	drZ80.Z80PC = drZ80.z80_rebasePC(drZ80.Z80PC-drZ80.Z80PC_BASE);
 	drZ80.Z80SP = drZ80.z80_rebaseSP(drZ80.Z80SP-drZ80.Z80SP_BASE);
-	memcpy(data+4, &drZ80, 0x54);
-}
-
-void z80_unpack(unsigned char *data)
-{
-	if (*(int *)data == 0x015A7244) { // "DrZ" v1 save?
-		memcpy(&drZ80, data+4, 0x54);
-		// update bases
-		drZ80.Z80PC = drZ80.z80_rebasePC(drZ80.Z80PC-drZ80.Z80PC_BASE);
-		drZ80.Z80SP = drZ80.z80_rebaseSP(drZ80.Z80SP-drZ80.Z80SP_BASE);
-	} else {
-		z80_reset();
-		drZ80.Z80IM = 1;
-		z80_int(); // try to goto int handler, maybe we won't execute trash there?
-	}
+	if (emsl.save)
+		emsl.array(name, &drZ80, Size);
 }
 
 void z80_debug(char *dstr)

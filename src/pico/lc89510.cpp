@@ -240,7 +240,7 @@ void CDC_Update_Header(void)
 	}
 	else
 	{
-		_msf MSF;
+		PicoMcdMsf MSF;
 
 		LBA_to_MSF(Pico_mcd->scd.Cur_LBA, &MSF);
 

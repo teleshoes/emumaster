@@ -12,7 +12,7 @@
 
 u8 *picoRom = 0;
 uint picoRomSize = 0;
-int picoMcdFlags = 0;
+int picoMcdOpt = 0;
 
 int PicoVer=0x0133;
 struct Pico Pico;
