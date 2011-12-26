@@ -1,6 +1,7 @@
 emumaster (0.2.0) unstable; urgency=low
 
-  * [bug] only one player in psx - fixed
+  * [bug] if games have different extensions they are incorrectly sorted in disk gallery - fixed
+  * [bug] mulitplayer don't work in psx - fixed
   * [bug] strange sixaxis identify animation - fixed
 
  -- elemental <mar.kazmierczak@gmail.com>  Fri, 23 Dec 2011 11:44:11 +0100

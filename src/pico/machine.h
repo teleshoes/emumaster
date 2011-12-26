@@ -20,6 +20,8 @@ protected:
 	void updateInput();
 private:
 	bool findMcdBios(QString *biosFileName, QString *error);
+
+	int m_lastVideoMode;
 };
 
 extern PicoMachine picoMachine;

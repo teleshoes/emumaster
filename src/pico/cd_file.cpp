@@ -109,10 +109,7 @@ void PicoMcdToc::searchForMp3Files()
 	foreach (QString name, list) {
 		if (name.startsWith(start)) {
 			// extract track index
-			QString mid = name.mid(start.size());
-			// remove .mp3 part
-			mid.truncate(mid.size() - 4);
-			QString dd = mid.right(2);
+			QString dd = name.mid(name.size()-6, 2);
 			if (!dd.at(0).isDigit())
 				dd = dd.right(1);
 

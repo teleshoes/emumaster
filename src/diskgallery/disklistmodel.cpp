@@ -78,10 +78,11 @@ void DiskListModel::setCollection(const QString &name) {
 void DiskListModel::setCollectionMachine() {
 	Q_ASSERT(m_list.isEmpty());
 	QDir dir(PathManager::instance()->diskDirPath(m_collection));
-	QStringList allFiles = dir.entryList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot, QDir::Name|QDir::IgnoreCase);
 	DiskFilter diskFilter = m_diskFilters.value(m_collection);
-	for (int i = 0; i < diskFilter.included.size(); i++)
-		m_list.append(allFiles.filter(diskFilter.included.at(i)));
+
+	m_list = dir.entryList(diskFilter.included,
+						   QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot,
+						   QDir::Name|QDir::IgnoreCase);
 
 	QStringList excluded;
 	for (int i = 0; i < diskFilter.excluded.size(); i++)
@@ -239,43 +240,45 @@ void DiskListModel::setDiskCover(int i, const QUrl &coverUrl) {
 
 void DiskListModel::setupNesFilter() {
 	DiskFilter filter;
-	filter.included.append(QRegExp("*.nes", Qt::CaseSensitive, QRegExp::Wildcard));
+	filter.included << "*.nes";
 	m_diskFilters.insert("nes", filter);
 }
 
 void DiskListModel::setupGbaFilter() {
 	DiskFilter filter;
-	filter.included.append(QRegExp("*.gba", Qt::CaseSensitive, QRegExp::Wildcard));
+	filter.included << "*.gba";
 	m_diskFilters.insert("gba", filter);
 }
 
 void DiskListModel::setupSnesFilter() {
 	DiskFilter filter;
-	filter.included.append(QRegExp("*.smc", Qt::CaseSensitive, QRegExp::Wildcard));
+	filter.included << "*.smc";
 	m_diskFilters.insert("snes", filter);
 }
 
 void DiskListModel::setupPsxFilter() {
 	DiskFilter filter;
-	filter.included.append(QRegExp("*.iso", Qt::CaseSensitive, QRegExp::Wildcard));
-	filter.included.append(QRegExp("*.bin", Qt::CaseSensitive, QRegExp::Wildcard));
-	filter.included.append(QRegExp("*.img", Qt::CaseSensitive, QRegExp::Wildcard));
+	filter.included << "*.iso";
+	filter.included << "*.bin";
+	filter.included << "*.img";
 	filter.excluded.append(QRegExp("scph*.bin", Qt::CaseSensitive, QRegExp::Wildcard));
 	m_diskFilters.insert("psx", filter);
 }
 
 void DiskListModel::setupAmigaFilter() {
 	DiskFilter filter;
-	filter.included.append(QRegExp("*.adf", Qt::CaseSensitive, QRegExp::Wildcard));
+	filter.included << "*.adf";
 	m_diskFilters.insert("amiga", filter);
 }
 
 void DiskListModel::setupPicoFilter() {
 	DiskFilter filter;
-	filter.included.append(QRegExp("*.gen", Qt::CaseSensitive, QRegExp::Wildcard));
-	filter.included.append(QRegExp("*.smd", Qt::CaseSensitive, QRegExp::Wildcard));
-	filter.included.append(QRegExp("*.bin", Qt::CaseSensitive, QRegExp::Wildcard));
-	filter.included.append(QRegExp("*.iso", Qt::CaseSensitive, QRegExp::Wildcard));
+	filter.included << "*.gen";
+	filter.included << "*.smd";
+	filter.included << "*.bin";
+	filter.included << "*.iso";
+	filter.excluded.append(QRegExp("*_scd*.bin", Qt::CaseSensitive, QRegExp::Wildcard));
+	filter.excluded.append(QRegExp("*_mcd*.bin", Qt::CaseSensitive, QRegExp::Wildcard));
 	m_diskFilters.insert("pico", filter);
 }
 

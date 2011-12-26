@@ -438,7 +438,7 @@ end:
 // -----------------------------------------------------------------
 //                            Write Ram
 
-#if !defined(_ASM_MEMORY_C) || defined(_ASM_MEMORY_C_AMIPS)
+#if !defined(_ASM_MEMORY_C)
 void PicoWrite8(u32 a,u8 d)
 {
   elprintf(EL_IO, "w8 : %06x,   %02x @%06x", a&0xffffff, d, SekPc);

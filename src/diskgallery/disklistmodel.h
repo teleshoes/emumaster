@@ -100,7 +100,7 @@ private:
 
 	class DiskFilter {
 	public:
-		QList<QRegExp> included;
+		QStringList included;
 		QList<QRegExp> excluded;
 	};
 	QMap<QString, DiskFilter> m_diskFilters;

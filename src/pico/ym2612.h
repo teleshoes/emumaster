@@ -156,7 +156,7 @@ void YM2612Update(int *buffer, int length);
 
 extern "C" int  YM2612Write(unsigned int a, unsigned int v);
 
-void YM2612PicoStateLoad(void);
+void YM2612PicoStateLoad();
 
 void *YM2612GetRegs();
 

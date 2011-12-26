@@ -2,7 +2,6 @@
 #include "machineview.h"
 #include "pico.h"
 #include "cart.h"
-#include "maemo.h"
 #include "pathmanager.h"
 #include <QImage>
 #include <QApplication>
@@ -17,30 +16,11 @@ PicoMachine::PicoMachine() :
 {
 }
 
-static int modes = 0;
-
-#define SCREEN_WIDTH 320
-
-void *md_screen = 0;
+static void *md_screen = 0;
 unsigned char *PicoDraw2FB = 0;  // temporary buffer for alt renderer
 
-static void cd_leds() {
-//	static
-	int old_reg;
-//	if (!((Pico_mcd->s68k_regs[0] ^ old_reg) & 3)) return; // no change // mmu hack problems?
-	old_reg = Pico_mcd->s68k_regs[0];
-
-	// 16-bit modes
-	unsigned int *p = (unsigned int *)((short *)md_screen + SCREEN_WIDTH*2+4);
-	unsigned int col_g = (old_reg & 2) ? 0x06000600 : 0;
-	unsigned int col_r = (old_reg & 1) ? 0xc000c000 : 0;
-	*p++ = col_g; *p++ = col_g; p+=2; *p++ = col_r; *p++ = col_r; p += SCREEN_WIDTH/2 - 12/2;
-	*p++ = col_g; *p++ = col_g; p+=2; *p++ = col_r; *p++ = col_r; p += SCREEN_WIDTH/2 - 12/2;
-	*p++ = col_g; *p++ = col_g; p+=2; *p++ = col_r; *p++ = col_r;
-}
-
 void picoScanLine(uint num) {
-	DrawLineDest = (u16 *)md_screen + SCREEN_WIDTH*(num+1);
+	DrawLineDest = (u16 *)md_screen + 320*(num+1);
 }
 
 bool PicoMachine::findMcdBios(QString *biosFileName, QString *error)
@@ -110,9 +90,9 @@ QString PicoMachine::init(const QString &diskPath)
 	Pico.m.dirtyPal = 1;
 	PicoOpt &= ~0x4100;
 	PicoOpt |= 0x0100;
-	modes = ((Pico.video.reg[12]&1)<<2) ^ 0xc;
+	m_lastVideoMode = ((Pico.video.reg[12]&1)<<2) ^ 0xc;
 
-	if (!diskPath.endsWith(".gen")) {
+	if (!diskPath.endsWith(".gen") && !diskPath.endsWith(".smd")) {
 		mcd_state *data = new mcd_state;
 		memset(data, 0, sizeof(mcd_state));
 		Pico.rom = picoRom = (u8 *)data;
@@ -154,13 +134,13 @@ void PicoMachine::emulateFrame(bool drawEnabled)
 	updateInput();
 
 	md_screen = picoFrame.bits();
-	int oldmodes = modes;
+	int oldmodes = m_lastVideoMode;
 
 	// check for mode changes
-	modes = ((Pico.video.reg[12]&1)<<2)|(Pico.video.reg[1]&8);
-	if (modes != oldmodes) {
-		int w = ((modes & 4) ? 320 : 256);
-		int h = ((modes & 8) ? 240 : 224);
+	m_lastVideoMode = ((Pico.video.reg[12]&1)<<2)|(Pico.video.reg[1]&8);
+	if (m_lastVideoMode != oldmodes) {
+		int w = ((m_lastVideoMode & 4) ? 320 : 256);
+		int h = ((m_lastVideoMode & 8) ? 240 : 224);
 		setVideoSrcRect(QRectF(0, 0, w, h));
 	}
 	PicoSkipFrame = (drawEnabled ? 0 : 2);

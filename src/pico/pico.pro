@@ -9,7 +9,6 @@ HEADERS += \
     drz80.h \
     port_config.h \
     emu.h \
-    maemo.h \
     pico_frame_hints.h \
     memcmn.h \
     lc89510.h \
