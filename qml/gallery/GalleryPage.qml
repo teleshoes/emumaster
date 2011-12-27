@@ -26,26 +26,25 @@ Page {
 	ListModel { id: nullModel }
 
 	function updateModel() {
-		diskListView.model = nullModel
-		diskListView.model = diskListModel
-
-		diskListViewLandscape.model = nullModel
-		diskListViewLandscape.model = diskListModel
+		diskViewPortrait.model = nullModel
+		diskViewPortrait.model = diskListModel
+		diskViewLandscape.model = nullModel
+		diskViewLandscape.model = diskListModel
 	}
 	ListView {
-		id: diskListView
+		id: diskViewPortrait
 		anchors.fill: parent
 		spacing: 10
 		visible: appWindow.inPortrait
 
 		delegate: ImageListViewDelegate {
+			width: 480
+			height: 280
+			text: title
 			imgSource: qsTr("image://disk/%1/%2*%3")
 							.arg(diskListModel.getDiskMachine(index))
 							.arg(title)
 							.arg(screenShotUpdate)
-			text: title
-			width: 480
-			height: 280
 			onClicked: diskGallery.launch(index, true)
 			onPressAndHold: galleryMenu.prepareAndOpen(index)
 		}
@@ -53,69 +52,85 @@ Page {
 		section.criteria: ViewSection.FullString
 		section.delegate: SectionSeperator { text: section }
 	}
-	MySectionScroller { listView: diskListView }
+	MySectionScroller { listView: diskViewPortrait }
 	ScrollDecorator {
-		flickableItem: diskListView
+		flickableItem: diskViewPortrait
 		__minIndicatorSize: 80
 	}
 
 	GridView {
-		id: diskListViewLandscape
+		id: diskViewLandscape
 		anchors.fill: parent
 		visible: !appWindow.inPortrait
 		cellWidth: 284
 		cellHeight: 240
 
 		delegate: ImageListViewDelegate {
+			width: 270
+			height: 220
+			text: titleElided
 			imgSource: qsTr("image://disk/%1/%2*%3")
 							.arg(diskListModel.getDiskMachine(index))
 							.arg(title)
 							.arg(screenShotUpdate)
-			text: titleElided
-			width: 270
-			height: 220
 			onClicked: diskGallery.launch(index, true)
 			onPressAndHold: galleryMenu.prepareAndOpen(index)
 		}
 	}
 	ScrollDecorator {
-		flickableItem: diskListViewLandscape
+		flickableItem: diskViewLandscape
 		__minIndicatorSize: 80
 	}
 
+	ToolBar {
+		id: searchBar
+		anchors.top: parent.top
+		visible: false
+
+		tools: ToolBarLayout {
+			TextField {
+				id: searchField
+				anchors.verticalCenter: parent.verticalCenter
+				placeholderText: qsTr("Search")
+				inputMethodHints: Qt.ImhNoPredictiveText|Qt.ImhNoAutoUppercase
+
+				onTextChanged: {
+					if (visible)
+						diskListModel.setNameFilter(searchField.text)
+				}
+				Image {
+					source: "image://theme/icon-s-cancel"
+					anchors {
+						right: parent.right; rightMargin: 10
+						verticalCenter: parent.verticalCenter
+					}
+					MouseArea {
+						anchors.fill: parent
+						onClicked: searchBar.visible = false
+					}
+				}
+			}
+		}
+
+		function hideAndClear() {
+			searchBar.visible = false
+			searchField.text = ""
+		}
+	}
+
 	tools: ToolBarLayout {
-		id: galleryToolBar
-
-		property bool searchVisible: false
-
 		ToolIcon {
 			iconId: "toolbar-back"
 			onClicked: {
+				searchBar.hideAndClear()
 				appWindow.pageStack.pop()
-				galleryToolBar.searchVisible = false
-			}
-		}
-		TextField {
-			id: searchField
-			anchors.verticalCenter: parent.verticalCenter
-			placeholderText: qsTr("Search")
-			visible: galleryToolBar.searchVisible
-			inputMethodHints: Qt.ImhNoPredictiveText|Qt.ImhNoAutoUppercase
-
-			onTextChanged: {
-				if (visible)
-					diskListModel.setNameFilter(searchField.text)
-			}
-			onVisibleChanged: {
-				if (!visible)
-					text = ""
 			}
 		}
 
 		ToolIcon {
 			iconId: "icon-m-common-search-inverse"
 			anchors.right: parent.right
-			onClicked: galleryToolBar.searchVisible = !galleryToolBar.searchVisible
+			onClicked: searchBar.visible = !searchBar.visible
 		}
 	}
 
