@@ -21,7 +21,6 @@ import "../base"
 
 Page {
 	id: coverSelector
-	orientationLock: PageOrientation.LockPortrait
 
 	property int diskIndex
 	property alias folder: folderModel.folder
@@ -41,7 +40,7 @@ Page {
 		text: qsTr("Copy your covers (.jpg files) to\n\"emumaster/covers\"")
 		font.bold: true
 		horizontalAlignment: Text.AlignHCenter
-		visible: false
+		visible: folderModel.count <= 0
 	}
 
 	FolderListModel {
@@ -53,12 +52,16 @@ Page {
 	ListView {
 		id: coverView
 		anchors.fill: parent
-		model: folderModel
 		spacing: 10
+		visible: appWindow.inPortrait
+		model: folderModel
+
 		delegate: ImageListViewDelegate {
 			id: coverViewDelegate
 			property string filePath: coverSelector.folder + "/" + fileName
 			imgSource: filePath
+			width: 480
+			height: 280
 			onClicked: {
 				diskListModel.setDiskCover(coverSelector.diskIndex,
 										   coverViewDelegate.filePath)
@@ -66,8 +69,25 @@ Page {
 			}
 		}
 	}
-	Component.onCompleted: {
-		if (folderModel.count <= 0)
-			helpLabel.visible = true
+	GridView {
+		id: diskListViewLandscape
+		anchors.fill: parent
+		visible: !appWindow.inPortrait
+		cellWidth: 284
+		cellHeight: 240
+		model: folderModel
+
+		delegate: ImageListViewDelegate {
+			id: coverViewDelegateLandscape
+			property string filePath: coverSelector.folder + "/" + fileName
+			imgSource: filePath
+			width: 270
+			height: 220
+			onClicked: {
+				diskListModel.setDiskCover(coverSelector.diskIndex,
+										   coverViewDelegateLandscape.filePath)
+				appWindow.pageStack.pop()
+			}
+		}
 	}
 }
