@@ -21,26 +21,24 @@
 #include <QStringList>
 #include <QDir>
 #include <QVector>
+class QFontMetrics;
 
 class DiskListModel : public QAbstractListModel {
     Q_OBJECT
 	Q_PROPERTY(QString collection READ collection WRITE setCollection NOTIFY collectionChanged)
 	Q_PROPERTY(int count READ count NOTIFY collectionChanged)
-	Q_PROPERTY(QString collectionLastUsed READ collectionLastUsed CONSTANT)
 public:
 	enum RoleType {
 		TitleRole = Qt::UserRole+1,
+		TitleElidedRole,
 		MachineRole,
 		AlphabetRole,
-		ScreenShotUpdateRole,
-		ItemVisibleRole
+		ScreenShotUpdateRole
 	};
 	explicit DiskListModel(QObject *parent = 0);
-	~DiskListModel();
 
 	QString collection() const;
 	void setCollection(const QString &name);
-	QString collectionLastUsed() const;
 
 	int rowCount(const QModelIndex &parent) const;
 	int count() const;
@@ -52,10 +50,10 @@ public:
 
 	Q_INVOKABLE QString getDiskFileName(int i) const;
 	Q_INVOKABLE QString getDiskTitle(int i) const;
+	Q_INVOKABLE QString getDiskTitleElided(int i) const;
 	Q_INVOKABLE QString getDiskMachine(int i) const;
 	Q_INVOKABLE QString getAlphabet(int i) const;
 	Q_INVOKABLE int getScreenShotUpdate(int i) const;
-	Q_INVOKABLE bool getItemVisible(int i) const;
 	Q_INVOKABLE void trash(int i);
 	Q_INVOKABLE void setDiskCover(int i, const QUrl &coverUrl);
 
@@ -91,8 +89,9 @@ private:
 						   const QString &categories);
 
 	QString m_collection;
-	QString m_collectionLastUsed;
 
+	QStringList m_fullList;
+	QList<int> m_fullListMachine;
 	QStringList m_list;
 	QList<int> m_listMachine;
 
@@ -108,12 +107,10 @@ private:
 	QStringList m_favList;
 	QList<int> m_favListMachine;
 
-	QVector<bool> m_visibility;
+	QFontMetrics *m_fontMetrics;
 };
 
 inline QString DiskListModel::collection() const
 { return m_collection; }
-inline QString DiskListModel::collectionLastUsed() const
-{ return m_collectionLastUsed; }
 
 #endif // ROMLISTMODEL_H

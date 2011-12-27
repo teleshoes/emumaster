@@ -19,7 +19,6 @@ import com.nokia.meego 1.0
 
 Page {
 	id: keybMappingPage
-	orientationLock: PageOrientation.LockPortrait
 
 	property int currentChanging: -1
 	signal refreshText

@@ -21,21 +21,16 @@ Item {
 	property string name
 	property bool alphaVersion: false
 
-	width: 240; height: 240
+	width: 240; height: appWindow.inPortrait ? 240 : 200
 	Image {
-		anchors.centerIn: parent
+		anchors.horizontalCenter: parent.horizontalCenter
 		source: "../img/collection-" + name + ".png"
-	}
-	Image {
-		anchors.centerIn: parent
-		source: "../img/alpha-overlay.png"
-		visible: alphaVersion
 	}
 	Text {
 		text: button.name
 		anchors.horizontalCenter: button.horizontalCenter
 		anchors.top: button.top
-		anchors.topMargin: 30
+		anchors.topMargin: 10
 		font.pointSize: 20
 		font.bold: true
 		font.capitalization: Font.AllUppercase

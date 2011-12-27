@@ -20,143 +20,103 @@ import "../base"
 
 Page {
 	id: galleryPage
-	orientationLock: PageOrientation.LockPortrait
 
-	tools: ToolBarLayout {
-		ToolIcon {
-			iconId: "toolbar-back"
-			onClicked: appWindow.pageStack.pop()
-		}
-	}
-
-	Menu {
-		id: mainMenu
-		property bool addRemoveIconToggle: false
-		property bool addRemoveFavToggle: false
-		property int diskIndex
-
-		function prepareAndOpen(index) {
-			mainMenu.diskIndex = index
-			mainMenu.addRemoveIconToggle = diskListModel.iconInHomeScreenExists(mainMenu.diskIndex)
-			mainMenu.addRemoveFavToggle = diskListModel.diskInFavExists(mainMenu.diskIndex)
-			mainMenu.open()
-		}
-
-		MenuLayout {
-			MenuItem {
-				text: qsTr("Run with Auto Save/Load Disabled")
-				onClicked: diskGallery.launch(mainMenu.diskIndex, false)
-			}
-			MenuItem {
-				text: qsTr("Select Cover")
-				onClicked: appWindow.pageStack.push(Qt.resolvedUrl("CoverSelectorPage.qml"),
-													{ diskIndex: mainMenu.diskIndex })
-			}
-			MenuItem {
-				text: qsTr("Add to Favourites")
-				visible: !mainMenu.addRemoveFavToggle
-				onClicked: diskListModel.addToFav(mainMenu.diskIndex)
-			}
-			MenuItem {
-				text: qsTr("Remove from Favourites")
-				visible: mainMenu.addRemoveFavToggle
-				onClicked: diskListModel.removeFromFav(mainMenu.diskIndex)
-			}
-			MenuItem {
-				text: qsTr("Create Icon in Home Screen")
-				onClicked: galleryPage.homeScreenIcon(mainMenu.diskIndex)
-				visible: !mainMenu.addRemoveIconToggle
-			}
-			MenuItem {
-				text: qsTr("Remove Icon from Home Screen")
-				onClicked: diskListModel.removeIconFromHomeScreen(mainMenu.diskIndex)
-				visible: mainMenu.addRemoveIconToggle
-			}
-			MenuItem {
-				text: qsTr("Delete")
-				onClicked: removeDiskDialog.prepareAndOpen(mainMenu.diskIndex)
-			}
-		}
-	}
+	GalleryMenu { id: galleryMenu }
 
 	ListModel { id: nullModel }
+
 	function updateModel() {
 		diskListView.model = nullModel
 		diskListView.model = diskListModel
-		diskListView.contentY = diskListView.searchHeight
-		diskListView.searchVisible = false
+
+		diskListViewLandscape.model = nullModel
+		diskListViewLandscape.model = diskListModel
 	}
 	ListView {
 		id: diskListView
 		anchors.fill: parent
 		spacing: 10
+		visible: appWindow.inPortrait
 
-		property bool searchVisible: false
-		property int searchHeight
-
-		header: TextField {
-			id: searchField
-			width: parent.width-20
-			anchors.horizontalCenter: parent.horizontalCenter
-			placeholderText: qsTr("Search")
-			opacity: diskListView.searchVisible ? 1.0 : 0.0
-			inputMethodHints: Qt.ImhNoPredictiveText|Qt.ImhNoAutoUppercase
-
-			Behavior on opacity {
-				NumberAnimation {
-					duration: 300
-					alwaysRunToEnd: true
-				}
-			}
-			Image {
-				anchors {
-					right: parent.right
-					verticalCenter: parent.verticalCenter
-				}
-				source: "image://theme/icon-m-common-search"
-			}
-			Connections {
-				target: diskListView
-				onSearchVisibleChanged: searchField.text = ""
-			}
-			onTextChanged: {
-				if (diskListView.searchVisible)
-					diskListModel.setNameFilter(searchField.text)
-			}
-
-			Component.onCompleted: diskListView.searchHeight = height
-		}
 		delegate: ImageListViewDelegate {
 			imgSource: qsTr("image://disk/%1/%2*%3")
-						.arg(diskListModel.getDiskMachine(index))
-						.arg(title)
-						.arg(screenShotUpdate)
+							.arg(diskListModel.getDiskMachine(index))
+							.arg(title)
+							.arg(screenShotUpdate)
 			text: title
-			visible: itemVisible
-			height: itemVisible ? 280 : 0
+			width: 480
+			height: 280
 			onClicked: diskGallery.launch(index, true)
-			onPressAndHold: mainMenu.prepareAndOpen(index)
+			onPressAndHold: galleryMenu.prepareAndOpen(index)
 		}
 		section.property: "alphabet"
 		section.criteria: ViewSection.FullString
 		section.delegate: SectionSeperator { text: section }
-
-		onContentYChanged: {
-			if (contentY <= 0)
-				searchVisible = true
-		}
-		onSearchVisibleChanged: {
-			if (!searchVisible)
-				contentY = searchHeight
-		}
 	}
-	MySectionScroller {
-		id: sectionScroller
-		listView: diskListView
-	}
+	MySectionScroller { listView: diskListView }
 	ScrollDecorator {
 		flickableItem: diskListView
 		__minIndicatorSize: 80
+	}
+
+	GridView {
+		id: diskListViewLandscape
+		anchors.fill: parent
+		visible: !appWindow.inPortrait
+		cellWidth: 284
+		cellHeight: 240
+
+		delegate: ImageListViewDelegate {
+			imgSource: qsTr("image://disk/%1/%2*%3")
+							.arg(diskListModel.getDiskMachine(index))
+							.arg(title)
+							.arg(screenShotUpdate)
+			text: titleElided
+			width: 270
+			height: 220
+			onClicked: diskGallery.launch(index, true)
+			onPressAndHold: galleryMenu.prepareAndOpen(index)
+		}
+	}
+	ScrollDecorator {
+		flickableItem: diskListViewLandscape
+		__minIndicatorSize: 80
+	}
+
+	tools: ToolBarLayout {
+		id: galleryToolBar
+
+		property bool searchVisible: false
+
+		ToolIcon {
+			iconId: "toolbar-back"
+			onClicked: {
+				appWindow.pageStack.pop()
+				galleryToolBar.searchVisible = false
+			}
+		}
+		TextField {
+			id: searchField
+			anchors.verticalCenter: parent.verticalCenter
+			placeholderText: qsTr("Search")
+			visible: galleryToolBar.searchVisible
+			inputMethodHints: Qt.ImhNoPredictiveText|Qt.ImhNoAutoUppercase
+
+			onTextChanged: {
+				if (visible)
+					diskListModel.setNameFilter(searchField.text)
+			}
+			onVisibleChanged: {
+				if (!visible)
+					text = ""
+			}
+		}
+
+		ToolIcon {
+			iconId: "icon-m-common-search-inverse"
+			anchors.right: parent.right
+			onClicked: galleryToolBar.searchVisible = !galleryToolBar.searchVisible
+		}
 	}
 
 	QueryDialog {
@@ -171,7 +131,7 @@ Page {
 		function prepareAndOpen(index) {
 			removeDiskDialog.diskIndex = index
 			removeDiskDialog.message = qsTr("Do you really want to delete\n\"%1\" ?")
-						.arg(diskListModel.getDiskTitle(index))
+											.arg(diskListModel.getDiskTitle(index))
 			removeDiskDialog.open()
 		}
 	}

@@ -19,7 +19,6 @@ import com.nokia.meego 1.0
 
 Page {
 	id: saveIconPage
-	orientationLock: PageOrientation.LockPortrait
 
 	property int diskIndex
 

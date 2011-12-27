@@ -20,11 +20,13 @@ import com.nokia.meego 1.0
 PageStackWindow {
 	id: appWindow
 	initialPage: mainPage
+	showStatusBar: false
 
 	style: PageStackWindowStyle {
 		id: customStyle;
 		background: "image://theme/meegotouch-video-background"
 		backgroundFillMode: Image.Stretch
+		cornersVisible: false
 	}
 	CollectionMenuPage { id: mainPage }
 	GalleryPage { id: galleryPage }

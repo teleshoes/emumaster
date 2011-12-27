@@ -26,6 +26,7 @@ PageStackWindow {
 		id: customStyle
 		background: "image://theme/meegotouch-video-background"
 		backgroundFillMode: Image.Stretch
+		cornersVisible: false
 	}
 
 	SettingsPage { id: settingsPage }

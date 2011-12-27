@@ -19,7 +19,6 @@ import com.nokia.meego 1.0
 
 Page {
 	id: aboutPage
-	orientationLock: PageOrientation.LockPortrait
 
 	tools: ToolBarLayout {
 		ToolIcon {
@@ -28,8 +27,14 @@ Page {
 		}
 	}
 
+	Flickable {
+		anchors.fill: parent
+		contentHeight: column.height
+
 	Column {
+		id: column
 		width: parent.width
+		height: childrenRect.height
 		spacing: 50
 
 		Label {
@@ -90,5 +95,7 @@ Page {
 				onClicked: diskGallery.donate()
 			}
 		}
+	}
+
 	}
 }

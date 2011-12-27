@@ -104,15 +104,3 @@ QString PathManager::desktopFilePath(const QString &machine,
 			.arg(title);
 #endif
 }
-
-QString PathManager::cheatPath(const QString &machine,
-							   const QString &title) const {
-	return QString("%1/cheat/%2/%3.jpg")
-			.arg(userDataDirPath())
-			.arg(machine)
-			.arg(title);
-}
-
-QString PathManager::cheatPath(const QString &title) const {
-	return cheatPath(m_machine, title);
-}

@@ -21,6 +21,8 @@
 #include <QUrl>
 #include <QProcess>
 #include <QVector>
+#include <QFont>
+#include <QFontMetrics>
 
 DiskListModel::DiskListModel(QObject *parent) :
 	QAbstractListModel(parent),
@@ -28,80 +30,70 @@ DiskListModel::DiskListModel(QObject *parent) :
 
 	QHash<int, QByteArray> roles;
 	roles.insert(TitleRole, "title");
+	roles.insert(TitleElidedRole, "titleElided");
 	roles.insert(MachineRole, "machine");
 	roles.insert(AlphabetRole, "alphabet");
 	roles.insert(ScreenShotUpdateRole, "screenShotUpdate");
-	roles.insert(ItemVisibleRole, "itemVisible");
 	setRoleNames(roles);
 
 	setupFilters();
 	loadFav();
 
-	QSettings s;
-	s.beginGroup("diskgallery");
-	m_collectionLastUsed = s.value("collectionLastUsed", "").toString();
-	if (m_collectionLastUsed.isEmpty())
-		m_collectionLastUsed = "nes";
-	s.endGroup();
-}
+	QFont font;
+	font.setFamily("Nokia Pure Text");
+	font.setPointSize(18);
+	font.setBold(true);
 
-DiskListModel::~DiskListModel() {
-	QSettings s;
-	s.beginGroup("diskgallery");
-	s.setValue("collectionLastUsed", m_collection);
-	s.endGroup();
+	m_fontMetrics = new QFontMetrics(font);
 }
 
 void DiskListModel::setCollection(const QString &name) {
-	if (!m_list.isEmpty()) {
-		beginRemoveRows(QModelIndex(), 0, m_list.size()-1);
-		m_list.clear();
-		m_listMachine.clear();
-		m_visibility.clear();
-		endRemoveRows();
-	}
+	// do not compare with m_collection with name - needed for search cleaning
+	beginResetModel();
+	m_fullList.clear();
+	m_fullListMachine.clear();
 	m_collection = name;
-	emit collectionChanged();
 
 	if (m_collection == "fav")
 		setCollectionFav();
 	else if (!m_collection.isEmpty())
 		setCollectionMachine();
 
-	if (!m_list.isEmpty()) {
-		beginInsertRows(QModelIndex(), 0, m_list.size()-1);
-		m_visibility = QVector<bool>(m_list.size(), true);
-		endInsertRows();
-	}
+	m_list = m_fullList;
+	m_listMachine = m_fullListMachine;
+
+	endResetModel();
+	emit collectionChanged();
 }
 
 void DiskListModel::setCollectionMachine() {
-	Q_ASSERT(m_list.isEmpty());
 	QDir dir(PathManager::instance()->diskDirPath(m_collection));
 	DiskFilter diskFilter = m_diskFilters.value(m_collection);
 
-	m_list = dir.entryList(diskFilter.included,
+	m_fullList = dir.entryList(diskFilter.included,
 						   QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot,
 						   QDir::Name|QDir::IgnoreCase);
 
 	QStringList excluded;
 	for (int i = 0; i < diskFilter.excluded.size(); i++)
-		excluded.append(m_list.filter(diskFilter.excluded.at(i)));
+		excluded.append(m_fullList.filter(diskFilter.excluded.at(i)));
 	for (int i = 0; i < excluded.size(); i++)
-		m_list.removeOne(excluded.at(i));
+		m_fullList.removeOne(excluded.at(i));
 
 	int machineId = PathManager::instance()->machines().indexOf(m_collection);
-	m_listMachine = QList<int>::fromVector(QVector<int>(m_list.size(), machineId));
+	m_fullListMachine = QList<int>::fromVector(QVector<int>(m_fullList.size(), machineId));
 }
 
 void DiskListModel::setCollectionFav() {
-	m_list = m_favList;
-	m_listMachine = m_favListMachine;
+	m_fullList = m_favList;
+	m_fullListMachine = m_favListMachine;
 }
 
 QVariant DiskListModel::data(const QModelIndex &index, int role) const {
 	if (role == TitleRole) {
 		return getDiskTitle(index.row());
+	} else if (role == TitleElidedRole) {
+		return getDiskTitleElided(index.row());
 	} else if (role == MachineRole) {
 		return getDiskMachine(index.row());
 	} else if (role == AlphabetRole) {
@@ -109,19 +101,18 @@ QVariant DiskListModel::data(const QModelIndex &index, int role) const {
 		return title.isEmpty() ? QVariant() : title.at(0).toUpper();
 	} else if (role == ScreenShotUpdateRole) {
 		return getScreenShotUpdate(index.row());
-	} else if (role == ItemVisibleRole) {
-		return getItemVisible(index.row());
 	}
 	return QVariant();
 }
 
-int DiskListModel::rowCount(const QModelIndex &parent) const {
+int DiskListModel::rowCount(const QModelIndex &parent) const  {
 	Q_UNUSED(parent)
-	return m_list.size();
+	return count();
 }
 
-int DiskListModel::count() const
-{ return m_list.size(); }
+int DiskListModel::count() const {
+	return m_list.size();
+}
 
 QString DiskListModel::getAlphabet(int i) const {
 	if (i < 0 || i >= m_list.size())
@@ -133,6 +124,13 @@ QString DiskListModel::getDiskTitle(int i) const {
 	if (i < 0 || i >= m_list.size())
 		return QString();
 	return QFileInfo(m_list.at(i)).completeBaseName();
+}
+
+QString DiskListModel::getDiskTitleElided(int i) const {
+	QString title = getDiskTitle(i);
+	if (title.size() < 20)
+		return title;
+	return m_fontMetrics->elidedText(title, Qt::ElideRight, 270);
 }
 
 QString DiskListModel::getDiskFileName(int i) const {
@@ -168,12 +166,6 @@ int DiskListModel::getScreenShotUpdate(int i) const {
 		return -1;
 }
 
-bool DiskListModel::getItemVisible(int i) const {
-	if (i < 0 || i >= m_visibility.size())
-		return false;
-	return m_visibility.at(i);
-}
-
 void DiskListModel::trash(int i) {
 	QString title = getDiskTitle(i);
 	QString fileName = getDiskFileName(i);
@@ -200,10 +192,6 @@ void DiskListModel::trash(int i) {
 	// delete screenshot
 	args.removeLast();
 	args << PathManager::instance()->screenShotPath(machine, title);
-	QProcess::startDetached("rm", args);
-	// delete cheats
-	args.removeLast();
-	args << PathManager::instance()->cheatPath(machine, title);
 	QProcess::startDetached("rm", args);
 	// delete from fav
 	int favIndex = m_favList.indexOf(fileName);
@@ -293,11 +281,14 @@ void DiskListModel::setupFilters() {
 }
 
 void DiskListModel::setNameFilter(const QString &filter) {
-	for (int i = 0; i < m_list.size(); i++) {
-		bool visible = m_list.at(i).contains(filter, Qt::CaseInsensitive);
-		if (visible != m_visibility.at(i)) {
-			m_visibility[i] = visible;
-			emit dataChanged(index(i), index(i));
+	beginResetModel();
+	m_list.clear();
+	m_listMachine.clear();
+	for (int i = 0; i < m_fullList.size(); i++) {
+		if (m_fullList.at(i).contains(filter, Qt::CaseInsensitive)) {
+			m_list.append(m_fullList.at(i));
+			m_listMachine.append(m_fullListMachine.at(i));
 		}
 	}
+	endResetModel();
 }

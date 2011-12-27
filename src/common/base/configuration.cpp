@@ -46,7 +46,7 @@ void Configuration::setupAppInfo() {
 	QCoreApplication::setOrganizationDomain("elemental-mk.blogspot.com");
 	QCoreApplication::setApplicationName("emumaster");
 	// TODO change on every release
-	QCoreApplication::setApplicationVersion("0.1.0");
+	QCoreApplication::setApplicationVersion("0.2.0");
 }
 
 Configuration *Configuration::instance() {

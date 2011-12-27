@@ -15,8 +15,6 @@ public:
 						   const QString &title) const;
 	QString stateDirPath(const QString &machine,
 						 const QString &title) const;
-	QString cheatPath(const QString &machine,
-					  const QString &title) const;
 	QString homeScreenIconPath(const QString &machine,
 							   const QString &title) const;
 	QString desktopFilePath(const QString &machine,
@@ -29,7 +27,6 @@ public:
 	QString diskDirPath() const;
 	QString screenShotPath(const QString &title) const;
 	QString stateDirPath(const QString &title) const;
-	QString cheatPath(const QString &title) const;
 
 	QStringList machines() const;
 private:

@@ -38,6 +38,7 @@ unix {
 		../../qml/gallery/CollectionMenuPage.qml \
 		../../qml/gallery/CollectionTypeButton.qml \
 		../../qml/gallery/GalleryPage.qml \
+        ../../qml/gallery/GalleryMenu.qml \
 		../../qml/gallery/GlobalSettings.qml \
 		../../qml/gallery/AccelCalibrationPage.qml \
         ../../qml/gallery/KeybMappingPage.qml \

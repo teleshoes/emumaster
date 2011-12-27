@@ -18,8 +18,11 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 import "../base"
 
+// TODO reset really dialog
+// TODO buttons in the row
+// TODO buttons in input conf on the right
+
 Page {
-	orientationLock: PageOrientation.LockPortrait
 	tools: ToolBarLayout {
 		ToolIcon {
 			iconId: "toolbar-back"
@@ -74,6 +77,8 @@ Page {
 			orientation: ListView.Horizontal
 
 			delegate: ImageListViewDelegate {
+				width: 480
+				height: 280
 				imgSource: "image://state/" + title + "*" + screenShotUpdate
 				text: Qt.formatDateTime(saveDateTime, "dd.MM.yyyy hh:mm:ss")
 				onClicked: stateMenu.prepareAndOpen(index)

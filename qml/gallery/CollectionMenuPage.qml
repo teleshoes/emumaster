@@ -18,8 +18,6 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 
 Page {
-	orientationLock: PageOrientation.LockPortrait
-
 	tools: ToolBarLayout {
 		ToolIcon {
 			iconId: "toolbar-view-menu"
@@ -50,14 +48,14 @@ Page {
 	Flickable {
 		id: flickable
 		anchors.fill: parent
-		flickableDirection: Flickable.VerticalFlick
+		contentWidth: width
 		contentHeight: collectionGrid.height
 
 		Grid {
 			id: collectionGrid
-			height: childrenRect.height
-			rows: 4
-			columns: 2
+			rows: appWindow.inPortrait ? 4 : 3
+			columns: appWindow.inPortrait ? 2 : 3
+			anchors.horizontalCenter: parent.horizontalCenter
 
 			CollectionTypeButton { name: "fav" }
 			CollectionTypeButton { name: "nes" }
