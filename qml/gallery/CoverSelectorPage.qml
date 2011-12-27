@@ -40,7 +40,6 @@ Page {
 		text: qsTr("Copy your covers (.jpg files) to\n\"emumaster/covers\"")
 		font.bold: true
 		horizontalAlignment: Text.AlignHCenter
-		visible: folderModel.count <= 0
 	}
 
 	FolderListModel {
@@ -49,45 +48,48 @@ Page {
 		nameFilters: ["*.jpg"]
 		showDirs: false
 	}
+
 	ListView {
-		id: coverView
 		anchors.fill: parent
-		spacing: 10
 		visible: appWindow.inPortrait
 		model: folderModel
+		spacing: 10
 
 		delegate: ImageListViewDelegate {
-			id: coverViewDelegate
-			property string filePath: coverSelector.folder + "/" + fileName
-			imgSource: filePath
 			width: 480
 			height: 280
-			onClicked: {
-				diskListModel.setDiskCover(coverSelector.diskIndex,
-										   coverViewDelegate.filePath)
-				appWindow.pageStack.pop()
-			}
+			property string filePath: coverSelector.folder + "/" + fileName
+			imgSource: filePath
+			onClicked: coverSelector.coverSelected(filePath)
 		}
 	}
 	GridView {
-		id: diskListViewLandscape
+		id: gridView
 		anchors.fill: parent
 		visible: !appWindow.inPortrait
 		cellWidth: 284
 		cellHeight: 240
-		model: folderModel
 
 		delegate: ImageListViewDelegate {
-			id: coverViewDelegateLandscape
-			property string filePath: coverSelector.folder + "/" + fileName
-			imgSource: filePath
 			width: 270
 			height: 220
-			onClicked: {
-				diskListModel.setDiskCover(coverSelector.diskIndex,
-										   coverViewDelegateLandscape.filePath)
-				appWindow.pageStack.pop()
-			}
+			property string filePath: coverSelector.folder + "/" + fileName
+			imgSource: filePath
+			onClicked: coverSelector.coverSelected(filePath)
 		}
+	}
+
+	Timer {
+		interval: 50; repeat: false; running: true
+		onTriggered: {
+			gridView.model = folderModel
+			helpLabel.visible = (folderModel.count <= 0)
+		}
+	}
+
+	function coverSelected(filePath) {
+		diskListModel.setDiskCover(coverSelector.diskIndex,
+								   filePath)
+		appWindow.pageStack.pop()
 	}
 }
