@@ -128,8 +128,12 @@ Page {
 		}
 
 		ToolIcon {
+			iconSource: "image://theme/icon-s-description-inverse"
+			onClicked: helpDialog.open()
+		}
+
+		ToolIcon {
 			iconId: "icon-m-common-search-inverse"
-			anchors.right: parent.right
 			onClicked: searchBar.visible = !searchBar.visible
 		}
 	}
@@ -149,6 +153,13 @@ Page {
 											.arg(diskListModel.getDiskTitle(index))
 			removeDiskDialog.open()
 		}
+	}
+
+	QueryDialog {
+		id: helpDialog
+		rejectButtonText: qsTr("Close")
+		titleText: qsTr("Clue")
+		message: qsTr("Press and hold a disk to show the menu")
 	}
 
 	function homeScreenIcon(diskIndexArg) {
