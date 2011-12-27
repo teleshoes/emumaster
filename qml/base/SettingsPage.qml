@@ -19,7 +19,6 @@ import com.nokia.meego 1.0
 import "../base"
 
 // TODO reset really dialog
-// TODO buttons in the row
 // TODO buttons in input conf on the right
 
 Page {
@@ -98,9 +97,31 @@ Page {
 				}
 			}
 		}
-		Column {
+		ButtonColumn {
+			exclusive: false
 			spacing: 5
 			anchors.horizontalCenter: parent.horizontalCenter
+			visible: appWindow.inPortrait
+
+			Button {
+				text: qsTr("Save in New Slot")
+				onClicked: stateListModel.saveState(-1)
+			}
+			Button {
+				text: qsTr("Reset System")
+				onClicked: machine.reset()
+			}
+			Button {
+				text: qsTr("Delete All")
+				onClicked: deleteAllStateDialog.open()
+			}
+		}
+		ButtonRow {
+			exclusive: false
+			spacing: 5
+			anchors.horizontalCenter: parent.horizontalCenter
+			visible: !appWindow.inPortrait
+
 			Button {
 				text: qsTr("Save in New Slot")
 				onClicked: stateListModel.saveState(-1)
