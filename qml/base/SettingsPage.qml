@@ -18,9 +18,6 @@ import QtQuick 1.1
 import com.nokia.meego 1.0
 import "../base"
 
-// TODO reset really dialog
-// TODO buttons in input conf on the right
-
 Page {
 	tools: ToolBarLayout {
 		ToolIcon {
@@ -108,8 +105,8 @@ Page {
 				onClicked: stateListModel.saveState(-1)
 			}
 			Button {
-				text: qsTr("Reset System")
-				onClicked: machine.reset()
+				text: qsTr("Restart")
+				onClicked: restartDialog.open()
 			}
 			Button {
 				text: qsTr("Delete All")
@@ -127,8 +124,8 @@ Page {
 				onClicked: stateListModel.saveState(-1)
 			}
 			Button {
-				text: qsTr("Reset System")
-				onClicked: machine.reset()
+				text: qsTr("Restart")
+				onClicked: restartDialog.open()
 			}
 			Button {
 				text: qsTr("Delete All")
@@ -156,6 +153,7 @@ Page {
 
 			Column {
 				id: inputDeviceConfigurator
+				width: parent.width
 				spacing: 8
 
 				property ListModel inputDeviceConfList: prepareModel()
@@ -171,8 +169,10 @@ Page {
 						return inputSixAxisConfList
 				}
 
-				Row {
-					spacing: 8
+				Item {
+					width: parent.width
+					height: childrenRect.height
+
 					Image {
 						id: inputDeviceIcon
 						source: qsTr("../img/input-%1.png").arg(modelData.name)
@@ -180,7 +180,10 @@ Page {
 
 					Label {
 						id: inputDeviceNameLabel
-						anchors.verticalCenter: inputDeviceIcon.verticalCenter
+						anchors {
+							left: inputDeviceIcon.right; leftMargin: 8
+							verticalCenter: inputDeviceIcon.verticalCenter
+						}
 						text: {
 							if (modelData.name == "touch")
 								return qsTr("Touch Screen")
@@ -195,6 +198,7 @@ Page {
 					}
 					Button {
 						id: inputDeviceConfButton
+						anchors.right: parent.right
 						width: 250
 						text: getConf()
 						onClicked: {
@@ -316,6 +320,15 @@ Page {
 		acceptButtonText: qsTr("Yes")
 		rejectButtonText: qsTr("No")
 		onAccepted: stateListModel.removeAll()
+	}
+
+	QueryDialog {
+		id: restartDialog
+		titleText: qsTr("Really?")
+		message: qsTr("Do you really want to restart the emulated system?")
+		acceptButtonText: qsTr("Yes")
+		rejectButtonText: qsTr("No")
+		onAccepted: machine.reset()
 	}
 
 	QueryDialog {
