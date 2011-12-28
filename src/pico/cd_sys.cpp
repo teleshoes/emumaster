@@ -156,20 +156,20 @@ void Check_CD_Command(void)
 	{
 		Pico_mcd->scd.CDD_Complete = 0;
 
-		CDD_Export_Status();
+		Pico_mcd->cdd.exportStatus();
 	}
 
 	if (Pico_mcd->scd.Status_CDD == FAST_FOW)
 	{
 		Pico_mcd->scd.Cur_LBA += 10;
-		CDC_Update_Header();
+		Pico_mcd->cdc.updateHeader();
 
 	}
 	else if (Pico_mcd->scd.Status_CDD == FAST_REV)
 	{
 		Pico_mcd->scd.Cur_LBA -= 10;
 		if (Pico_mcd->scd.Cur_LBA < -150) Pico_mcd->scd.Cur_LBA = -150;
-		CDC_Update_Header();
+		Pico_mcd->cdc.updateHeader();
 	}
 }
 
@@ -467,7 +467,7 @@ int Play_CDD_c3(void)
 	delay >>= 12;
 
 	Pico_mcd->scd.Cur_LBA = new_lba;
-	CDC_Update_Header();
+	Pico_mcd->cdc.updateHeader();
 
 	cdprintf("Read : Cur LBA = %d, M=%d, S=%d, F=%d", Pico_mcd->scd.Cur_LBA, MSF.M, MSF.S, MSF.F);
 
@@ -518,7 +518,7 @@ int Seek_CDD_c4(void)
 
 	Pico_mcd->scd.Cur_Track = MSF_to_Track(&MSF);
 	Pico_mcd->scd.Cur_LBA = MSF_to_LBA(&MSF);
-	CDC_Update_Header();
+	Pico_mcd->cdc.updateHeader();
 
 	Pico_mcd->scd.Status_CDC &= ~1;				// Stop CDC read
 

@@ -9,12 +9,7 @@
 
 #include "pico.h"
 
-#if OVERRIDE_HIGHCOL
-static unsigned char DefHighCol[8+320+8];
-unsigned char *HighCol=DefHighCol;
-#else
 unsigned char  HighCol[8+320+8];
-#endif
 unsigned short DefOutBuff[320*2];
 void *DrawLineDest=DefOutBuff; // pointer to dest buffer where to draw this line to
 
@@ -1420,8 +1415,5 @@ void PicoDrawSetColorFormat(int which)
     case 0: FinalizeLine = FinalizeLineBGR444; break;
     default:FinalizeLine = NULL; break;
   }
-#if OVERRIDE_HIGHCOL
-  if (which) HighCol=DefHighCol;
-#endif
 }
 

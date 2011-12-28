@@ -12,9 +12,6 @@
 #include <QDir>
 #include <QFileInfo>
 
-#define cdprintf(x...)
-#define DEBUG_CD
-
 bool PicoMcdToc::open(const QString &fileName, QString *error)
 {
 	close();
@@ -58,7 +55,7 @@ bool PicoMcdToc::open(const QString &fileName, QString *error)
 
 void PicoMcdToc::close()
 {
-	for (int i = 1; i < 100; i++)
+	for (int i = 0; i < 100; i++)
 		delete Tracks[i].file;
 	memset(Tracks, 0, sizeof(Tracks));
 }
@@ -145,18 +142,13 @@ void PicoMcdToc::insertMp3File(int index, const QString &fileName)
 }
 
 // TODO move to cdc and toc
-int FILE_Read_One_LBA_CDC()
-{
+void FILE_Read_One_LBA_CDC() {
 	// Update CDC stuff
+	Pico_mcd->cdc.updateHeader();
 
-	CDC_Update_Header();
-
-	if (Pico_mcd->s68k_regs[0x36] & 1)		// DATA track
-	{
-		if (Pico_mcd->cdc.CTRL.B.B0 & 0x80)		// DECEN = decoding enable
-		{
-			if (Pico_mcd->cdc.CTRL.B.B0 & 0x04)	// WRRQ : this bit enable write to buffer
-			{
+	if (Pico_mcd->s68k_regs[0x36] & 1) { // DATA track
+		if (Pico_mcd->cdc.CTRL.B.B0 & 0x80) { // DECEN = decoding enable
+			if (Pico_mcd->cdc.CTRL.B.B0 & 0x04)	{ // WRRQ : this bit enable write to buffer
 				// CAUTION : lookahead bit not implemented
 				int lba = qBound(0, Pico_mcd->scd.Cur_LBA, Pico_mcd->TOC.Tracks[0].Length-1);
 				Pico_mcd->scd.Cur_LBA++;
@@ -173,24 +165,9 @@ int FILE_Read_One_LBA_CDC()
 				else
 					file->seek(lba << 11);
 				file->read((char *)dst, 2048);
-#ifdef DEBUG_CD
-				cdprintf("Read -> WA = %d  Buffer[%d] =", Pico_mcd->cdc.WA.N, Pico_mcd->cdc.PT.N & 0x3FFF);
-				cdprintf("Header 1 = %.2X %.2X %.2X %.2X", Pico_mcd->cdc.HEAD.B.B0,
-					Pico_mcd->cdc.HEAD.B.B1, Pico_mcd->cdc.HEAD.B.B2, Pico_mcd->cdc.HEAD.B.B3);
-				cdprintf("Header 2 = %.2X %.2X %.2X %.2X --- %.2X %.2X\n\n",
-					Pico_mcd->cdc.Buffer[(Pico_mcd->cdc.PT.N + 0) & 0x3FFF],
-					Pico_mcd->cdc.Buffer[(Pico_mcd->cdc.PT.N + 1) & 0x3FFF],
-					Pico_mcd->cdc.Buffer[(Pico_mcd->cdc.PT.N + 2) & 0x3FFF],
-					Pico_mcd->cdc.Buffer[(Pico_mcd->cdc.PT.N + 3) & 0x3FFF],
-					Pico_mcd->cdc.Buffer[(Pico_mcd->cdc.PT.N + 4) & 0x3FFF],
-					Pico_mcd->cdc.Buffer[(Pico_mcd->cdc.PT.N + 5) & 0x3FFF]);
-#endif
 			}
-
 		}
-	}
-	else		// music track
-	{
+	} else { // music track
 		Pico_mcd->scd.Cur_LBA++;
 
 		Pico_mcd->cdc.WA.N = (Pico_mcd->cdc.WA.N + 2352) & 0x7FFF;		// add one sector to WA
@@ -201,43 +178,30 @@ int FILE_Read_One_LBA_CDC()
 			if (Pico_mcd->cdc.CTRL.B.B0 & 0x04)	// WRRQ : this bit enable write to buffer
 			{
 				// CAUTION : lookahead bit not implemented
-
-				//memcpy(&Pico_mcd->cdc.Buffer[Pico_mcd->cdc.PT.N], cp_buf, 2352);
 			}
 		}
 	}
 
-	if (Pico_mcd->cdc.CTRL.B.B0 & 0x80)		// DECEN = decoding enable
-	{
+	if (Pico_mcd->cdc.CTRL.B.B0 & 0x80) { // DECEN = decoding enable
 		Pico_mcd->cdc.STAT.B.B0 = 0x80;
 
 		if (Pico_mcd->cdc.CTRL.B.B0 & 0x10)	// determine form bit form sub header ?
-		{
 			Pico_mcd->cdc.STAT.B.B2 = Pico_mcd->cdc.CTRL.B.B1 & 0x08;
-		}
 		else
-		{
 			Pico_mcd->cdc.STAT.B.B2 = Pico_mcd->cdc.CTRL.B.B1 & 0x0C;
-		}
 
-		if (Pico_mcd->cdc.CTRL.B.B0 & 0x02) Pico_mcd->cdc.STAT.B.B3 = 0x20;	// ECC done
-		else Pico_mcd->cdc.STAT.B.B3 = 0x00;	// ECC not done
+		if (Pico_mcd->cdc.CTRL.B.B0 & 0x02)
+			Pico_mcd->cdc.STAT.B.B3 = 0x20;	// ECC done
+		else
+			Pico_mcd->cdc.STAT.B.B3 = 0x00;	// ECC not done
 
-		if (Pico_mcd->cdc.IFCTRL & 0x20)
-		{
+		if (Pico_mcd->cdc.IFCTRL & 0x20) {
 			if (Pico_mcd->s68k_regs[0x33] & (1<<5))
-			{
-				elprintf(EL_INTS, "cdc dec irq 5");
 				SekInterruptS68k(5);
-			}
-
 			Pico_mcd->cdc.IFSTAT &= ~0x20;		// DEC interrupt happen
 			Pico_mcd->cdc.Decode_Reg_Read = 0;	// Reset read after DEC int
 		}
 	}
-
-
-	return 0;
 }
 
 bool PicoMcdToc::playAudio()

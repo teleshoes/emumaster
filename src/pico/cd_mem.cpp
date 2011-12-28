@@ -345,7 +345,7 @@ void s68k_reg_write8(u32 a, u32 d)
     case 0x33: // IRQ mask
       dprintf("s68k irq mask: %02x", d);
       if ((d&(1<<4)) && (Pico_mcd->s68k_regs[0x37]&4) && !(Pico_mcd->s68k_regs[0x33]&(1<<4))) {
-        CDD_Export_Status();
+        Pico_mcd->cdd.exportStatus();
       }
       break;
     case 0x34: // fader
@@ -357,7 +357,7 @@ void s68k_reg_write8(u32 a, u32 d)
       u32 d_old = Pico_mcd->s68k_regs[0x37];
       Pico_mcd->s68k_regs[0x37] = d&7;
       if ((d&4) && !(d_old&4)) {
-        CDD_Export_Status();
+        Pico_mcd->cdd.exportStatus();
       }
       return;
     }
@@ -1328,7 +1328,7 @@ static void PicoWriteS68k8(u32 a,u8 d)
     if (a >= 0x2000)
       Pico_mcd->pcm_ram_b[Pico_mcd->pcm.bank][(a>>1)&0xfff] = d;
     else if (a < 0x12)
-      pcm_write(a>>1, d);
+      picoMcdPcmWrite(a>>1, d);
     return;
   }
 
@@ -1413,7 +1413,7 @@ static void PicoWriteS68k16(u32 a,u16 d)
     if (a >= 0x2000)
       Pico_mcd->pcm_ram_b[Pico_mcd->pcm.bank][(a>>1)&0xfff] = d;
     else if (a < 0x12)
-      pcm_write(a>>1, d & 0xff);
+      picoMcdPcmWrite(a>>1, d & 0xff);
     return;
   }
 
@@ -1509,8 +1509,8 @@ static void PicoWriteS68k32(u32 a,u32 d)
       Pico_mcd->pcm_ram_b[Pico_mcd->pcm.bank][(a+1)&0xfff] = d;
     } else if (a < 0x12) {
       a >>= 1;
-      pcm_write(a,  (d>>16) & 0xff);
-      pcm_write(a+1, d & 0xff);
+      picoMcdPcmWrite(a,  (d>>16) & 0xff);
+      picoMcdPcmWrite(a+1, d & 0xff);
     }
     return;
   }

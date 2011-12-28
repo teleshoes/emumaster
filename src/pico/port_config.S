@@ -6,5 +6,4 @@
 .equiv START_ROW,               0
 .equiv END_ROW,                28
 
-.equiv OVERRIDE_HIGHCOL,        0
 .equiv UNALIGNED_DRAWLINEDEST,  0

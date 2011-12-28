@@ -67,7 +67,7 @@ int PicoResetMCD(int hard)
   Pico_mcd->s68k_regs[3] = 1; // 2M word RAM mode with m68k access after reset
 
   Reset_CD();
-  LC89510_Reset();
+  lc89510Reset();
   gfx_cd_reset();
   PicoMemResetCD(1);
 #ifdef _ASM_CD_MEMORY_C

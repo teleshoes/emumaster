@@ -147,7 +147,7 @@ void picoSoundReset()
 	picoSoundDacCalculate();
 
 	if (PicoMCD & 1)
-		pcm_set_rate(PicoSoundSampleRate);
+		picoMcdPcmSetRate(PicoSoundSampleRate);
 
 	// clear mix buffer
 	memset32(picoSoundMixBuffer, 0, sizeof(picoSoundMixBuffer)/4);
@@ -191,7 +191,7 @@ int picoSoundRender(int offset, int length)
 	// emulating CD && PCM option enabled && PCM chip on && have enabled channels
 	int doPcm = (PicoMCD&1) && (PicoOpt&0x400) && (Pico_mcd->pcm.control & 0x80) && Pico_mcd->pcm.enabled;
 	if (doPcm)// CD: PCM sound
-		pcm_update(buf32, length);
+		picoMcdPcmUpdate(buf32, length);
 
 	// CD: CDDA audio
 	// CD mode, cdda enabled, not data track, CDC is reading

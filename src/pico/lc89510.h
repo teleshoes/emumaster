@@ -7,28 +7,30 @@
  *                                                         *
  ***********************************************************/
 
-#ifndef _LC89510_H
-#define _LC89510_H
+#ifndef LC89510_H
+#define LC89510_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <imachine.h>
 
-typedef struct
+class CDC
 {
-	unsigned char Buffer[(32 * 1024 * 2) + 2352];
-//	unsigned int Host_Data;		// unused
-//	unsigned int DMA_Adr;		// 0A
-//	unsigned int Stop_Watch;	// 0C
-	unsigned int COMIN;
-	unsigned int IFSTAT;
+public:
+	void reset();
+	void updateHeader();
+
+	u8 Buffer[(32 * 1024 * 2) + 2352];
+//	uint Host_Data;		// unused
+//	uint DMA_Adr;		// 0A
+//	uint Stop_Watch;	// 0C
+	uint COMIN;
+	uint IFSTAT;
 	union
 	{
 		struct
 		{
-			unsigned char L;
-			unsigned char H;
-			unsigned short unused;
+			u8 L;
+			u8 H;
+			u16 unused;
 		} B;
 		int N;
 	} DBC;
@@ -36,9 +38,9 @@ typedef struct
 	{
 		struct
 		{
-			unsigned char L;
-			unsigned char H;
-			unsigned short unused;
+			u8 L;
+			u8 H;
+			u16 unused;
 		} B;
 		int N;
 	} DAC;
@@ -46,20 +48,20 @@ typedef struct
 	{
 		struct
 		{
-			unsigned char B0;
-			unsigned char B1;
-			unsigned char B2;
-			unsigned char B3;
+			u8 B0;
+			u8 B1;
+			u8 B2;
+			u8 B3;
 		} B;
-		unsigned int N;
+		uint N;
 	} HEAD;
 	union
 	{
 		struct
 		{
-			unsigned char L;
-			unsigned char H;
-			unsigned short unused;
+			u8 L;
+			u8 H;
+			u16 unused;
 		} B;
 		int N;
 	} PT;
@@ -67,9 +69,9 @@ typedef struct
 	{
 		struct
 		{
-			unsigned char L;
-			unsigned char H;
-			unsigned short unused;
+			u8 L;
+			u8 H;
+			u16 unused;
 		} B;
 		int N;
 	} WA;
@@ -77,59 +79,56 @@ typedef struct
 	{
 		struct
 		{
-			unsigned char B0;
-			unsigned char B1;
-			unsigned char B2;
-			unsigned char B3;
+			u8 B0;
+			u8 B1;
+			u8 B2;
+			u8 B3;
 		} B;
-		unsigned int N;
+		uint N;
 	} STAT;
-	unsigned int SBOUT;
-	unsigned int IFCTRL;
+	uint SBOUT;
+	uint IFCTRL;
 	union
 	{
 		struct
 		{
-			unsigned char B0;
-			unsigned char B1;
-			unsigned char B2;
-			unsigned char B3;
+			u8 B0;
+			u8 B1;
+			u8 B2;
+			u8 B3;
 		} B;
-		unsigned int N;
+		uint N;
 	} CTRL;
-	unsigned int Decode_Reg_Read;
-} CDC;
+	uint Decode_Reg_Read;
+};
 
-typedef struct
+class CDD
 {
-//	unsigned short Fader;	// 34
-//	unsigned short Control;	// 36
-//	unsigned short Cur_Comm;// unused
+public:
+	void reset();
+	void exportStatus();
+//	u16 Fader;	// 34
+//	u16 Control;	// 36
+//	u16 Cur_Comm;// unused
 
 	// "Receive status"
-	unsigned short Status;
-	unsigned short Minute;
-	unsigned short Seconde;
-	unsigned short Frame;
-	unsigned char  Ext;
-	unsigned char  pad[3];
-} CDD;
+	u16 Status;
+	u16 Minute;
+	u16 Seconde;
+	u16 Frame;
+	u8 Ext;
+	u8 pad[3];
+};
 
 
-unsigned short Read_CDC_Host(int is_sub);
-void LC89510_Reset(void);
+extern "C" u16 Read_CDC_Host(int is_sub);
+
+void lc89510Reset();
 void Update_CDC_TRansfer(int which);
-void CDC_Update_Header(void);
 
-unsigned char CDC_Read_Reg(void);
-void CDC_Write_Reg(unsigned char Data);
+u8 CDC_Read_Reg();
+void CDC_Write_Reg(u8 Data);
 
-void CDD_Export_Status(void);
-void CDD_Import_Command(void);
+void CDD_Import_Command();
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif
-
+#endif // LC89510_H

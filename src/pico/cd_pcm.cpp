@@ -7,23 +7,18 @@
 
 static unsigned int g_rate = 0; // 18.14 fixed point
 
-void pcm_write(unsigned int a, unsigned int d)
+void picoMcdPcmWrite(uint a, u8 d)
 {
-//printf("pcm_write(%i, %02x)\n", a, d);
-
-	if (a < 7)
-	{
+	if (a < 7) {
 		Pico_mcd->pcm.ch[Pico_mcd->pcm.cur_ch].regs[a] = d;
-	}
-	else if (a == 7) // control register
-	{
-		if (d & 0x40)	Pico_mcd->pcm.cur_ch = d & 7;
-		else		Pico_mcd->pcm.bank = d & 0xf;
+	} else if (a == 7) { // control register
+		if (d & 0x40)
+			Pico_mcd->pcm.cur_ch = d & 0x07;
+		else
+			Pico_mcd->pcm.bank = d & 0x0F;
 		Pico_mcd->pcm.control = d;
 		// dprintf("pcm control=%02x", Pico_mcd->pcm.control);
-	}
-	else if (a == 8) // sound on/off
-	{
+	} else if (a == 8) { // sound on/off
 		if (!(Pico_mcd->pcm.enabled & 0x01)) Pico_mcd->pcm.ch[0].addr =
 			Pico_mcd->pcm.ch[0].regs[6] << (PCM_STEP_SHIFT + 8);
 		if (!(Pico_mcd->pcm.enabled & 0x02)) Pico_mcd->pcm.ch[1].addr =
@@ -40,27 +35,22 @@ void pcm_write(unsigned int a, unsigned int d)
 			Pico_mcd->pcm.ch[6].regs[6] << (PCM_STEP_SHIFT + 8);
 		if (!(Pico_mcd->pcm.enabled & 0x80)) Pico_mcd->pcm.ch[7].addr =
 			Pico_mcd->pcm.ch[7].regs[6] << (PCM_STEP_SHIFT + 8);
-//		printf("addr %x %x %x %x %x %x %x %x\n", Pico_mcd->pcm.ch[0].addr, Pico_mcd->pcm.ch[1].addr
-//		, Pico_mcd->pcm.ch[2].addr, Pico_mcd->pcm.ch[3].addr, Pico_mcd->pcm.ch[4].addr, Pico_mcd->pcm.ch[5].addr
-//		, Pico_mcd->pcm.ch[6].addr, Pico_mcd->pcm.ch[7].addr);
-
 		Pico_mcd->pcm.enabled = ~d;
-//printf("enabled=%02x\n", Pico_mcd->pcm.enabled);
 	}
 }
 
 
-void pcm_set_rate(int rate)
+void picoMcdPcmSetRate(int rate)
 {
 	float step = 31.8 * 1024.0 / (float) rate; // max <4 @ 8000Hz
 	step *= 256*256/4;
 	g_rate = (unsigned int) step;
-	if (step - (float) g_rate >= 0.5) g_rate++;
-	elprintf(EL_STATUS, "g_rate: %f %08x\n", (double)step, g_rate);
+	if (step - (float) g_rate >= 0.5)
+		g_rate++;
 }
 
 
-void pcm_update(int *buffer, int length)
+void picoMcdPcmUpdate(int *buffer, int length)
 {
 	struct pcm_chan *ch;
 	unsigned int step, addr;
@@ -71,8 +61,6 @@ void pcm_update(int *buffer, int length)
 
 	// PCM disabled or all channels off (to be checked by caller)
 	//if (!(Pico_mcd->pcm.control & 0x80) || !Pico_mcd->pcm.enabled) return;
-
-//printf("-- upd %i\n", length);
 
 	for (i = 0; i < 8; i++)
 	{

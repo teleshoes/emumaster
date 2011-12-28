@@ -1925,7 +1925,7 @@ m_s68k_write8_pcm:
     bic     r0, r0, #0xff0000
     cmp     r0, #0x12
     movlt   r0, r0, lsr #1
-    blt     pcm_write
+    blt     picoMcdPcmWrite
 
     cmp     r0, #0x2000
     bxlt    lr
@@ -2297,10 +2297,10 @@ m_s68k_write32_pcm_reg:
     mov     r0, r0, lsr #1
     stmfd   sp!,{r0,r1,lr}
     mov     r1, r1, lsr #16
-    bl      pcm_write
+    bl      picoMcdPcmWrite
     ldmfd   sp!,{r0,r1,lr}
     add     r0, r0, #1
-    b       pcm_write
+    b       picoMcdPcmWrite
 
 
 m_s68k_write32_regs:

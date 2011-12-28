@@ -1773,6 +1773,7 @@ int YM2612Write(unsigned int a, unsigned int v)
 	return ret;
 }
 
+// TODO something wrong with restore
 void YM2612PicoStateLoad()
 {
 	int real_A1 = ym2612.addr_A1;

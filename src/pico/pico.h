@@ -34,6 +34,7 @@ extern int picoMcdOpt;
 extern void picoScanLine(uint num);
 
 #define picoDebugSek(...)
+#define picoDebugMcdSek(...)
 #define picoDebugMcdToc(...)
 
 void mp3_start_play(QFile *file, int pos);
@@ -62,7 +63,6 @@ extern "C" {
 // enable_cd_gfx, cd_perfect_sync, soft_32col_scaling, enable_cd_ramcart
 // disable_vdp_fifo
 extern int PicoOpt;
-extern int PicoVer;
 extern int PicoSkipFrame; // skip rendering frame, but still do sound (if enabled) and emulation stuff
 extern int PicoRegionOverride; // override the region detection 0: auto, 1: Japan NTSC, 2: Japan PAL, 4: US, 8: Europe
 extern int PicoAutoRgnOrder; // packed priority list of regions, for example 0x148 means this detection order: EUR, USA, JAP
@@ -94,9 +94,7 @@ extern void (*PicoCDLoadProgressCB)(int percent);
 // Draw.c
 void PicoDrawSetColorFormat(int which); // 0=BGR444, 1=RGB555, 2=8bit(HighPal pal)
 extern void *DrawLineDest;
-#if OVERRIDE_HIGHCOL
-extern unsigned char *HighCol;
-#endif
+
 // internals
 extern unsigned short HighPal[0x100];
 extern int rendstatus;
@@ -398,8 +396,8 @@ void SekState(int *data);
 void SekSetRealTAS(int use_real);
 
 // cd/Sek.c
-int SekInitS68k(void);
-int SekResetS68k(void);
+void SekInitS68k(void);
+void SekResetS68k();
 int SekInterruptS68k(int irq);
 
 // sound/sound.c

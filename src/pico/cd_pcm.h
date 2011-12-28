@@ -1,9 +1,14 @@
+#ifndef PICOMCDPCM_H
+#define PICOMCDPCM_H
+
+#include <imachine.h>
 
 #define PCM_STEP_SHIFT 11
 
 extern "C" {
-void pcm_write(unsigned int a, unsigned int d);
-void pcm_set_rate(int rate);
-void pcm_update(int *buffer, int length);
-
+void picoMcdPcmWrite(uint a, u8 d);
+void picoMcdPcmSetRate(int rate);
+void picoMcdPcmUpdate(int *buffer, int length);
 }
+
+#endif // PICOMCDPCM_H

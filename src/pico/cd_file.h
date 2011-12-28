@@ -3,6 +3,6 @@
 
 #include <imachine.h>
 
-int  FILE_Read_One_LBA_CDC();
+void FILE_Read_One_LBA_CDC();
 
 #endif // PICOMCDFILE_H

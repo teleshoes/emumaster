@@ -11,59 +11,51 @@
 
 #define cdprintf(x...)
 
-
 #define CDC_DMA_SPEED 256
 
-
-static void CDD_Reset(void)
+void CDD::reset()
 {
-	// Reseting CDD
-
 	memset(Pico_mcd->s68k_regs+0x34, 0, 2*2); // CDD.Fader, CDD.Control
-	Pico_mcd->cdd.Status = 0;
-	Pico_mcd->cdd.Minute = 0;
-	Pico_mcd->cdd.Seconde = 0;
-	Pico_mcd->cdd.Frame = 0;
-	Pico_mcd->cdd.Ext = 0;
+	Status = 0;
+	Minute = 0;
+	Seconde = 0;
+	Frame = 0;
+	Ext = 0;
 
 	// clear receive status and transfer command
 	memset(Pico_mcd->s68k_regs+0x38, 0, 20);
 	Pico_mcd->s68k_regs[0x38+9] = 0xF;		// Default checksum
 }
 
-
-static void CDC_Reset(void)
+void CDC::reset()
 {
-	// Reseting CDC
+	memset(Buffer, 0, sizeof(Buffer));
 
-	memset(Pico_mcd->cdc.Buffer, 0, sizeof(Pico_mcd->cdc.Buffer));
+	COMIN = 0;
+	IFSTAT = 0xFF;
+	DAC.N = 0;
+	DBC.N = 0;
+	HEAD.N = 0x01000000;
+	PT.N = 0;
+	WA.N = 2352 * 2;
+	STAT.N = 0x00000080;
+	SBOUT = 0;
+	IFCTRL = 0;
+	CTRL.N = 0;
 
-	Pico_mcd->cdc.COMIN = 0;
-	Pico_mcd->cdc.IFSTAT = 0xFF;
-	Pico_mcd->cdc.DAC.N = 0;
-	Pico_mcd->cdc.DBC.N = 0;
-	Pico_mcd->cdc.HEAD.N = 0x01000000;
-	Pico_mcd->cdc.PT.N = 0;
-	Pico_mcd->cdc.WA.N = 2352 * 2;
-	Pico_mcd->cdc.STAT.N = 0x00000080;
-	Pico_mcd->cdc.SBOUT = 0;
-	Pico_mcd->cdc.IFCTRL = 0;
-	Pico_mcd->cdc.CTRL.N = 0;
+	Decode_Reg_Read = 0;
 
-	Pico_mcd->cdc.Decode_Reg_Read = 0;
 	Pico_mcd->scd.Status_CDC &= ~0x08;
 }
 
-
-void LC89510_Reset(void)
+void lc89510Reset()
 {
-	CDD_Reset();
-	CDC_Reset();
+	Pico_mcd->cdd.reset();
+	Pico_mcd->cdc.reset();
 
 	// clear DMA_Adr & Stop_Watch
 	memset(Pico_mcd->s68k_regs + 0xA, 0, 4);
 }
-
 
 void Update_CDC_TRansfer(int which)
 {
@@ -177,7 +169,7 @@ void Update_CDC_TRansfer(int which)
 }
 
 
-unsigned short Read_CDC_Host(int is_sub)
+u16 Read_CDC_Host(int is_sub)
 {
 	int addr;
 
@@ -228,31 +220,27 @@ unsigned short Read_CDC_Host(int is_sub)
 	return (Pico_mcd->cdc.Buffer[addr]<<8) | Pico_mcd->cdc.Buffer[addr+1];
 }
 
-
-void CDC_Update_Header(void)
+void CDC::updateHeader()
 {
-	if (Pico_mcd->cdc.CTRL.B.B1 & 0x01)		// Sub-Header wanted ?
-	{
-		Pico_mcd->cdc.HEAD.B.B0 = 0;
-		Pico_mcd->cdc.HEAD.B.B1 = 0;
-		Pico_mcd->cdc.HEAD.B.B2 = 0;
-		Pico_mcd->cdc.HEAD.B.B3 = 0;
-	}
-	else
-	{
+	if (CTRL.B.B1 & 0x01) { // Sub-Header wanted ?
+		HEAD.B.B0 = 0;
+		HEAD.B.B1 = 0;
+		HEAD.B.B2 = 0;
+		HEAD.B.B3 = 0;
+	} else {
 		PicoMcdMsf MSF;
 
 		LBA_to_MSF(Pico_mcd->scd.Cur_LBA, &MSF);
 
-		Pico_mcd->cdc.HEAD.B.B0 = INT_TO_BCDB(MSF.M);
-		Pico_mcd->cdc.HEAD.B.B1 = INT_TO_BCDB(MSF.S);
-		Pico_mcd->cdc.HEAD.B.B2 = INT_TO_BCDB(MSF.F);
-		Pico_mcd->cdc.HEAD.B.B3 = 0x01;
+		HEAD.B.B0 = INT_TO_BCDB(MSF.M);
+		HEAD.B.B1 = INT_TO_BCDB(MSF.S);
+		HEAD.B.B2 = INT_TO_BCDB(MSF.F);
+		HEAD.B.B3 = 0x01;
 	}
 }
 
 
-unsigned char CDC_Read_Reg(void)
+u8 CDC_Read_Reg()
 {
 	unsigned char ret;
 
@@ -375,7 +363,7 @@ unsigned char CDC_Read_Reg(void)
 }
 
 
-void CDC_Write_Reg(unsigned char Data)
+void CDC_Write_Reg(u8 Data)
 {
 	cdprintf("CDC write reg%02d = %.2X", Pico_mcd->s68k_regs[5] & 0xF, Data);
 
@@ -481,7 +469,7 @@ void CDC_Write_Reg(unsigned char Data)
 			break;
 
 		case 0xF: // RESET
-			CDC_Reset();
+			Pico_mcd->cdc.reset();
 			break;
 	}
 }
@@ -493,46 +481,27 @@ static int bswapwrite(int a, unsigned short d)
 	return d + (d >> 8);
 }
 
-void CDD_Export_Status(void)
+void CDD::exportStatus()
 {
-	unsigned int csum;
+	uint csum;
 
-	csum  = bswapwrite( 0x38+0, Pico_mcd->cdd.Status);
-	csum += bswapwrite( 0x38+2, Pico_mcd->cdd.Minute);
-	csum += bswapwrite( 0x38+4, Pico_mcd->cdd.Seconde);
-	csum += bswapwrite( 0x38+6, Pico_mcd->cdd.Frame);
-	Pico_mcd->s68k_regs[0x38+8] = Pico_mcd->cdd.Ext;
-	csum += Pico_mcd->cdd.Ext;
-	Pico_mcd->s68k_regs[0x38+9] = ~csum & 0xf;
+	csum  = bswapwrite( 0x38+0, Status);
+	csum += bswapwrite( 0x38+2, Minute);
+	csum += bswapwrite( 0x38+4, Seconde);
+	csum += bswapwrite( 0x38+6, Frame);
+	Pico_mcd->s68k_regs[0x38+8] = Ext;
+	csum += Ext;
+	Pico_mcd->s68k_regs[0x38+9] = ~csum & 0xf; // checksum
 
 	Pico_mcd->s68k_regs[0x37] &= 3; // CDD.Control
 
 	if (Pico_mcd->s68k_regs[0x33] & (1<<4))
-	{
-		elprintf(EL_INTS, "cdd export irq 4");
 		SekInterruptS68k(4);
-	}
-
-//	cdprintf("CDD exported status\n");
-	cdprintf("out:  Status=%.4X, Minute=%.4X, Second=%.4X, Frame=%.4X  Checksum=%.4X",
-		(Pico_mcd->s68k_regs[0x38+0] << 8) | Pico_mcd->s68k_regs[0x38+1],
-		(Pico_mcd->s68k_regs[0x38+2] << 8) | Pico_mcd->s68k_regs[0x38+3],
-		(Pico_mcd->s68k_regs[0x38+4] << 8) | Pico_mcd->s68k_regs[0x38+5],
-		(Pico_mcd->s68k_regs[0x38+6] << 8) | Pico_mcd->s68k_regs[0x38+7],
-		(Pico_mcd->s68k_regs[0x38+8] << 8) | Pico_mcd->s68k_regs[0x38+9]);
 }
 
 
-void CDD_Import_Command(void)
+void CDD_Import_Command()
 {
-//	cdprintf("CDD importing command\n");
-	cdprintf("in:  Command=%.4X, Minute=%.4X, Second=%.4X, Frame=%.4X  Checksum=%.4X",
-		(Pico_mcd->s68k_regs[0x38+10+0] << 8) | Pico_mcd->s68k_regs[0x38+10+1],
-		(Pico_mcd->s68k_regs[0x38+10+2] << 8) | Pico_mcd->s68k_regs[0x38+10+3],
-		(Pico_mcd->s68k_regs[0x38+10+4] << 8) | Pico_mcd->s68k_regs[0x38+10+5],
-		(Pico_mcd->s68k_regs[0x38+10+6] << 8) | Pico_mcd->s68k_regs[0x38+10+7],
-		(Pico_mcd->s68k_regs[0x38+10+8] << 8) | Pico_mcd->s68k_regs[0x38+10+9]);
-
 	switch (Pico_mcd->s68k_regs[0x38+10+0])
 	{
 		case 0x0:	// STATUS (?)
@@ -624,4 +593,3 @@ void CDD_Import_Command(void)
 			break;
 	}
 }
-

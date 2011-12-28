@@ -14,7 +14,6 @@ u8 *picoRom = 0;
 uint picoRomSize = 0;
 int picoMcdOpt = 0;
 
-int PicoVer=0x0133;
 struct Pico Pico;
 int PicoOpt=0; // disable everything by default
 int PicoSkipFrame=0; // skip rendering frame?
@@ -205,35 +204,18 @@ static __inline void SekRunM68k(int cyc)
   int cyc_do;
   SekCycleAim+=cyc;
   if((cyc_do=SekCycleAim-SekCycleCnt) <= 0) return;
-#if defined(EMU_CORE_DEBUG)
-  // this means we do run-compare
-  SekCycleCnt+=CM_compareRun(cyc_do, 0);
-#elif defined(EMU_C68K)
   PicoCpuCM68k.cycles=cyc_do;
   CycloneRun(&PicoCpuCM68k);
   SekCycleCnt+=cyc_do-PicoCpuCM68k.cycles;
-#elif defined(EMU_M68K)
-  SekCycleCnt+=m68k_execute(cyc_do);
-#elif defined(EMU_F68K)
-  SekCycleCnt+=fm68k_emulate(cyc_do+1, 0);
-#endif
 }
 
 static __inline void SekStep(void)
 {
   // this is required for timing sensitive stuff to work
   int realaim=SekCycleAim; SekCycleAim=SekCycleCnt+1;
-#if defined(EMU_CORE_DEBUG)
-  SekCycleCnt+=CM_compareRun(1, 0);
-#elif defined(EMU_C68K)
   PicoCpuCM68k.cycles=1;
   CycloneRun(&PicoCpuCM68k);
   SekCycleCnt+=1-PicoCpuCM68k.cycles;
-#elif defined(EMU_M68K)
-  SekCycleCnt+=m68k_execute(1);
-#elif defined(EMU_F68K)
-  SekCycleCnt+=fm68k_emulate(1, 0);
-#endif
   SekCycleAim=realaim;
 }
 
@@ -476,98 +458,3 @@ void PicoFrameDrawOnly(void)
   PicoFrameStart();
   for (y=0;y<224;y++) PicoLine(y);
 }
-
-#if 1 // defined(__DEBUG_PRINT)
-// tmp debug: dump some stuff
-#define bit(r, x) ((r>>x)&1)
-void z80_debug(char *dstr);
-char *debugString(void)
-{
-#if 1
-  static char dstr[1024];
-  struct PicoVideo *pv=&Pico.video;
-  unsigned char *reg=pv->reg, r;
-  char *dstrp;
-
-  dstrp = dstr;
-  sprintf(dstrp, "mode set 1: %02x\n", (r=reg[0])); dstrp+=strlen(dstrp);
-  sprintf(dstrp, "display_disable: %i, M3: %i, palette: %i, ?, hints: %i\n", bit(r,0), bit(r,1), bit(r,2), bit(r,4));
-  dstrp+=strlen(dstrp);
-  sprintf(dstrp, "mode set 2: %02x\n", (r=reg[1])); dstrp+=strlen(dstrp);
-  sprintf(dstrp, "SMS/gen: %i, pal: %i, dma: %i, vints: %i, disp: %i, TMS: %i\n", bit(r,2), bit(r,3), bit(r,4),
-  	bit(r,5), bit(r,6), bit(r,7)); dstrp+=strlen(dstrp);
-  sprintf(dstrp, "mode set 3: %02x\n", (r=reg[0xB])); dstrp+=strlen(dstrp);
-  sprintf(dstrp, "LSCR: %i, HSCR: %i, 2cell vscroll: %i, IE2: %i\n", bit(r,0), bit(r,1), bit(r,2), bit(r,3)); dstrp+=strlen(dstrp);
-  sprintf(dstrp, "mode set 4: %02x\n", (r=reg[0xC])); dstrp+=strlen(dstrp);
-  sprintf(dstrp, "interlace: %i%i, cells: %i, shadow: %i\n", bit(r,2), bit(r,1), (r&0x80) ? 40 : 32,  bit(r,3));
-  dstrp+=strlen(dstrp);
-  sprintf(dstrp, "scroll size: w: %i, h: %i  SRAM: %i; eeprom: %i (%i)\n", reg[0x10]&3, (reg[0x10]&0x30)>>4,
-  	bit(Pico.m.sram_reg, 4), bit(Pico.m.sram_reg, 2), SRam.eeprom_type); dstrp+=strlen(dstrp);
-  sprintf(dstrp, "sram range: %06x-%06x, reg: %02x\n", SRam.start, SRam.end, Pico.m.sram_reg); dstrp+=strlen(dstrp);
-  sprintf(dstrp, "pend int: v:%i, h:%i, vdp status: %04x\n", bit(pv->pending_ints,5), bit(pv->pending_ints,4), pv->status);
-  dstrp+=strlen(dstrp);
-#if defined(EMU_C68K)
-  sprintf(dstrp, "M68k: PC: %06x, st_flg: %x, cycles: %u\n", SekPc, PicoCpuCM68k.state_flags, SekCyclesDoneT());
-  dstrp+=strlen(dstrp);
-  sprintf(dstrp, "d0=%08x, a0=%08x, osp=%08x, irql=%i\n", PicoCpuCM68k.d[0], PicoCpuCM68k.a[0], PicoCpuCM68k.osp, PicoCpuCM68k.irq); dstrp+=strlen(dstrp);
-  sprintf(dstrp, "d1=%08x, a1=%08x,  sr=%04x\n", PicoCpuCM68k.d[1], PicoCpuCM68k.a[1], CycloneGetSr(&PicoCpuCM68k)); dstrp+=strlen(dstrp);
-  for(r=2; r < 8; r++) {
-    sprintf(dstrp, "d%i=%08x, a%i=%08x\n", r, PicoCpuCM68k.d[r], r, PicoCpuCM68k.a[r]); dstrp+=strlen(dstrp);
-  }
-#elif defined(EMU_M68K)
-  sprintf(dstrp, "M68k: PC: %06x, cycles: %u, irql: %i\n", SekPc, SekCyclesDoneT(), PicoCpuMM68k.int_level>>8); dstrp+=strlen(dstrp);
-#elif defined(EMU_F68K)
-  sprintf(dstrp, "M68k: PC: %06x, cycles: %u, irql: %i\n", SekPc, SekCyclesDoneT(), PicoCpuFM68k.interrupts[0]); dstrp+=strlen(dstrp);
-#endif
-  sprintf(dstrp, "z80Run: %i, pal: %i\n", Pico.m.z80Run, Pico.m.pal); dstrp+=strlen(dstrp);
-  z80_debug(dstrp); dstrp+=strlen(dstrp);
-  if (strlen(dstr) > sizeof(dstr))
-    printf("warning: debug buffer overflow (%i/%i)\n", strlen(dstr), sizeof(dstr));
-
-#else
-  struct PicoVideo *pvid=&Pico.video;
-  int table=0;
-  int i,u,n,link=0;
-  static char dstr[1024*8];
-  dstr[0] = 0;
-
-  table=pvid->reg[5]&0x7f;
-  if (pvid->reg[12]&1) table&=0x7e; // Lowest bit 0 in 40-cell mode
-  table<<=8; // Get sprite table address/2
-
-  for (i=u=n=0; u < 80 && n < 20; u++)
-  {
-    unsigned int *sprite;
-    int code, code2, sx, sy, height;
-
-    sprite=(unsigned int *)(Pico.vram+((table+(link<<2))&0x7ffc)); // Find sprite
-
-    // get sprite info
-    code = sprite[0];
-
-    // check if it is on this line
-    sy = (code&0x1ff);//-0x80;
-    height = ((code>>24)&3)+1;
-
-    // masking sprite?
-    code2 = sprite[1];
-    sx = (code2>>16)&0x1ff;
-
-    printf("#%02i x: %03i y: %03i %ix%i\n", u, sx, sy, ((code>>26)&3)+1, height);
-
-    link=(code>>16)&0x7f;
-    if(!link) break; // End of sprites
-  }
-#endif
-
-#if 0
-  {
-    FILE *f = fopen("zram", "wb");
-    fwrite(Pico.zram, 1, 0x2000, f);
-    fclose(f);
-  }
-#endif
-
-  return dstr;
-}
-#endif
