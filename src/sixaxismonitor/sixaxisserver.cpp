@@ -139,11 +139,12 @@ void SixAxisServer::disconnectDevice(SixAxisDevice *dev) {
 /** Streams the data received from a sixaxis to the clients. */
 void SixAxisServer::streamPacket(SixAxisDevice *dev, int len) {
 	for (int i = 0; i < m_localClients.size(); i++) {
-		QIODevice *io = m_localClients.at(i);
+		QLocalSocket *io = m_localClients.at(i);
 		io->write("p");
 		io->write((const char *)dev->address(), sizeof(bdaddr_t));
 		io->write((const char *)&len, sizeof(int));
 		io->write(dev->buffer(), len);
+		io->flush();
 	}
 }
 

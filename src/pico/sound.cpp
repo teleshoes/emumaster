@@ -132,8 +132,6 @@ static void picoSoundDacCalculate()
 void picoSoundReset()
 {
 	z80startCycle = z80stopCycle = 0;
-	// clear the internal registers+addr line
-	memset(YM2612GetRegs(), 0, 0x200+4);
 
 	int osc = Pico.m.pal ? OSC_PAL : OSC_NTSC;
 	YM2612Init(osc/7, PicoSoundSampleRate);

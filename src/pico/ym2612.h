@@ -111,6 +111,8 @@ public:
 /* here's the virtual YM2612 */
 class YM2612 {
 public:
+	void sl(const QString &name);
+
 	u8		REGS[0x200];		/* registers (for save states)       */
 	s32		addr_A1;			/* address line A1      */
 
@@ -150,14 +152,12 @@ static inline void YM2612PicoTick(int n) {
 	}
 }
 
+extern YM2612 ym2612;
+
 void YM2612Init(int baseclock, int rate);
 void YM2612ResetChip();
 void YM2612Update(int *buffer, int length);
-
-extern "C" int  YM2612Write(unsigned int a, unsigned int v);
-
 void YM2612PicoStateLoad();
-
-void *YM2612GetRegs();
+extern "C" int  YM2612Write(unsigned int a, unsigned int v);
 
 #endif // YM6212_H

@@ -71,11 +71,7 @@ void PicoMachine::sl() {
 	emsl.array("video", &Pico.video, sizeof(Pico.video));
 
 	sn76496.sl("psg");
-
-	void *ym2612_regs = YM2612GetRegs();
-	emsl.array("fm", ym2612_regs, 0x200+4);
-	if (!emsl.save)
-		YM2612PicoStateLoad(); // reload YM2612 state from it's regs
+	ym2612.sl("fm");
 
 	if (!emsl.save)
 		Pico.m.dirtyPal = 1;

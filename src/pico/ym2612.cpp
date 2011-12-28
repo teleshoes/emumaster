@@ -115,7 +115,7 @@
 
 #include <stdlib.h>
 // let it be 1 global to simplify things
-static YM2612 ym2612;
+YM2612 ym2612;
 
 extern "C" void memset32(int *dest, int c, int count);
 
@@ -1773,27 +1773,23 @@ int YM2612Write(unsigned int a, unsigned int v)
 	return ret;
 }
 
-// TODO something wrong with restore
-void YM2612PicoStateLoad()
+void YM2612::sl(const QString &name)
 {
-	int real_A1 = ym2612.addr_A1;
-	for (int r = 0x30; r < 0x9E; r++) {
-		if ((r&3) != 3) {
-			OPNWriteReg(r, ym2612.REGS[r]);
-			OPNWriteReg(r|0x100, ym2612.REGS[r|0x100]);
+	emsl.array(name+".regs", REGS, 0x200);
+	if (!emsl.save) {
+		// reload YM2612 state from it's regs
+		for (int i = 0x100-1; i >= 0; i--) {
+			YM2612Write(0, i);
+			YM2612Write(1, ym2612.REGS[i]);
+		}
+		for (int i = 0x100-1; i >= 0; i--) {
+			YM2612Write(2, i);
+			YM2612Write(3, ym2612.REGS[i|0x100]);
 		}
 	}
-	/* FB / CONNECT , L / R / AMS / PMS */
-	for (int r = 0xb0; r < 0xb6; r++) {
-		if ((r&3) != 3) {
-			OPNWriteReg(r, ym2612.REGS[r]);
-			OPNWriteReg(r|0x100,ym2612.REGS[r|0x100]);
-		}
-	}
-	ym2612.addr_A1 = real_A1;
-}
-
-void *YM2612GetRegs()
-{
-	return ym2612.REGS;
+	for (int i = 0; i < 6; i++)
+		emsl.array(name+QString(".ch[%1].missing").arg(i), &CH[i].ams, 0x10);
+	emsl.var(name+".addr_A1", ym2612.addr_A1);
+	emsl.var(name+".dacout", dacout);
+	emsl.var(name+".opn.st.address", OPN.ST.address);
 }
