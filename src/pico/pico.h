@@ -92,7 +92,6 @@ int PicoUnloadCart(unsigned char* romdata);
 extern void (*PicoCDLoadProgressCB)(int percent);
 
 // Draw.c
-void PicoDrawSetColorFormat(int which); // 0=BGR444, 1=RGB555, 2=8bit(HighPal pal)
 extern void *DrawLineDest;
 
 // internals

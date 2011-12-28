@@ -85,7 +85,6 @@ QString PicoMachine::init(const QString &diskPath)
 	md_screen = picoFrame.bits();
 
 	// make sure we are in correct mode
-	PicoDrawSetColorFormat(1);
 	picoScanLine(0);
 	Pico.m.dirtyPal = 1;
 	PicoOpt &= ~0x4100;

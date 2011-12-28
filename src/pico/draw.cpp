@@ -46,7 +46,6 @@ void DrawSprite(int *sprite, int **hc, int sh);
 void DrawTilesFromCache(int *hc, int sh, int rlim);
 void DrawSpritesFromCache(int *hc, int sh);
 void DrawLayer(int plane_sh, int *hcache, int cellskip, int maxcells);
-void FinalizeLineBGR444(int sh);
 void FinalizeLineRGB555(int sh);
 void blockcpy_or(void *dst, void *src, size_t n, int pat);
 }
@@ -1170,41 +1169,6 @@ static void BackFill(int reg7, int sh)
 unsigned short HighPal[0x100];
 
 #ifndef _ASM_DRAW_C
-static void FinalizeLineBGR444(int sh)
-{
-  unsigned short *pd=DrawLineDest;
-  unsigned char  *ps=HighCol+8;
-  unsigned short *pal=Pico.cram;
-  int len, i, t;
-
-  if (Pico.video.reg[12]&1) {
-    len = 320;
-  } else {
-    if(!(PicoOpt&0x100)) pd+=32;
-    len = 256;
-  }
-
-  if(sh) {
-    pal=HighPal;
-    if(Pico.m.dirtyPal) {
-      blockcpy(pal, Pico.cram, 0x40*2);
-      // shadowed pixels
-      for(i = 0x3f; i >= 0; i--)
-        pal[0x40|i] = pal[0xc0|i] = (unsigned short)((pal[i]>>1)&0x0777);
-      // hilighted pixels
-      for(i = 0x3f; i >= 0; i--) {
-        t=pal[i]&0xeee;t+=0x444;if(t&0x10)t|=0xe;if(t&0x100)t|=0xe0;if(t&0x1000)t|=0xe00;t&=0xeee;
-        pal[0x80|i]=(unsigned short)t;
-      }
-      Pico.m.dirtyPal = 0;
-    }
-  }
-
-  for(i = 0; i < len; i++)
-    pd[i] = pal[ps[i]];
-}
-
-
 static void FinalizeLineRGB555(int sh)
 {
   unsigned short *pd=DrawLineDest;
@@ -1257,46 +1221,6 @@ static void FinalizeLineRGB555(int sh)
 #endif
 }
 #endif
-
-static void FinalizeLine8bit(int sh)
-{
-  unsigned char *pd=(unsigned char *)DrawLineDest;
-  int len, rs = rendstatus;
-  static int dirty_count;
-
-  if (!sh && Pico.m.dirtyPal == 1 && Scanline < 222) {
-    // a hack for mid-frame palette changes
-    if (!(rs & 0x20))
-         dirty_count = 1;
-    else dirty_count++;
-    rs |= 0x20;
-    rendstatus = rs;
-    if (dirty_count == 3) {
-      blockcpy(HighPal, Pico.cram, 0x40*2);
-    } else if (dirty_count == 11) {
-      blockcpy(HighPal+0x40, Pico.cram, 0x40*2);
-    }
-  }
-
-  if (Pico.video.reg[12]&1) {
-    len = 320;
-  } else {
-    if(!(PicoOpt&0x100)) pd+=32;
-    len = 256;
-  }
-
-  if (!sh && rs & 0x20) {
-    if (dirty_count >= 11) {
-      blockcpy_or(pd, HighCol+8, len, 0x80);
-    } else {
-      blockcpy_or(pd, HighCol+8, len, 0x40);
-    }
-  } else {
-    blockcpy(pd, HighCol+8, len);
-  }
-}
-
-static void (*FinalizeLine)(int sh) = FinalizeLineBGR444;
 
 // --------------------------------------------
 
@@ -1367,9 +1291,6 @@ static int DrawDisplay(int sh)
   return 0;
 }
 
-
-static int Skip=0;
-
 void PicoFrameStart(void)
 {
   // prepare to do this frame
@@ -1381,13 +1302,11 @@ void PicoFrameStart(void)
   if(Pico.m.dirtyPal) Pico.m.dirtyPal = 2; // reset dirty if needed
 
   PrepareSprites(1);
-  Skip=0;
 }
 
 int PicoLine(int scan)
 {
   int sh;
-  if (Skip>0) { Skip--; return 0; } // Skip rendering lines
 
   Scanline=scan;
   sh=(Pico.video.reg[0xC]&8)>>3; // shadow/hilight?
@@ -1397,23 +1316,9 @@ int PicoLine(int scan)
   if (Pico.video.reg[1]&0x40)
     DrawDisplay(sh);
 
-  if (FinalizeLine != NULL)
-    FinalizeLine(sh);
+  FinalizeLineRGB555(sh);
 
   picoScanLine(Scanline);
 
   return 0;
 }
-
-
-void PicoDrawSetColorFormat(int which)
-{
-  switch (which)
-  {
-    case 2: FinalizeLine = FinalizeLine8bit;   break;
-    case 1: FinalizeLine = FinalizeLineRGB555; break;
-    case 0: FinalizeLine = FinalizeLineBGR444; break;
-    default:FinalizeLine = NULL; break;
-  }
-}
-
