@@ -4,8 +4,8 @@
 	(c) Copyright 2011, elemental
 */
 
-#ifndef MACHINE_H
-#define MACHINE_H
+#ifndef PICOMACHINE_H
+#define PICOMACHINE_H
 
 #include <imachine.h>
 class Mp3Player;
@@ -41,4 +41,4 @@ inline Mp3Player *PicoMachine::mp3Player() const
 
 extern PicoMachine picoMachine;
 
-#endif // MACHINE_H
+#endif // PICOMACHINE_H

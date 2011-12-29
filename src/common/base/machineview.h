@@ -36,6 +36,7 @@ class BASE_EXPORT MachineView : public QObject {
 	Q_PROPERTY(bool audioEnable READ isAudioEnabled WRITE setAudioEnabled NOTIFY audioEnableChanged)
 	Q_PROPERTY(qreal padOpacity READ padOpacity WRITE setPadOpacity NOTIFY padOpacityChanged)
 	Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged)
+	Q_PROPERTY(bool bilinearFiltering READ bilinearFiltering WRITE setBilinearFiltering NOTIFY bilinearFilteringChanged)
 	Q_PROPERTY(QString error READ error CONSTANT)
 	Q_PROPERTY(QList<QObject *> inputDevices READ inputDevices NOTIFY inputDevicesChanged)
 public:
@@ -49,14 +50,22 @@ public:
 
 	bool isFpsVisible() const;
 	void setFpsVisible(bool on);
+
 	int frameSkip() const;
 	void setFrameSkip(int n);
+
 	bool isAudioEnabled() const;
 	void setAudioEnabled(bool on);
+
 	qreal padOpacity() const;
 	void setPadOpacity(qreal opacity);
+
 	bool keepAspectRatio() const;
 	void setKeepAspectRatio(bool on);
+
+	bool bilinearFiltering() const;
+	void setBilinearFiltering(bool enabled);
+
 	QList<QObject *> inputDevices() const;
 
 	Q_INVOKABLE void saveScreenShot();
@@ -72,6 +81,7 @@ signals:
 	void audioEnableChanged();
 	void padOpacityChanged();
 	void keepAspectRatioChanged();
+	void bilinearFilteringChanged();
 	void faultOccured(QString faultStr);
 	void inputDevicesChanged();
 private slots:

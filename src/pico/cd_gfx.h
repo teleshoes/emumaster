@@ -5,8 +5,8 @@
 	(c) Copyright 2011, elemental
 */
 
-#ifndef _GFX_CD_H
-#define _GFX_CD_H
+#ifndef PICOMCDGFX_H
+#define PICOMCDGFX_H
 
 typedef struct
 {
@@ -39,5 +39,5 @@ void gfx_cd_reset(void);
 
 void DmaSlowCell(unsigned int source, unsigned int a, int len, unsigned char inc);
 
-#endif // _GFX_CD_H
+#endif // PICOMCDGFX_H
 

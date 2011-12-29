@@ -2,12 +2,10 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
 	common \
-    pico \
+    pico nes gba snes psx amiga pico \
 	diskgallery \
     sixaxismonitor \
     sixaxisclient
-
-#	nes gba snes psx amiga pico
 
 OTHER_FILES += \
 	../todo.txt \

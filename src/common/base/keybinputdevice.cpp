@@ -30,6 +30,8 @@ KeybInputDevice::KeybInputDevice(QObject *parent) :
         m_mapping[hostKey] = button;
     }
 	s.endGroup();
+
+	setConfIndex(1);
 }
 
 void KeybInputDevice::onConfChanged() {

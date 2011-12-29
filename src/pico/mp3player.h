@@ -4,8 +4,8 @@
 	(c) Copyright 2011, elemental
 */
 
-#ifndef MP3PLAYER_H
-#define MP3PLAYER_H
+#ifndef PICOMP3PLAYER_H
+#define PICOMP3PLAYER_H
 
 #include <QObject>
 #include <gst/gst.h>
@@ -31,4 +31,4 @@ private:
 	QByteArray m_mp3Name;
 };
 
-#endif // MP3PLAYER_H
+#endif // PICOMP3PLAYER_H

@@ -45,6 +45,9 @@ public:
 	bool keepApsectRatio() const;
 	void setKeepAspectRatio(bool on);
 
+	bool bilinearFiltering() const;
+	void setBilinearFiltering(bool enabled);
+
 	void setMyVisible(bool visible);
 
 	QRectF dstRect() const;
@@ -74,6 +77,8 @@ private:
 
 	bool m_swipeEnabled;
 	bool m_keepAspectRatio;
+	bool m_bilinearFiltering;
+	bool m_firstPaint;
 };
 
 inline QRectF HostVideo::dstRect() const
@@ -84,5 +89,7 @@ inline bool HostVideo::isSwipeEnabled() const
 { return m_swipeEnabled; }
 inline bool HostVideo::keepApsectRatio() const
 { return m_keepAspectRatio; }
+inline bool HostVideo::bilinearFiltering() const
+{ return m_bilinearFiltering; }
 
 #endif // MACHINEGLWINDOW_H

@@ -4,8 +4,8 @@
 	(c) Copyright 2011, elemental
 */
 
-#ifndef CHEAT_H
-#define CHEAT_H
+#ifndef PICOCHEAT_H
+#define PICOCHEAT_H
 
 #include <imachine.h>
 
@@ -27,4 +27,4 @@ private:
 	bool m_active;
 };
 
-#endif // CHEAT_H
+#endif // PICOCHEAT_H

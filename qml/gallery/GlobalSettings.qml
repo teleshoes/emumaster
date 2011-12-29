@@ -84,6 +84,11 @@ Page {
 			onCheckedChanged: diskGallery.setGlobalOption("keepAspectRatio", !checked)
 		}
 		EMSwitchOption {
+			text: qsTr("Bilinear Filtering")
+			checked: diskGallery.globalOption("bilinearFiltering", false)
+			onCheckedChanged: diskGallery.setGlobalOption("bilinearFiltering", checked)
+		}
+		EMSwitchOption {
 			id: runInBackgroundSwitch
 			text: qsTr("Run in Background")
 			checked: diskGallery.globalOption("runInBackground", false)

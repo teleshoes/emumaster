@@ -2,8 +2,11 @@ emumaster (0.2.0) unstable; urgency=low
 
   * genesis/megadrive/megacd support
   * landscape support
+  * bilinear filtering
   * better search
   * restart confirmation dialog to prevent accidental pushing on restart button
+  * keyboard configured as PadA by default
+  * do not clear screen if Fullscreen is forced
   * [bug] if games have different extensions they are incorrectly sorted in disk gallery - fixed
   * [bug] mulitplayer don't work in psx - fixed
   * [bug] strange sixaxis identify animation - fixed

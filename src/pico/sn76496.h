@@ -5,8 +5,8 @@
 	(c) Copyright 2011, elemental
 */
 
-#ifndef SN76496_H
-#define SN76496_H
+#ifndef PICOSN76496_H
+#define PICOSN76496_H
 
 #include <imachine.h>
 
@@ -36,4 +36,4 @@ private:
 extern SN76496 sn76496;
 extern "C" void sn76496Write(int data); // for assembler
 
-#endif // SN76496_H
+#endif // PICOSN76496_H

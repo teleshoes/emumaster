@@ -4,8 +4,8 @@
 	(c) Copyright 2011, elemental
 */
 
-#ifndef CART_H
-#define CART_H
+#ifndef PICOCART_H
+#define PICOCART_H
 
 #include <imachine.h>
 
@@ -24,4 +24,4 @@ private:
 
 extern PicoCart picoCart;
 
-#endif // CART_H
+#endif // PICOCART_H

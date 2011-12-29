@@ -243,6 +243,11 @@ Page {
 			checked: !machineView.keepAspectRatio
 			onCheckedChanged: machineView.keepAspectRatio = !checked
 		}
+		EMSwitchOption {
+			text: qsTr("Bilinear Filtering")
+			checked: machineView.bilinearFiltering
+			onCheckedChanged: machineView.bilinearFiltering = checked
+		}
 		EMButtonOption {
 			id: nesRenderMethodButton
 			labelText: qsTr("PPU Render Method")

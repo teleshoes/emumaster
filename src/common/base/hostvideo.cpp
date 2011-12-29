@@ -30,8 +30,9 @@
 HostVideo::HostVideo(HostInput *hostInput, IMachine *machine, MachineThread *thread) :
 	m_hostInput(hostInput),
 	m_machine(machine),
-	m_thread(thread) {
-
+	m_thread(thread),
+	m_firstPaint(true)
+{
 	QObject::connect(m_machine, SIGNAL(videoSrcRectChanged()), SLOT(updateRects()));
 
 	setAttribute(Qt::WA_NoSystemBackground);
@@ -46,17 +47,25 @@ HostVideo::HostVideo(HostInput *hostInput, IMachine *machine, MachineThread *thr
 
 	m_swipeEnabled = true;
 	m_keepAspectRatio = false;
+	m_bilinearFiltering = false;
 }
 
-HostVideo::~HostVideo() {
+HostVideo::~HostVideo()
+{
 }
 
-void HostVideo::paintEvent(QPaintEvent *) {
+void HostVideo::paintEvent(QPaintEvent *)
+{
 	QPainter painter;
 	painter.begin(this);
-	painter.fillRect(rect(), Qt::black);
+	if (m_keepAspectRatio && !m_firstPaint) {
+		painter.fillRect(rect(), Qt::black);
+		m_firstPaint = false;
+	}
 
 	if (m_thread->m_inFrameGenerated) {
+		if (m_bilinearFiltering)
+			painter.setRenderHint(QPainter::SmoothPixmapTransform);
 		painter.drawImage(m_dstRect, m_machine->frame(), m_srcRect);
 		if (m_fpsVisible)
 			paintFps(painter);
@@ -66,7 +75,8 @@ void HostVideo::paintEvent(QPaintEvent *) {
 	m_hostInput->update();
 }
 
-void HostVideo::paintFps(QPainter &painter) {
+void HostVideo::paintFps(QPainter &painter)
+{
 	m_fpsCounter++;
 	if (m_fpsCounterTime.elapsed() >= 1000) {
 		m_fpsCounterTime.restart();
@@ -82,11 +92,13 @@ void HostVideo::paintFps(QPainter &painter) {
 					 QString("%1 FPS").arg(m_fpsCount));
 }
 
-void HostVideo::setFpsVisible(bool on) {
+void HostVideo::setFpsVisible(bool on)
+{
 	m_fpsVisible = on;
 }
 
-void HostVideo::setSwipeEnabled(bool on) {
+void HostVideo::setSwipeEnabled(bool on)
+{
 #if defined(MEEGO_EDITION_HARMATTAN)
 	if (m_swipeEnabled == on)
 		return;
@@ -115,7 +127,8 @@ void HostVideo::setSwipeEnabled(bool on) {
 #endif
 }
 
-void HostVideo::setMyVisible(bool visible) {
+void HostVideo::setMyVisible(bool visible)
+{
 	if (visible) {
 		showFullScreen();
 		setFocus();
@@ -124,18 +137,21 @@ void HostVideo::setMyVisible(bool visible) {
 	}
 }
 
-void HostVideo::closeEvent(QCloseEvent *e) {
+void HostVideo::closeEvent(QCloseEvent *e)
+{
 	e->ignore();
 	emit quit();
 }
 
-void HostVideo::changeEvent(QEvent *e) {
+void HostVideo::changeEvent(QEvent *e)
+{
 	QGLWidget::changeEvent(e);
 	if (e->type() == QEvent::WindowStateChange && windowState().testFlag(Qt::WindowMinimized))
 		emit minimized();
 }
 
-void HostVideo::updateRects() {
+void HostVideo::updateRects()
+{
 	m_srcRect = m_machine->videoSrcRect();
 	Q_ASSERT_X(m_srcRect.width() != 0.0f && m_srcRect.height() != 0.0f, "HostVideo", "Define source rect!");
 	qreal ww = Width;
@@ -152,8 +168,14 @@ void HostVideo::updateRects() {
 	}
 }
 
-void HostVideo::setKeepAspectRatio(bool on) {
+void HostVideo::setKeepAspectRatio(bool on)
+{
 	m_keepAspectRatio = on;
 	if (m_srcRect.width() != 0.0f)
 		updateRects();
+}
+
+void HostVideo::setBilinearFiltering(bool enabled)
+{
+	m_bilinearFiltering = enabled;
 }

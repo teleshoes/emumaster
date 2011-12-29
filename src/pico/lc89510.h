@@ -6,8 +6,8 @@
 	(c) Copyright 2011, elemental
 */
 
-#ifndef LC89510_H
-#define LC89510_H
+#ifndef PICOLC89510_H
+#define PICOLC89510_H
 
 #include <imachine.h>
 
@@ -130,4 +130,4 @@ void CDC_Write_Reg(u8 Data);
 
 void CDD_Import_Command();
 
-#endif // LC89510_H
+#endif // PICOLC89510_H

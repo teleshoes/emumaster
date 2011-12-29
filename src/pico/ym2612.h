@@ -1,6 +1,6 @@
 /* header file for software emulation for FM sound generator */
-#ifndef YM6212_H
-#define YM6212_H
+#ifndef PICOYM6212_H
+#define PICOYM6212_H
 
 #include <imachine.h>
 
@@ -160,4 +160,4 @@ void YM2612Update(int *buffer, int length);
 void YM2612PicoStateLoad();
 extern "C" int YM2612Write(unsigned int a, unsigned int v);
 
-#endif // YM6212_H
+#endif // PICOYM6212_H

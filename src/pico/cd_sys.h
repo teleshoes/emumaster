@@ -6,8 +6,8 @@
 	(c) Copyright 2011, elemental
 */
 
-#ifndef _CD_SYS_H
-#define _CD_SYS_H
+#ifndef PICOMCDSYS_H
+#define PICOMCDSYS_H
 
 #include "cd_file.h"
 #include <QFile>
@@ -118,5 +118,5 @@ int CDD_Def(void);
 }
 #endif
 
-#endif
+#endif // PICOMCDSYS_H
 
