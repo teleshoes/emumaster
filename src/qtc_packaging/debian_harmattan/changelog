@@ -5,8 +5,11 @@ emumaster (0.2.0) unstable; urgency=low
   * bilinear filtering
   * better search
   * restart confirmation dialog to prevent accidental pushing on restart button
-  * keyboard configured as PadA by default
-  * do not clear screen if Fullscreen is forced
+  * keyboard configured as pad-a by default
+  * do not clear screen if fullscreen is forced
+  * [bug] fullscreen option didn't work as expected - fixed
+  * [bug] keyboard conf - l1/r1 has been reversed with start/select
+  * [bug] l2/r2 has same values as l1/r1 - fixed
   * [bug] if games have different extensions they are incorrectly sorted in disk gallery - fixed
   * [bug] mulitplayer don't work in psx - fixed
   * [bug] strange sixaxis identify animation - fixed

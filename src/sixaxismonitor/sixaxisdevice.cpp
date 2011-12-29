@@ -17,6 +17,7 @@
 #include "sixaxisdevice.h"
 #include "sixaxisserver.h"
 #include <QSocketNotifier>
+#include <sys/socket.h>
 
 /** Converts bdaddr \a a to QString and returns as a result. */
 static QString bdaddrToString(const bdaddr_t *a) {

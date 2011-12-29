@@ -81,13 +81,13 @@ const int KeybInputDevice::m_defaultMapping[14] = {
 	Qt::Key_S,
 	Qt::Key_D,
 
-	Qt::Key_Q,
-	Qt::Key_W,
-
 	Qt::Key_G,
 	Qt::Key_H,
 	Qt::Key_T,
-	Qt::Key_Z
+	Qt::Key_Z,
+
+	Qt::Key_Q,
+	Qt::Key_W
 };
 
 const char *KeybInputDevice::m_defaultMappingText[] = {
@@ -101,13 +101,13 @@ const char *KeybInputDevice::m_defaultMappingText[] = {
 	"s",
 	"d",
 
-	"q",
-	"w",
-
 	"g",
 	"h",
 	"t",
-	"z"
+	"z",
+
+	"q",
+	"w"
 };
 
 void KeybInputDevice::setPadButton(int buttonIndex, int hostKey, const QString hostKeyText) {
@@ -154,13 +154,13 @@ const char *KeybInputDevice::m_padButtonName[] = {
 	"X",
 	"Y",
 
-	"Start",
-	"Select",
-
 	"L1",
 	"R1",
 	"L2",
-	"R2"
+	"R2",
+
+	"Start",
+	"Select"
 };
 
 QString KeybInputDevice::padButtonName(int buttonIndex) const {

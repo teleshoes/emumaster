@@ -46,7 +46,7 @@ HostVideo::HostVideo(HostInput *hostInput, IMachine *machine, MachineThread *thr
 	m_fpsCounterTime.start();
 
 	m_swipeEnabled = true;
-	m_keepAspectRatio = false;
+	m_keepAspectRatio = true;
 	m_bilinearFiltering = false;
 }
 
@@ -58,7 +58,7 @@ void HostVideo::paintEvent(QPaintEvent *)
 {
 	QPainter painter;
 	painter.begin(this);
-	if (m_keepAspectRatio && !m_firstPaint) {
+	if (m_keepAspectRatio || m_firstPaint) {
 		painter.fillRect(rect(), Qt::black);
 		m_firstPaint = false;
 	}

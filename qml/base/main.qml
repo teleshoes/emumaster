@@ -22,7 +22,7 @@ PageStackWindow {
 	showStatusBar: false
 	initialPage: settingsPage
 
-	style: PageStackWindowStyle {
+	platformStyle: PageStackWindowStyle {
 		id: customStyle
 		background: "image://theme/meegotouch-video-background"
 		backgroundFillMode: Image.Stretch

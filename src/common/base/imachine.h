@@ -61,11 +61,11 @@ public:
 
 		PadKey_L1		= (1 <<  8),
 		PadKey_R1		= (1 <<  9),
-		PadKey_L2		= (1 <<  8),
-		PadKey_R2		= (1 <<  9),
+		PadKey_L2		= (1 <<  10),
+		PadKey_R2		= (1 <<  11),
 
-		PadKey_Start	= (1 << 10),
-		PadKey_Select	= (1 << 11)
+		PadKey_Start	= (1 << 12),
+		PadKey_Select	= (1 << 13)
 	};
 
 	static int *padOffset(int *data, int pad);

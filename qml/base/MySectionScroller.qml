@@ -61,9 +61,6 @@ Item {
 
 	property Style platformStyle: SectionScrollerStyle { }
 
-	//Deprecated, TODO Remove this on w13
-	property alias style: root.platformStyle
-
 	Rectangle {
 		id: container
 		color: "transparent"
