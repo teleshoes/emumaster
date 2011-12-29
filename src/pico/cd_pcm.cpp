@@ -1,6 +1,11 @@
-// Emulation routines for the RF5C164 PCM chip.
-// Based on Gens code by Stéphane Dallongeville
-// (c) Copyright 2007, Grazvydas "notaz" Ignotas
+/*
+	Emulation routines for the RF5C164 PCM chip.
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	Original code (c) 2002 by Stéphane Dallongeville
+	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+	(c) Copyright 2011, elemental
+*/
 
 #include "pico.h"
 #include "cd_pcm.h"

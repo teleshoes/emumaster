@@ -1,10 +1,10 @@
-// This is part of Pico Library
-
-// (c) Copyright 2004 Dave, All rights reserved.
-// (c) Copyright 2006,2007 notaz, All rights reserved.
-// Free for non-commercial use.
-
-// For commercial use, separate licencing terms must be obtained.
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	Original code (c) 2004 by Dave
+	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+	(c) Copyright 2011, elemental
+*/
 
 #include "machine.h"
 #include "pico.h"
@@ -180,7 +180,7 @@ void picoSoundTimersAndDac(int raster)
 
 int picoSoundRender(int offset, int length)
 {
-	int *buf32 = picoSoundMixBuffer+offset;
+	int *buf32 = picoSoundMixBuffer + offset;
 
 	if (PicoOpt & 2) // PSG
 		sn76496.update(buf32, length);
@@ -190,11 +190,6 @@ int picoSoundRender(int offset, int length)
 	int doPcm = (PicoMCD&1) && (PicoOpt&0x400) && (Pico_mcd->pcm.control & 0x80) && Pico_mcd->pcm.enabled;
 	if (doPcm)// CD: PCM sound
 		picoMcdPcmUpdate(buf32, length);
-
-	// CD: CDDA audio
-	// CD mode, cdda enabled, not data track, CDC is reading
-	// TODO if ((PicoMCD & 1) && (PicoOpt & 0x800) && !(Pico_mcd->s68k_regs[0x36] & 1) && (Pico_mcd->scd.Status_CDC & 1))
-	//  mp3_update(buf32, length, stereo);
 
 	picoSoundFinishMixing(offset, length);
 	memset32(buf32, 0, length<<1);

@@ -3,9 +3,10 @@
 @ assembly optimized versions of most funtions from draw2.c
 @ this is highly specialized, be careful if changing related C code!
 
-@ (c) Copyright 2007, Grazvydas "notaz" Ignotas
-@ All Rights Reserved
-
+@	Free for non-commercial use.
+@	For commercial use, separate licencing terms must be obtained.
+@	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+@	(c) Copyright 2011, elemental
 
 .extern Pico
 .extern PicoDraw2FB

@@ -1,9 +1,10 @@
-// This is a direct rewrite of gfx_cd.asm (x86 asm to C).
-// You can even find some x86 register names :)
-// Original code (c) 2002 by Stéphane Dallongeville
-
-// (c) Copyright 2007, Grazvydas "notaz" Ignotas
-
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	Original code (c) 2002 by Stéphane Dallongeville
+	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+	(c) Copyright 2011, elemental
+*/
 
 #include "pico.h"
 

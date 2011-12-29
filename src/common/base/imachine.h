@@ -91,6 +91,10 @@ public:
 
 	bool saveState(const QString &statePath);
 	bool loadState(const QString &statePath);
+
+	bool isRunning() const;
+	virtual void pause();
+	virtual void resume();
 signals:
 	void videoSrcRectChanged();
 protected:
@@ -108,6 +112,7 @@ private:
 	QString m_name;
 	qreal m_frameRate;
 	QRectF m_videoSrcRect;
+	bool m_running;
 
 	friend class MachineView;
 	friend class HostInput;
@@ -119,6 +124,9 @@ inline qreal IMachine::frameRate() const
 { return m_frameRate; }
 inline QRectF IMachine::videoSrcRect() const
 { return m_videoSrcRect; }
+
+inline bool IMachine::isRunning() const
+{ return m_running; }
 
 inline int *IMachine::padOffset(int *data, int pad)
 { Q_ASSERT(pad >= 0 && pad < 2); return &data[pad*4]; }

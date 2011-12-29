@@ -3,9 +3,10 @@
 @ memory handlers with banking support for SSF II - The New Challengers
 @ mostly based on Gens code
 
-@ (c) Copyright 2006-2007, Grazvydas "notaz" Ignotas
-@ All Rights Reserved
-
+@	Free for non-commercial use.
+@	For commercial use, separate licencing terms must be obtained.
+@	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+@	(c) Copyright 2011, elemental
 
 .include "port_config.S"
 

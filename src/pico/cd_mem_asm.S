@@ -1,9 +1,9 @@
 @ vim:filetype=armasm
 
-@ Memory I/O handlers for Sega/Mega CD emulation
-@ (c) Copyright 2007, Grazvydas "notaz" Ignotas
-
-
+@	Free for non-commercial use.
+@	For commercial use, separate licencing terms must be obtained.
+@	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+@	(c) Copyright 2011, elemental
 
 .equiv PCM_STEP_SHIFT, 11
 .equiv POLL_LIMIT, 16

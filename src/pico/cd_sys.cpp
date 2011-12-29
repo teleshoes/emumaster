@@ -1,11 +1,10 @@
-/***********************************************************
- *                                                         *
- * This source file was taken from the Gens project        *
- * Written by Stéphane Dallongeville                       *
- * Copyright (c) 2002 by Stéphane Dallongeville            *
- * Modified/adapted for PicoDrive by notaz, 2007           *
- *                                                         *
- ***********************************************************/
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	Original code (c) 2002 by Stéphane Dallongeville
+	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+	(c) Copyright 2011, elemental
+*/
 
 #include <stdio.h>
 
@@ -459,6 +458,7 @@ int Play_CDD_c3(void)
 	MSF.S = (Pico_mcd->s68k_regs[0x38+10+4] & 0xF) * 10 + (Pico_mcd->s68k_regs[0x38+10+5] & 0xF);
 	MSF.F = (Pico_mcd->s68k_regs[0x38+10+6] & 0xF) * 10 + (Pico_mcd->s68k_regs[0x38+10+7] & 0xF);
 
+	int oldTrack = Pico_mcd->scd.Cur_Track;
 	Pico_mcd->scd.Cur_Track = MSF_to_Track(&MSF);
 
 	new_lba = MSF_to_LBA(&MSF);
@@ -482,6 +482,8 @@ int Play_CDD_c3(void)
 	if (Pico_mcd->scd.Cur_Track == 1)
 	{
 		Pico_mcd->s68k_regs[0x36] |=  0x01;				// DATA
+		if (oldTrack != 1)
+			Pico_mcd->TOC.stopAudio();
 	}
 	else
 	{
@@ -560,6 +562,8 @@ int Pause_CDD_c6(void)
 
 	Pico_mcd->scd.CDD_Complete = 1;
 
+	if (Pico_mcd->scd.Cur_Track != 1)
+		Pico_mcd->TOC.stopAudio();
 	return 0;
 }
 

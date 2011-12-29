@@ -20,7 +20,6 @@ import "../base"
 
 Page {
 	id: mainPage
-	orientationLock: PageOrientation.LockPortrait
 
 	Label {
 		id: helpLabel

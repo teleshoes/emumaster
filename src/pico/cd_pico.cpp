@@ -1,5 +1,9 @@
-// (c) Copyright 2007 notaz, All rights reserved.
-
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+	(c) Copyright 2011, elemental
+*/
 
 #include "pico.h"
 
@@ -89,19 +93,9 @@ static __inline void SekRunM68k(int cyc)
   int cyc_do;
   SekCycleAim+=cyc;
   if ((cyc_do=SekCycleAim-SekCycleCnt) <= 0) return;
-#if defined(EMU_CORE_DEBUG)
-  SekCycleCnt+=CM_compareRun(cyc_do, 0);
-#elif defined(EMU_C68K)
   PicoCpuCM68k.cycles=cyc_do;
   CycloneRun(&PicoCpuCM68k);
   SekCycleCnt+=cyc_do-PicoCpuCM68k.cycles;
-#elif defined(EMU_M68K)
-  m68k_set_context(&PicoCpuMM68k);
-  SekCycleCnt+=m68k_execute(cyc_do);
-#elif defined(EMU_F68K)
-  g_m68kcontext=&PicoCpuFM68k;
-  SekCycleCnt+=fm68k_emulate(cyc_do, 0);
-#endif
 }
 
 static __inline void SekRunS68k(int cyc)
@@ -109,19 +103,9 @@ static __inline void SekRunS68k(int cyc)
   int cyc_do;
   SekCycleAimS68k+=cyc;
   if ((cyc_do=SekCycleAimS68k-SekCycleCntS68k) <= 0) return;
-#if defined(EMU_CORE_DEBUG)
-  SekCycleCntS68k+=CM_compareRun(cyc_do, 1);
-#elif defined(EMU_C68K)
   PicoCpuCS68k.cycles=cyc_do;
   CycloneRun(&PicoCpuCS68k);
   SekCycleCntS68k+=cyc_do-PicoCpuCS68k.cycles;
-#elif defined(EMU_M68K)
-  m68k_set_context(&PicoCpuMS68k);
-  SekCycleCntS68k+=m68k_execute(cyc_do);
-#elif defined(EMU_F68K)
-  g_m68kcontext=&PicoCpuFS68k;
-  SekCycleCntS68k+=fm68k_emulate(cyc_do, 0);
-#endif
 }
 
 #define PS_STEP_M68K ((488<<16)/20) // ~24
@@ -129,13 +113,6 @@ static __inline void SekRunS68k(int cyc)
 
 #if defined(_ASM_CD_PICO_C)
 extern "C" void SekRunPS(int cyc_m68k, int cyc_s68k);
-#elif defined(EMU_F68K)
-static __inline void SekRunPS(int cyc_m68k, int cyc_s68k)
-{
-  SekCycleAim+=cyc_m68k;
-  SekCycleAimS68k+=cyc_s68k;
-  fm68k_emulate(0, 1);
-}
 #else
 static __inline void SekRunPS(int cyc_m68k, int cyc_s68k)
 {
@@ -148,30 +125,14 @@ static __inline void SekRunPS(int cyc_m68k, int cyc_s68k)
   {
     cycn_s68k = (cycn + cycn/2 + cycn/8) >> 16;
     if ((cyc_do = SekCycleAim-SekCycleCnt-(cycn>>16)) > 0) {
-#if defined(EMU_C68K)
-      PicoCpuCM68k.cycles = cyc_do;
+	  PicoCpuCM68k.cycles = cyc_do;
       CycloneRun(&PicoCpuCM68k);
       SekCycleCnt += cyc_do - PicoCpuCM68k.cycles;
-#elif defined(EMU_M68K)
-      m68k_set_context(&PicoCpuMM68k);
-      SekCycleCnt += m68k_execute(cyc_do);
-#elif defined(EMU_F68K)
-      g_m68kcontext = &PicoCpuFM68k;
-      SekCycleCnt += fm68k_emulate(cyc_do, 0);
-#endif
     }
     if ((cyc_do = SekCycleAimS68k-SekCycleCntS68k-cycn_s68k) > 0) {
-#if defined(EMU_C68K)
       PicoCpuCS68k.cycles = cyc_do;
       CycloneRun(&PicoCpuCS68k);
       SekCycleCntS68k += cyc_do - PicoCpuCS68k.cycles;
-#elif defined(EMU_M68K)
-      m68k_set_context(&PicoCpuMS68k);
-      SekCycleCntS68k += m68k_execute(cyc_do);
-#elif defined(EMU_F68K)
-      g_m68kcontext = &PicoCpuFS68k;
-      SekCycleCntS68k += fm68k_emulate(cyc_do, 0);
-#endif
     }
   }
 }
@@ -241,16 +202,13 @@ static __inline void update_chips(void)
 	}
 }
 
-
 static __inline void getSamples(int y)
 {
   picoSoundRender(0, picoSoundLen);
 }
 
-
 #define PICO_CD
 #include "pico_frame_hints.h"
-
 
 int PicoFrameMCD(void)
 {

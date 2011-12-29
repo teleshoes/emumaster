@@ -1,6 +1,12 @@
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+	(c) Copyright 2011, elemental
+*/
+
 #ifndef PICO_H
 #define PICO_H
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,10 +42,6 @@ extern void picoScanLine(uint num);
 #define picoDebugSek(...)
 #define picoDebugMcdSek(...)
 #define picoDebugMcdToc(...)
-
-void mp3_start_play(QFile *file, int pos);
-int  mp3_get_offset(); // 0-1023
-void mp3_update(int *buffer, int length);
 
 extern const unsigned char  hcounts_32[];
 extern const unsigned char  hcounts_40[];
@@ -84,12 +86,6 @@ extern int  (*PicoMCDcloseTray)(void);
 // cd/cd_sys.c
 bool Insert_CD(const QString &fileName, QString *error);
 void Stop_CD(void); // releases all resources taken when CD game was started.
-
-// TODO int PicoCartLoad(pm_file *f,unsigned char **prom,unsigned int *psize);
-int PicoCartInsert(unsigned char *rom,unsigned int romsize);
-void Byteswap(unsigned char *data,int len);
-int PicoUnloadCart(unsigned char* romdata);
-extern void (*PicoCDLoadProgressCB)(int percent);
 
 // Draw.c
 extern void *DrawLineDest;
@@ -362,13 +358,9 @@ void PicoMemSetup(void);
 void PicoMemReset(void);
 int PadRead(int i);
 unsigned char z80_read(unsigned short a);
-#ifndef _USE_CZ80
 void z80_write(unsigned char data, unsigned short a);
 void z80_write16(unsigned short data, unsigned short a);
 unsigned short z80_read16(unsigned short a);
-#else
-void z80_write(unsigned int a, unsigned char data);
-#endif
 
 // cd/Memory.c
 void PicoMemSetupCD(void);
@@ -398,10 +390,6 @@ void SekSetRealTAS(int use_real);
 void SekInitS68k(void);
 void SekResetS68k();
 int SekInterruptS68k(int irq);
-
-// sound/sound.c
-extern int picoSoundLen_exc_cnt;
-extern int picoSoundLen_exc_add;
 
 // VideoPort.c
 void PicoVideoWrite(unsigned int a,unsigned short d);

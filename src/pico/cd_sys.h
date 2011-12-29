@@ -1,11 +1,10 @@
-/***********************************************************
- *                                                         *
- * This source was taken from the Gens project             *
- * Written by Stéphane Dallongeville                       *
- * Copyright (c) 2002 by Stéphane Dallongeville            *
- * Modified/adapted for PicoDrive by notaz, 2007           *
- *                                                         *
- ***********************************************************/
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	Original code (c) 2002 by Stéphane Dallongeville
+	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+	(c) Copyright 2011, elemental
+*/
 
 #ifndef _CD_SYS_H
 #define _CD_SYS_H
@@ -39,6 +38,8 @@ public:
 	void close();
 	int region() const;
 	bool playAudio();
+	void stopAudio();
+	void playTrack(int index, int offset);
 
 	PicoMcdTrack Tracks[100];
 	int Last_Track;

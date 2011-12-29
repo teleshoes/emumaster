@@ -1,13 +1,11 @@
-// This is part of Pico Library
-
-// (c) Copyright 2007, Grazvydas "notaz" Ignotas
-// Free for non-commercial use.
-
-// For commercial use, separate licencing terms must be obtained.
-
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	(c) Copyright 2007, Grazvydas "notaz" Ignotas
+	(c) Copyright 2011, elemental
+*/
 
 // this is a frame-based renderer, alternative to Dave's line based which is in Draw.c
-
 
 #include "pico.h"
 

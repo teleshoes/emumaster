@@ -24,39 +24,49 @@ EMSL emsl;
 IMachine::IMachine(const QString &name, QObject *parent) :
 	QObject(parent),
 	m_name(name),
-	m_frameRate(1) {
+	m_frameRate(1),
+	m_running(true)
+{
 }
 
-IMachine::~IMachine() {
+IMachine::~IMachine()
+{
 }
 
-void IMachine::reset() {
+void IMachine::reset()
+{
 }
 
-void IMachine::setFrameRate(qreal rate) {
+void IMachine::setFrameRate(qreal rate)
+{
 	m_frameRate = rate;
 }
 
-void IMachine::setVideoSrcRect(const QRectF &rect) {
+void IMachine::setVideoSrcRect(const QRectF &rect)
+{
 	if (m_videoSrcRect != rect) {
 		m_videoSrcRect = rect;
 		emit videoSrcRectChanged();
 	}
 }
 
-void IMachine::setAudioEnabled(bool on) {
+void IMachine::setAudioEnabled(bool on)
+{
 	Q_UNUSED(on)
 }
 
-void EMSL::varNotExist(const QString &name) {
+void EMSL::varNotExist(const QString &name)
+{
 	error = QObject::tr("\"%1->%2\" not exists").arg(currGroup).arg(name);
 }
 
-void EMSL::ioError() {
+void EMSL::ioError()
+{
 	error = QObject::tr("IO error");
 }
 
-bool IMachine::saveInternal(QDataStream *stream) {
+bool IMachine::saveInternal(QDataStream *stream)
+{
 	QByteArray ba;
 	ba.reserve(1024 * 1024 * 2);
 
@@ -81,7 +91,8 @@ bool IMachine::saveInternal(QDataStream *stream) {
 	return succeded;
 }
 
-bool IMachine::loadInternal(QDataStream *stream) {
+bool IMachine::loadInternal(QDataStream *stream)
+{
 	QByteArray ba;
 	*stream >> emsl.allAddr;
 	*stream >> ba;
@@ -107,16 +118,19 @@ bool IMachine::loadInternal(QDataStream *stream) {
 	return emsl.error.isEmpty();
 }
 
-void EMSL::push() {
+void EMSL::push()
+{
 	end();
 	groupStack.append(currGroup);
 }
 
-void EMSL::pop() {
+void EMSL::pop()
+{
 	begin(groupStack.takeLast());
 }
 
-bool IMachine::saveState(const QString &statePath) {
+bool IMachine::saveState(const QString &statePath)
+{
 	emsl.save = true;
 
 	QByteArray data;
@@ -144,7 +158,8 @@ bool IMachine::saveState(const QString &statePath) {
 	return ok;
 }
 
-bool IMachine::loadState(const QString &statePath) {
+bool IMachine::loadState(const QString &statePath)
+{
 	emsl.save = false;
 	emsl.abortIfLoadFails = false;
 
@@ -172,7 +187,8 @@ bool IMachine::loadState(const QString &statePath) {
 	return loadInternal(&s);
 }
 
-void IMachine::keybEnqueue(int *data, int key) {
+void IMachine::keybEnqueue(int *data, int key)
+{
 	// TODO declare num of pads and mouses as constants
 	int *keyb = &data[(2+2)*4];
 	int i = 0;
@@ -184,7 +200,8 @@ void IMachine::keybEnqueue(int *data, int key) {
 		keyb[i] = key;
 }
 
-int IMachine::keybDequeue(int *data) {
+int IMachine::keybDequeue(int *data)
+{
 	int *keyb = &data[(2+2)*4];
 	int key = keyb[0];
 	keyb[0] = keyb[1];
@@ -192,4 +209,14 @@ int IMachine::keybDequeue(int *data) {
 	keyb[2] = keyb[3];
 	keyb[3] = 0;
 	return key;
+}
+
+void IMachine::pause()
+{
+	m_running = false;
+}
+
+void IMachine::resume()
+{
+	m_running = true;
 }

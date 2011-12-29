@@ -1,14 +1,15 @@
-/***********************************************************
- *                                                         *
- * This source was taken from the Gens project             *
- * Written by Stéphane Dallongeville                       *
- * Copyright (c) 2002 by Stéphane Dallongeville            *
- * Modified/adapted for PicoDrive by notaz, 2007           *
- *                                                         *
- ***********************************************************/
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	Original code (c) 2002 by Stéphane Dallongeville
+	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+	(c) Copyright 2011, elemental
+*/
 
 #include "pico.h"
 #include "cd_file.h"
+#include "mp3player.h"
+#include "machine.h"
 #include <QDir>
 #include <QFileInfo>
 
@@ -99,10 +100,11 @@ void PicoMcdToc::searchForMp3Files()
 {
 	// list mp3 files
 	QString dataFileName = Tracks[0].file->fileName();
-	QDir dir = QFileInfo(dataFileName).dir();
+	QFileInfo diskInfo(dataFileName);
+	QDir dir = diskInfo.dir();
 	QStringList list = dir.entryList(QStringList() << "*.mp3");
 
-	QString start = dataFileName.left(dataFileName.size() - 4);
+	QString start = diskInfo.completeBaseName();
 	foreach (QString name, list) {
 		if (name.startsWith(start)) {
 			// extract track index
@@ -137,7 +139,7 @@ void PicoMcdToc::insertMp3File(int index, const QString &fileName)
 			delete file;
 		}
 	} else {
-		qDebug("mp3 already inserted, track:%d, file: %s", index, qPrintable(fileName));
+		qDebug("MP3 file already inserted, track:%d, file: %s", index, qPrintable(fileName));
 	}
 }
 
@@ -206,6 +208,10 @@ void FILE_Read_One_LBA_CDC() {
 
 bool PicoMcdToc::playAudio()
 {
+	if (!picoMachine.mp3Player())
+		return false;
+	picoMachine.mp3Player()->stop();
+
 	Q_ASSERT(Pico_mcd->scd.Cur_Track >= 1);
 	int index = Pico_mcd->scd.Cur_Track - 1;
 	Pico_mcd->m.audio_track = index;
@@ -214,7 +220,6 @@ bool PicoMcdToc::playAudio()
 
 	if (index >= 100 || !Tracks[index].file)
 		return false;
-
 	if (Tracks[index].type != PicoMcdTrack::Mp3)
 		return false;
 
@@ -223,9 +228,36 @@ bool PicoMcdToc::playAudio()
 	if (trackLbaPos < 0)
 		trackLbaPos = 0;
 	pos1024 = trackLbaPos * 1024 / Tracks[index].Length;
-
-	// TODO mp3_start_play(Tracks[index].file, pos1024);
+	playTrack(index, pos1024);
 	return true;
+}
+
+void PicoMcdToc::playTrack(int index, int offset)
+{
+	Mp3Player *player = picoMachine.mp3Player();
+	if (!player)
+		return;
+	if (!Tracks[index].file)
+		return;
+
+	QString fileName = Tracks[index].file->fileName();
+	QMetaObject::invokeMethod(player,
+							  "start",
+							  Qt::QueuedConnection,
+							  Q_ARG(QString, fileName),
+							  Q_ARG(bool, true),
+							  Q_ARG(int, offset));
+}
+
+void PicoMcdToc::stopAudio()
+{
+	Pico_mcd->m.audio_track = 0;
+	Mp3Player *player = picoMachine.mp3Player();
+	if (player) {
+		QMetaObject::invokeMethod(player,
+								  "stop",
+								  Qt::QueuedConnection);
+	}
 }
 
 int PicoMcdToc::region() const

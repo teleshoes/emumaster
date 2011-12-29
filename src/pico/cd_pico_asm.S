@@ -4,9 +4,10 @@
 @ cycles. This is done without calling CycloneRun and jumping directly to
 @ Cyclone code to avoid pushing/popping all the registers every time.
 
-@ (c) Copyright 2007, Grazvydas "notaz" Ignotas
-@ All Rights Reserved
-
+@	Free for non-commercial use.
+@	For commercial use, separate licencing terms must be obtained.
+@	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+@	(c) Copyright 2011, elemental
 
 .equiv PS_STEP_M68K, ((488<<16)/20) @ ~24
 

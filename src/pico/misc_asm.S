@@ -1,8 +1,9 @@
 @ vim:filetype=armasm
 
-@ Generic memory routines.
-@ (c) Copyright 2007, Grazvydas "notaz" Ignotas
-
+@	Free for non-commercial use.
+@	For commercial use, separate licencing terms must be obtained.
+@	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+@	(c) Copyright 2011, elemental
 
 .global memcpy16 @ unsigned short *dest, unsigned short *src, int count
 

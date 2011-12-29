@@ -158,6 +158,6 @@ void YM2612Init(int baseclock, int rate);
 void YM2612ResetChip();
 void YM2612Update(int *buffer, int length);
 void YM2612PicoStateLoad();
-extern "C" int  YM2612Write(unsigned int a, unsigned int v);
+extern "C" int YM2612Write(unsigned int a, unsigned int v);
 
 #endif // YM6212_H

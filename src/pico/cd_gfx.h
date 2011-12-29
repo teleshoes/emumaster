@@ -1,6 +1,12 @@
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+	(c) Copyright 2011, elemental
+*/
+
 #ifndef _GFX_CD_H
 #define _GFX_CD_H
-
 
 typedef struct
 {

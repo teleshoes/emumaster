@@ -1,8 +1,10 @@
 @ vim:filetype=armasm
 
-@ Memory converters for different modes
-@ (c) Copyright 2007, Grazvydas "notaz" Ignotas
-
+@	Free for non-commercial use.
+@	For commercial use, separate licencing terms must be obtained.
+@	Original code (c) 2002 by Stéphane Dallongeville
+@	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+@	(c) Copyright 2011, elemental
 
 @ r10 is tmp, io1 is lsb halfword, io2 is msb
 @ | 0 1 | 2 3 |  ->  | 0 2 | 1 3 |  (little endian)

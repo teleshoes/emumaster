@@ -1,8 +1,15 @@
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	(c) Copyright 2011, elemental
+*/
+
 #include "machine.h"
 #include "machineview.h"
 #include "pico.h"
 #include "cart.h"
 #include "pathmanager.h"
+#include "mp3player.h"
 #include <QImage>
 #include <QApplication>
 #include <QFile>
@@ -12,7 +19,9 @@ PicoMachine picoMachine;
 QImage picoFrame;
 
 PicoMachine::PicoMachine() :
-	IMachine("pico")
+	IMachine("pico"),
+	m_lastVideoMode(0),
+	m_mp3Player(0)
 {
 }
 
@@ -92,17 +101,33 @@ QString PicoMachine::init(const QString &diskPath)
 	m_lastVideoMode = ((Pico.video.reg[12]&1)<<2) ^ 0xc;
 
 	if (!diskPath.endsWith(".gen") && !diskPath.endsWith(".smd")) {
+		QString fileName = diskPath;
+		QFileInfo fileInfo(diskPath);
+		if (fileInfo.isDir()) {
+			QString name = fileInfo.fileName();
+			fileName = QString("%1/%2.iso").arg(diskPath).arg(name);
+			if (!QFile::exists(fileName)) {
+				fileName = QString("%1/%2.bin").arg(diskPath).arg(name);
+				if (!QFile::exists(fileName)) {
+					return tr("iso/bin not found in the directory");
+				}
+			}
+		}
+
 		mcd_state *data = new mcd_state;
 		memset(data, 0, sizeof(mcd_state));
 		Pico.rom = picoRom = (u8 *)data;
 		// CD
-		if (!Insert_CD(diskPath, &error))
+		if (!Insert_CD(fileName, &error))
 			return error;
 		PicoMCD |= 1;
 		picoMcdOpt |= PicoMcdEnabled;
 
 		if (!findMcdBios(&cartPath, &error))
 			return error;
+
+		if (Pico_mcd->TOC.Last_Track > 1)
+			m_mp3Player = new Mp3Player(this);
 	}
 
 	if (!picoCart.open(cartPath, &error))
@@ -149,6 +174,26 @@ void PicoMachine::emulateFrame(bool drawEnabled)
 const QImage &PicoMachine::frame() const
 {
 	return picoFrame;
+}
+
+void PicoMachine::pause()
+{
+	IMachine::pause();
+	if (mp3Player()) {
+		QMetaObject::invokeMethod(mp3Player(),
+								  "pause",
+								  Qt::QueuedConnection);
+	}
+}
+
+void PicoMachine::resume()
+{
+	IMachine::resume();
+	if (mp3Player()) {
+		QMetaObject::invokeMethod(mp3Player(),
+								  "resume",
+								  Qt::QueuedConnection);
+	}
 }
 
 int main(int argc, char *argv[])

@@ -54,6 +54,7 @@ static void sleepMs(uint msecs) {
 
 void MachineThread::run() {
 	if (m_firstRun) {
+		// TODO load only from main thread
 		for (int i = 0; i < 60; i++)
 			m_machine->emulateFrame(false);
 		if (m_loadSlot != StateListModel::InvalidSlot) {
@@ -62,6 +63,8 @@ void MachineThread::run() {
 		}
 		m_firstRun = false;
 	}
+	if (!m_machine->isRunning())
+		m_machine->resume();
 #if defined(MEEGO_EDITION_HARMATTAN)
 	int blankinkgPauseCounter = 0;
 	m_displayState.setBlankingPause();
@@ -106,6 +109,8 @@ void MachineThread::run() {
 #if defined(MEEGO_EDITION_HARMATTAN)
 	m_displayState.cancelBlankingPause();
 #endif
+	if (m_machine->isRunning())
+		m_machine->pause();
 }
 
 void MachineThread::setFrameSkip(int n) {

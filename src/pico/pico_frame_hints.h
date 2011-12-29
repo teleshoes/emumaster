@@ -1,5 +1,9 @@
-// common code for Pico.c and cd/Pico.c
-// (c) Copyright 2007, Grazvydas "notaz" Ignotas
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	Original code (c) Copyright 2007, Grazvydas "notaz" Ignotas
+	(c) Copyright 2011, elemental
+*/
 
 #define CYCLES_M68K_LINE     488 // suitable for both PAL/NTSC
 #define CYCLES_M68K_VINT_LAG  68

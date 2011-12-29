@@ -1,3 +1,9 @@
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	(c) Copyright 2011, elemental
+*/
+
 #include "machine.h"
 #include "pico.h"
 

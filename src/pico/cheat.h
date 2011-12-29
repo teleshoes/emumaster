@@ -1,3 +1,9 @@
+/*
+	Free for non-commercial use.
+	For commercial use, separate licencing terms must be obtained.
+	(c) Copyright 2011, elemental
+*/
+
 #ifndef CHEAT_H
 #define CHEAT_H
 
