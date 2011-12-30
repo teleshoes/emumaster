@@ -47,6 +47,10 @@ Licenses:
 	should be forwarded to them so everyone can benefit from the modifications
 	in future versions.
 
+ License for "pico" emulation binary:
+    Free for non-commercial use.
+    For commercial use, separate licencing terms must be obtained.
+
  "base" library is distributed under GNU LESSER GENERAL PUBLIC LICENSE v3.
 
  Any other file (except above) is distributed under GNU GENERAL PUBLIC LICENSE

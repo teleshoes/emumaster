@@ -66,6 +66,8 @@ void HostVideo::paintEvent(QPaintEvent *)
 		painter.drawImage(m_dstRect, m_machine->frame(), m_srcRect);
 		if (m_fpsVisible)
 			paintFps(painter);
+	} else if (!m_keepAspectRatio) {
+		painter.fillRect(rect(), Qt::black);
 	}
 	m_hostInput->paint(painter);
 	painter.end();
