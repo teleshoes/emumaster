@@ -37,6 +37,25 @@
 #include "assem_arm.h"
 #endif
 
+// TODO move to arm common
+static inline void sys_cacheflush(void *start, void *end) {
+#if defined(MEEGO_EDITION_HARMATTAN)
+	__builtin___clear_cache(start, end);
+#elif defined(Q_WS_MAEMO_5)
+	int num = __ARM_NR_cacheflush;
+	__asm __volatile (
+		"mov	 r0, %0\n"
+		"mov	 r1, %1\n"
+		"mov	 r7, %2\n"
+		"mov     r2, #0x0\n"
+		"svc     0x00000000\n"
+		:
+		:	"r" (start), "r" (end), "r" (num)
+				:	"r0","r2", "r1", "r7"
+	);
+#endif
+}
+
 #define MAXBLOCK 4096
 #define MAX_OUTPUT_BLOCK_SIZE 262144
 #define CLOCK_DIVIDER 2
@@ -1222,7 +1241,7 @@ void invalidate_all_pages()
       restore_candidate[((page&2047)>>3)+256]|=1<<(page&7);
     }
   #ifdef __arm__
-  __builtin___clear_cache((void *)BASE_ADDR,(void *)BASE_ADDR+(1<<TARGET_SIZE_2));
+  sys_cacheflush((void *)BASE_ADDR,(void *)BASE_ADDR+(1<<TARGET_SIZE_2));
   #endif
   #ifdef USE_MINI_HT
   memset(mini_ht,-1,sizeof(mini_ht));
@@ -7899,7 +7918,7 @@ int new_recompile_block(int addr)
     emit_writeword(0,(int)&pcaddr);
     emit_jmp((int)new_dyna_leave);
 #ifdef __arm__
-	__builtin___clear_cache((void *)beginning,out);
+	sys_cacheflush((void *)beginning,out);
 #endif
     ll_add(jump_in+page,start,(void *)beginning);
     return 0;
@@ -11282,7 +11301,7 @@ int new_recompile_block(int addr)
   copy+=slen*4;
   
   #ifdef __arm__
-  __builtin___clear_cache((void *)beginning,out);
+  sys_cacheflush((void *)beginning,out);
   #endif
   
   // If we're within 256K of the end of the buffer,

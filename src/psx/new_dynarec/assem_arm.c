@@ -4973,7 +4973,7 @@ void do_clear_cache()
               end+=4096;
               j++;
             }else{
-			  __builtin___clear_cache((void *)start,(void *)end);
+			  sys_cacheflush((void *)start,(void *)end);
               break;
             }
           }
