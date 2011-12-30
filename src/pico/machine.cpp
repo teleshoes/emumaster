@@ -133,13 +133,11 @@ QString PicoMachine::init(const QString &diskPath)
 	if (!picoCart.open(cartPath, &error))
 		return error;
 
+	PicoReset(1);
+	PicoOpt &= ~0x10000;
 	// pal/ntsc might have changed, reset related stuff
 	int targetFps = Pico.m.pal ? 50 : 60;
 	setFrameRate(targetFps);
-
-	PicoReset(1);
-	PicoOpt &= ~0x10000;
-
 	return QString();
 }
 

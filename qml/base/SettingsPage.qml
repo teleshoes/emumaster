@@ -73,7 +73,7 @@ Page {
 			orientation: ListView.Horizontal
 
 			delegate: ImageListViewDelegate {
-				width: 480
+				width: 380
 				height: 280
 				imgSource: "image://state/" + title + "*" + screenShotUpdate
 				text: Qt.formatDateTime(saveDateTime, "dd.MM.yyyy hh:mm:ss")

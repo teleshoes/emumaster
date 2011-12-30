@@ -132,7 +132,7 @@ void PicoMcdToc::insertMp3File(int index, const QString &fileName)
 			int fs = file->size();
 			file->close();
 			fs *= 75;
-			fs /= 44100;
+			fs /= 30000;
 			Tracks[index].Length = fs;
 			Last_Track = qMax(index+1, Last_Track);
 		} else {
@@ -245,7 +245,7 @@ void PicoMcdToc::playTrack(int index, int offset)
 							  "start",
 							  Qt::QueuedConnection,
 							  Q_ARG(QString, fileName),
-							  Q_ARG(bool, true),
+							  Q_ARG(bool, picoMachine.isRunning()),
 							  Q_ARG(int, offset));
 }
 

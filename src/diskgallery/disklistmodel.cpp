@@ -26,8 +26,8 @@
 
 DiskListModel::DiskListModel(QObject *parent) :
 	QAbstractListModel(parent),
-	m_screenShotUpdateCounter(0) {
-
+	m_screenShotUpdateCounter(0)
+{
 	QHash<int, QByteArray> roles;
 	roles.insert(TitleRole, "title");
 	roles.insert(TitleElidedRole, "titleElided");
@@ -47,7 +47,8 @@ DiskListModel::DiskListModel(QObject *parent) :
 	m_fontMetrics = new QFontMetrics(font);
 }
 
-void DiskListModel::setCollection(const QString &name) {
+void DiskListModel::setCollection(const QString &name)
+{
 	// do not compare with m_collection with name - needed for search cleaning
 	beginResetModel();
 	m_fullList.clear();
@@ -66,13 +67,16 @@ void DiskListModel::setCollection(const QString &name) {
 	emit collectionChanged();
 }
 
-void DiskListModel::setCollectionMachine() {
+void DiskListModel::setCollectionMachine()
+{
 	QDir dir(PathManager::instance()->diskDirPath(m_collection));
 	DiskFilter diskFilter = m_diskFilters.value(m_collection);
 
 	m_fullList = dir.entryList(diskFilter.included,
-						   QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot,
-						   QDir::Name|QDir::IgnoreCase);
+							   QDir::Files,
+							   QDir::Name|QDir::IgnoreCase);
+	if (diskFilter.includeDirs)
+		includeSubDirs(dir);
 
 	QStringList excluded;
 	for (int i = 0; i < diskFilter.excluded.size(); i++)
@@ -84,12 +88,26 @@ void DiskListModel::setCollectionMachine() {
 	m_fullListMachine = QList<int>::fromVector(QVector<int>(m_fullList.size(), machineId));
 }
 
-void DiskListModel::setCollectionFav() {
+void DiskListModel::setCollectionFav()
+{
 	m_fullList = m_favList;
 	m_fullListMachine = m_favListMachine;
 }
 
-QVariant DiskListModel::data(const QModelIndex &index, int role) const {
+static bool caseInsensitiveLessThan(const QString &s1, const QString &s2)
+{
+	return s1.toLower() < s2.toLower();
+}
+
+void DiskListModel::includeSubDirs(QDir &dir)
+{
+	QStringList subdirs = dir.entryList(QDir::Dirs|QDir::NoDotAndDotDot);
+	m_fullList += subdirs;
+	qSort(m_fullList.begin(), m_fullList.end(), caseInsensitiveLessThan);
+}
+
+QVariant DiskListModel::data(const QModelIndex &index, int role) const
+{
 	if (role == TitleRole) {
 		return getDiskTitle(index.row());
 	} else if (role == TitleElidedRole) {
@@ -105,48 +123,56 @@ QVariant DiskListModel::data(const QModelIndex &index, int role) const {
 	return QVariant();
 }
 
-int DiskListModel::rowCount(const QModelIndex &parent) const  {
+int DiskListModel::rowCount(const QModelIndex &parent) const
+{
 	Q_UNUSED(parent)
 	return count();
 }
 
-int DiskListModel::count() const {
+int DiskListModel::count() const
+{
 	return m_list.size();
 }
 
-QString DiskListModel::getAlphabet(int i) const {
+QString DiskListModel::getAlphabet(int i) const
+{
 	if (i < 0 || i >= m_list.size())
 		return QString();
 	return m_list.at(i).at(0).toUpper();
 }
 
-QString DiskListModel::getDiskTitle(int i) const {
+QString DiskListModel::getDiskTitle(int i) const
+{
 	if (i < 0 || i >= m_list.size())
 		return QString();
 	return QFileInfo(m_list.at(i)).completeBaseName();
 }
 
-QString DiskListModel::getDiskTitleElided(int i) const {
+QString DiskListModel::getDiskTitleElided(int i) const
+{
 	QString title = getDiskTitle(i);
 	if (title.size() < 20)
 		return title;
 	return m_fontMetrics->elidedText(title, Qt::ElideRight, 270);
 }
 
-QString DiskListModel::getDiskFileName(int i) const {
+QString DiskListModel::getDiskFileName(int i) const
+{
 	if (i < 0 || i >= m_list.size())
 		return QString();
 	return m_list.at(i);
 }
 
-QString DiskListModel::getDiskMachine(int i) const {
+QString DiskListModel::getDiskMachine(int i) const
+{
 	if (i < 0 || i >= m_list.size())
 		return QString();
 	int machineId = m_listMachine.at(i);
 	return PathManager::instance()->machines().at(machineId);
 }
 
-void DiskListModel::updateScreenShot(const QString &name) {
+void DiskListModel::updateScreenShot(const QString &name)
+{
 	int i = m_list.indexOf(name);
 	if (i < 0)
 		return;
@@ -154,7 +180,8 @@ void DiskListModel::updateScreenShot(const QString &name) {
 	emit dataChanged(index(i), index(i));
 }
 
-int DiskListModel::getScreenShotUpdate(int i) const {
+int DiskListModel::getScreenShotUpdate(int i) const
+{
 	QString diskTitle = getDiskTitle(i);
 	QString diskMachine = getDiskMachine(i);
 	if (diskTitle.isEmpty())
@@ -166,7 +193,8 @@ int DiskListModel::getScreenShotUpdate(int i) const {
 		return -1;
 }
 
-void DiskListModel::trash(int i) {
+void DiskListModel::trash(int i)
+{
 	QString title = getDiskTitle(i);
 	QString fileName = getDiskFileName(i);
 	QString machine = getDiskMachine(i);
@@ -209,7 +237,8 @@ void DiskListModel::trash(int i) {
 	endRemoveRows();
 }
 
-void DiskListModel::setDiskCover(int i, const QUrl &coverUrl) {
+void DiskListModel::setDiskCover(int i, const QUrl &coverUrl)
+{
 	QString coverPath = coverUrl.toLocalFile();
 	if (!QFile::exists(coverPath))
 		return;
@@ -226,25 +255,29 @@ void DiskListModel::setDiskCover(int i, const QUrl &coverUrl) {
 	emit dataChanged(index(i), index(i));
 }
 
-void DiskListModel::setupNesFilter() {
+void DiskListModel::setupNesFilter()
+{
 	DiskFilter filter;
 	filter.included << "*.nes";
 	m_diskFilters.insert("nes", filter);
 }
 
-void DiskListModel::setupGbaFilter() {
+void DiskListModel::setupGbaFilter()
+{
 	DiskFilter filter;
 	filter.included << "*.gba";
 	m_diskFilters.insert("gba", filter);
 }
 
-void DiskListModel::setupSnesFilter() {
+void DiskListModel::setupSnesFilter()
+{
 	DiskFilter filter;
 	filter.included << "*.smc";
 	m_diskFilters.insert("snes", filter);
 }
 
-void DiskListModel::setupPsxFilter() {
+void DiskListModel::setupPsxFilter()
+{
 	DiskFilter filter;
 	filter.included << "*.iso";
 	filter.included << "*.bin";
@@ -253,24 +286,28 @@ void DiskListModel::setupPsxFilter() {
 	m_diskFilters.insert("psx", filter);
 }
 
-void DiskListModel::setupAmigaFilter() {
+void DiskListModel::setupAmigaFilter()
+{
 	DiskFilter filter;
 	filter.included << "*.adf";
 	m_diskFilters.insert("amiga", filter);
 }
 
-void DiskListModel::setupPicoFilter() {
+void DiskListModel::setupPicoFilter()
+{
 	DiskFilter filter;
 	filter.included << "*.gen";
 	filter.included << "*.smd";
 	filter.included << "*.bin";
 	filter.included << "*.iso";
+	filter.includeDirs = true;
 	filter.excluded.append(QRegExp("*_scd*.bin", Qt::CaseSensitive, QRegExp::Wildcard));
 	filter.excluded.append(QRegExp("*_mcd*.bin", Qt::CaseSensitive, QRegExp::Wildcard));
 	m_diskFilters.insert("pico", filter);
 }
 
-void DiskListModel::setupFilters() {
+void DiskListModel::setupFilters()
+{
 	setupNesFilter();
 	setupGbaFilter();
 	setupSnesFilter();
@@ -280,7 +317,8 @@ void DiskListModel::setupFilters() {
 	// TODO on every new emulated system add a disk filter
 }
 
-void DiskListModel::setNameFilter(const QString &filter) {
+void DiskListModel::setNameFilter(const QString &filter)
+{
 	beginResetModel();
 	m_list.clear();
 	m_listMachine.clear();

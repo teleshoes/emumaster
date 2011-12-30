@@ -69,6 +69,7 @@ signals:
 private:
 	void setCollectionMachine();
 	void setCollectionFav();
+	void includeSubDirs(QDir &dir);
 
 	void setupFilters();
 	void setupNesFilter();
@@ -99,7 +100,10 @@ private:
 
 	class DiskFilter {
 	public:
+		DiskFilter() { includeDirs = false; }
+
 		QStringList included;
+		bool includeDirs;
 		QList<QRegExp> excluded;
 	};
 	QMap<QString, DiskFilter> m_diskFilters;

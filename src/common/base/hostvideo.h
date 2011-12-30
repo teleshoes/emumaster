@@ -78,7 +78,6 @@ private:
 	bool m_swipeEnabled;
 	bool m_keepAspectRatio;
 	bool m_bilinearFiltering;
-	bool m_firstPaint;
 };
 
 inline QRectF HostVideo::dstRect() const

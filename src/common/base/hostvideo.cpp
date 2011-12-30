@@ -30,8 +30,7 @@
 HostVideo::HostVideo(HostInput *hostInput, IMachine *machine, MachineThread *thread) :
 	m_hostInput(hostInput),
 	m_machine(machine),
-	m_thread(thread),
-	m_firstPaint(true)
+	m_thread(thread)
 {
 	QObject::connect(m_machine, SIGNAL(videoSrcRectChanged()), SLOT(updateRects()));
 
@@ -58,10 +57,8 @@ void HostVideo::paintEvent(QPaintEvent *)
 {
 	QPainter painter;
 	painter.begin(this);
-	if (m_keepAspectRatio || m_firstPaint) {
+	if (m_keepAspectRatio)
 		painter.fillRect(rect(), Qt::black);
-		m_firstPaint = false;
-	}
 
 	if (m_thread->m_inFrameGenerated) {
 		if (m_bilinearFiltering)
