@@ -31,6 +31,14 @@ Page {
 		diskViewLandscape.model = nullModel
 		diskViewLandscape.model = diskListModel
 	}
+
+	function diskClickHandle(index) {
+		if (searchBar.visible)
+			searchBar.visible = false
+		else
+			diskGallery.launch(index, true)
+	}
+
 	ListView {
 		id: diskViewPortrait
 		anchors.fill: parent
@@ -45,7 +53,7 @@ Page {
 							.arg(diskListModel.getDiskMachine(index))
 							.arg(title)
 							.arg(screenShotUpdate)
-			onClicked: diskGallery.launch(index, true)
+			onClicked: galleryPage.diskClickHandle(index)
 			onPressAndHold: galleryMenu.prepareAndOpen(index)
 		}
 		section.property: "alphabet"
@@ -73,7 +81,7 @@ Page {
 							.arg(diskListModel.getDiskMachine(index))
 							.arg(title)
 							.arg(screenShotUpdate)
-			onClicked: diskGallery.launch(index, true)
+			onClicked: galleryPage.diskClickHandle(index)
 			onPressAndHold: galleryMenu.prepareAndOpen(index)
 		}
 	}
@@ -104,10 +112,12 @@ Page {
 						right: parent.right; rightMargin: 10
 						verticalCenter: parent.verticalCenter
 					}
-					MouseArea {
-						anchors.fill: parent
-						onClicked: searchBar.visible = false
-					}
+				}
+				MouseArea {
+					width: 80
+					height: parent.height
+					anchors.right: parent.right
+					onClicked: searchBar.visible = false
 				}
 			}
 		}
@@ -134,7 +144,10 @@ Page {
 
 		ToolIcon {
 			iconId: "icon-m-common-search-inverse"
-			onClicked: searchBar.visible = !searchBar.visible
+			onClicked: {
+				searchBar.visible = !searchBar.visible
+				searchField.focus = visible
+			}
 		}
 	}
 

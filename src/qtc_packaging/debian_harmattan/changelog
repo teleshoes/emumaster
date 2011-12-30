@@ -12,7 +12,7 @@ emumaster (0.2.0) unstable; urgency=low
   * [bug] l2/r2 has same values as l1/r1 - fixed
   * [bug] if games have different extensions they are incorrectly sorted in disk gallery - fixed
   * [bug] mulitplayer don't work in psx - fixed
-  * [bug] strange sixaxis identify animation - fixed
+  * [bug] strange sixaxis animation when identify - fixed
 
  -- elemental <mar.kazmierczak@gmail.com>  Fri, 23 Dec 2011 11:44:11 +0100
 
