@@ -247,6 +247,7 @@ void MachineView::loadSettings()
 	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible", false).toBool());
 	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio", true).toBool());
 	m_hostVideo->setBilinearFiltering(loadOptionFromSettings(s, "bilinearFiltering", false).toBool());
+	setAudioEnabled(loadOptionFromSettings(s, "audioEnable", true).toBool());
 	if (!loadOptionFromSettings(s, "runInBackground", false).toBool())
 		QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
 }

@@ -89,6 +89,11 @@ Page {
 			onCheckedChanged: diskGallery.setGlobalOption("bilinearFiltering", checked)
 		}
 		EMSwitchOption {
+			text: qsTr("Audio Enabled")
+			checked: diskGallery.globalOption("audioEnable", true)
+			onCheckedChanged: diskGallery.setGlobalOption("audioEnable", checked)
+		}
+		EMSwitchOption {
 			id: runInBackgroundSwitch
 			text: qsTr("Run in Background")
 			checked: diskGallery.globalOption("runInBackground", false)

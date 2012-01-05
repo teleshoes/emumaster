@@ -1,3 +1,9 @@
+emumaster (0.2.1) unstable; urgency=low
+
+  * audio enable/disable global option
+
+ -- elemental <mar.kazmierczak@gmail.com>  Thu, 05 Jan 2012 20:46:58 +0100
+
 emumaster (0.2.0) unstable; urgency=low
 
   * genesis/megadrive/megacd support
