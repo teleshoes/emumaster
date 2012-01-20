@@ -25,7 +25,7 @@ static const int buttonsMapping[] = {
 void PicoMachine::updateInput() {
 	for (int pad = 0; pad < 2; pad++) {
 		int buttons = 0;
-		int hostButtons = m_inputData[pad];
+		int hostButtons = padOffset(m_inputData, pad)[0];
 
 		for (uint i = 0; i < sizeof(buttonsMapping); i++) {
 			if (hostButtons & buttonsMapping[i])
