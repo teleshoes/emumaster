@@ -1,6 +1,7 @@
 emumaster (0.2.1) unstable; urgency=low
 
   * audio enable/disable global option
+  * splash added
   * [bug] PadB doesn't work in pico emulation - fixed
 
  -- elemental <mar.kazmierczak@gmail.com>  Thu, 05 Jan 2012 20:46:58 +0100

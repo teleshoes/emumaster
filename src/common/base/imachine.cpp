@@ -108,7 +108,8 @@ bool IMachine::loadInternal(QDataStream *stream)
 	emsl.currAddr.clear();
 	emsl.error.clear();
 
-	Configuration::instance()->sl();
+	Configuration *conf = Configuration::instance();
+	conf->sl();
 	if (!emsl.loadConfOnly && emsl.error.isEmpty()) {
 		emsl.abortIfLoadFails = true;
 		sl();

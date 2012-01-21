@@ -60,7 +60,9 @@ unix {
 	datafiles.path = /opt/emumaster/data
 	datafiles.files = \
 		../../data/icon_mask.png \
-		../../data/icon_overlay.png
+        ../../data/icon_overlay.png \
+        ../../data/splash.png \
+        ../../data/splash-l.png \
 
 	INSTALLS += target qml datafiles qmlimg
 }
