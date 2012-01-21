@@ -426,7 +426,6 @@ bool MachineView::loadConfiguration()
 	if (!conf->item("audioEnable", true).toBool())
 		m_machine->setAudioEnabled(false);
 
-	conf->setItem("version", QCoreApplication::applicationVersion());
 	return true;
 }
 

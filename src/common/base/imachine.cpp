@@ -18,6 +18,7 @@
 #include <QSettings>
 #include <QFile>
 #include <QImage>
+#include <QCoreApplication>
 
 EMSL emsl;
 
@@ -114,6 +115,10 @@ bool IMachine::loadInternal(QDataStream *stream)
 	} else {
 		emsl.abortIfLoadFails = false;
 	}
+
+	// "version" in conf could be replaced with old one, when loading old state
+	// restore it to be current one
+	conf->setItem("version", QCoreApplication::applicationVersion());
 
 	return emsl.error.isEmpty();
 }
