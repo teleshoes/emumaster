@@ -42,3 +42,9 @@ void HostInputDevice::updateConfFromGlobalConfiguration() {
 	if (conf >= 0)
 		setConfIndex(conf);
 }
+
+/*!
+	\fn HostInputDevice::update(int *data)
+	Writes data to the emulated systems.
+	The data depends on the chosen configuration.
+*/

@@ -171,7 +171,7 @@ Page {
 	QueryDialog {
 		id: helpDialog
 		rejectButtonText: qsTr("Close")
-		titleText: qsTr("Clue")
+		titleText: qsTr("Tip")
 		message: qsTr("Press and hold a disk to show the menu")
 	}
 

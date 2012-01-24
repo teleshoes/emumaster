@@ -83,7 +83,7 @@ QString PicoMachine::init(const QString &diskPath)
 	QString error;
 	QString cartPath = diskPath;
 
-	PicoOpt = 0x0f | 0x20 | 0xe00; // | use_940, cd_pcm, cd_cdda
+	PicoOpt = 0x0f | 0x20 | 0xe00 | 0x1000; // | use_940, cd_pcm, cd_cdda, scale/rot
 	PicoAutoRgnOrder = 0x184; // US, EU, JP
 
 	// make temp buffer for alt renderer

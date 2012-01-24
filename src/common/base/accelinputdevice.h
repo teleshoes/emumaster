@@ -7,7 +7,8 @@
 
 QTM_USE_NAMESPACE
 
-class AccelInputDevice : public HostInputDevice {
+class AccelInputDevice : public HostInputDevice
+{
     Q_OBJECT
 public:
     explicit AccelInputDevice(QObject *parent = 0);
