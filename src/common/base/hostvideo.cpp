@@ -21,12 +21,6 @@
 #include <QPainter>
 #include <QKeyEvent>
 
-#if defined(MEEGO_EDITION_HARMATTAN)
-#include <QX11Info>
-#include <X11/Xatom.h>
-#include <X11/Xlib.h>
-#endif
-
 HostVideo::HostVideo(HostInput *hostInput, IMachine *machine, MachineThread *thread) :
 	m_hostInput(hostInput),
 	m_machine(machine),
@@ -96,36 +90,6 @@ void HostVideo::setFpsVisible(bool on)
 	m_fpsVisible = on;
 }
 
-void HostVideo::setSwipeEnabled(bool on)
-{
-#if defined(MEEGO_EDITION_HARMATTAN)
-	if (m_swipeEnabled == on)
-		return;
-	m_swipeEnabled = on;
-
-	Window w = effectiveWinId();
-	Display *dpy = QX11Info::display();
-	Atom atom;
-
-	uint customRegion[4];
-	customRegion[0] = 0;
-	customRegion[1] = 0;
-	customRegion[2] = width();
-	customRegion[3] = height();
-
-	atom = XInternAtom(dpy, "_MEEGOTOUCH_CUSTOM_REGION", False);
-	if (!on) {
-		XChangeProperty(dpy, w,
-						atom, XA_CARDINAL, 32, PropModeReplace,
-						reinterpret_cast<unsigned char *>(&customRegion[0]), 4);
-	} else {
-		XDeleteProperty(dpy, w, atom);
-	}
-#else
-	Q_UNUSED(on)
-#endif
-}
-
 void HostVideo::setMyVisible(bool visible)
 {
 	if (visible) {
@@ -147,6 +111,12 @@ void HostVideo::changeEvent(QEvent *e)
 	QGLWidget::changeEvent(e);
 	if (e->type() == QEvent::WindowStateChange && windowState().testFlag(Qt::WindowMinimized))
 		emit minimized();
+}
+
+void HostVideo::focusOutEvent(QFocusEvent *)
+{
+	if (!windowState().testFlag(Qt::WindowMinimized))
+		emit focusOut();
 }
 
 void HostVideo::updateRects()
@@ -177,4 +147,40 @@ void HostVideo::setKeepAspectRatio(bool on)
 void HostVideo::setBilinearFiltering(bool enabled)
 {
 	m_bilinearFiltering = enabled;
+}
+
+#if defined(MEEGO_EDITION_HARMATTAN)
+#include <QX11Info>
+#include <X11/Xatom.h>
+#include <X11/Xlib.h>
+#endif
+
+void HostVideo::setSwipeEnabled(bool on)
+{
+#if defined(MEEGO_EDITION_HARMATTAN)
+	if (m_swipeEnabled == on)
+		return;
+	m_swipeEnabled = on;
+
+	Window w = effectiveWinId();
+	Display *dpy = QX11Info::display();
+	Atom atom;
+
+	uint customRegion[4];
+	customRegion[0] = 0;
+	customRegion[1] = 0;
+	customRegion[2] = width();
+	customRegion[3] = height();
+
+	atom = XInternAtom(dpy, "_MEEGOTOUCH_CUSTOM_REGION", False);
+	if (!on) {
+		XChangeProperty(dpy, w,
+						atom, XA_CARDINAL, 32, PropModeReplace,
+						reinterpret_cast<unsigned char *>(&customRegion[0]), 4);
+	} else {
+		XDeleteProperty(dpy, w, atom);
+	}
+#else
+	Q_UNUSED(on)
+#endif
 }

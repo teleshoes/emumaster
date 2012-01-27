@@ -63,6 +63,7 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_stateListModel = new StateListModel(m_machine, m_diskFileName);
 	m_thread->setStateListModel(m_stateListModel);
 
+	// any config which modifies m_machine must be loaded later ...
 	QSettings s;
 	m_autoSaveLoadEnable = s.value("autoSaveLoadEnable", true).toBool();
 	if (!loadConfiguration())
@@ -73,6 +74,10 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 				.arg(PathManager::instance()->diskDirPath())
 				.arg(m_diskFileName);
 		m_error = m_machine->init(diskPath);
+	}
+	if (m_error.isEmpty()) {
+		// ... loaded here
+		setAudioEnabled(loadOptionFromSettings(s, "audioEnable", true).toBool());
 	}
 
 	setupSettingsView();
@@ -88,9 +93,10 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 						 SLOT(onSlFailed()), Qt::QueuedConnection);
 		QObject::connect(m_stateListModel, SIGNAL(stateLoaded()),
 						 SLOT(onStateLoaded()), Qt::QueuedConnection);
-		#if defined(Q_WS_MAEMO_5)
-			method = "pauseStage2";
-		#endif
+#if defined(Q_WS_MAEMO_5)
+		method = "pauseStage2";
+#endif
+		QObject::connect(m_hostVideo, SIGNAL(focusOut()), SLOT(pause()));
 	} else {
 		method = "pauseStage2";
 	}
@@ -247,7 +253,6 @@ void MachineView::loadSettings()
 	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible", false).toBool());
 	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio", true).toBool());
 	m_hostVideo->setBilinearFiltering(loadOptionFromSettings(s, "bilinearFiltering", false).toBool());
-	setAudioEnabled(loadOptionFromSettings(s, "audioEnable", true).toBool());
 	if (!loadOptionFromSettings(s, "runInBackground", false).toBool())
 		QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
 }
@@ -422,9 +427,6 @@ bool MachineView::loadConfiguration()
 
 	// load conf from global settings
 	loadSettings();
-
-	if (!conf->item("audioEnable", true).toBool())
-		m_machine->setAudioEnabled(false);
 
 	return true;
 }

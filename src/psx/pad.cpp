@@ -16,6 +16,8 @@
 
 #include "machine.h"
 
+// TODO multiplayer
+
 // MOUSE SCPH-1030
 #define PSE_PAD_TYPE_MOUSE			1
 // NEGCON - 16 button analog controller SLPH-00001

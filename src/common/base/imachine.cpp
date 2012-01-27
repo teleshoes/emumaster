@@ -51,6 +51,9 @@ void IMachine::setVideoSrcRect(const QRectF &rect)
 	}
 }
 
+/*!
+	WARNING: It is called before init()
+*/
 void IMachine::setAudioEnabled(bool on)
 {
 	Q_UNUSED(on)

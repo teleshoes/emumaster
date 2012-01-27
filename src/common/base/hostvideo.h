@@ -54,10 +54,12 @@ public:
 signals:
 	void quit();
 	void minimized();
+	void focusOut();
 protected:
 	void paintEvent(QPaintEvent *);
 	void closeEvent(QCloseEvent *e);
 	void changeEvent(QEvent *e);
+	void focusOutEvent(QFocusEvent *);
 private slots:
 	void updateRects();
 private:

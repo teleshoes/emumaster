@@ -29,7 +29,6 @@ public:
 	QVariant item(const QString &name,
 				  const QVariant &defaultValue = QVariant());
 	void setItem(const QString &name, const QVariant &value);
-	void setItemHard(const QString &name, const QVariant &value);
 
 	void sl();
 private:

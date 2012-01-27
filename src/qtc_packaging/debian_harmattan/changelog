@@ -1,3 +1,11 @@
+emumaster (0.2.2) unstable; urgency=low
+
+  * enabled scaling/rotating sprites in megacd emulation
+  * pause on incoming call
+  * [bug] psx emulation segfault - fixed
+
+ -- elemental <mar.kazmierczak@gmail.com>  Tue, 24 Jan 2012 16:09:02 +0100
+
 emumaster (0.2.1) unstable; urgency=low
 
   * audio enable/disable global option

@@ -854,13 +854,13 @@ void PsxSpuFran::sl() {
 	emsl.array("regArea", regArea, sizeof(regArea));
 	emsl.array("mem", spuMem, sizeof(spuMem));
 	emsl.var("addr", spuAddr);
-	if (!emsl.save) { \
-		for (int i = 0; i < 0x100; i++) { \
-			if (i != H_SPUon1-0xc00 && i != H_SPUon2-0xc00) \
-				spuFranWriteRegister(0x1f801c00+i*2,regArea[i]); \
-		} \
-		spuFranWriteRegister(H_SPUon1,regArea[(H_SPUon1-0xc00)/2]); \
-		spuFranWriteRegister(H_SPUon2,regArea[(H_SPUon2-0xc00)/2]); \
-	} \
+	if (!emsl.save) {
+		for (int i = 0; i < 0x100; i++) {
+			if (i != H_SPUon1-0xc00 && i != H_SPUon2-0xc00)
+				spuFranWriteRegister(0x1f801c00+i*2,regArea[i]);
+		}
+		spuFranWriteRegister(H_SPUon1,regArea[(H_SPUon1-0xc00)/2]);
+		spuFranWriteRegister(H_SPUon2,regArea[(H_SPUon2-0xc00)/2]);
+	}
 	emsl.end();
 }
