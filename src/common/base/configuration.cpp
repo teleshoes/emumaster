@@ -20,37 +20,32 @@
 // TODO when hard configuration mismatch on load - show info as bubble
 // TODO hard config
 
-Configuration *Configuration::m_instance = 0;
+Configuration emConf;
 
-Configuration::Configuration() {
-}
-
-void Configuration::setItem(const QString &name, const QVariant &value) {
+void Configuration::setItem(const QString &name, const QVariant &value)
+{
 	m_data[name] = value;
 }
 
-QVariant Configuration::item(const QString &name, const QVariant &defaultValue) {
+QVariant Configuration::item(const QString &name, const QVariant &defaultValue)
+{
 	if (!m_data.contains(name))
 		return defaultValue;
 	return m_data.value(name);
 }
 
-void Configuration::sl() {
+void Configuration::sl()
+{
 	emsl.begin("conf");
 	emsl.var("data", m_data);
 	emsl.end();
 }
 
-void Configuration::setupAppInfo() {
+void Configuration::setupAppInfo()
+{
 	QCoreApplication::setOrganizationName("elemental");
 	QCoreApplication::setOrganizationDomain("elemental-mk.blogspot.com");
 	QCoreApplication::setApplicationName("emumaster");
 	// TODO change on every release
-	QCoreApplication::setApplicationVersion("0.2.0");
-}
-
-Configuration *Configuration::instance() {
-	if (!m_instance)
-		m_instance = new Configuration();
-	return m_instance;
+	QCoreApplication::setApplicationVersion("0.2.3");
 }

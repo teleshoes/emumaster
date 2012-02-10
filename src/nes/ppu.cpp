@@ -266,7 +266,7 @@ u8 NesPpu::readReg(u16 address) {
 			dataLatch = nesPpuRegs[Status] & (VBlankSRBit | Sprite0HitSRBit);
 			dataLatch |= securityValue;
 		} else {
-			dataLatch = nesPpuRegs[Status] | (dataLatch & 0x1F);
+			dataLatch = nesPpuRegs[Status];// TODO | (dataLatch & 0x1F);
 		}
 		/* reset hi/lo scroll toggle */
 		regToggle = false;

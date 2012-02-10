@@ -16,15 +16,15 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
+#include "base_global.h"
 #include <QObject>
 #include <QVariant>
 
-class Configuration : public QObject {
+class BASE_EXPORT Configuration : public QObject
+{
     Q_OBJECT
 public:
 	static void setupAppInfo();
-
-	static Configuration *instance();
 
 	QVariant item(const QString &name,
 				  const QVariant &defaultValue = QVariant());
@@ -32,11 +32,11 @@ public:
 
 	void sl();
 private:
-	Configuration();
-
 	QHash<QString, QVariant> m_data;
 
 	static Configuration *m_instance;
 };
+
+BASE_EXPORT extern Configuration emConf;
 
 #endif // CONFIGURATION_H

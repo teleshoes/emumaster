@@ -55,7 +55,7 @@ NesCpu nesCpu;
 static const int StackBase = 0x100;
 
 #define PUSH(data) WRITE(StackBase+S, data); S--
-#define POP() READ(StackBase + (++S))
+#define POP() READ(StackBase + (++S & 0xFF))
 
 static u8 A; // accumulator register
 static u8 Y, X; // index registers
@@ -75,14 +75,7 @@ static bool apuIrq;
 static bool mapperIrq;
 
 void NesCpu::init() {
-	A = 0;
-	Y = 0;
-	X = 0;
-	PC = 0;
-	S = 0xFF;
-	P = 0;
 	nmiState = false;
-	cpuSignals = Reset;
 	qMemSet(ZNTable + 0x00, 0, 0x80);
 	qMemSet(ZNTable + 0x80, N, 0x80);
 	ZNTable[0] = Z;
@@ -90,36 +83,27 @@ void NesCpu::init() {
 
 u32 NesCpu::clock(u32 cycles) {
 	u32 executedCycles = 0;
-	if (cpuSignals & Reset) {
-		apuIrq = false;
-		mapperIrq = false;
-		irq0_i(false);
-
-		while (executedCycles < cycles)
-			executedCycles += executeOne();
-		nesApu.reset();
-		dmaCycles = 0;
-	} else {
+	while (executedCycles < cycles) {
 		if (dmaCycles) {
-			if (cycles <= dmaCycles) {
-				dmaCycles -= cycles;
-				nesMapper->clock(cycles);
-				return cycles;
+			u32 remaining = cycles - executedCycles;
+			if (remaining <= dmaCycles) {
+				dmaCycles -= remaining;
+				executedCycles += remaining;
+				nesMapper->clock(remaining);
+				break;
 			} else {
 				executedCycles += dmaCycles;
+				nesMapper->clock(dmaCycles);
 				dmaCycles = 0;
-				nesMapper->clock(executedCycles);
 			}
 		}
-		while (executedCycles < cycles) {
-			u32 instrCycles = executeOne();
-			// TODO mapper clock enable
-			nesMapper->clock(instrCycles);
-			executedCycles += instrCycles;
-			nesApu.clockFrameCounter(instrCycles);
-		}
-//		TODO nesApu.clockFrameCounter(executedCycles);
+		u32 instrCycles = executeOne();
+		// TODO mapper clock enable
+		nesMapper->clock(instrCycles);
+		executedCycles += instrCycles;
+		nesApu.clockFrameCounter(instrCycles);
 	}
+	//		TODO nesApu.clockFrameCounter(executedCycles);
 	return executedCycles;
 }
 
@@ -142,76 +126,34 @@ void NesCpu::mapper_irq_i(bool on) {
 		irq0_i(newIrqState);
 }
 
-// TODO remove log
-//#include <QFile>
-//static  QFile cpuLog("cpu.log");
-//	cpuLog.open(QIODevice::ReadWrite|QIODevice::Truncate);
-
 u32 NesCpu::executeOne() {
 	currentCycles = 0;
 	u8 opcode = READ(PC);
 	ADDCYC(cyclesTable[opcode]);
 	PC++;
 
-//	cpuLog.write(qPrintable(QString::number(opcode, 16)));
-
-//	cpuLog.write(" PC=");
-//	cpuLog.write(qPrintable(QString::number(PC, 16)));
-//	cpuLog.write(" A=");
-//	cpuLog.write(qPrintable(QString::number(A, 16)));
-//	cpuLog.write(" Y=");
-//	cpuLog.write(qPrintable(QString::number(Y, 16)));
-//	cpuLog.write(" X=");
-//	cpuLog.write(qPrintable(QString::number(X, 16)));
-//	cpuLog.write(" S=");
-//	cpuLog.write(qPrintable(QString::number(S, 16)));
-
-//	cpuLog.write(" [S+1]=");
-//	cpuLog.write(qPrintable(QString::number(READ(S+0x101), 16)));
-//	cpuLog.write(" [S+2]=");
-//	cpuLog.write(qPrintable(QString::number(READ(S+0x102), 16)));
-//	cpuLog.write(" [S+3]=");
-//	cpuLog.write(qPrintable(QString::number(READ(S+0x103), 16)));
-
-//	cpuLog.write(" [PC+1]=");
-//	cpuLog.write(qPrintable(QString::number(READ(PC+0), 16)));
-//	cpuLog.write(" [PC+2]=");
-//	cpuLog.write(qPrintable(QString::number(READ(PC+1), 16)));
-//	cpuLog.write(" [PC+3]=");
-//	cpuLog.write(qPrintable(QString::number(READ(PC+2), 16)));
+	u16 vector = 0;
+	if (cpuSignals) {
+		if ((cpuSignals & Nmi) || !(P & I)) {
+			if (cpuSignals & Nmi) {
+				vector = NmiVectorAddress;
+				cpuSignals &= ~Nmi;
+			} else {
+				vector = IrqVectorAddress;
+			}
+		}
+	}
 
 	execute(opcode);
 
-//	cpuLog.write(" PCa=");
-//	cpuLog.write(qPrintable(QString::number(PC, 16)));
-//	cpuLog.write("\n");
-
-	if (cpuSignals) {
-		if ((cpuSignals & (Reset | Nmi)) || !(P & I)) {
-			u16 vector;
-			if (cpuSignals & Reset) {
-				vector = ResetVectorAddress;
-				P = I;
-				A = 0;
-				Y = 0;
-				X = 0;
-				S = 0xFF;
-			} else if (cpuSignals & Nmi) {
-				vector = NmiVectorAddress;
-				cpuSignals &= ~Nmi;
-//				cpuLog.write("nmi\n");
-			} else {
-				vector = IrqVectorAddress;
-//				cpuLog.write("irq\n");
-			}
-			ADDCYC(7);
-			PUSH(PC >> 8);
-			PUSH(PC);
-			PUSH((P & ~B) | U);
-			P |= I;
-			PC = READ(vector);
-			PC |= READ(vector + 1) << 8;
-		}
+	if (vector) {
+		ADDCYC(7);
+		PUSH(PC >> 8);
+		PUSH(PC);
+		PUSH((P & ~B) | U);
+		P |= I;
+		PC = READ(vector);
+		PC |= READ(vector + 1) << 8;
 	}
 	return currentCycles;
 }
@@ -234,8 +176,26 @@ void NesCpu::nmi_i(bool on) {
 		setSignal(Nmi, true);
 	nmiState = on;
 }
-void NesCpu::reset_i(bool on)
-{ setSignal(Reset, on); }
+
+void NesCpu::reset()
+{
+	A = 0;
+	Y = 0;
+	X = 0;
+	S = 0xFF;
+	P = I;
+
+	apuIrq = false;
+	mapperIrq = false;
+	irq0_i(false);
+	nesApu.reset();
+	dmaCycles = 0;
+	cpuSignals = 0;
+
+	u16 vector = ResetVectorAddress;
+	PC = READ(vector);
+	PC |= READ(vector+1) << 8;
+}
 
 void NesCpu::sl() {
 	emsl.begin("cpu");
@@ -257,9 +217,9 @@ void NesCpu::sl() {
 #define X_ZNT(val)	P |= ZNTable[val]
 
 #define JR(cond) { \
+	s32 disp = static_cast<s8> (READ(PC)); \
 	if (cond) { \
 		u32 tmp; \
-		s32 disp = static_cast<s8> (READ(PC)); \
 		PC++; \
 		ADDCYC(1); \
 		tmp = PC; \
@@ -343,12 +303,12 @@ void NesCpu::sl() {
 }
 
 #define RMW_A(op)	{ u8 x = A; op; A=x; }
-#define RMW_AB(op)	{ u32 a; getAB(a); u8 x = READ(a); WRITE(a,x); op; WRITE(a,x); }
-#define RMW_ABI(reg, op) { u32 a; getABIWR(a,reg); u8 x = READ(a); WRITE(a,x); op; WRITE(a,x); }
+#define RMW_AB(op)	{ u32 a; getAB(a); u8 x = READ(a); op; WRITE(a,x); } // TODO WRITE(a,x);
+#define RMW_ABI(reg, op) { u32 a; getABIWR(a,reg); u8 x = READ(a); op; WRITE(a,x); } // TODO WRITE(a,x);
 #define RMW_ABX(op)	RMW_ABI(X, op)
 #define RMW_ABY(op)	RMW_ABI(Y, op)
-#define RMW_IX(op)  { u32 a; getIX(a); u8 x = READ(a); WRITE(a,x); op; WRITE(a,x); }
-#define RMW_IY(op)  { u32 a; getIYWR(a); u8 x = READ(a); WRITE(a,x); op; WRITE(a,x); }
+#define RMW_IX(op)  { u32 a; getIX(a); u8 x = READ(a); op; WRITE(a,x); } // TODO WRITE(a,x);
+#define RMW_IY(op)  { u32 a; getIYWR(a); u8 x = READ(a); op; WRITE(a,x); } // WRITE(a,x);
 #define RMW_ZP(op)  { u8 a = getZP(); u8 x = READ(a); op; WRITE(a,x); }
 #define RMW_ZPX(op) { u8 a = getZPI(X); u8 x = READ(a); op; WRITE(a,x); }
 
@@ -385,10 +345,11 @@ void NesCpu::sl() {
 	target += i; \
 	if ((target^tmp) & 0x100) { \
 		target &= 0xFFFF; \
-		READ(target ^ 0x100); \
 		ADDCYC(1); \
 	} \
 }
+
+//  TODO READ(target ^ 0x100); after target &= 0xFFFF;
 
 #define getABIWR(target,i) { \
 	u32 rt; \
@@ -396,8 +357,9 @@ void NesCpu::sl() {
 	target = rt; \
 	target += i; \
 	target &= 0xFFFF; \
-	READ((target&0x00FF) | (rt&0xFF00)); \
 }
+
+// TODO READ((target&0x00FF) | (rt&0xFF00)); to getABIWR??
 
 #define getZP() READ(PC++)
 #define getZPI(i) i+READ(PC++)
@@ -416,18 +378,20 @@ void NesCpu::sl() {
 	target = rt + Y; \
 	if ((target^rt) & 0x100) { \
 		target &= 0xFFFF; \
-		READ(target ^ 0x100); \
 		ADDCYC(1); \
 	} \
 }
+
+// TODO READ(target ^ 0x100); after target &= 0xFFFF;
 
 #define getIYWR(target) { \
 	u8 tmp = READ(PC++); \
 	uint rt = READ(tmp++); \
 	rt |= READ(tmp) << 8; \
 	target = (rt + Y) & 0xFFFF; \
-	READ((target&0x00FF) | (rt&0xFF00)); \
 }
+
+// TODO READ((target&0x00FF) | (rt&0xFF00)); after target = (rt + Y) & 0xFFFF;
 
 #define BRK \
 	PC++; \
@@ -467,11 +431,11 @@ void NesCpu::sl() {
 }
 
 #define JSR { \
-	u8 npc = READ(PC++); \
+	u16 npc = READ(PC++); \
+	npc |= READ(PC) << 8; \
 	PUSH(PC >> 8); \
 	PUSH(PC); \
-	PC = READ(PC) << 8; \
-	PC |= npc; \
+	PC = npc; \
 }
 
 #define TAX X = A; X_ZN(A)

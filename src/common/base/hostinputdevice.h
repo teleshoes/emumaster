@@ -16,10 +16,12 @@
 #ifndef HOSTINPUTDEVICE_H
 #define HOSTINPUTDEVICE_H
 
+#include "base_global.h"
 #include <QObject>
 #include <QStringList>
 
-class HostInputDevice : public QObject {
+class HostInputDevice : public QObject
+{
 	Q_OBJECT
 	Q_PROPERTY(QString name READ name CONSTANT)
 	Q_PROPERTY(int confIndex READ confIndex WRITE setConfIndex NOTIFY confChanged)

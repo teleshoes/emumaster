@@ -49,7 +49,6 @@ NesMachine::NesMachine() :
 
 QString NesMachine::init(const QString &diskPath) {
 	qmlRegisterType<GameGenieCodeListModel>();
-	setVideoSrcRect(QRectF(8.0f, 1.0f, NesPpu::VisibleScreenWidth, NesPpu::VisibleScreenHeight));
 	nesCpu.init();
 	nesApu.init();
 	nesPad.init();
@@ -67,7 +66,7 @@ void NesMachine::shutdown() {
 
 void NesMachine::reset() {
 	nesMapper->reset();
-	nesCpu.reset_i(true);
+    nesCpu.reset();
 	cpuCycleCounter = 0;
 	ppuCycleCounter = 0;
 }
@@ -88,10 +87,11 @@ QString NesMachine::setDisk(const QString &path) {
 			.arg(nesMapperType)
 			.arg(nesDiskCrc, 8, 16)
 			.arg((nesSystemType == NES_PAL) ? "PAL" : "NTSC");
-	printf(qPrintable(diskInfo));
+	qDebug("%s", qPrintable(diskInfo));
 
 	// TODO VS system
 	if (nesSystemType == NES_NTSC) {
+		setVideoSrcRect(QRect(8, 8, NesPpu::VisibleScreenWidth-8, NesPpu::VisibleScreenHeight-16));
 		nesPpu.setChipType(NesPpu::PPU2C02);
 		setFrameRate(NES_NTSC_FRAMERATE);
 		scanlineCycles = NES_NTSC_SCANLINE_CLOCKS;
@@ -99,12 +99,13 @@ QString NesMachine::setDisk(const QString &path) {
 		hBlankCycles = 340;
 		scanlineEndCycles = 4;
 	} else {
+		setVideoSrcRect(QRect(8, 1, NesPpu::VisibleScreenWidth-8, NesPpu::VisibleScreenHeight-1));
 		nesPpu.setChipType(NesPpu::PPU2C07);
 		setFrameRate(NES_PAL_FRAMERATE);
 		scanlineCycles = NES_PAL_SCANLINE_CLOCKS;
-		hDrawCycles = 1200;
-		hBlankCycles = 398;
-		scanlineEndCycles = 4;
+		hDrawCycles = 1280;
+		hBlankCycles = 425;
+		scanlineEndCycles = 5;
 	}
 	nesApu.updateMachineType();
 	reset();
@@ -113,11 +114,7 @@ QString NesMachine::setDisk(const QString &path) {
 
 void NesMachine::clockCpu(uint cycles) {
 	ppuCycleCounter += cycles;
-	int realCycles;
-	if (nesSystemType == NES_NTSC)
-		realCycles = (ppuCycleCounter/12) - cpuCycleCounter;
-	else
-		realCycles = (ppuCycleCounter/15) - cpuCycleCounter;
+	int realCycles = (ppuCycleCounter/12) - cpuCycleCounter;
 	if (realCycles > 0)
 		cpuCycleCounter += nesCpu.clock(realCycles);
 }
@@ -134,7 +131,6 @@ void NesMachine::emulateFrame(bool drawEnabled) {
 		emulateFrameTile(drawEnabled);
 	else
 		emulateFrameNoTile(drawEnabled);
-	nesCpu.reset_i(false);
 }
 
 inline void NesMachine::updateZapper() {

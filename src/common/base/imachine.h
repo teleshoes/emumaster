@@ -137,7 +137,7 @@ inline int *IMachine::mouseOffset(int *data, int mouse)
 
 // emumaster save/load functionality
 
-class EMSL {
+class BASE_EXPORT EMSL {
 public:
 	void begin(const QString &groupName, int version);
 	void end();
@@ -169,7 +169,7 @@ private:
 	QList<QString> groupStack;
 };
 
-extern EMSL emsl;
+BASE_EXPORT extern EMSL emsl;
 
 inline void EMSL::begin(const QString &groupName, int version = 1) {
 	currGroup = groupName;

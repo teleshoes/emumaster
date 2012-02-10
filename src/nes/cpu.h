@@ -41,10 +41,10 @@ public:
 	void apu_irq_i(bool on);
 	void irq0_i(bool on);
 	void nmi_i(bool on);
-	void reset_i(bool on);
+	void reset();
 	void mapper_irq_i(bool on);
 private:
-	enum SignalIn { Irq0 = 1, Nmi = 2, Reset = 8 };
+	enum SignalIn { Irq0 = 1, Nmi = 2 };
 	Q_DECLARE_FLAGS(SignalsIn, SignalIn)
 
 	void setSignal(SignalIn sig, bool on);

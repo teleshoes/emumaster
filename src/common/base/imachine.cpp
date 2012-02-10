@@ -53,6 +53,7 @@ void IMachine::setVideoSrcRect(const QRectF &rect)
 
 /*!
 	WARNING: It is called before init()
+	TODO call after init()
 */
 void IMachine::setAudioEnabled(bool on)
 {
@@ -84,7 +85,7 @@ bool IMachine::saveInternal(QDataStream *stream)
 	emsl.allAddr.clear();
 	emsl.error.clear();
 
-	Configuration::instance()->sl();
+	emConf.sl();
 	sl();
 
 	bool succeded = emsl.error.isEmpty();
@@ -111,8 +112,7 @@ bool IMachine::loadInternal(QDataStream *stream)
 	emsl.currAddr.clear();
 	emsl.error.clear();
 
-	Configuration *conf = Configuration::instance();
-	conf->sl();
+	emConf.sl();
 	if (!emsl.loadConfOnly && emsl.error.isEmpty()) {
 		emsl.abortIfLoadFails = true;
 		sl();
@@ -122,7 +122,7 @@ bool IMachine::loadInternal(QDataStream *stream)
 
 	// "version" in conf could be replaced with old one, when loading old state
 	// restore it to be current one
-	conf->setItem("version", QCoreApplication::applicationVersion());
+	emConf.setItem("version", QCoreApplication::applicationVersion());
 
 	return emsl.error.isEmpty();
 }

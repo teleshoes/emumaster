@@ -1,3 +1,18 @@
+/*
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 #ifndef ACCELINPUTDEVICE_H
 #define ACCELINPUTDEVICE_H
 
@@ -7,7 +22,7 @@
 
 QTM_USE_NAMESPACE
 
-class AccelInputDevice : public HostInputDevice
+class BASE_EXPORT AccelInputDevice : public HostInputDevice
 {
     Q_OBJECT
 public:

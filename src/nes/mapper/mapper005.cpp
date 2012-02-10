@@ -508,8 +508,8 @@ void Mapper005::extensionLatch(u16 address, u8 *plane1, u8 *plane2, u8 *attribut
 				*attribute = (fill_pal<<2)&0x0C;
 				// Get Pattern
 				if (chr_type) {
-					*plane1 = read(tileadr + 0);
-					*plane2 = read(tileadr + 8);
+					*plane1 = ppuRead(tileadr + 0);
+					*plane2 = ppuRead(tileadr + 8);
 				} else {
 					*plane1 = BG_MEM_BANK[tileadr>>10][ tileadr&0x03FF   ];
 					*plane2 = BG_MEM_BANK[tileadr>>10][(tileadr&0x03FF)+8];
@@ -519,7 +519,7 @@ void Mapper005::extensionLatch(u16 address, u8 *plane1, u8 *plane2, u8 *attribut
 			// ExGraphic mode
 			ntbladr = 0x2000+(address&0x0FFF);
 			// Get Nametable
-			tileadr = (u16)read(ntbladr)*0x10+nesPpuScrollTileYOffset;
+			tileadr = (u16)ppuRead(ntbladr)*0x10+nesPpuScrollTileYOffset;
 			// Get TileBank
 			tilebank = 0x1000*((nesVram[0x0800+(ntbladr&0x03FF)]&0x3F)%nesVromSize4KB);
 			// Get Attribute
@@ -532,16 +532,16 @@ void Mapper005::extensionLatch(u16 address, u8 *plane1, u8 *plane2, u8 *attribut
 			ntbladr = 0x2000+(address&0x0FFF);
 			attradr = 0x23C0+(address&0x0C00)+((address&0x0380)>>4)+((address&0x001C)>>2);
 			// Get Nametable
-			tileadr = nesPpuTilePageOffset+read(ntbladr)*0x10+nesPpuScrollTileYOffset;
+			tileadr = nesPpuTilePageOffset+ppuRead(ntbladr)*0x10+nesPpuScrollTileYOffset;
 			// Get Attribute
-			*attribute = read(attradr);
+			*attribute = ppuRead(attradr);
 			if (ntbladr & 0x0002) *attribute >>= 2;
 			if (ntbladr & 0x0040) *attribute >>= 4;
 			*attribute = (*attribute&0x03)<<2;
 			// Get Pattern
 			if (chr_type) {
-				*plane1 = read(tileadr + 0);
-				*plane2 = read(tileadr + 8);
+				*plane1 = ppuRead(tileadr + 0);
+				*plane2 = ppuRead(tileadr + 8);
 			} else {
 				*plane1 = BG_MEM_BANK[tileadr>>10][ tileadr&0x03FF   ];
 				*plane2 = BG_MEM_BANK[tileadr>>10][(tileadr&0x03FF)+8];

@@ -13,8 +13,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef MACHINEGLWINDOW_H
-#define MACHINEGLWINDOW_H
+#ifndef HOSTVIDEO_H
+#define HOSTVIDEO_H
 
 class IMachine;
 class MachineThread;
@@ -93,4 +93,4 @@ inline bool HostVideo::keepApsectRatio() const
 inline bool HostVideo::bilinearFiltering() const
 { return m_bilinearFiltering; }
 
-#endif // MACHINEGLWINDOW_H
+#endif // HOSTVIDEO_H

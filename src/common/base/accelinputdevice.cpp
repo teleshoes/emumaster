@@ -127,8 +127,10 @@ void AccelInputDevice::update(int *data)
 /*! \internal */
 void AccelInputDevice::onReadingChanged()
 {
+	// save reading
 	QAccelerometerReading *reading = m_accelerometer->reading();
 	m_read = QVector3D(reading->x(), reading->y(), reading->z());
+	// force convert next time
 	m_converted = false;
 }
 
@@ -136,7 +138,7 @@ void AccelInputDevice::onReadingChanged()
 void AccelInputDevice::convert()
 {
 	// convert accelerometer readings to pad data
-	// first calculate how much the device is
+	// first calculate how much the device is rotated
 	qreal up = QVector3D::dotProduct(m_read, m_upVector);
 	qreal right = QVector3D::dotProduct(m_read, m_rightVector);
 	// up and right are now 9.8^2 max if device is idle (not moving)
