@@ -20,6 +20,9 @@
 #include <QImage>
 #include <QCoreApplication>
 
+// TODO rename IMachine to Emu
+// TODO rename MachineView to EmuView
+
 EMSL emsl;
 
 IMachine::IMachine(const QString &name, QObject *parent) :
@@ -53,7 +56,7 @@ void IMachine::setVideoSrcRect(const QRectF &rect)
 
 /*!
 	WARNING: It is called before init()
-	TODO call after init()
+	TODO call after init() maybe private and emit
 */
 void IMachine::setAudioEnabled(bool on)
 {
@@ -228,4 +231,38 @@ void IMachine::pause()
 void IMachine::resume()
 {
 	m_running = true;
+}
+
+void EMSL::begin(const QString &groupName)
+{
+	currGroup = groupName;
+	currAddr = allAddr.value(groupName);
+}
+
+void EMSL::end()
+{
+	if (save)
+		allAddr[currGroup] = currAddr;
+}
+
+void EMSL::array(const QString &name, void *data, int size)
+{
+	if (save) {
+		currAddr.insert(name, stream->device()->pos());
+		if (stream->writeRawData((const char *)data, size) != size) {
+			ioError();
+			return;
+		}
+	} else {
+		int addr = currAddr.value(name, -1);
+		if (addr < 0) {
+			varNotExist(name);
+			return;
+		}
+		stream->device()->seek(addr);
+		if (stream->readRawData((char *)data, size) != size) {
+			ioError();
+			return;
+		}
+	}
 }

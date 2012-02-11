@@ -23,7 +23,8 @@
 #include "mapper.h"
 #include "gamegeniecode.h"
 #include "gamegeniecodelistmodel.h"
-#include "machineview.h"
+#include <machineview.h>
+#include <configuration.h>
 #include <QSettings>
 #include <QApplication>
 #include <QtDeclarative>
@@ -43,44 +44,48 @@ static u64 ppuCycleCounter;
 static bool bZapper; // TODO zapper
 static int ZapperY;
 
+static const char *tvSystemConfName = "nes.tvSystemType";
+
 NesMachine::NesMachine() :
-	IMachine("nes") {
+	IMachine("nes")
+{
 }
 
-QString NesMachine::init(const QString &diskPath) {
-	qmlRegisterType<GameGenieCodeListModel>();
+QString NesMachine::init(const QString &diskPath)
+{
 	nesCpu.init();
 	nesApu.init();
 	nesPad.init();
 	nesPpu.init();
-	qmlRegisterType<NesPpu>();
 	return setDisk(diskPath);
 }
 
-void NesMachine::shutdown() {
+void NesMachine::shutdown()
+{
 	delete nesMapper;
 	delete nesVrom;
 	delete nesRom;
 	nesPpuFrame = QImage();
 }
 
-void NesMachine::reset() {
+void NesMachine::reset()
+{
 	nesMapper->reset();
-    nesCpu.reset();
+	nesCpu.reset();
 	cpuCycleCounter = 0;
 	ppuCycleCounter = 0;
 }
 
-QString NesMachine::setDisk(const QString &path) {
+QString NesMachine::setDisk(const QString &path)
+{
 	if (!nesDisk.load(path))
-		return tr("Could not load ROM file");
+		return "Could not load ROM file";
 
 	nesMapper = NesMapper::create(nesMapperType);
 	if (!nesMapper)
-		return tr("Mapper %1 is not supported").arg(nesMapperType);
+		return QString("Mapper %1 is not supported").arg(nesMapperType);
 
-	if (path.contains("(E)"))
-		nesSystemType = NES_PAL;
+	setupTvEncodingSystem(path);
 
 	QString diskInfo = QString("Disk Info: Mapper %1(%2), CRC: %3, %4 System\n")
 			.arg(nesMapper->name())
@@ -112,7 +117,52 @@ QString NesMachine::setDisk(const QString &path) {
 	return QString();
 }
 
-void NesMachine::clockCpu(uint cycles) {
+void NesMachine::setupTvEncodingSystem(const QString &path)
+{
+	// detect system name by checking file name
+	if (path.contains("(E)"))
+		nesSystemType = NES_PAL;
+	else
+		nesSystemType = NES_NTSC;
+
+	// check for forced tv system
+	QVariant forcedSystemType = emConf.item(tvSystemConfName);
+	if (!forcedSystemType.isNull()) {
+		QString typeStr = forcedSystemType.toString();
+		if (typeStr == "NTSC")
+			nesSystemType = NES_NTSC;
+		else if (typeStr == "PAL")
+			nesSystemType = NES_PAL;
+	}
+	// set value in conf in case of auto-detection (needed for load check)
+	if (nesSystemType == NES_NTSC)
+		emConf.setItem(tvSystemConfName, "NTSC");
+	else
+		emConf.setItem(tvSystemConfName, "PAL");
+}
+
+bool NesMachine::slCheckTvEncodingSystem() const
+{
+	// in versions before 0.2.3 system has not been saved and there is no
+	// sense of checking it, since we must save file name in order to do it
+	bool ok = true;
+	// check if TV system used in the saved state is the same as current
+	QVariant forcedSystemType = emConf.item(tvSystemConfName);
+	if (!forcedSystemType.isNull()) {
+		QString typeStr = forcedSystemType.toString();
+		bool slSys = (typeStr == "NTSC");
+		bool emuSys = (nesSystemType == NES_NTSC);
+		ok = (slSys == emuSys);
+	}
+	if (!ok) {
+		emsl.error = QString("%1 %2").arg(EM_MSG_STATE_DIFFERS)
+				.arg(tvSystemConfName);
+	}
+	return ok;
+}
+
+void NesMachine::clockCpu(uint cycles)
+{
 	ppuCycleCounter += cycles;
 	int realCycles = (ppuCycleCounter/12) - cpuCycleCounter;
 	if (realCycles > 0)
@@ -120,9 +170,12 @@ void NesMachine::clockCpu(uint cycles) {
 }
 
 const QImage &NesMachine::frame() const
-{ return nesPpuFrame; }
+{
+	return nesPpuFrame;
+}
 
-void NesMachine::emulateFrame(bool drawEnabled) {
+void NesMachine::emulateFrame(bool drawEnabled)
+{
 	setPadKeys(0, *padOffset(m_inputData, 0));
 	setPadKeys(1, *padOffset(m_inputData, 1));
 
@@ -133,12 +186,14 @@ void NesMachine::emulateFrame(bool drawEnabled) {
 		emulateFrameNoTile(drawEnabled);
 }
 
-inline void NesMachine::updateZapper() {
+inline void NesMachine::updateZapper()
+{
 	if (nesPad.isZapperMode())
 		bZapper = (nesPpuScanline == ZapperY);
 }
 
-void NesMachine::emulateFrameNoTile(bool drawEnabled) {
+void NesMachine::emulateFrameNoTile(bool drawEnabled)
+{
 	NesPpu::RenderMethod renderMethod = nesPpu.renderMethod();
 	bool all = (renderMethod < NesPpu::PostRender);
 	bool pre = (renderMethod & 1);
@@ -223,7 +278,8 @@ void NesMachine::emulateFrameNoTile(bool drawEnabled) {
 	}
 }
 
-inline void NesMachine::emulateVisibleScanlineTile() {
+inline void NesMachine::emulateVisibleScanlineTile()
+{
 	nesPpu.processScanlineNext();
 	clockCpu(NesPpu::FetchCycles*10);
 	nesMapper->horizontalSync();
@@ -233,7 +289,8 @@ inline void NesMachine::emulateVisibleScanlineTile() {
 	updateZapper();
 }
 
-void NesMachine::emulateFrameTile(bool drawEnabled) {
+void NesMachine::emulateFrameTile(bool drawEnabled)
+{
 	clockCpu(NesPpu::FetchCycles*128);
 	nesPpu.processFrameStart();
 	emulateVisibleScanlineTile();
@@ -284,12 +341,19 @@ void NesMachine::emulateFrameTile(bool drawEnabled) {
 }
 
 int NesMachine::fillAudioBuffer(char *stream, int streamSize)
-{ return nesApu.fillBuffer(stream, streamSize); }
+{
+	return nesApu.fillBuffer(stream, streamSize);
+}
 
 NesPpu *NesMachine::ppu() const
-{ return &nesPpu; }
+{
+	return &nesPpu;
+}
 
-void NesMachine::sl() {
+void NesMachine::sl()
+{
+	if (!slCheckTvEncodingSystem())
+		return;
 	nesMapper->sl();
 	nesCpu.sl();
 	nesPpu.sl();
@@ -302,7 +366,8 @@ void NesMachine::sl() {
 	emsl.end();
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	if (argc < 2)
 		return -1;
 	QApplication app(argc, argv);

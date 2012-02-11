@@ -337,12 +337,6 @@ Page {
 	}
 
 	QueryDialog {
-		id: errorDialog
-		titleText: qsTr("Oops")
-		message: qsTr("Something went wrong!")
-		rejectButtonText: qsTr("Close")
-	}
-	QueryDialog {
 		id: machineFaultDialog
 		titleText: qsTr("Oops")
 		rejectButtonText: qsTr("Close")

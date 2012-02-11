@@ -27,6 +27,7 @@ Item {
 		width: parent.width
 
 	ButtonRow {
+		anchors.horizontalCenter: parent.horizontalCenter
 		exclusive: false
 
 		Button {

@@ -21,9 +21,6 @@
 #include <QHash>
 #include <QRectF>
 class QImage;
-class QSettings;
-class QProcess;
-class Configuration;
 
 typedef qint8 s8;
 typedef quint8 u8;
@@ -44,7 +41,11 @@ typedef quint64 u64;
 #define S32_MAX INT_MAX
 #define U32_MAX UINT_MAX
 
-class BASE_EXPORT IMachine : public QObject {
+#define EM_MSG_DISK_LOAD_FAILED QObject::tr("Could not load the disk")
+#define EM_MSG_STATE_DIFFERS QObject::tr("Configuration of loaded state differs from the current one. Mismatch in")
+
+class BASE_EXPORT IMachine : public QObject
+{
 	Q_OBJECT
 	Q_PROPERTY(QString name READ name CONSTANT)
 public:
@@ -137,17 +138,16 @@ inline int *IMachine::mouseOffset(int *data, int mouse)
 
 // emumaster save/load functionality
 
-class BASE_EXPORT EMSL {
+class BASE_EXPORT EMSL
+{
 public:
-	void begin(const QString &groupName, int version);
+	void begin(const QString &groupName);
 	void end();
 
 	void push();
 	void pop();
 
-	template <typename T>
-	void var(const QString &name, T &t);
-
+	template <typename T> void var(const QString &name, T &t);
 	void array(const QString &name, void *data, int size);
 
 	QHash<QString, QHash<QString, int> > allAddr;
@@ -156,7 +156,6 @@ public:
 	QHash<QString, int> currAddr;
 	QDataStream *stream;
 	bool save;
-	int groupVersion;
 
 	bool abortIfLoadFails;
 	bool loadConfOnly;
@@ -171,20 +170,9 @@ private:
 
 BASE_EXPORT extern EMSL emsl;
 
-inline void EMSL::begin(const QString &groupName, int version = 1) {
-	currGroup = groupName;
-	currAddr = allAddr.value(groupName);
-	var("v", version);
-	groupVersion = version;
-}
-
-inline void EMSL::end() {
-	if (save)
-		allAddr[currGroup] = currAddr;
-}
-
 template <typename T>
-inline void EMSL::var(const QString &name, T &t) {
+inline void EMSL::var(const QString &name, T &t)
+{
 	if (save) {
 		currAddr.insert(name, stream->device()->pos());
 		*stream << t;
@@ -199,27 +187,6 @@ inline void EMSL::var(const QString &name, T &t) {
 			return;
 		}
 		*stream >> t;
-	}
-}
-
-inline void EMSL::array(const QString &name, void *data, int size) {
-	if (save) {
-		currAddr.insert(name, stream->device()->pos());
-		if (stream->writeRawData((const char *)data, size) != size) {
-			ioError();
-			return;
-		}
-	} else {
-		int addr = currAddr.value(name, -1);
-		if (addr < 0) {
-			varNotExist(name);
-			return;
-		}
-		stream->device()->seek(addr);
-		if (stream->readRawData((char *)data, size) != size) {
-			ioError();
-			return;
-		}
 	}
 }
 
