@@ -16,23 +16,12 @@
 
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "../base"
 
-Item {
-	id: keybMappingItem
-
-    property alias buttonName: itemLabel.text
-	property alias hostKeyText: itemButton.text
-
-	signal clicked
-
-	width: parent.width
-	height: childrenRect.height
-	Label {
-		id: itemLabel
-	}
-	Button {
-		id: itemButton
-		anchors.right: parent.right
-		onClicked: keybMappingItem.clicked()
+AdvancedLaunchPage {
+	function confString() {
+		var str = ""
+		// str += ","
+		return str
 	}
 }

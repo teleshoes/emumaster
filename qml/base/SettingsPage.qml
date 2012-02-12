@@ -283,7 +283,7 @@ Page {
 		}
 		Component.onCompleted: {
 			if (machine.name === "nes") {
-				var component = Qt.createComponent("NesCheatPage.qml")
+				var component = Qt.createComponent("NesCheats.qml")
 				component.createObject(column)
 			}
 		}

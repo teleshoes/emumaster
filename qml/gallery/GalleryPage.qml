@@ -36,7 +36,7 @@ Page {
 		if (searchBar.visible)
 			searchBar.visible = false
 		else
-			diskGallery.launch(index, true)
+			diskGallery.launch(index)
 	}
 
 	ListView {

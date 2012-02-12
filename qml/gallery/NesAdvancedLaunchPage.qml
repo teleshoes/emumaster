@@ -16,23 +16,42 @@
 
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "../base"
 
-Item {
-	id: keybMappingItem
-
-    property alias buttonName: itemLabel.text
-	property alias hostKeyText: itemButton.text
-
-	signal clicked
-
-	width: parent.width
-	height: childrenRect.height
+AdvancedLaunchPage {
 	Label {
-		id: itemLabel
+		text: qsTr("TV Encoding System")
 	}
-	Button {
-		id: itemButton
-		anchors.right: parent.right
-		onClicked: keybMappingItem.clicked()
+	ButtonRow {
+		id: tvSystemChooser
+		anchors.horizontalCenter: parent.horizontalCenter
+		checkedButton: tvSystemAuto
+		spacing: 5
+
+		Button {
+			id: tvSystemAuto
+			text: qsTr("AUTO")
+		}
+		Button {
+			id: tvSystemNtsc
+			text: qsTr("NTSC")
+		}
+		Button {
+			id: tvSystemPal
+			text: qsTr("PAL")
+		}
+	}
+
+	function confString() {
+		var str = ""
+		if (!tvSystemAuto.checked) {
+			str += "nes.tvSystem="
+			if (tvSystemNtsc.checked)
+				str += "NTSC"
+			else
+				str += "PAL"
+		}
+		// str += ","
+		return str
 	}
 }

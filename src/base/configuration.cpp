@@ -17,9 +17,6 @@
 #include "imachine.h"
 #include <QCoreApplication>
 
-// TODO when hard configuration mismatch on load - show info as bubble
-// TODO hard config
-
 Configuration emConf;
 
 void Configuration::setItem(const QString &name, const QVariant &value)

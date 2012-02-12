@@ -30,9 +30,10 @@ unix {
 	QMAKE_LFLAGS += -Wl,--rpath-link,../../lib -Wl,--rpath,/opt/emumaster/lib
 	target.path = /opt/emumaster/bin
 	qml.path = /opt/emumaster/qml/gallery
-	qml.files = \
+    qml.files = \
 		../../qml/gallery/main.qml \
 		../../qml/gallery/AboutPage.qml \
+        ../../qml/gallery/AdvancedLaunchPage.qml \
 		../../qml/gallery/CoverSelectorPage.qml \
 		../../qml/gallery/HomeScreenIconSheet.qml \
 		../../qml/gallery/CollectionMenuPage.qml \
@@ -42,7 +43,13 @@ unix {
 		../../qml/gallery/GlobalSettings.qml \
 		../../qml/gallery/AccelCalibrationPage.qml \
         ../../qml/gallery/KeybMappingPage.qml \
-        ../../qml/gallery/KeybMappingItem.qml
+        ../../qml/gallery/KeybMappingItem.qml \
+        ../../qml/gallery/NesAdvancedLaunchPage.qml \
+        ../../qml/gallery/SnesAdvancedLaunchPage.qml \
+        ../../qml/gallery/GbaAdvancedLaunchPage.qml \
+        ../../qml/gallery/PsxAdvancedLaunchPage.qml \
+        ../../qml/gallery/AmigaAdvancedLaunchPage.qml \
+        ../../qml/gallery/PicoAdvancedLaunchPage.qml
 
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = \

@@ -44,7 +44,7 @@ static u64 ppuCycleCounter;
 static bool bZapper; // TODO zapper
 static int ZapperY;
 
-static const char *tvSystemConfName = "nes.tvSystemType";
+static const char *tvSystemConfName = "nes.tvSystem";
 
 NesMachine::NesMachine() :
 	IMachine("nes")
@@ -155,7 +155,7 @@ bool NesMachine::slCheckTvEncodingSystem() const
 		ok = (slSys == emuSys);
 	}
 	if (!ok) {
-		emsl.error = QString("%1 %2").arg(EM_MSG_STATE_DIFFERS)
+		emsl.error = QString("%1 \"%2\"").arg(EM_MSG_STATE_DIFFERS)
 				.arg(tvSystemConfName);
 	}
 	return ok;
@@ -371,6 +371,7 @@ int main(int argc, char *argv[])
 	if (argc < 2)
 		return -1;
 	QApplication app(argc, argv);
+	qmlRegisterType<NesPpu>();
 	MachineView view(&nesMachine, argv[1]);
 	view.settingsView()->rootContext()->setContextProperty("gameGenie", static_cast<QObject *>(&nesGameGenie));
 	return app.exec();

@@ -280,13 +280,17 @@ QString MachineView::extractArg(const QStringList &args,
 
 void MachineView::parseConfArg(const QString &arg)
 {
-	QByteArray ba = QByteArray::fromBase64(arg.toAscii());
-	QDataStream stream(&ba, QIODevice::ReadOnly);
-	QMap<QString, QVariant> conf;
-	stream >> conf;
-	QMap<QString, QVariant>::ConstIterator i = conf.constBegin();
-	for (; i != conf.constEnd(); i++)
-		emConf.setItem(i.key(), i.value());
+	QStringList lines = arg.split(',', QString::SkipEmptyParts);
+	foreach (QString line, lines) {
+		QStringList lineSplitted = line.split('=', QString::SkipEmptyParts);
+		if (lineSplitted.size() != 2) {
+			qDebug("Unknown conf option: %s", qPrintable(line));
+		} else {
+			QString key = lineSplitted.at(0);
+			QString value = lineSplitted.at(1);
+			emConf.setItem(key, value);
+		}
+	}
 }
 
 void MachineView::onFrameGenerated(bool videoOn)

@@ -1,1 +1,1 @@
-#include "../src/common/base/configuration.h" 
+#include "../src/base/configuration.h"

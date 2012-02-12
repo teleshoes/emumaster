@@ -33,8 +33,14 @@ Menu {
 
 	MenuLayout {
 		MenuItem {
-			text: qsTr("Run with Auto Save/Load Disabled")
-			onClicked: diskGallery.launch(galleryMenu.diskIndex, false)
+			text: qsTr("Advanced Launch")
+			onClicked: {
+				var machineName = diskListModel.getDiskMachine(diskIndex)
+				var qmlPage = machineName.charAt(0).toUpperCase() +
+						machineName.substr(1) + "AdvancedLaunchPage.qml"
+				appWindow.pageStack.push(Qt.resolvedUrl(qmlPage),
+										 { diskIndex: galleryMenu.diskIndex })
+			}
 		}
 		MenuItem {
 			text: qsTr("Select Cover")

@@ -31,7 +31,8 @@ public:
 
 	int runCount() const;
 
-	Q_INVOKABLE void launch(int index, bool autoload);
+	Q_INVOKABLE void launch(int index);
+	Q_INVOKABLE void advancedLaunch(int index, bool autoSaveLoad, const QString &confStr);
 
 	Q_INVOKABLE void donate();
 	Q_INVOKABLE void homepage();

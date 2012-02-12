@@ -1,1 +1,1 @@
-#include "../src/common/base/pathmanager.h" 
+#include "../src/base/pathmanager.h"

@@ -17,8 +17,8 @@
 #include "diskgallery.h"
 #include "disklistmodel.h"
 #include "diskimageprovider.h"
-#include "../common/base/accelinputdevice.h"
-#include "../common/base/keybinputdevice.h"
+#include <accelinputdevice.h>
+#include <keybinputdevice.h>
 #include <pathmanager.h>
 #include <QDeclarativeEngine>
 #include <QDeclarativeContext>
@@ -76,7 +76,13 @@ int DiskGallery::runCount() const {
 	return m_runCount;
 }
 
-void DiskGallery::launch(int index, bool autoload) {
+void DiskGallery::launch(int index)
+{
+	advancedLaunch(index, true, QString());
+}
+
+void DiskGallery::advancedLaunch(int index, bool autoSaveLoad, const QString &confStr)
+{
 	QString diskFileName = m_diskListModel->getDiskFileName(index);
 	QString diskMachine = m_diskListModel->getDiskMachine(index);
 	if (diskFileName.isEmpty())
@@ -87,8 +93,12 @@ void DiskGallery::launch(int index, bool autoload) {
 			.arg(PathManager::instance()->installationDirPath())
 			.arg(diskMachine);
 	args << diskFileName;
-	if (!autoload)
+	if (!autoSaveLoad)
 		args << "-noAutoSaveLoad";
+	if (!confStr.isEmpty()) {
+		args << "-conf";
+		args << confStr;
+	}
 #if defined(MEEGO_EDITION_HARMATTAN)
 	process.startDetached("/usr/bin/single-instance", args);
 #elif defined(Q_WS_MAEMO_5)
