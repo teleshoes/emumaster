@@ -126,7 +126,7 @@ void NesMachine::setupTvEncodingSystem(const QString &path)
 		nesSystemType = NES_NTSC;
 
 	// check for forced tv system
-	QVariant forcedSystemType = emConf.item(tvSystemConfName);
+	QVariant forcedSystemType = emConf.value(tvSystemConfName);
 	if (!forcedSystemType.isNull()) {
 		QString typeStr = forcedSystemType.toString();
 		if (typeStr == "NTSC")
@@ -136,9 +136,9 @@ void NesMachine::setupTvEncodingSystem(const QString &path)
 	}
 	// set value in conf in case of auto-detection (needed for load check)
 	if (nesSystemType == NES_NTSC)
-		emConf.setItem(tvSystemConfName, "NTSC");
+		emConf.setValue(tvSystemConfName, "NTSC");
 	else
-		emConf.setItem(tvSystemConfName, "PAL");
+		emConf.setValue(tvSystemConfName, "PAL");
 }
 
 bool NesMachine::slCheckTvEncodingSystem() const
@@ -147,7 +147,7 @@ bool NesMachine::slCheckTvEncodingSystem() const
 	// sense of checking it, since we must save file name in order to do it
 	bool ok = true;
 	// check if TV system used in the saved state is the same as current
-	QVariant forcedSystemType = emConf.item(tvSystemConfName);
+	QVariant forcedSystemType = emConf.value(tvSystemConfName);
 	if (!forcedSystemType.isNull()) {
 		QString typeStr = forcedSystemType.toString();
 		bool slSys = (typeStr == "NTSC");

@@ -261,7 +261,7 @@ QVariant MachineView::loadOptionFromSettings(QSettings &s,
 											 const QString &name,
 											 const QVariant &defaultValue)
 {
-	QVariant option = emConf.item(name);
+	QVariant option = emConf.value(name);
 	if (option.isNull())
 		option = s.value(name, defaultValue);
 	return option;
@@ -288,7 +288,7 @@ void MachineView::parseConfArg(const QString &arg)
 		} else {
 			QString key = lineSplitted.at(0);
 			QString value = lineSplitted.at(1);
-			emConf.setItem(key, value);
+			emConf.setValue(key, value);
 		}
 	}
 }
@@ -311,7 +311,7 @@ void MachineView::setFpsVisible(bool on)
 {
 	if (m_hostVideo->isFpsVisible() != on) {
 		m_hostVideo->setFpsVisible(on);
-		emConf.setItem("fpsVisible", on);
+		emConf.setValue("fpsVisible", on);
 		emit fpsVisibleChanged();
 	}
 }
@@ -325,7 +325,7 @@ void MachineView::setFrameSkip(int n)
 {
 	if (m_thread->frameSkip() != n) {
 		m_thread->setFrameSkip(n);
-		emConf.setItem("frameSkip", n);
+		emConf.setValue("frameSkip", n);
 		emit frameSkipChanged();
 	}
 }
@@ -340,7 +340,7 @@ void MachineView::setAudioEnabled(bool on)
 	if (m_audioEnable != on) {
 		m_audioEnable = on;
 		m_machine->setAudioEnabled(on);
-		emConf.setItem("audioEnable", on);
+		emConf.setValue("audioEnable", on);
 		emit audioEnableChanged();
 	}
 }
@@ -354,7 +354,7 @@ void MachineView::setPadOpacity(qreal opacity)
 {
 	if (m_hostInput->padOpacity() != opacity) {
 		m_hostInput->setPadOpacity(opacity);
-		emConf.setItem("padOpacity", opacity);
+		emConf.setValue("padOpacity", opacity);
 		emit padOpacityChanged();
 	}
 }
@@ -368,7 +368,7 @@ void MachineView::setKeepAspectRatio(bool on)
 {
 	if (m_hostVideo->keepApsectRatio() != on) {
 		m_hostVideo->setKeepAspectRatio(on);
-		emConf.setItem("keepAspectRatio", on);
+		emConf.setValue("keepAspectRatio", on);
 		emit keepAspectRatioChanged();
 	}
 }
@@ -382,7 +382,7 @@ void MachineView::setBilinearFiltering(bool enabled)
 {
 	if (m_hostVideo->bilinearFiltering() != enabled) {
 		m_hostVideo->setBilinearFiltering(enabled);
-		emConf.setItem("bilinearFiltering", enabled);
+		emConf.setValue("bilinearFiltering", enabled);
 		emit bilinearFilteringChanged();
 	}
 }
@@ -409,7 +409,7 @@ int MachineView::determineLoadState(const QStringList &args)
 
 bool MachineView::loadConfiguration()
 {
-	emConf.setItem("version", QCoreApplication::applicationVersion());
+	emConf.setValue("version", QCoreApplication::applicationVersion());
 
 	QStringList args = QCoreApplication::arguments();
 

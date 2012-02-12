@@ -26,9 +26,9 @@ class BASE_EXPORT Configuration : public QObject
 public:
 	static void setupAppInfo();
 
-	QVariant item(const QString &name,
+	QVariant value(const QString &name,
 				  const QVariant &defaultValue = QVariant());
-	void setItem(const QString &name, const QVariant &value);
+	void setValue(const QString &name, const QVariant &value);
 
 	void sl();
 private:

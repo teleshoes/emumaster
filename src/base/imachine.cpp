@@ -125,7 +125,7 @@ bool IMachine::loadInternal(QDataStream *stream)
 
 	// "version" in conf could be replaced with old one, when loading old state
 	// restore it to be current one
-	emConf.setItem("version", QCoreApplication::applicationVersion());
+	emConf.setValue("version", QCoreApplication::applicationVersion());
 
 	return emsl.error.isEmpty();
 }

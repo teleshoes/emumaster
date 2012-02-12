@@ -29,7 +29,7 @@ void HostInputDevice::setConfIndex(int index)
 		index = 0;
 	if (index != m_confIndex) {
 		if (!m_globalConfName.isEmpty())
-			emConf.setItem(m_globalConfName, index);
+			emConf.setValue(m_globalConfName, index);
 		m_confIndex = index;
 		emit confChanged();
 	}
@@ -42,7 +42,7 @@ void HostInputDevice::setGlobalConfigurationName(const QString &name)
 
 void HostInputDevice::updateConfFromGlobalConfiguration()
 {
-	int conf = emConf.item(m_globalConfName, -1).toInt();
+	int conf = emConf.value(m_globalConfName, -1).toInt();
 	if (conf >= 0)
 		setConfIndex(conf);
 }

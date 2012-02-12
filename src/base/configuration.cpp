@@ -19,12 +19,12 @@
 
 Configuration emConf;
 
-void Configuration::setItem(const QString &name, const QVariant &value)
+void Configuration::setValue(const QString &name, const QVariant &value)
 {
 	m_data[name] = value;
 }
 
-QVariant Configuration::item(const QString &name, const QVariant &defaultValue)
+QVariant Configuration::value(const QString &name, const QVariant &defaultValue)
 {
 	if (!m_data.contains(name))
 		return defaultValue;
