@@ -47,16 +47,25 @@ function initialize(list) {
 
 function initSectionData(list) {
 	if (!list || !list.model) return;
+
+	// give an ability to provide custom initializers for C++ models
+	if (list.customSectionScrollerDataHandler) {
+		var ret = list.customSectionScrollerDataHandler();
+		sectionData = ret.sectionData;
+		_sections = ret._sections;
+		return;
+	}
+
 	sectionData = [];
 	_sections = [];
 	var current = "",
 		prop = list.section.property,
 		item;
 
-	for (var i = 0, count = list.model.count; i < count; i++) {
-		item = list.model.getAlphabet(i);
-		if (item !== current) {
-			current = item;
+	for (var i = 0, count = (typeof list.model.count === 'undefined' ? list.model.length : list.model.count); i < count; i++) {
+		item = list.model.get(i);
+		if (item[prop] !== current) {
+			current = item[prop];
 			_sections.push(current);
 			sectionData.push({ index: i, header: current });
 		}

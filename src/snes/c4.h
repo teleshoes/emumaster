@@ -76,7 +76,7 @@
 #define _C4_H_
 
 #include "port.h"
-#include "machine.h"
+#include "snes.h"
 
 extern "C" {
 

@@ -9,7 +9,7 @@
 #ifndef PICOLC89510_H
 #define PICOLC89510_H
 
-#include <imachine.h>
+#include <emu.h>
 
 class CDC
 {

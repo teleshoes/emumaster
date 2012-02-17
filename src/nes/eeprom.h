@@ -17,7 +17,7 @@
 #ifndef EEPROM_H
 #define EEPROM_H
 
-#include <imachine.h>
+#include <emu.h>
 
 class X24C01 {
 public:

@@ -19,7 +19,7 @@
 #include "aputrianglechannel.h"
 #include "apunoisechannel.h"
 #include "apudmchannel.h"
-#include "machine.h"
+#include "nes.h"
 #include "cpu.h"
 #include <QDataStream>
 
@@ -301,7 +301,7 @@ static void accSample(int cycles) {
 		smpDM += dmch.sampleValue	<< 1;
 		smpR1 += r1ch.sampleValue	<< 1;
 		smpR2 += r2ch.sampleValue	<< 1;
-		accCount    += 2;
+		accCount += 2;
 	} else if (cycles == 4) {
 		smpTR += triValue			<< 2;
 		smpDM += dmch.sampleValue	<< 2;

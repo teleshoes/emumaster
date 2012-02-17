@@ -18,7 +18,7 @@
 #include <QImage>
 #include <QRgb>
 
-#include "machine.h"
+#include "amiga.h"
 #include "mem.h"
 #include "custom.h"
 #include "cpu.h"
@@ -552,7 +552,7 @@ static void finish_drawing_frame() {
 		pfield_draw_line(i + minfirstline);
 }
 
-void AmigaMachine::vSync() {
+void AmigaEmu::vSync() {
 	if (amigaDrawEnabled)
 		finish_drawing_frame();
 	init_drawing_frame();

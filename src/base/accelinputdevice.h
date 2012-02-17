@@ -24,18 +24,20 @@ QTM_USE_NAMESPACE
 
 class BASE_EXPORT AccelInputDevice : public HostInputDevice
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    explicit AccelInputDevice(QObject *parent = 0);
+	explicit AccelInputDevice(QObject *parent = 0);
 	void update(int *data);
 
 	Q_INVOKABLE void calibrate(const QVector3D &init,
 							   const QVector3D &up,
 							   const QVector3D &right);
 private slots:
-	void onConfChanged();
+	void onEmuFunctionChanged();
 	void onReadingChanged();
 private:
+	void setupEmuFunctionList();
+	void loadCalibration();
 	void setEnabled(bool on);
 	void convert();
 

@@ -17,13 +17,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <imachine.h>
+#include <emu.h>
 #include <pathmanager.h>
 #include <QDataStream>
 #include "mem.h"
 #include "gpu.h"
 #include "spu.h"
-#include "machine.h"
+#include "gba.h"
 #include <QFile>
 
 // This table is configured for sequential access on system defaults

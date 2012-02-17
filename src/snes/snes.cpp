@@ -1,10 +1,10 @@
-#include "machine.h"
+#include "snes.h"
 #include "snes9x.h"
 #include "mem.h"
 #include "spu.h"
 #include "gfx.h"
 #include "soundux.h"
-#include "machineview.h"
+#include "emuview.h"
 #include "srtc.h"
 #include "dma.h"
 #include "sdd1.h"
@@ -12,14 +12,14 @@
 
 // TODO set sound enabled
 
-SnesMachine snesMachine;
+SnesEmu snesEmu;
 
 static bool romLoaded = false;
 static int soundSampleCount;
 static volatile bool rendered = false;
 
-SnesMachine::SnesMachine(QObject *parent) :
-	IMachine("snes", parent) {
+SnesEmu::SnesEmu(QObject *parent) :
+	Emu("snes", parent) {
 }
 
 void setDefaultSettings() {
@@ -49,7 +49,7 @@ void setDefaultSettings() {
 	soundSampleCount *= 2;
 }
 
-QString SnesMachine::init(const QString &diskPath) {
+QString SnesEmu::init(const QString &diskPath) {
 	S9xSetSoundMute(FALSE);
 	setDefaultSettings();
 	S9xSetPlaybackRate();
@@ -77,15 +77,15 @@ QString SnesMachine::init(const QString &diskPath) {
 	return setDisk(diskPath);
 }
 
-void SnesMachine::shutdown() {
+void SnesEmu::shutdown() {
 	m_frame = QImage();
 }
 
-void SnesMachine::reset() {
+void SnesEmu::reset() {
 	S9xReset();
 }
 
-void SnesMachine::sync(int width, int height) {
+void SnesEmu::sync(int width, int height) {
 	setVideoSrcRect(QRect(0, 0, width, height));
 	rendered = true;
 }
@@ -201,7 +201,7 @@ void _makepath(char *path, const char *, const char *dir, const char *fname,
 	}
 }
 
-QString SnesMachine::setDisk(const QString &path) {
+QString SnesEmu::setDisk(const QString &path) {
 	if (!Memory.LoadROM(path.toAscii().constData()))
 		return tr("Load disk failed.");
 	Memory.ROMFramesPerSecond = Settings.PAL ? 50 : 60;
@@ -212,7 +212,7 @@ QString SnesMachine::setDisk(const QString &path) {
 	return QString();
 }
 
-void SnesMachine::emulateFrame(bool drawEnabled) {
+void SnesEmu::emulateFrame(bool drawEnabled) {
 	if (drawEnabled)
 		GFX.Screen = (u8 *)m_frame.bits();
 	IPPU.RenderThisFrame = drawEnabled;
@@ -221,17 +221,17 @@ void SnesMachine::emulateFrame(bool drawEnabled) {
 		S9xMainLoop();
 }
 
-const QImage &SnesMachine::frame() const {
+const QImage &SnesEmu::frame() const {
 	return m_frame;
 }
 
-int SnesMachine::fillAudioBuffer(char *stream, int streamSize) {
+int SnesEmu::fillAudioBuffer(char *stream, int streamSize) {
 	int count = qMin(streamSize/4, soundSampleCount);
 	S9xMixSamples((s16 *)stream, count * 2);
 	return count * 4;
 }
 
-const int SnesMachine::m_keyMapping[16] = {
+const int SnesEmu::m_keyMapping[16] = {
 	0,
 	0,
 	0,
@@ -250,7 +250,7 @@ const int SnesMachine::m_keyMapping[16] = {
 	PadKey_B
 };
 
-int SnesMachine::gamePad(int i) const {
+int SnesEmu::gamePad(int i) const {
 	if (i > 1)
 		return 0;
 
@@ -263,7 +263,7 @@ int SnesMachine::gamePad(int i) const {
 	return snesPad;
 }
 
-void SnesMachine::sl() {
+void SnesEmu::sl() {
 	if (emsl.save) {
 		S9xSRTCPreSaveState();
 	} else {
@@ -290,6 +290,6 @@ int main(int argc, char *argv[]) {
 	if (argc < 2)
 		return -1;
 	QApplication app(argc, argv);
-	MachineView view(&snesMachine, argv[1]);
+	EmuView view(&snesEmu, argv[1]);
 	return app.exec();
 }

@@ -14,7 +14,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "machine.h"
+#include "psx.h"
 
 // TODO multiplayer
 
@@ -34,30 +34,30 @@
 #define PSE_PAD_TYPE_ANALOGPAD		7
 
 static const int mapping[16] = {
-	IMachine::PadKey_Select,
+	Emu::PadKey_Select,
 	0,
 	0,
-	IMachine::PadKey_Start,
-	IMachine::PadKey_Up,
-	IMachine::PadKey_Right,
-	IMachine::PadKey_Down,
-	IMachine::PadKey_Left,
-	IMachine::PadKey_L2,
-	IMachine::PadKey_R2,
-	IMachine::PadKey_L1,
-	IMachine::PadKey_R1,
-	IMachine::PadKey_X,
-	IMachine::PadKey_A,
-	IMachine::PadKey_B,
-	IMachine::PadKey_Y
+	Emu::PadKey_Start,
+	Emu::PadKey_Up,
+	Emu::PadKey_Right,
+	Emu::PadKey_Down,
+	Emu::PadKey_Left,
+	Emu::PadKey_L2,
+	Emu::PadKey_R2,
+	Emu::PadKey_L1,
+	Emu::PadKey_R1,
+	Emu::PadKey_X,
+	Emu::PadKey_A,
+	Emu::PadKey_B,
+	Emu::PadKey_Y
 };
 
 static int buttonStatus = 0xFFFF;
 
-void setPadButtons(int machineKeys) {
+void setPadButtons(int emuKeys) {
 	buttonStatus = 0xFFFF;
 	for (int i = 0; i < 16; i++) {
-		if (machineKeys & mapping[i])
+		if (emuKeys & mapping[i])
 			buttonStatus &= ~(1 << i);
 	}
 }

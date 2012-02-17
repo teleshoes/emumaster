@@ -15,7 +15,7 @@
  */
 
 #include "pad.h"
-#include "machine.h"
+#include "nes.h"
 
 NesPad nesPad;
 
@@ -27,17 +27,17 @@ static u8 padAReg;
 static u8 padBReg;
 
 static const int keyMapping[8] = {
-	IMachine::PadKey_A,
-	IMachine::PadKey_B,
-	IMachine::PadKey_Select,
-	IMachine::PadKey_Start,
-	IMachine::PadKey_Up,
-	IMachine::PadKey_Down,
-	IMachine::PadKey_Left,
-	IMachine::PadKey_Right
+	Emu::PadKey_A,
+	Emu::PadKey_B,
+	Emu::PadKey_Select,
+	Emu::PadKey_Start,
+	Emu::PadKey_Up,
+	Emu::PadKey_Down,
+	Emu::PadKey_Left,
+	Emu::PadKey_Right
 };
 
-void NesMachine::setPadKeys(int pad, int keys) {
+void NesEmu::setPadKeys(int pad, int keys) {
 	if (pad > 1)
 		return;
 

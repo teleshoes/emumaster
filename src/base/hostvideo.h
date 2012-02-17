@@ -16,14 +16,16 @@
 #ifndef HOSTVIDEO_H
 #define HOSTVIDEO_H
 
-class IMachine;
-class MachineThread;
+class Emu;
+class EmuThread;
 class HostInput;
+#include "base_global.h"
 #include <QGLWidget>
 #include <QTime>
 
-class HostVideo : public QGLWidget {
-    Q_OBJECT
+class BASE_EXPORT HostVideo : public QGLWidget
+{
+	Q_OBJECT
 public:
 #if defined(MEEGO_EDITION_HARMATTAN)
 	static const int Width = 854.0f;
@@ -33,7 +35,7 @@ public:
 	static const int Height = 480.0f;
 #endif
 
-	explicit HostVideo(HostInput *hostInput, IMachine *machine, MachineThread *thread);
+	explicit HostVideo(HostInput *hostInput, Emu *emu, EmuThread *thread);
 	~HostVideo();
 
 	bool isFpsVisible() const;
@@ -63,11 +65,11 @@ protected:
 private slots:
 	void updateRects();
 private:
-	void paintFps(QPainter &painter);
+	void paintFps(QPainter *painter);
 
 	HostInput *m_hostInput;
-	IMachine *m_machine;
-	MachineThread *m_thread;
+	Emu *m_emu;
+	EmuThread *m_thread;
 
 	QRectF m_srcRect;
 	QRectF m_dstRect;

@@ -30,7 +30,7 @@ void Mapper018::reset() {
 	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 
 	irq_enable  = 0;
-	irq_mode    = 0;
+	irq_mode	= 0;
 	irq_counter = 0xFFFF;
 	irq_latch   = 0xFFFF;
 

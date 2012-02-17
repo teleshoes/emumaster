@@ -14,10 +14,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef NESMACHINE_H
-#define NESMACHINE_H
+#ifndef NESEMU_H
+#define NESEMU_H
 
-#include <imachine.h>
+#include <emu.h>
 class NesPpu;
 
 #define NES_PPU_NTSC_CLK	21477270.0
@@ -34,16 +34,18 @@ class NesPpu;
 
 enum SystemType { NES_NTSC, NES_PAL };
 
-class NesMachine : public IMachine {
+class NesEmu : public Emu {
 	Q_OBJECT
 	Q_PROPERTY(NesPpu *ppu READ ppu CONSTANT)
+	Q_PROPERTY(QObject *gameGenie READ gameGenie CONSTANT)
 public:
-	NesMachine();
+	NesEmu();
 	QString init(const QString &diskPath);
 	void shutdown();
 	void reset();
 
 	NesPpu *ppu() const;
+	QObject *gameGenie() const;
 
 	QString setDisk(const QString &path);
 
@@ -67,7 +69,7 @@ private:
 	bool slCheckTvEncodingSystem() const;
 };
 
-extern NesMachine nesMachine;
+extern NesEmu nesEmu;
 extern SystemType nesSystemType;
 
-#endif // NESMACHINE_H
+#endif // NESEMU_H

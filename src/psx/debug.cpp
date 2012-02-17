@@ -22,7 +22,7 @@
 #include "gpu.h"
 #include "misc.h"
 #include "mem.h"
-#include "machine.h"
+#include "psx.h"
 
 /*
 PCSX Debug console protocol description, version 1.0
@@ -364,7 +364,7 @@ void DebugVSync() {
     if (reset) {
         resetting = 1;
         CheckCdrom();
-		psxMachine.reset();
+		psxEmu.reset();
         reset = resetting = 0;
         return;
     }

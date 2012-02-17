@@ -14,8 +14,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "machine.h"
-#include <machineview.h>
+#include "amiga.h"
+#include <emuview.h>
 #include <pathmanager.h>
 #include <QImage>
 #include <QSemaphore>
@@ -34,21 +34,21 @@
 static volatile bool amigaGoingShutdown = false;
 static QImage amigaFrame;
 
-AmigaMachine amigaMachine;
+AmigaEmu amigaEmu;
 AmigaThread amigaThread;
 
 QSemaphore frameConsSem;
 QSemaphore frameProdSem;
 
-AmigaMachine::AmigaMachine(QObject *parent) :
-	IMachine("amiga", parent) {
+AmigaEmu::AmigaEmu(QObject *parent) :
+	Emu("amiga", parent) {
 }
 
-void AmigaMachine::reset() {
+void AmigaEmu::reset() {
 	amigaCpuSetSpcFlag(SpcFlagBrk);
 }
 
-QString AmigaMachine::init(const QString &diskPath) {
+QString AmigaEmu::init(const QString &diskPath) {
 	setFrameRate(50);
 	// TODO ntsc/pal configurable
 	setVideoSrcRect(QRect(0, MINFIRSTLINE_PAL, 320, MAXVPOS_PAL-MINFIRSTLINE_PAL-VBLANK_ENDLINE_PAL));
@@ -67,7 +67,7 @@ QString AmigaMachine::init(const QString &diskPath) {
 	return QString();
 }
 
-void AmigaMachine::shutdown() {
+void AmigaEmu::shutdown() {
 	amigaCpuSetSpcFlag(SpcFlagBrk);
 	amigaCpuReleaseTimeslice();
 	amigaGoingShutdown = true;
@@ -76,7 +76,7 @@ void AmigaMachine::shutdown() {
 	amigaFrame = QImage();
 }
 
-void AmigaMachine::emulateFrame(bool drawEnabled) {
+void AmigaEmu::emulateFrame(bool drawEnabled) {
 	amigaDrawEnabled = drawEnabled;
 	amigaFrame.bits();
 	frameProdSem.release();
@@ -84,12 +84,12 @@ void AmigaMachine::emulateFrame(bool drawEnabled) {
 	updateInput();
 }
 
-const QImage &AmigaMachine::frame() const
+const QImage &AmigaEmu::frame() const
 { return amigaFrame; }
-int AmigaMachine::fillAudioBuffer(char *stream, int streamSize)
+int AmigaEmu::fillAudioBuffer(char *stream, int streamSize)
 { return amigaSpuFillAudioBuffer(stream, streamSize); }
 
-void AmigaMachine::setJoy(int joy, int buttons) {
+void AmigaEmu::setJoy(int joy, int buttons) {
 	amigaInputPortButtons[joy] |= buttons >> 4;
 
 	if (buttons)
@@ -108,7 +108,7 @@ void AmigaMachine::setJoy(int joy, int buttons) {
 	}
 }
 
-void AmigaMachine::updateInput() {
+void AmigaEmu::updateInput() {
 	amigaInputPortButtons[0] = 0;
 	amigaInputPortButtons[1] = 0;
 
@@ -128,7 +128,7 @@ void AmigaMachine::updateInput() {
 	} while (key != 0);
 }
 
-void AmigaMachine::setMouse(int mouse, int buttons, int dx, int dy) {
+void AmigaEmu::setMouse(int mouse, int buttons, int dx, int dy) {
 	dx = qBound(-127, dx/2, 127);
 	dy = qBound(-127, dy/2, 127);
 	if (!(dx | dy | buttons))
@@ -162,7 +162,7 @@ void AmigaThread::run() {
 	amigaMemShutdown();
 }
 
-void AmigaMachine::sl() {
+void AmigaEmu::sl() {
 	amigaCpuSl();
 	amigaMemSl();
 	amigaDiskSl();
@@ -175,6 +175,6 @@ int main(int argc, char *argv[]) {
 	if (argc < 2)
 		return -1;
 	QApplication app(argc, argv);
-	MachineView view(&amigaMachine, argv[1]);
+	EmuView view(&amigaEmu, argv[1]);
 	return app.exec();
 }

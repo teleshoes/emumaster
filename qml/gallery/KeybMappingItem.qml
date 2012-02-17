@@ -20,7 +20,7 @@ import com.nokia.meego 1.0
 Item {
 	id: keybMappingItem
 
-    property alias buttonName: itemLabel.text
+	property alias buttonName: itemLabel.text
 	property alias hostKeyText: itemButton.text
 
 	signal clicked

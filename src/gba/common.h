@@ -21,7 +21,7 @@
 #define GBACOMMON_H
 
 #if defined(__cplusplus)
-#include <imachine.h>
+#include <emu.h>
 #endif
 
 #define ror(dest, value, shift)                                               \

@@ -26,7 +26,7 @@
 #include "gpu.h"
 #include "spu.h"
 #include "mem.h"
-#include "machine.h"
+#include "psx.h"
 #include <QDataStream>
 
 /******************************************************************************/
@@ -277,7 +277,7 @@ void psxRcntUpdate()
 
         hSyncCount++;
         // Update lace. (with InuYasha fix)
-		if( hSyncCount >= (Config.VSyncWA ? HSyncTotal[psxMachine.systemType] / BIAS : HSyncTotal[psxMachine.systemType]) ) {
+		if( hSyncCount >= (Config.VSyncWA ? HSyncTotal[psxEmu.systemType] / BIAS : HSyncTotal[psxEmu.systemType]) ) {
             hSyncCount = 0;
 			setIrq(0x01);
             GPU_updateLace();
@@ -322,7 +322,7 @@ void psxRcntWmode( u32 index, u32 value )
         case 1:
             if( value & Rc1HSyncClock )
             {
-				rcnts[index].rate = (PSXCLK / (FrameRate[psxMachine.systemType] * HSyncTotal[psxMachine.systemType]));
+				rcnts[index].rate = (PSXCLK / (FrameRate[psxEmu.systemType] * HSyncTotal[psxEmu.systemType]));
             }
             else
             {
@@ -432,7 +432,7 @@ void psxRcntInit()
     // rcnt base.
     rcnts[3].rate   = 1;
     rcnts[3].mode   = RcCountToTarget;
-	rcnts[3].target = (PSXCLK / (FrameRate[psxMachine.systemType] * HSyncTotal[psxMachine.systemType]));
+	rcnts[3].target = (PSXCLK / (FrameRate[psxEmu.systemType] * HSyncTotal[psxEmu.systemType]));
 
     for( i = 0; i < CounterQuantity; ++i )
     {

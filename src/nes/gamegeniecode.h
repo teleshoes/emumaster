@@ -17,7 +17,7 @@
 #ifndef GAMEGENIECODE_H
 #define GAMEGENIECODE_H
 
-#include <imachine.h>
+#include <emu.h>
 
 class GameGenieCode {
 public:

@@ -14,7 +14,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "machine.h"
+#include "psx.h"
 #include <pathmanager.h>
 #include <QString>
 #include <QImage>
@@ -23,7 +23,7 @@
 #include <QTimer>
 #include <QFileInfo>
 #include <QDir>
-#include <machineview.h>
+#include <emuview.h>
 #include <sys/time.h>
 
 #include "common.h"
@@ -47,14 +47,14 @@ PcsxConfig Config;
 
 static void dummy_lace() { }
 
-PsxMachine psxMachine;
+PsxEmu psxEmu;
 PsxThread psxThread;
 
-PsxMachine::PsxMachine(QObject *parent) :
-	IMachine("psx", parent) {
+PsxEmu::PsxEmu(QObject *parent) :
+	Emu("psx", parent) {
 }
 
-QString PsxMachine::init(const QString &diskPath) {
+QString PsxEmu::init(const QString &diskPath) {
 	Config.HLE = 0;
 
 	psxMcd1.init(PathManager::instance()->userDataDirPath() + "/psx_mcd1.mcr");
@@ -109,7 +109,7 @@ QString PsxMachine::init(const QString &diskPath) {
 	return setDisk(diskPath);
 }
 
-void PsxMachine::shutdown() {
+void PsxEmu::shutdown() {
 	stop = true;
 	m_prodSem.release();
 	psxThread.wait();
@@ -121,7 +121,7 @@ void PsxMachine::shutdown() {
 	StopDebugger();
 }
 
-void PsxMachine::reset() {
+void PsxEmu::reset() {
 	// rearmed hack: reset runs some code when real BIOS is used,
 	// but we usually do reset from menu while GPU is not open yet,
 	// so we need to prevent updateLace() call..
@@ -155,16 +155,16 @@ void PsxMachine::reset() {
 	LoadCdrom();
 }
 
-void PsxMachine::updateGpuScale(int w, int h) {
+void PsxEmu::updateGpuScale(int w, int h) {
 	setVideoSrcRect(QRect(0, 0, w, h));
 }
 
-void PsxMachine::flipScreen() {
+void PsxEmu::flipScreen() {
 	m_consSem.release();
 	m_prodSem.acquire();
 }
 
-QString PsxMachine::setDisk(const QString &path) {
+QString PsxEmu::setDisk(const QString &path) {
 	SetCdOpenCaseTime(time(0) + 2);
 	SetIsoFile(path.toAscii().constData());
 	if (!psxThread.isRunning()) {
@@ -181,7 +181,7 @@ QString PsxMachine::setDisk(const QString &path) {
 	return QString();
 }
 
-void PsxMachine::emulateFrame(bool drawEnabled) {
+void PsxEmu::emulateFrame(bool drawEnabled) {
 	psxGpu->setDrawEnabled(drawEnabled);
 	m_prodSem.release();
 	m_consSem.acquire();
@@ -189,17 +189,17 @@ void PsxMachine::emulateFrame(bool drawEnabled) {
 	setPadKeys(1, padOffset(m_inputData, 1)[0]);
 }
 
-const QImage &PsxMachine::frame() const
+const QImage &PsxEmu::frame() const
 { return psxGpu->frame(); }
 
-int PsxMachine::fillAudioBuffer(char *stream, int streamSize)
+int PsxEmu::fillAudioBuffer(char *stream, int streamSize)
 { return psxSpu->fillBuffer(stream, streamSize); }
-void PsxMachine::setAudioEnabled(bool on)
+void PsxEmu::setAudioEnabled(bool on)
 { psxSpu->setEnabled(on); }
 
-extern void setPadButtons(int machineKeys);
+extern void setPadButtons(int emuKeys);
 
-void PsxMachine::setPadKeys(int pad, int keys) {
+void PsxEmu::setPadKeys(int pad, int keys) {
 	if (pad)
 		return;
 	// TODO many pads
@@ -210,7 +210,7 @@ void PsxThread::run() {
 	psxCpu->execute();
 }
 
-void PsxMachine::sl() {
+void PsxEmu::sl() {
 	// TODO hard config
 	emsl.begin("machine");
 	emsl.var("hle", Config.HLE);
@@ -254,6 +254,6 @@ int main(int argc, char *argv[]) {
 	if (argc < 2)
 		return -1;
 	QApplication app(argc, argv);
-	MachineView view(&psxMachine, argv[1]);
+	EmuView view(&psxEmu, argv[1]);
 	return app.exec();
 }

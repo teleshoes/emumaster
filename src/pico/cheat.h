@@ -7,7 +7,7 @@
 #ifndef PICOCHEAT_H
 #define PICOCHEAT_H
 
-#include <imachine.h>
+#include <emu.h>
 
 class PicoCheat {
 public:

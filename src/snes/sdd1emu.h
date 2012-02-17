@@ -90,7 +90,7 @@
 #define SDD1EMU_H
 
 /* for START_EXTERN_C/END_EXTERN_C */
-#include "machine.h"
+#include "snes.h"
 
 extern "C" {
 

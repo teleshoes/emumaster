@@ -20,6 +20,7 @@
 #include <accelinputdevice.h>
 #include <keybinputdevice.h>
 #include <pathmanager.h>
+#include <configuration.h>
 #include <QDeclarativeEngine>
 #include <QDeclarativeContext>
 #include <QFile>
@@ -27,8 +28,8 @@
 #include <QCoreApplication>
 
 DiskGallery::DiskGallery(QWidget *parent) :
-	QDeclarativeView(parent) {
-
+	QDeclarativeView(parent)
+{
 	m_diskListModel = new DiskListModel(this);
 	incrementRunCount();
 	setupQml();
@@ -37,11 +38,13 @@ DiskGallery::DiskGallery(QWidget *parent) :
 	QObject::connect(&m_sock, SIGNAL(readyRead()), SLOT(receiveDatagram()));
 }
 
-DiskGallery::~DiskGallery() {
+DiskGallery::~DiskGallery()
+{
 }
 
 /** Configures QML window. */
-void DiskGallery::setupQml() {
+void DiskGallery::setupQml()
+{
 	engine()->addImageProvider("disk", new DiskImageProvider());
 
 	QDeclarativeContext *context = rootContext();
@@ -63,7 +66,8 @@ void DiskGallery::setupQml() {
 }
 
 /** Increments emumaster execute counter. */
-void DiskGallery::incrementRunCount() {
+void DiskGallery::incrementRunCount()
+{
 	m_settings.beginGroup("diskgallery");
 	m_runCount = m_settings.value("runCount", 0).toInt() + 1;
 	m_settings.setValue("runCount", m_runCount);
@@ -72,7 +76,8 @@ void DiskGallery::incrementRunCount() {
 }
 
 /** Returns how many times emumaster was executed. */
-int DiskGallery::runCount() const {
+int DiskGallery::runCount() const
+{
 	return m_runCount;
 }
 
@@ -84,14 +89,14 @@ void DiskGallery::launch(int index)
 void DiskGallery::advancedLaunch(int index, bool autoSaveLoad, const QString &confStr)
 {
 	QString diskFileName = m_diskListModel->getDiskFileName(index);
-	QString diskMachine = m_diskListModel->getDiskMachine(index);
+	QString diskEmuName = m_diskListModel->getDiskEmuName(index);
 	if (diskFileName.isEmpty())
 		return;
 	QProcess process;
 	QStringList args;
 	args << QString("%1/bin/%2")
 			.arg(PathManager::instance()->installationDirPath())
-			.arg(diskMachine);
+			.arg(diskEmuName);
 	args << diskFileName;
 	if (!autoSaveLoad)
 		args << "-noAutoSaveLoad";
@@ -108,28 +113,32 @@ void DiskGallery::advancedLaunch(int index, bool autoSaveLoad, const QString &co
 }
 
 /** Starts web browser with PayPal address for donation. */
-void DiskGallery::donate() {
+void DiskGallery::donate()
+{
 	QStringList args;
 	args << "https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=WUG37X8GMW9PQ&lc=US&item_number=emumaster&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted";
 	QProcess::startDetached("grob", args);
 }
 
 /** Starts web browser with blog address. */
-void DiskGallery::homepage() {
+void DiskGallery::homepage()
+{
 	QStringList args;
 	args << "http://elemental-mk.blogspot.com";
 	QProcess::startDetached("grob", args);
 }
 
 /** Starts web browser with wiki address. */
-void DiskGallery::wiki() {
+void DiskGallery::wiki()
+{
 	QStringList args;
 	args << "http://bitbucket.org/elemental/emumaster/wiki";
 	QProcess::startDetached("grob", args);
 }
 
 /** Emitted on start if the phone uses USB mass storage. */
-void DiskGallery::emitDiskUpdate() {
+void DiskGallery::emitDiskUpdate()
+{
 	if (!QFile::exists(PathManager::instance()->diskDirPath("nes"))) {
 		emit detachUsb();
 		return;
@@ -139,7 +148,8 @@ void DiskGallery::emitDiskUpdate() {
 
 /** Received from one of emulated systems. Decodes the packet,
 	and updates the screen shot. */
-void DiskGallery::receiveDatagram() {
+void DiskGallery::receiveDatagram()
+{
 	QByteArray ba(m_sock.pendingDatagramSize(), Qt::Uninitialized);
 	m_sock.readDatagram(ba.data(), ba.size());
 	QDataStream s(&ba, QIODevice::ReadOnly);
@@ -149,17 +159,20 @@ void DiskGallery::receiveDatagram() {
 }
 
 /** Starts SixAxis Monitor app. */
-void DiskGallery::sixAxisMonitor() {
+void DiskGallery::sixAxisMonitor()
+{
 	QStringList args;
 	args << (PathManager::instance()->installationDirPath() + "/bin/sixaxismonitor");
 	QProcess::startDetached("/usr/bin/single-instance", args);
 }
 
-QVariant DiskGallery::globalOption(const QString &name, const QVariant &defaultValue) {
-	return m_settings.value(name, defaultValue);
+QVariant DiskGallery::globalOption(const QString &name)
+{
+	return m_settings.value(name, emConf.defaultValue(name));
 }
 
-void DiskGallery::setGlobalOption(const QString &name, const QVariant &value) {
+void DiskGallery::setGlobalOption(const QString &name, const QVariant &value)
+{
 	if (m_settings.value(name) != value) {
 		m_settings.setValue(name, value);
 		m_settings.sync();

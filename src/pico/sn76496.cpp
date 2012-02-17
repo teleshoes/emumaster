@@ -17,7 +17,7 @@
 ***************************************************************************/
 
 #include "sn76496.h"
-#include <imachine.h>
+#include <emu.h>
 
 #define MAX_OUTPUT 0x47ff // was 0x7fff
 

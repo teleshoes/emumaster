@@ -92,7 +92,7 @@
 #define _seta_h
 
 #include "port.h"
-#include "machine.h"
+#include "snes.h"
 
 #define ST_010 0x01
 #define ST_011 0x02

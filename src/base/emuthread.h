@@ -13,10 +13,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef MACHINETHREAD_H
-#define MACHINETHREAD_H
+#ifndef EMUTHREAD_H
+#define EMUTHREAD_H
 
-class IMachine;
+class Emu;
 class HostAudio;
 class StateListModel;
 #include <QThread>
@@ -24,14 +24,16 @@ class StateListModel;
 #include <qmsystem2/qmdisplaystate.h>
 #endif
 
-class MachineThread : public QThread {
-    Q_OBJECT
+class EmuThread : public QThread
+{
+	Q_OBJECT
 public:
-	explicit MachineThread(IMachine *machine);
-	~MachineThread();
+	explicit EmuThread(Emu *emu);
+	~EmuThread();
 
-	int frameSkip() const;
 	void setFrameSkip(int n);
+	int frameSkip() const;
+
 	void setLoadSlot(int i);
 	void setStateListModel(StateListModel *stateListModel);
 public slots:
@@ -42,7 +44,7 @@ signals:
 protected:
 	void run();
 private:
-	IMachine *m_machine;
+	Emu *m_emu;
 
 	volatile bool m_running;
 	volatile bool m_inFrameGenerated;
@@ -55,11 +57,10 @@ private:
 #if defined(MEEGO_EDITION_HARMATTAN)
 	MeeGo::QmDisplayState m_displayState;
 #endif
-
 	friend class HostVideo;
 };
 
-inline int MachineThread::frameSkip() const
+inline int EmuThread::frameSkip() const
 { return m_frameSkip; }
 
-#endif // MACHINETHREAD_H
+#endif // EMUTHREAD_H

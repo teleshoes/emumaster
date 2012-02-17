@@ -1,41 +1,43 @@
 #ifndef PATHMANAGER_H
 #define PATHMANAGER_H
 
+#include "base_global.h"
 #include <QStringList>
 class QDir;
 
-class PathManager {
+class BASE_EXPORT PathManager
+{
 public:
 	static PathManager *instance();
 
 	QString installationDirPath() const;
 	QString userDataDirPath() const;
-	QString diskDirPath(const QString &machine) const;
-	QString screenShotPath(const QString &machine,
+	QString diskDirPath(const QString &emu) const;
+	QString screenShotPath(const QString &emu,
 						   const QString &title) const;
-	QString stateDirPath(const QString &machine,
+	QString stateDirPath(const QString &emu,
 						 const QString &title) const;
-	QString homeScreenIconPath(const QString &machine,
+	QString homeScreenIconPath(const QString &emu,
 							   const QString &title) const;
-	QString desktopFilePath(const QString &machine,
+	QString desktopFilePath(const QString &emu,
 							const QString &title) const;
 
 	void buildLocalDirTree();
 
-	void setMachine(const QString &name);
+	void setCurrentEmu(const QString &name);
 
 	QString diskDirPath() const;
 	QString screenShotPath(const QString &title) const;
 	QString stateDirPath(const QString &title) const;
 
-	QStringList machines() const;
+	QStringList emus() const;
 private:
 	Q_DISABLE_COPY(PathManager)
 	PathManager();
-	void createMachineSubtree(QDir &dir);
+	void createEmusSubtree(QDir &dir);
 
-	QString m_machine;
-	QStringList m_machines;
+	QString m_currentEmu;
+	QStringList m_emus;
 	QString m_installationDirPath;
 	QString m_userDataDirPath;
 	QString m_diskDirBase;
@@ -43,8 +45,8 @@ private:
 	static PathManager *inst;
 };
 
-inline QStringList PathManager::machines() const
-{ return m_machines; }
+inline QStringList PathManager::emus() const
+{ return m_emus; }
 
 inline QString PathManager::installationDirPath() const
 { return m_installationDirPath; }

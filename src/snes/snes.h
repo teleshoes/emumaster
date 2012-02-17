@@ -1,16 +1,16 @@
-#ifndef SNESMACHINE_H
-#define SNESMACHINE_H
+#ifndef SNESEMU_H
+#define SNESEMU_H
 
-#include <imachine.h>
+#include <emu.h>
 #include <QImage>
 
 typedef u8 bool8;
 typedef u32 bool8_32;
 
-class SnesMachine : public IMachine {
+class SnesEmu : public Emu {
     Q_OBJECT
 public:
-    explicit SnesMachine(QObject *parent = 0);
+	explicit SnesEmu(QObject *parent = 0);
 	QString init(const QString &diskPath);
 	void shutdown();
 
@@ -31,6 +31,6 @@ protected:
 	static const int m_keyMapping[];
 };
 
-extern SnesMachine snesMachine;
+extern SnesEmu snesEmu;
 
-#endif // SNESMACHINE_H
+#endif // SNESEMU_H

@@ -1,4 +1,4 @@
-include(../machine.pri)
+include(../emu.pri)
 
 DEFINES += USE_CYCLONE_MEMHANDLERS
 
@@ -28,10 +28,10 @@ HEADERS += \
     blitfunc.h \
     blit.h \
     cyclone.h \
-    machine.h \
     spu.h \
     cpu.h \
-    mem.h
+    mem.h \
+    amiga.h
 
 SOURCES += \
 	blitfunc.cpp \
@@ -42,9 +42,9 @@ SOURCES += \
 	disk.cpp \
 	drawing.cpp \
     cyclone.S \
-	machine.cpp \
 	spu.cpp \
 	mem.cpp \
 	mem_handlers.S \
 	cpu.cpp \
-    keyb.cpp
+    keyb.cpp \
+    amiga.cpp

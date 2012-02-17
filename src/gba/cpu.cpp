@@ -24,7 +24,7 @@
 #include "cpu.h"
 #include "gpu.h"
 #include "mem.h"
-#include "machine.h"
+#include "gba.h"
 
 const u8 bit_count[256] =
 {

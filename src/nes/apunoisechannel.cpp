@@ -15,7 +15,7 @@
  */
 
 #include "apunoisechannel.h"
-#include <imachine.h>
+#include <emu.h>
 #include <QDataStream>
 
 NesApuNoiseChannel::NesApuNoiseChannel(int channelNo) :

@@ -5,21 +5,21 @@
 PathManager *PathManager::inst = 0;
 
 PathManager::PathManager() {
-	m_machines << "nes";
-	m_machines << "gba";
-	m_machines << "snes";
-	m_machines << "psx";
-	m_machines << "amiga";
-	m_machines << "pico";
+	m_emus << "nes";
+	m_emus << "gba";
+	m_emus << "snes";
+	m_emus << "psx";
+	m_emus << "amiga";
+	m_emus << "pico";
 
 	m_installationDirPath = "/opt/emumaster";
 	m_userDataDirPath = QString("%1/.emumaster").arg(getenv("HOME"));
 	m_diskDirBase = QString("%1/MyDocs/emumaster").arg(getenv("HOME"));
 }
 
-void PathManager::createMachineSubtree(QDir &dir) {
-	for (int i = 0; i < m_machines.size(); i++)
-		dir.mkdir(m_machines.at(i));
+void PathManager::createEmusSubtree(QDir &dir) {
+	for (int i = 0; i < m_emus.size(); i++)
+		dir.mkdir(m_emus.at(i));
 }
 
 void PathManager::buildLocalDirTree() {
@@ -30,77 +30,73 @@ void PathManager::buildLocalDirTree() {
 	dir.mkdir("icon");
 	dir.mkdir("screenshot");
 
-	dir.cd("state");		createMachineSubtree(dir); dir.cdUp();
-	dir.cd("screenshot");	createMachineSubtree(dir); dir.cdUp();
+	dir.cd("state");		createEmusSubtree(dir); dir.cdUp();
+	dir.cd("screenshot");	createEmusSubtree(dir); dir.cdUp();
 
 	dir = QDir(getenv("HOME"));
 	dir.cd("MyDocs");
 	dir.mkdir("emumaster");
 	dir.cd("emumaster");
 	dir.mkdir("covers");
-	createMachineSubtree(dir);
+	createEmusSubtree(dir);
 }
 
-QString PathManager::diskDirPath(const QString &machine) const {
-	return QString("%1/%2").arg(m_diskDirBase).arg(machine);
+QString PathManager::diskDirPath(const QString &emu) const {
+	return QString("%1/%2").arg(m_diskDirBase).arg(emu);
 }
 
 QString PathManager::diskDirPath() const {
-	return diskDirPath(m_machine);
+	return diskDirPath(m_currentEmu);
 }
 
-QString PathManager::screenShotPath(const QString &machine,
+QString PathManager::screenShotPath(const QString &emu,
 									const QString &title) const {
 	return QString("%1/screenshot/%2/%3.jpg")
 			.arg(userDataDirPath())
-			.arg(machine)
+			.arg(emu)
 			.arg(title);
 }
 
 QString PathManager::screenShotPath(const QString &title) const {
-	return screenShotPath(m_machine, title);
+	return screenShotPath(m_currentEmu, title);
 }
 
-void PathManager::setMachine(const QString &name) {
-	Q_ASSERT(m_machines.contains(name));
-	m_machine = name;
+void PathManager::setCurrentEmu(const QString &name) {
+	Q_ASSERT(m_emus.contains(name));
+	m_currentEmu = name;
 }
 
-QString PathManager::stateDirPath(const QString &machine,
+QString PathManager::stateDirPath(const QString &emu,
 								  const QString &title) const {
 	return QString("%1/state/%2/%3")
 			.arg(userDataDirPath())
-			.arg(machine)
+			.arg(emu)
 			.arg(title);
 }
 
 QString PathManager::stateDirPath(const QString &title) const {
-	return stateDirPath(m_machine, title);
+	return stateDirPath(m_currentEmu, title);
 }
 
-QString PathManager::homeScreenIconPath(const QString &machine,
+QString PathManager::homeScreenIconPath(const QString &emu,
 										const QString &title) const {
 	return QString("%1/icon/%2_%3.png")
 			.arg(userDataDirPath())
-			.arg(machine)
+			.arg(emu)
 			.arg(title);
 }
 
-QString PathManager::desktopFilePath(const QString &machine,
+QString PathManager::desktopFilePath(const QString &emu,
 									 const QString &title) const {
 #if defined(MEEGO_EDITION_HARMATTAN)
-	/*return QString("%1/.local/share/applications/browser-%2-1.desktop")
-			.arg(getenv("HOME"))
-			.arg(QString((machine+title).toAscii().toHex()));*/
-
 	return QString("%1/.local/share/applications/emumaster_%2_%3.desktop")
 			.arg(getenv("HOME"))
-			.arg(machine)
+			.arg(emu)
 			.arg(title);
 #elif defined(Q_WS_MAEMO_5)
 	return QString("%1/.local/share/applications/hildon/emumaster_%2_%3.desktop")
 			.arg(getenv("HOME"))
-			.arg(machine)
+			.arg(emu)
 			.arg(title);
 #endif
 }

@@ -5,13 +5,13 @@
 	(c) Copyright 2011, elemental
 */
 
-#ifndef PICO_H
-#define PICO_H
+#ifndef PICOEMU_H
+#define PICOEMU_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <imachine.h>
+#include <emu.h>
 #include "cd_sys.h"
 
 extern u8 *picoRom;
@@ -49,6 +49,43 @@ extern const unsigned short vcounts[];
 
 // port-specific compile-time settings
 #include "port_config.h"
+
+#ifdef __cplusplus
+
+class Mp3Player;
+
+class PicoEmu : public Emu {
+	Q_OBJECT
+public:
+	PicoEmu();
+	QString init(const QString &diskPath);
+	void shutdown();
+	void reset();
+
+	void emulateFrame(bool drawEnabled);
+	const QImage &frame() const;
+	int fillAudioBuffer(char *stream, int streamSize);
+	Mp3Player *mp3Player() const;
+
+	void pause();
+	void resume();
+protected:
+	void sl();
+	void setAudioEnabled(bool on);
+	void updateInput();
+private:
+	bool findMcdBios(QString *biosFileName, QString *error);
+
+	int m_lastVideoMode;
+	Mp3Player *m_mp3Player;
+};
+
+inline Mp3Player *PicoEmu::mp3Player() const
+{ return m_mp3Player; }
+
+extern PicoEmu picoEmu;
+
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -458,4 +495,4 @@ void z80Sl(const QString &name);
 #define elprintf(w,f,...)
 #endif
 
-#endif // PICO_H
+#endif // PICOEMU_H

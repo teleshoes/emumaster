@@ -7,7 +7,7 @@
 #ifndef PICOCART_H
 #define PICOCART_H
 
-#include <imachine.h>
+#include <emu.h>
 
 class PicoCart {
 public:

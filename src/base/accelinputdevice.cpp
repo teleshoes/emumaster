@@ -14,7 +14,7 @@
  */
 
 #include "accelinputdevice.h"
-#include "imachine.h"
+#include "emu.h"
 #include <QSettings>
 
 /*! \class AccelInputDevice
@@ -23,7 +23,7 @@
 	because often the AccelInputDevice is not connected in any way to the
 	emulated system.
 
-	Available configurations:
+	Available emu functions:
 	  - None
 	  - Pad A
 	  - Pad B
@@ -31,11 +31,32 @@
 
 /*! Creates an AccelInputDevice with the given \a parent. */
 AccelInputDevice::AccelInputDevice(QObject *parent) :
-	HostInputDevice("accel", parent)
+	HostInputDevice("accel", QObject::tr("Accelerometer"), parent)
 {
 	// use accelerometer device only when needed
 	m_accelerometer = 0;
-	// load settings: up and right vectors represents calibration
+
+	setupEmuFunctionList();
+
+	QObject::connect(this, SIGNAL(emuFunctionChanged()), SLOT(onEmuFunctionChanged()));
+
+	loadCalibration();
+}
+
+/*! \internal */
+void AccelInputDevice::setupEmuFunctionList()
+{
+	QStringList functionNameList;
+	functionNameList << tr("None");
+	functionNameList << tr("Pad A");
+	functionNameList << tr("Pad B");
+	setEmuFunctionNameList(functionNameList);
+}
+
+/*! \internal */
+void AccelInputDevice::loadCalibration()
+{
+	// up and right vectors represents calibration
 	QSettings s;
 	s.beginGroup("accelerometer");
 	// up vector
@@ -47,36 +68,6 @@ AccelInputDevice::AccelInputDevice(QObject *parent) :
 	m_rightVector.setY(s.value("right.y", 9.8f).toReal());
 	m_rightVector.setZ(s.value("right.z", 0.0f).toReal());
 	s.endGroup();
-
-	QObject::connect(this, SIGNAL(confChanged()), SLOT(onConfChanged()));
-}
-
-/*! \internal */
-void AccelInputDevice::onConfChanged()
-{
-	// reset conversions on configuration change
-	m_converted = false;
-	m_buttons = 0;
-	setEnabled(confIndex() > 0);
-}
-
-/*! \internal */
-void AccelInputDevice::setEnabled(bool on)
-{
-	// check if on is equal to the current state
-	if (on == (m_accelerometer != 0))
-		return;
-
-	// turn off/on accelerometer
-	if (!on) {
-		delete m_accelerometer;
-		m_accelerometer = 0;
-	} else {
-		m_accelerometer = new QAccelerometer(this);
-		QObject::connect(m_accelerometer, SIGNAL(readingChanged()),
-						 SLOT(onReadingChanged()));
-		m_accelerometer->start();
-	}
 }
 
 /*!
@@ -107,11 +98,39 @@ void AccelInputDevice::calibrate(const QVector3D &init,
 	s.endGroup();
 }
 
+/*! \internal */
+void AccelInputDevice::onEmuFunctionChanged()
+{
+	// reset conversions on emu function change
+	m_converted = false;
+	m_buttons = 0;
+	setEnabled(emuFunction() > 0);
+}
+
+/*! \internal */
+void AccelInputDevice::setEnabled(bool on)
+{
+	// check if on is equal to the current state
+	if (on == (m_accelerometer != 0))
+		return;
+
+	// turn off/on accelerometer
+	if (!on) {
+		delete m_accelerometer;
+		m_accelerometer = 0;
+	} else {
+		m_accelerometer = new QAccelerometer(this);
+		QObject::connect(m_accelerometer, SIGNAL(readingChanged()),
+						 SLOT(onReadingChanged()));
+		m_accelerometer->start();
+	}
+}
+
 /*! \reimp */
 void AccelInputDevice::update(int *data)
 {
 	// exit if turned off
-	if (confIndex() <= 0)
+	if (emuFunction() <= 0)
 		return;
 	// convert if needed
 	if (!m_converted) {
@@ -119,7 +138,7 @@ void AccelInputDevice::update(int *data)
 		m_converted = true;
 	}
 	// write data
-	int *pad = IMachine::padOffset(data, confIndex()-1);
+	int *pad = Emu::padOffset(data, emuFunction()-1);
 	pad[0] |= m_buttons;
 	// TODO accelerometer: write analog values
 }
@@ -147,12 +166,12 @@ void AccelInputDevice::convert()
 
 	m_buttons = 0;
 	if (up > treshold)
-		m_buttons |= IMachine::PadKey_Up;
+		m_buttons |= Emu::PadKey_Up;
 	else if (up < -treshold)
-		m_buttons |= IMachine::PadKey_Down;
+		m_buttons |= Emu::PadKey_Down;
 
 	if (right > treshold)
-		m_buttons |= IMachine::PadKey_Right;
+		m_buttons |= Emu::PadKey_Right;
 	else if (right < -treshold)
-		m_buttons |= IMachine::PadKey_Left;
+		m_buttons |= Emu::PadKey_Left;
 }

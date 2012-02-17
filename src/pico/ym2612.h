@@ -2,7 +2,7 @@
 #ifndef PICOYM6212_H
 #define PICOYM6212_H
 
-#include <imachine.h>
+#include <emu.h>
 
 class FM_SLOT {
 public:

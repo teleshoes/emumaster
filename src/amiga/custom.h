@@ -17,7 +17,7 @@
 #ifndef AMIGACUSTOM_H
 #define AMIGACUSTOM_H
 
-#include <imachine.h>
+#include <emu.h>
 
 extern void amigaCustomInit();
 extern void amigaCustomShutdown();

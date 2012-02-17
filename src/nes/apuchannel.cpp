@@ -15,7 +15,7 @@
  */
 
 #include "apuchannel.h"
-#include <imachine.h>
+#include <emu.h>
 #include <QDataStream>
 
 NesApuChannel::NesApuChannel(int channelNo) :

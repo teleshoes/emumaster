@@ -13,23 +13,24 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef MACHINEVIEW_H
-#define MACHINEVIEW_H
+#ifndef EMUVIEW_H
+#define EMUVIEW_H
 
-class IMachine;
-class MachineThread;
+class Emu;
+class EmuThread;
 class HostVideo;
 class HostAudio;
 class HostInput;
 class SettingsView;
 class StateListModel;
+class HostInputDevice;
 #include "base_global.h"
 #include <QGLWidget>
 class QThread;
 class QDeclarativeView;
 class QSettings;
 
-class BASE_EXPORT MachineView : public QObject {
+class BASE_EXPORT EmuView : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(bool fpsVisible READ isFpsVisible WRITE setFpsVisible NOTIFY fpsVisibleChanged)
 	Q_PROPERTY(int frameSkip READ frameSkip WRITE setFrameSkip NOTIFY frameSkipChanged)
@@ -38,43 +39,38 @@ class BASE_EXPORT MachineView : public QObject {
 	Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged)
 	Q_PROPERTY(bool bilinearFiltering READ bilinearFiltering WRITE setBilinearFiltering NOTIFY bilinearFilteringChanged)
 	Q_PROPERTY(QString error READ error CONSTANT)
-	Q_PROPERTY(QList<QObject *> inputDevices READ inputDevices NOTIFY inputDevicesChanged)
+	Q_PROPERTY(QList<HostInputDevice *> inputDevices READ inputDevices NOTIFY inputDevicesChanged)
 public:
-	explicit MachineView(IMachine *machine, const QString &diskFileName);
-	~MachineView();
-	QDeclarativeView *settingsView() const;
+	explicit EmuView(Emu *emu, const QString &diskFileName);
+	~EmuView();
 
-	IMachine *machine() const;
-
-	bool isRunning() const;
-
-	bool isFpsVisible() const;
 	void setFpsVisible(bool on);
+	bool isFpsVisible() const;
 
-	int frameSkip() const;
 	void setFrameSkip(int n);
+	int frameSkip() const;
 
-	bool isAudioEnabled() const;
 	void setAudioEnabled(bool on);
+	bool isAudioEnabled() const;
 
-	qreal padOpacity() const;
 	void setPadOpacity(qreal opacity);
+	qreal padOpacity() const;
 
-	bool keepAspectRatio() const;
 	void setKeepAspectRatio(bool on);
+	bool keepAspectRatio() const;
 
-	bool bilinearFiltering() const;
 	void setBilinearFiltering(bool enabled);
+	bool bilinearFiltering() const;
 
-	QList<QObject *> inputDevices() const;
-
-	Q_INVOKABLE void saveScreenShot();
+	QList<HostInputDevice *> inputDevices() const;
 
 	QString error() const;
 public slots:
 	void pause();
 	void resume();
 	bool close();
+
+	void saveScreenShot();
 signals:
 	void fpsVisibleChanged();
 	void frameSkipChanged();
@@ -82,7 +78,7 @@ signals:
 	void padOpacityChanged();
 	void keepAspectRatioChanged();
 	void bilinearFilteringChanged();
-	void faultOccured(QString faultStr);
+	void faultOccured(QString faultMessage);
 	void inputDevicesChanged();
 private slots:
 	void pauseStage2();
@@ -93,9 +89,7 @@ private slots:
 private:
 	bool loadConfiguration();
 	void loadSettings();
-	QVariant loadOptionFromSettings(QSettings &s,
-									const QString &name,
-									const QVariant &defaultValue);
+	QVariant loadOptionFromSettings(QSettings &s, const QString &name) const;
 	QString extractArg(const QStringList &args, const QString &argName);
 	void parseConfArg(const QString &arg);
 	void setupSettingsView();
@@ -104,10 +98,12 @@ private:
 	QString constructSlErrorString() const;
 	void fatalError(const QString &faultStr);
 
-	IMachine *m_machine;
+	static void registerClassesInQml();
+
+	Emu *m_emu;
 	QString m_diskFileName;
 
-	MachineThread *m_thread;
+	EmuThread *m_thread;
 	HostInput *m_hostInput;
 	HostAudio *m_hostAudio;
 	HostVideo *m_hostVideo;
@@ -128,11 +124,7 @@ private:
 	QTimer *m_safetyTimer;
 };
 
-inline IMachine *MachineView::machine() const
-{ return m_machine; }
-inline bool MachineView::isRunning() const
-{ return m_running; }
-inline QString MachineView::error() const
+inline QString EmuView::error() const
 { return m_error; }
 
-#endif // MACHINEVIEW_H
+#endif // EMUVIEW_H

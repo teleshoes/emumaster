@@ -6,7 +6,6 @@
 	(c) Copyright 2011, elemental
 */
 
-#include "machine.h"
 #include "pico.h"
 #include "cd_pcm.h"
 #include "ym2612.h"
@@ -45,7 +44,7 @@ static void picoSoundFinishMixing(int offset, int count)
 	}
 }
 
-int PicoMachine::fillAudioBuffer(char *stream, int streamSize)
+int PicoEmu::fillAudioBuffer(char *stream, int streamSize)
 {
 	u32 *src = picoSoundOutBuffer;
 	u32 *dst = (u32 *)stream;
@@ -66,7 +65,7 @@ int PicoMachine::fillAudioBuffer(char *stream, int streamSize)
 	return length<<2;
 }
 
-void PicoMachine::setAudioEnabled(bool on)
+void PicoEmu::setAudioEnabled(bool on)
 {
 	picoSoundEnabled = on;
 }

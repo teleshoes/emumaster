@@ -17,7 +17,7 @@
 #include "spu_fran.h"
 #include "spu_registers.h"
 #include "mem.h"
-#include "machine.h"
+#include "psx.h"
 #include <QDataStream>
 
 PsxSpuFran psxSpuFran;
@@ -757,7 +757,7 @@ void PsxSpuFran::shutdown() {
 }
 
 int PsxSpuFran::fillBuffer(char *stream, int size) {
-	int sampleCount = psxMachine.systemType == PsxMachine::NtscType ? 44100/60 : 44100/50;
+	int sampleCount = psxEmu.systemType == PsxEmu::NtscType ? 44100/60 : 44100/50;
 	sampleCount = qMin(size/4, sampleCount);
 	memset(stream, 0, sampleCount*4);
 

@@ -23,31 +23,45 @@
 class HostInputDevice : public QObject
 {
 	Q_OBJECT
+	Q_PROPERTY(QString shortName READ shortName CONSTANT)
 	Q_PROPERTY(QString name READ name CONSTANT)
-	Q_PROPERTY(int confIndex READ confIndex WRITE setConfIndex NOTIFY confChanged)
+	Q_PROPERTY(int emuFunction READ emuFunction WRITE setEmuFunction NOTIFY emuFunctionChanged)
+	Q_PROPERTY(QString emuFunctionName READ emuFunctionName NOTIFY emuFunctionChanged)
+	Q_PROPERTY(QStringList emuFunctionNameList READ emuFunctionNameList CONSTANT)
 public:
-	explicit HostInputDevice(const QString &name, QObject *parent = 0);
+	explicit HostInputDevice(const QString &shortName,
+							 const QString &name,
+							 QObject *parent = 0);
+	QString shortName() const;
 	QString name() const;
 
-	int confIndex() const;
-	void setConfIndex(int index);
+	int emuFunction() const;
+	bool setEmuFunction(int index);
+	void updateEmuFunction();
+
+	QString emuFunctionName() const;
+	QStringList emuFunctionNameList() const;
+
+	void setDeviceIndex(int index);
 
 	virtual void update(int *data) = 0;
-
-	void setGlobalConfigurationName(const QString &name);
-	void updateConfFromGlobalConfiguration();
 signals:
-	void confChanged();
+	void emuFunctionChanged();
+protected:
+	void setEmuFunctionNameList(const QStringList &list);
 private:
+	QString m_shortName;
 	QString m_name;
-	int m_confIndex;
-
-	QString m_globalConfName;
+	int m_emuFunction;
+	QString m_confName;
+	QStringList m_emuFunctionNameList;
 };
 
+inline QString HostInputDevice::shortName() const
+{ return m_shortName; }
 inline QString HostInputDevice::name() const
 { return m_name; }
-inline int HostInputDevice::confIndex() const
-{ return m_confIndex; }
+inline int HostInputDevice::emuFunction() const
+{ return m_emuFunction; }
 
 #endif // HOSTINPUTDEVICE_H

@@ -60,6 +60,7 @@ Page {
 					text: qsTr("Auto Save/Load")
 				}
 			}
-		}
+		},
+		ScrollDecorator { flickableItem: flickable }
 	]
 }

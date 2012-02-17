@@ -17,7 +17,7 @@
 #ifndef AMIGAEVENTS_H
 #define AMIGAEVENTS_H
 
-#include "machine.h"
+#include "amiga.h"
 
 /* Every Amiga hardware clock cycle takes this many "virtual" cycles.  This
    used to be hardcoded as 1, but using higher values allows us to time some
@@ -91,7 +91,7 @@ static __inline__ void amigaEventsHandle(u32 cycles) {
 	amigaCycles += cycles;
 
 	if (amigaEventVSync) {
-		amigaMachine.vSync();
+		amigaEmu.vSync();
 		amigaEventVSync = false;
 	}
 }

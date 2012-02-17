@@ -17,7 +17,7 @@
 #include "mapper001.h"
 #include "disk.h"
 #include "ppu.h"
-#include <imachine.h>
+#include <emu.h>
 #include <QDataStream>
 
 void Mapper001::reset() {

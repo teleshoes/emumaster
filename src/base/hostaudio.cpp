@@ -14,11 +14,12 @@
  */
 
 #include "hostaudio.h"
-#include "imachine.h"
+#include "emu.h"
 #include <stdio.h>
 #include <limits.h>
 
-static void contextStreamCallback(pa_context *context, void *userdata) {
+static void contextStreamCallback(pa_context *context, void *userdata)
+{
 	 if (!context || !userdata)
 		 return;
 	 HostAudio *hostAudio = reinterpret_cast<HostAudio *>(userdata);
@@ -37,22 +38,33 @@ static void contextStreamCallback(pa_context *context, void *userdata) {
 	 }
 }
 
-HostAudio::HostAudio(IMachine *machine) :
+/*!
+	\class HostAudio
+	HostAudio class controls audio streaming to the host device.
+ */
+
+/*! Creates a HostAudio object. */
+HostAudio::HostAudio(Emu *emu) :
 	m_mainloop(0),
 	m_context(0),
 	m_api(0),
 	m_stream(0),
-	m_machine(machine) {
+	m_emu(emu)
+{
 }
 
-HostAudio::~HostAudio() {
+/*! Destroys HostAudio object.*/
+HostAudio::~HostAudio()
+{
 	close();
 }
 
-void HostAudio::open() {
+/*! Starts up audio streaming to the host. */
+void HostAudio::open()
+{
 	m_mainloop = pa_threaded_mainloop_new();
 	if (!m_mainloop) {
-		printf("Could not acquire PulseAudio main loop");
+		qDebug("Could not acquire PulseAudio main loop");
 		return;
 	}
 	m_api = pa_threaded_mainloop_get_api(m_mainloop);
@@ -60,7 +72,7 @@ void HostAudio::open() {
 	pa_context_set_state_callback(m_context, contextStreamCallback, this);
 
 	if (!m_context) {
-		printf("Could not acquire PulseAudio device context");
+		qDebug("Could not acquire PulseAudio device context");
 		return;
 	}
 #if defined(MEEGO_EDITION_HARMATTAN)
@@ -69,12 +81,12 @@ void HostAudio::open() {
 	if (pa_context_connect(m_context, 0, (pa_context_flags_t)0, 0) < 0) {
 #endif
 		int error = pa_context_errno(m_context);
-		printf("Could not connect to PulseAudio server: %s", pa_strerror(error));
+		qDebug("Could not connect to PulseAudio server: %s", pa_strerror(error));
 		return;
 	}
 	pa_threaded_mainloop_lock(m_mainloop);
 	if (pa_threaded_mainloop_start(m_mainloop) < 0) {
-		printf("Could not start mainloop");
+		qDebug("Could not start mainloop");
 		return;
 	}
 
@@ -94,7 +106,7 @@ void HostAudio::open() {
 	m_stream = pa_stream_new(m_context, "emumaster", &fmt, 0);
 	if (!m_stream) {
 		int error = pa_context_errno(m_context);
-		printf("Could not acquire new PulseAudio stream: %s", pa_strerror(error));
+		qDebug("Could not acquire new PulseAudio stream: %s", pa_strerror(error));
 		return;
 	}
 	pa_stream_flags_t flags = (pa_stream_flags_t)(PA_STREAM_ADJUST_LATENCY | PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_AUTO_TIMING_UPDATE);
@@ -102,7 +114,7 @@ void HostAudio::open() {
 	if (pa_stream_connect_playback(m_stream, 0, &buffer_attributes, flags, 0, 0) < 0) {
 		m_stream = 0;
 		int error = pa_context_errno(m_context);
-		printf("Could not connect for playback: %s", pa_strerror(error));
+		qDebug("Could not connect for playback: %s", pa_strerror(error));
 		return;
 	}
 
@@ -111,7 +123,9 @@ void HostAudio::open() {
 	pa_threaded_mainloop_unlock(m_mainloop);
 }
 
-void HostAudio::close() {
+/*! Stops audio streaming. */
+void HostAudio::close()
+{
 	if (m_mainloop)
 		pa_threaded_mainloop_stop(m_mainloop);
 	if (m_stream) {
@@ -129,7 +143,9 @@ void HostAudio::close() {
 	}
 }
 
-void HostAudio::sendFrame() {
+/*! Streams a frame of audio from emulated system to the host. */
+void HostAudio::sendFrame()
+{
 	if (!m_stream)
 		return;
 	pa_threaded_mainloop_lock(m_mainloop);
@@ -144,7 +160,7 @@ void HostAudio::sendFrame() {
 #endif
 	size = qMin(size, pa_stream_writable_size(m_stream));
 	if (size)
-		size = m_machine->fillAudioBuffer(reinterpret_cast<char *>(data), size);
+		size = m_emu->fillAudioBuffer(reinterpret_cast<char *>(data), size);
 	if (size)
 		pa_stream_write(m_stream, data, size, 0, 0, PA_SEEK_RELATIVE);
 #if defined(MEEGO_EDITION_HARMATTAN)
@@ -154,18 +170,20 @@ void HostAudio::sendFrame() {
 	pa_threaded_mainloop_unlock(m_mainloop);
 }
 
-void HostAudio::waitForStreamReady() {
+/*! \internal */
+void HostAudio::waitForStreamReady()
+{
 	pa_context_state_t context_state = pa_context_get_state(m_context);
 	while (context_state != PA_CONTEXT_READY) {
 		context_state = pa_context_get_state(m_context);
 		if (!PA_CONTEXT_IS_GOOD(context_state)) {
 			int error = pa_context_errno(m_context);
-			printf("Context state is not good: %s", pa_strerror(error));
+			qDebug("Context state is not good: %s", pa_strerror(error));
 			return;
 		} else if (context_state == PA_CONTEXT_READY) {
 			break;
 		} else {
-			//printf("PulseAudio context state is %d", context_state);
+			//qDebug("PulseAudio context state is %d", context_state);
 		}
 		pa_threaded_mainloop_wait(m_mainloop);
 	}

@@ -41,7 +41,7 @@
 #ifndef _DMA_H_
 #define _DMA_H_
 
-#include "machine.h"
+#include "snes.h"
 #include "port.h"
 
 START_EXTERN_C

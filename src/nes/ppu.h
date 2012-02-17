@@ -18,10 +18,11 @@
 #define NESPPU_H
 
 class NesPpu;
-#include <imachine.h>
+#include <emu.h>
 #include <QImage>
 #include <QVector>
 #include <QRgb>
+#include <QStringList>
 
 class NesPpu;
 
@@ -76,9 +77,11 @@ class NesPpu : public QObject {
 	Q_OBJECT
 	Q_ENUMS(RenderMethod)
 	Q_PROPERTY(RenderMethod renderMethod READ renderMethod WRITE setRenderMethod NOTIFY renderMethodChanged)
+	Q_PROPERTY(QString renderMethodName READ renderMethodName NOTIFY renderMethodChanged)
+	Q_PROPERTY(QStringList renderMethodNameList READ renderMethodNameList CONSTANT)
 public:
 	enum ChipType {
-		PPU2C02 = 0,// NTSC NES
+		PPU2C02,	// NTSC NES
 		PPU2C03B,	// Playchoice 10
 		PPU2C04,	// Vs. Unisystem // TODO test
 		PPU2C05_01,	// Vs. Unisystem (Ninja Jajamaru Kun) // TODO test
@@ -88,21 +91,21 @@ public:
 		PPU2C07		// PAL NES
 	};
 	enum RenderMethod {
-		PostAllRender = 0,
+		PostAllRender,
 		PreAllRender,
 		PostRender,
 		PreRender,
 		TileRender
 	};
 	enum Register {
-		Control0 = 0,
-		Control1 = 1,
-		Status = 2,
-		SpriteRAMAddress = 3,
-		SpriteRAMIO = 4,
-		Scroll = 5,
-		VRAMAddress = 6,
-		VRAMIO = 7
+		Control0,
+		Control1,
+		Status,
+		SpriteRAMAddress,
+		SpriteRAMIO,
+		Scroll,
+		VRAMAddress,
+		VRAMIO
 	};
 	enum ControlReg0Bit {
 		//	Indicates whether a NMI should occur upon V-Blank.
@@ -182,6 +185,9 @@ public:
 	RenderMethod renderMethod() const;
 	void setRenderMethod(RenderMethod method);
 
+	QString renderMethodName() const;
+	QStringList renderMethodNameList() const;
+
 	bool isBackgroundVisible() const;
 	bool isSpriteVisible() const;
 	bool isDisplayOn() const;
@@ -213,6 +219,10 @@ private:
 
 	void drawSprites();
 	void fillScanline(int color, int count);
+
+	void setupRenderMethodNameList();
+
+	QStringList m_renderMethodNameList;
 };
 
 inline bool NesPpu::isBackgroundVisible() const

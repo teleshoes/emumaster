@@ -26,7 +26,6 @@ Item {
 	Label {
 		id: switchLabel
 		anchors.verticalCenter: parent.verticalCenter
-		font.bold: true
 	}
 	Switch {
 		id: enableSwitch

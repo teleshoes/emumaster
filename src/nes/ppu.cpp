@@ -16,7 +16,7 @@
 
 #include "ppu.h"
 #include "mapper.h"
-#include "machine.h"
+#include "nes.h"
 #include "cpu.h"
 #include <qmath.h>
 #include <QDataStream>
@@ -95,7 +95,10 @@ static void updateColorEmphasisAndMask() {
 	}
 }
 
-void NesPpu::init() {
+void NesPpu::init()
+{
+	setupRenderMethodNameList();
+
 	nesPpuFrame = QImage(8+VisibleScreenWidth+8, VisibleScreenHeight, QImage::Format_RGB32);
 
 	setChipType(PPU2C02);
@@ -337,6 +340,25 @@ void NesPpu::setRenderMethod(RenderMethod method) {
 	}
 }
 
+QString NesPpu::renderMethodName() const
+{
+	return m_renderMethodNameList.at(ppuRenderMethod);
+}
+
+QStringList NesPpu::renderMethodNameList() const
+{
+	return m_renderMethodNameList;
+}
+
+void NesPpu::setupRenderMethodNameList()
+{
+	m_renderMethodNameList << tr("Post All Render");
+	m_renderMethodNameList << tr("Pre All Render");
+	m_renderMethodNameList << tr("Post Render");
+	m_renderMethodNameList << tr("Pre Render");
+	m_renderMethodNameList << tr("Tile Render");
+}
+
 void NesPpu::nextScanline() {
 	nesPpuScanline++;
 	scanlineData += nesPpuFrame.bytesPerLine()/sizeof(QRgb);
@@ -403,7 +425,7 @@ void NesPpu::drawBackground() {
 	if (!isBackgroundVisible()) {
 		fillScanline(0, 8+VisibleScreenWidth);
 		if (renderMethod() == TileRender)
-			nesMachine.clockCpu(FetchCycles*4*32);
+			nesEmu.clockCpu(FetchCycles*4*32);
 		return;
 	}
 	if (renderMethod() != TileRender) {
@@ -507,7 +529,7 @@ void NesPpu::drawBackgroundTileNoExtLatch() {
 		u16 tileAddress = nameTable[nameTableAddress & 0x03FF] * 0x10;
 		tileAddress += nesPpuTilePageOffset + nesPpuScrollTileYOffset;
 		if (i)
-			nesMachine.clockCpu(FetchCycles*4);
+			nesEmu.clockCpu(FetchCycles*4);
 		u8 attribute = nameTable[attributeAddress + (nameTableX >> 2)];
 		attribute >>= (nameTableX & 2) | attributeShift;
 		attribute = (attribute & 3) << 2;
@@ -615,7 +637,7 @@ void NesPpu::drawBackgroundTileExtLatch() {
 	QRgb *currPens = currentPens();
 	for (int i = 0; i < 33; i++) {
 		if (i)
-			nesMachine.clockCpu(FetchCycles*4);
+			nesEmu.clockCpu(FetchCycles*4);
 		nesMapper->extensionLatchX(i);
 		u8 plane1, plane2;
 		u8 attribute;

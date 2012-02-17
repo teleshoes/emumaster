@@ -53,6 +53,9 @@ Item {
 
 	property Style platformStyle: SectionScrollerStyle {}
 
+	//Deprecated, TODO Remove this on w13
+	property alias style: root.platformStyle
+
 	Item {
 		id: wrapper
 

@@ -29,12 +29,12 @@ void Mapper064::reset() {
 
 	reg[0] = reg[1] = reg[2] = 0;
 
-	irq_enable   = 0;
-	irq_mode     = 0;
-	irq_counter  = 0;
+	irq_enable = 0;
+	irq_mode = 0;
+	irq_counter = 0;
 	irq_counter2 = 0;
-	irq_latch    = 0;
-	irq_reset    = 0;
+	irq_latch = 0;
+	irq_reset = 0;
 }
 
 void Mapper064::writeHigh(u16 address, u8 data) {

@@ -45,10 +45,10 @@ QImage DiskListModel::applyMaskAndOverlay(const QImage &icon) {
 bool DiskListModel::addIconToHomeScreen(int i, qreal scale, int x, int y) {
 	QString diskFileName = getDiskFileName(i);
 	QString diskTitle = getDiskTitle(i);
-	QString diskMachine = getDiskMachine(i);
+	QString diskEmuName = getDiskEmuName(i);
 	DiskImageProvider imgProvider;
 	QImage imgSrc = imgProvider.requestImage(QString("%1/%2*%3")
-											 .arg(diskMachine)
+											 .arg(diskEmuName)
 											 .arg(diskTitle)
 											 .arg(qrand()), 0, QSize());
 	QImage scaled = imgSrc.scaled(qreal(imgSrc.width())*scale,
@@ -60,8 +60,8 @@ bool DiskListModel::addIconToHomeScreen(int i, qreal scale, int x, int y) {
 		return false;
 	icon = applyMaskAndOverlay(icon);
 
-	QString desktopFilePath = PathManager::instance()->desktopFilePath(diskMachine, diskTitle);
-	QString iconFilePath = PathManager::instance()->homeScreenIconPath(diskMachine, diskTitle);
+	QString desktopFilePath = PathManager::instance()->desktopFilePath(diskEmuName, diskTitle);
+	QString iconFilePath = PathManager::instance()->homeScreenIconPath(diskEmuName, diskTitle);
 	if (!icon.save(iconFilePath))
 		return false;
 	QString exec = QString(
@@ -71,7 +71,7 @@ bool DiskListModel::addIconToHomeScreen(int i, qreal scale, int x, int y) {
 			"%1/bin/%2 \"%3\"")
 		#endif
 			.arg(PathManager::instance()->installationDirPath())
-			.arg(diskMachine)
+			.arg(diskEmuName)
 			.arg(diskFileName);
 	return createDesktopFile(desktopFilePath,
 							 diskTitle,
@@ -110,22 +110,22 @@ bool DiskListModel::createDesktopFile(const QString &fileName,
 
 void DiskListModel::removeIconFromHomeScreen(int i) {
 	QString diskTitle = getDiskTitle(i);
-	QString diskMachine = getDiskMachine(i);
-	if (diskMachine.isEmpty())
+	QString diskEmuName = getDiskEmuName(i);
+	if (diskEmuName.isEmpty())
 		return;
 
-	QFile desktopFile(PathManager::instance()->desktopFilePath(diskMachine, diskTitle));
-	QFile iconFile(PathManager::instance()->homeScreenIconPath(diskMachine, diskTitle));
+	QFile desktopFile(PathManager::instance()->desktopFilePath(diskEmuName, diskTitle));
+	QFile iconFile(PathManager::instance()->homeScreenIconPath(diskEmuName, diskTitle));
 	desktopFile.remove();
 	iconFile.remove();
 }
 
 bool DiskListModel::iconInHomeScreenExists(int i) {
 	QString diskTitle = getDiskTitle(i);
-	QString diskMachine = getDiskMachine(i);
-	if (diskMachine.isEmpty())
+	QString diskEmuName = getDiskEmuName(i);
+	if (diskEmuName.isEmpty())
 		return false;
-	QString path = PathManager::instance()->desktopFilePath(diskMachine, diskTitle);
+	QString path = PathManager::instance()->desktopFilePath(diskEmuName, diskTitle);
 	return QFile::exists(path);
 }
 

@@ -15,11 +15,11 @@
  */
 
 #include "cpu.h"
-#include "machine.h"
+#include "nes.h"
 #include "mapper.h"
 #include "apu.h"
 
-#include <imachine.h>
+#include <emu.h>
 #include <QDataStream>
 
 enum StatusFlag {
@@ -266,7 +266,7 @@ void NesCpu::sl() {
 }
 
 #define AXS { \
-	u32 t = (A&X) - x;    \
+	u32 t = (A&X) - x; \
 	X_ZN(t & 0xFF); \
 	P &= ~C; \
 	P |= ((t>>8)&C) ^ C; \

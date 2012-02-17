@@ -17,7 +17,7 @@
 #ifndef NESAPUCHANNEL_H
 #define NESAPUCHANNEL_H
 
-#include <imachine.h>
+#include <emu.h>
 
 class NesApuChannel {
 public:

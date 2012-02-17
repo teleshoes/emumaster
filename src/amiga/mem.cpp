@@ -14,7 +14,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "machine.h"
+#include "amiga.h"
 #include "mem.h"
 #include "custom.h"
 #include "events.h"

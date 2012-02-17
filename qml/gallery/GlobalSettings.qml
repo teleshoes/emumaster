@@ -38,28 +38,20 @@ Page {
 		height: childrenRect.height
 		spacing: 20
 
-		SectionSeperator { text: qsTr("STATE"); rightPad: 150 }
-		EMSwitchOption {
-			text: qsTr("Auto Load/Save on Start/Exit")
-			checked: diskGallery.globalOption("autoSaveLoadEnable", true)
-			onCheckedChanged: diskGallery.setGlobalOption("autoSaveLoadEnable", checked)
-		}
+		SectionSeperator { text: qsTr("STATE") }
 
-		SectionSeperator { text: qsTr("INPUT"); rightPad: 150 }
-		EMSwitchOption {
-			text: qsTr("Swipe Enabled")
-			checked: diskGallery.globalOption("swipeEnable", false)
-			onCheckedChanged: diskGallery.setGlobalOption("swipeEnable", checked)
-		}
-		Label {
-			text: qsTr("Pad Opacity")
-			font.bold: true
-		}
+		GlobalSettingsSwitchItem { text: qsTr("Auto Load/Save on Start/Exit"); optionName: "autoSaveLoadEnable" }
+
+		SectionSeperator { text: qsTr("INPUT") }
+
+		GlobalSettingsSwitchItem { text: qsTr("Swipe Enabled"); optionName: "swipeEnable" }
+
+		Label { text: qsTr("Pad Opacity") }
 		Slider {
 			width: parent.width
 			minimumValue: 0.0
 			maximumValue: 1.0
-			value: diskGallery.globalOption("padOpacity", 0.45)
+			value: diskGallery.globalOption("padOpacity")
 			onValueChanged: diskGallery.setGlobalOption("padOpacity", value)
 			stepSize: 0.05
 			valueIndicatorVisible: true
@@ -75,48 +67,34 @@ Page {
 			onClicked: appWindow.pageStack.push(Qt.resolvedUrl("AccelCalibrationPage.qml"))
 		}
 
-		SectionSeperator { text: qsTr("VIDEO"); rightPad: 150 }
-		Label {
-			text: qsTr("Frameskip")
-			font.bold: true
-		}
+		SectionSeperator { text: qsTr("VIDEO") }
+
+		Label { text: qsTr("Frameskip") }
 		Slider {
 			width: parent.width
 			minimumValue: 0
 			maximumValue: 5
-			value: diskGallery.globalOption("frameSkip", 1)
+			value: diskGallery.globalOption("frameSkip")
 			onValueChanged: diskGallery.setGlobalOption("frameSkip", value)
 			stepSize: 1
 			valueIndicatorVisible: true
 		}
-		EMSwitchOption {
-			text: qsTr("Show FPS")
-			checked: diskGallery.globalOption("fpsVisible", false)
-			onCheckedChanged: diskGallery.setGlobalOption("fpsVisible", checked)
-		}
-		EMSwitchOption {
-			text: qsTr("Force Fullscreen")
-			checked: !diskGallery.globalOption("keepAspectRatio", true)
-			onCheckedChanged: diskGallery.setGlobalOption("keepAspectRatio", !checked)
-		}
-		EMSwitchOption {
-			text: qsTr("Bilinear Filtering")
-			checked: diskGallery.globalOption("bilinearFiltering", false)
-			onCheckedChanged: diskGallery.setGlobalOption("bilinearFiltering", checked)
-		}
-		EMSwitchOption {
-			text: qsTr("Audio Enabled")
-			checked: diskGallery.globalOption("audioEnable", true)
-			onCheckedChanged: diskGallery.setGlobalOption("audioEnable", checked)
-		}
+		GlobalSettingsSwitchItem { text: qsTr("Show FPS"); optionName: "fpsVisible" }
+		GlobalSettingsSwitchItem { text: qsTr("Keep Aspect Ratio"); optionName: "keepAspectRatio" }
+		GlobalSettingsSwitchItem { text: qsTr("Bilinear Filtering"); optionName: "bilinearFiltering" }
+
+		SectionSeperator { text: qsTr("MISC") }
+
+		GlobalSettingsSwitchItem { text: qsTr("Audio Enabled"); optionName: "audioEnable" }
+
 		EMSwitchOption {
 			id: runInBackgroundSwitch
 			text: qsTr("Run in Background")
-			checked: diskGallery.globalOption("runInBackground", false)
+			checked: diskGallery.globalOption("runInBackground")
 			onCheckedChanged: {
 				if (checked) {
 					// special handling to prevent the dialog from showing at the start
-					if (diskGallery.globalOption("runInBackground", false) !== "true")
+					if (diskGallery.globalOption("runInBackground") !== "true")
 						runInBackgroundDialog.open()
 				} else {
 					diskGallery.setGlobalOption("runInBackground", false)

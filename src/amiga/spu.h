@@ -17,7 +17,7 @@
 #ifndef AMIGASPU_H
 #define AMIGASPU_H
 
-#include <imachine.h>
+#include <emu.h>
 
 extern void AUDxDAT(int nr, u16 value);
 extern void AUDxVOL(int nr, u16 value);

@@ -25,9 +25,9 @@
 class SixAxisDevice;
 
 class SixAxisServer : public QObject {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    explicit SixAxisServer(QObject *parent = 0);
+	explicit SixAxisServer(QObject *parent = 0);
 	~SixAxisServer();
 	QString open();
 	void close();

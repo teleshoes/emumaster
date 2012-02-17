@@ -15,7 +15,7 @@
  */
 
 #include "mapper.h"
-#include "machine.h"
+#include "nes.h"
 #include "disk.h"
 #include "cpu.h"
 #include "ppu.h"

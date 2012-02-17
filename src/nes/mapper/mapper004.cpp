@@ -17,7 +17,7 @@
 #include "mapper004.h"
 #include "ppu.h"
 #include "disk.h"
-#include <imachine.h>
+#include <emu.h>
 
 void Mapper004::reset() {
 	NesMapper::reset();

@@ -1,3 +1,14 @@
+emumaster (0.3.0) unstable; urgency=low
+
+  * advanced launch introduced
+  * sixaxis function in emulation automatically set
+  * fixed scrolling in SectionScroller
+  * nes - 6502 cpu interrupts events fixed
+  * nes - pal timings corrected
+  * nes - mapper 5 fixed
+
+ -- elemental <mar.kazmierczak@gmail.com>  Wed, 15 Feb 2012 23:25:16 +0100
+
 emumaster (0.2.2) unstable; urgency=low
 
   * enabled scaling/rotating sprites in megacd emulation

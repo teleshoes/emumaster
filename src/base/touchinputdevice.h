@@ -21,15 +21,16 @@
 #include <QImage>
 class QPainter;
 
-class TouchInputDevice : public HostInputDevice {
-    Q_OBJECT
+class BASE_EXPORT TouchInputDevice : public HostInputDevice
+{
+	Q_OBJECT
 public:
-    explicit TouchInputDevice(QObject *parent = 0);
+	explicit TouchInputDevice(QObject *parent = 0);
 	void update(int *data);
 	void processTouch(QEvent *e);
-	void paint(QPainter &painter);
+	void paint(QPainter *painter);
 private slots:
-	void onConfChanged();
+	void onEmuFunctionChanged();
 private:
 	static const int MaxPoints = 4;
 	static const int CircleSize = 240;
@@ -39,7 +40,7 @@ private:
 	void convertPad();
 	void convertMouse();
 	int buttonsInCircle(int x, int y) const;
-	void paintCircle(QPainter &painter, int buttons);
+	void paintCircle(QPainter *painter, int buttons);
 
 	int m_numPoints;
 	QPoint m_points[MaxPoints];

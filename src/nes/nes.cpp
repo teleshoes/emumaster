@@ -14,7 +14,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "machine.h"
+#include "nes.h"
 #include "cpu.h"
 #include "ppu.h"
 #include "apu.h"
@@ -23,13 +23,13 @@
 #include "mapper.h"
 #include "gamegeniecode.h"
 #include "gamegeniecodelistmodel.h"
-#include <machineview.h>
+#include <emuview.h>
 #include <configuration.h>
 #include <QSettings>
 #include <QApplication>
 #include <QtDeclarative>
 
-NesMachine nesMachine;
+NesEmu nesEmu;
 SystemType nesSystemType;
 GameGenieCodeListModel nesGameGenie;
 
@@ -46,12 +46,12 @@ static int ZapperY;
 
 static const char *tvSystemConfName = "nes.tvSystem";
 
-NesMachine::NesMachine() :
-	IMachine("nes")
+NesEmu::NesEmu() :
+	Emu("nes")
 {
 }
 
-QString NesMachine::init(const QString &diskPath)
+QString NesEmu::init(const QString &diskPath)
 {
 	nesCpu.init();
 	nesApu.init();
@@ -60,7 +60,7 @@ QString NesMachine::init(const QString &diskPath)
 	return setDisk(diskPath);
 }
 
-void NesMachine::shutdown()
+void NesEmu::shutdown()
 {
 	delete nesMapper;
 	delete nesVrom;
@@ -68,7 +68,7 @@ void NesMachine::shutdown()
 	nesPpuFrame = QImage();
 }
 
-void NesMachine::reset()
+void NesEmu::reset()
 {
 	nesMapper->reset();
 	nesCpu.reset();
@@ -76,7 +76,7 @@ void NesMachine::reset()
 	ppuCycleCounter = 0;
 }
 
-QString NesMachine::setDisk(const QString &path)
+QString NesEmu::setDisk(const QString &path)
 {
 	if (!nesDisk.load(path))
 		return "Could not load ROM file";
@@ -117,7 +117,7 @@ QString NesMachine::setDisk(const QString &path)
 	return QString();
 }
 
-void NesMachine::setupTvEncodingSystem(const QString &path)
+void NesEmu::setupTvEncodingSystem(const QString &path)
 {
 	// detect system name by checking file name
 	if (path.contains("(E)"))
@@ -141,7 +141,7 @@ void NesMachine::setupTvEncodingSystem(const QString &path)
 		emConf.setValue(tvSystemConfName, "PAL");
 }
 
-bool NesMachine::slCheckTvEncodingSystem() const
+bool NesEmu::slCheckTvEncodingSystem() const
 {
 	// in versions before 0.2.3 system has not been saved and there is no
 	// sense of checking it, since we must save file name in order to do it
@@ -161,7 +161,7 @@ bool NesMachine::slCheckTvEncodingSystem() const
 	return ok;
 }
 
-void NesMachine::clockCpu(uint cycles)
+void NesEmu::clockCpu(uint cycles)
 {
 	ppuCycleCounter += cycles;
 	int realCycles = (ppuCycleCounter/12) - cpuCycleCounter;
@@ -169,12 +169,12 @@ void NesMachine::clockCpu(uint cycles)
 		cpuCycleCounter += nesCpu.clock(realCycles);
 }
 
-const QImage &NesMachine::frame() const
+const QImage &NesEmu::frame() const
 {
 	return nesPpuFrame;
 }
 
-void NesMachine::emulateFrame(bool drawEnabled)
+void NesEmu::emulateFrame(bool drawEnabled)
 {
 	setPadKeys(0, *padOffset(m_inputData, 0));
 	setPadKeys(1, *padOffset(m_inputData, 1));
@@ -186,13 +186,13 @@ void NesMachine::emulateFrame(bool drawEnabled)
 		emulateFrameNoTile(drawEnabled);
 }
 
-inline void NesMachine::updateZapper()
+inline void NesEmu::updateZapper()
 {
 	if (nesPad.isZapperMode())
 		bZapper = (nesPpuScanline == ZapperY);
 }
 
-void NesMachine::emulateFrameNoTile(bool drawEnabled)
+void NesEmu::emulateFrameNoTile(bool drawEnabled)
 {
 	NesPpu::RenderMethod renderMethod = nesPpu.renderMethod();
 	bool all = (renderMethod < NesPpu::PostRender);
@@ -278,7 +278,7 @@ void NesMachine::emulateFrameNoTile(bool drawEnabled)
 	}
 }
 
-inline void NesMachine::emulateVisibleScanlineTile()
+inline void NesEmu::emulateVisibleScanlineTile()
 {
 	nesPpu.processScanlineNext();
 	clockCpu(NesPpu::FetchCycles*10);
@@ -289,7 +289,7 @@ inline void NesMachine::emulateVisibleScanlineTile()
 	updateZapper();
 }
 
-void NesMachine::emulateFrameTile(bool drawEnabled)
+void NesEmu::emulateFrameTile(bool drawEnabled)
 {
 	clockCpu(NesPpu::FetchCycles*128);
 	nesPpu.processFrameStart();
@@ -340,17 +340,22 @@ void NesMachine::emulateFrameTile(bool drawEnabled)
 	}
 }
 
-int NesMachine::fillAudioBuffer(char *stream, int streamSize)
+int NesEmu::fillAudioBuffer(char *stream, int streamSize)
 {
 	return nesApu.fillBuffer(stream, streamSize);
 }
 
-NesPpu *NesMachine::ppu() const
+NesPpu *NesEmu::ppu() const
 {
 	return &nesPpu;
 }
 
-void NesMachine::sl()
+QObject *NesEmu::gameGenie() const
+{
+	return &nesGameGenie;
+}
+
+void NesEmu::sl()
 {
 	if (!slCheckTvEncodingSystem())
 		return;
@@ -372,7 +377,6 @@ int main(int argc, char *argv[])
 		return -1;
 	QApplication app(argc, argv);
 	qmlRegisterType<NesPpu>();
-	MachineView view(&nesMachine, argv[1]);
-	view.settingsView()->rootContext()->setContextProperty("gameGenie", static_cast<QObject *>(&nesGameGenie));
+	EmuView view(&nesEmu, argv[1]);
 	return app.exec();
 }

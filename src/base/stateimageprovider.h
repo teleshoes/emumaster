@@ -19,7 +19,8 @@
 class StateListModel;
 #include <QDeclarativeImageProvider>
 
-class StateImageProvider : public QDeclarativeImageProvider {
+class StateImageProvider : public QDeclarativeImageProvider
+{
 public:
 	explicit StateImageProvider(StateListModel *stateListModel);
 	QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);

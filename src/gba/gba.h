@@ -1,5 +1,5 @@
-#ifndef GBAMACHINE_H
-#define GBAMACHINE_H
+#ifndef GBAEMU_H
+#define GBAEMU_H
 
 #if defined(__cplusplus)
 #include "common.h"
@@ -13,10 +13,10 @@ protected:
 	void run();
 };
 
-class GbaMachine : public IMachine {
+class GbaEmu : public Emu {
 	Q_OBJECT
 public:
-	GbaMachine();
+	GbaEmu();
 	QString init(const QString &diskPath);
 	void shutdown();
 	void reset();
@@ -43,7 +43,7 @@ private:
 	static const int m_buttonsMapping[];
 };
 
-extern GbaMachine gbaMachine;
+extern GbaEmu gbaEmu;
 #endif
 
 typedef enum
@@ -167,4 +167,4 @@ void change_ext(u8 *src, u8 *buffer, u8 *extension);
 }
 #endif
 
-#endif // GBAMACHINE_H
+#endif // GBAEMU_H

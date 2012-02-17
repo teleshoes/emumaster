@@ -55,7 +55,6 @@ Page {
 		y: 10
 		anchors.horizontalCenter: parent.horizontalCenter
 		text: qsTr("Select Icon Area")
-		font.bold: true
 	}
 
 	Image {

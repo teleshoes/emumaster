@@ -41,7 +41,7 @@
 #ifndef _SPC700_H_
 #define _SPC700_H_
 
-#include "machine.h"
+#include "snes.h"
 #include "port.h"
 
 #ifdef SPCTOOL

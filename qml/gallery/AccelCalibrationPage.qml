@@ -35,15 +35,15 @@ Page {
 	property variant upVec
 	property variant rightVec
 
-    Accelerometer {
-        id: accelerometer
+	Accelerometer {
+		id: accelerometer
 		active: true
 
-        function getVector3D() {
-            var r = accelerometer.reading
-            return Qt.vector3d(r.x, r.y, r.z)
-        }
-    }
+		function getVector3D() {
+			var r = accelerometer.reading
+			return Qt.vector3d(r.x, r.y, r.z)
+		}
+	}
 
 	Column {
 		width: parent.width
@@ -101,7 +101,7 @@ Page {
 		text: qsTr("Reset to default")
 		onClicked: {
 			var defaultInitVec = Qt.vector3d(0.0, 0.0, 0.0)
-            var defaultUpVec = Qt.vector3d(0.0, 0.0, 9.8)
+			var defaultUpVec = Qt.vector3d(0.0, 0.0, 9.8)
 			var defaultRightVec = Qt.vector3d(0.0, 9.8, 0.0)
 			accelInputDevice.calibrate(defaultInitVec, defaultUpVec, defaultRightVec)
 			appWindow.pageStack.pop()

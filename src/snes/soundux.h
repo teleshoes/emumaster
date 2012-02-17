@@ -41,7 +41,7 @@
 #ifndef SNESSOUND_H
 #define SNESSOUND_H
 
-#include "machine.h"
+#include "snes.h"
 #include "port.h"
 #include "snes9x.h"
 

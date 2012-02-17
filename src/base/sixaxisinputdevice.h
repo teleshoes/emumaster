@@ -19,8 +19,9 @@
 class SixAxis;
 #include "hostinputdevice.h"
 
-class SixAxisInputDevice : public HostInputDevice {
-    Q_OBJECT
+class BASE_EXPORT SixAxisInputDevice : public HostInputDevice
+{
+	Q_OBJECT
 public:
 	explicit SixAxisInputDevice(SixAxis *sixAxis, QObject *parent = 0);
 	void update(int *data);

@@ -15,7 +15,7 @@
  */
 
 #include "apurectanglechannel.h"
-#include <imachine.h>
+#include <emu.h>
 #include <QDataStream>
 
 NesApuRectangleChannel::NesApuRectangleChannel(int channelNo) :

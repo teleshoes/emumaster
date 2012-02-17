@@ -49,16 +49,28 @@ Page {
 			width: 480
 			height: 280
 			text: title
-			imgSource: qsTr("image://disk/%1/%2*%3")
-							.arg(diskListModel.getDiskMachine(index))
-							.arg(title)
-							.arg(screenShotUpdate)
+			imgSource: imageSource
 			onClicked: galleryPage.diskClickHandle(index)
 			onPressAndHold: galleryMenu.prepareAndOpen(index)
 		}
 		section.property: "alphabet"
 		section.criteria: ViewSection.FullString
-		section.delegate: SectionSeperator { text: section }
+		section.delegate: SectionSeperator { text: section; rightPad: 80 }
+
+		function customSectionScrollerDataHandler() {
+			var sectionData = []
+			var _sections = []
+			var current = "", item;
+			for (var i = 0, count = model.count; i < count; i++) {
+				item = model.getAlphabet(i);
+				if (item !== current) {
+					current = item;
+					_sections.push(current);
+					sectionData.push({ index: i, header: current });
+				}
+			}
+			return { sectionData: sectionData, _sections: _sections }
+		}
 	}
 	MySectionScroller { listView: diskViewPortrait }
 	ScrollDecorator {
@@ -77,10 +89,7 @@ Page {
 			width: 270
 			height: 220
 			text: titleElided
-			imgSource: qsTr("image://disk/%1/%2*%3")
-							.arg(diskListModel.getDiskMachine(index))
-							.arg(title)
-							.arg(screenShotUpdate)
+			imgSource: imageSource
 			onClicked: galleryPage.diskClickHandle(index)
 			onPressAndHold: galleryMenu.prepareAndOpen(index)
 		}
@@ -181,7 +190,7 @@ Page {
 			errorDialog.open()
 		} else {
 			var path = qsTr("image://disk/%1/%2*%3")
-							.arg(diskListModel.getDiskMachine(diskIndexArg))
+							.arg(diskListModel.getDiskEmuName(diskIndexArg))
 							.arg(diskListModel.getDiskTitle(diskIndexArg))
 							.arg(diskListModel.getScreenShotUpdate(diskIndexArg))
 			appWindow.pageStack.push(Qt.resolvedUrl("HomeScreenIconSheet.qml"),

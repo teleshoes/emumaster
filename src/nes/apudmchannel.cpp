@@ -1,6 +1,6 @@
 #include "apudmchannel.h"
 #include "apu.h"
-#include <imachine.h>
+#include <emu.h>
 #include <QDataStream>
 
 NesApuDMChannel::NesApuDMChannel(int channelNo) :

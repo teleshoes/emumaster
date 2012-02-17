@@ -16,30 +16,31 @@
 #ifndef HOSTINPUT_H
 #define HOSTINPUT_H
 
-class IMachine;
+class Emu;
+class HostInputDevice;
 class TouchInputDevice;
-class AccelInputDevice;
 class KeybInputDevice;
-class SixAxisInputDevice;
+#include "base_global.h"
 #include <QObject>
 class QPainter;
 
-class HostInput : public QObject {
-    Q_OBJECT
+class BASE_EXPORT HostInput : public QObject
+{
+	Q_OBJECT
 public:
-	explicit HostInput(IMachine *machine);
+	explicit HostInput(Emu *emu);
 	~HostInput();
 
-	qreal padOpacity() const;
 	void setPadOpacity(qreal opacity);
+	qreal padOpacity() const;
 
-	QList<QObject *> devices() const;
+	QList<HostInputDevice *> devices() const;
 
 	void update();
 
-	void paint(QPainter &painter);
+	void paint(QPainter *painter);
 public slots:
-	void updateConfFromGlobalConfiguration();
+	void loadFromConf();
 signals:
 	void pause();
 	void quit();
@@ -50,17 +51,19 @@ private slots:
 	void onSixAxisDetected();
 	void onSixAxisDestroyed();
 private:
+	TouchInputDevice *touchInputDevice() const;
+	KeybInputDevice *keybInputDevice() const;
 	void processTouch(QEvent *e);
 
-	IMachine *m_machine;
-	TouchInputDevice *m_touchInputDevice;
-	AccelInputDevice *m_accelInputDevice;
-	KeybInputDevice *m_keybInputDevice;
-	QList<SixAxisInputDevice *> m_sixAxisInputDevices;
+	Emu *m_emu;
+	QList<HostInputDevice *> m_devices;
+	int m_numSixAxes;
 	qreal m_padOpacity;
 };
 
 inline qreal HostInput::padOpacity() const
 { return m_padOpacity; }
+inline QList<HostInputDevice *> HostInput::devices() const
+{ return m_devices; }
 
 #endif // HOSTINPUT_H

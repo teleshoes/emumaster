@@ -17,7 +17,7 @@
 #ifndef NESAPU_H
 #define NESAPU_H
 
-#include <imachine.h>
+#include <emu.h>
 
 class NesApu {
 public:

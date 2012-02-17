@@ -15,7 +15,8 @@
 
 #include "crc32.h"
 
-static const quint32 crc32_tab[256] = {
+static const quint32 crc32Tab[256] =
+{
 	0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA,
 	0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
 	0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988,
@@ -82,10 +83,12 @@ static const quint32 crc32_tab[256] = {
 	0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
 };
 
-quint32 qChecksum32(const char *data, uint len) {
+/*! Calculates CRC32 of the given array of bytes (\a data with its \a len). */
+quint32 qChecksum32(const char *data, uint len)
+{
 	quint32 crc32 = 0xFFFFFFFF;
 	while (len--) {
-		crc32 = (crc32 >> 8) ^ crc32_tab[(crc32 ^ *data) & 0xFF];
+		crc32 = (crc32 >> 8) ^ crc32Tab[(crc32 ^ *data) & 0xFF];
 		data++;
 	}
 	return crc32 ^ 0xFFFFFFFF;

@@ -16,13 +16,14 @@
 #ifndef STATELISTMODEL_H
 #define STATELISTMODEL_H
 
-class IMachine;
+class Emu;
 #include <QAbstractListModel>
 #include <QStringList>
 #include <QFileInfo>
 #include <QDir>
 
-class StateListModel : public QAbstractListModel {
+class StateListModel : public QAbstractListModel
+{
 	Q_OBJECT
 	Q_PROPERTY(int count READ count NOTIFY countChanged)
 public:
@@ -36,7 +37,7 @@ public:
 		DateTimeRole
 	};
 
-	explicit StateListModel(IMachine *machine, const QString &diskFileName);
+	explicit StateListModel(Emu *emu, const QString &diskFileName);
 	int rowCount(const QModelIndex &parent) const;
 	int count() const;
 	QVariant data(const QModelIndex &index, int role) const;
@@ -56,7 +57,7 @@ signals:
 private:
 	int indexOfSlot(int i) const;
 
-	IMachine *m_machine;
+	Emu *m_emu;
 	QDir m_dir;
 	QFileInfoList m_list;
 	int m_maxSaveIndex;

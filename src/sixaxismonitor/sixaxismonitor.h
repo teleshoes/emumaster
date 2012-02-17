@@ -23,7 +23,7 @@ class SixAxisServer;
 class SixAxisDevice;
 
 class SixAxisMonitor : public QDeclarativeView {
-    Q_OBJECT
+	Q_OBJECT
 	Q_PROPERTY(QStringList addresses READ addresses NOTIFY addressesChanged)
 public:
 	explicit SixAxisMonitor();

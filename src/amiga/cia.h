@@ -17,7 +17,7 @@
 #ifndef AMIGACIA_H
 #define AMIGACIA_H
 
-#include <imachine.h>
+#include <emu.h>
 #include <QList>
 
 class Cia8520 {

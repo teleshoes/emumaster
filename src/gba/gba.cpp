@@ -1,4 +1,4 @@
-#include "machineview.h"
+#include <emuview.h>
 #include <pathmanager.h>
 #include <QFile>
 #include <QApplication>
@@ -7,7 +7,7 @@
 #include "mem.h"
 #include "gpu.h"
 #include "spu.h"
-#include "machine.h"
+#include "gba.h"
 #include "cheats.h"
 
 timer_type timer[4];
@@ -27,13 +27,13 @@ static QImage gpuFrame;
 static GbaThread gbaThread;
 static volatile bool lastSyncLoad = false;
 
-GbaMachine gbaMachine;
+GbaEmu gbaEmu;
 
-GbaMachine::GbaMachine() :
-	IMachine("gba") {
+GbaEmu::GbaEmu() :
+	Emu("gba") {
 }
 
-QString GbaMachine::init(const QString &diskPath) {
+QString GbaEmu::init(const QString &diskPath) {
 	gpuFrame = QImage(240, 160, QImage::Format_RGB16);
 	setVideoSrcRect(gpuFrame.rect());
 	setFrameRate(60);
@@ -48,14 +48,14 @@ QString GbaMachine::init(const QString &diskPath) {
 	return setDisk(diskPath);
 }
 
-void GbaMachine::shutdown() {
+void GbaEmu::shutdown() {
 	m_quit = true;
 	emulateFrame(false);
 	gbaThread.wait();
 	gpuFrame = QImage();
 }
 
-void GbaMachine::reset() {
+void GbaEmu::reset() {
 	skip_next_frame = 0;
 
 	for (int i = 0; i < 4; i++) {
@@ -84,7 +84,7 @@ void GbaMachine::reset() {
 	flush_translation_cache_bios();
 }
 
-QString GbaMachine::loadBios() {
+QString GbaEmu::loadBios() {
 	QString path = PathManager::instance()->diskDirPath() + "/gba_bios.bin";
 	QFile biosFile(path);
 
@@ -114,7 +114,7 @@ QString GbaMachine::loadBios() {
 	return QString();
 }
 
-QString GbaMachine::setDisk(const QString &path) {
+QString GbaEmu::setDisk(const QString &path) {
 	init_gamepak_buffer();
 	if (!gbaMem.loadGamePack(path))
 		return tr("Could not load disk");
@@ -126,10 +126,10 @@ QString GbaMachine::setDisk(const QString &path) {
 	return QString();
 }
 
-const QImage &GbaMachine::frame() const
+const QImage &GbaEmu::frame() const
 { return gpuFrame; }
 
-void GbaMachine::emulateFrame(bool drawEnabled) {
+void GbaEmu::emulateFrame(bool drawEnabled) {
 	skip_next_frame = !drawEnabled;
 	screen_pixels_ptr = (quint16 *)gpuFrame.bits();
 	m_prodSem.release();
@@ -137,14 +137,14 @@ void GbaMachine::emulateFrame(bool drawEnabled) {
 	updateInput();
 }
 
-void GbaMachine::sync() {
+void GbaEmu::sync() {
 	m_consSem.release();
 	if (m_quit)
 		return_to_host(return_to_host_regs);
 	m_prodSem.acquire();
 }
 
-const int GbaMachine::m_buttonsMapping[10] = {
+const int GbaEmu::m_buttonsMapping[10] = {
 	PadKey_A,
 	PadKey_B,
 	PadKey_Select,
@@ -157,7 +157,7 @@ const int GbaMachine::m_buttonsMapping[10] = {
 	PadKey_L1
 };
 
-void GbaMachine::updateInput() {
+void GbaEmu::updateInput() {
 	int keys = padOffset(m_inputData, 0)[0];
 	int gbaKeys = 0x3FF;
 	for (int i = 0; i < 10; i++) {
@@ -167,9 +167,9 @@ void GbaMachine::updateInput() {
 	io_registers[REG_P1] = gbaKeys;
 }
 
-int GbaMachine::fillAudioBuffer(char *stream, int streamSize)
+int GbaEmu::fillAudioBuffer(char *stream, int streamSize)
 { return gbaSpu.fillBuffer(stream, streamSize); }
-void GbaMachine::setAudioEnabled(bool on)
+void GbaEmu::setAudioEnabled(bool on)
 { gbaSpu.setEnabled(on); }
 
 void GbaThread::run() {
@@ -267,7 +267,7 @@ u32 update_gba() {
 					// Transition from vblank to next screen
 					dispstat &= ~0x01;
 
-					gbaMachine.sync();
+					gbaEmu.sync();
 
 					if (lastSyncLoad) {
 						lastSyncLoad = false;
@@ -306,11 +306,11 @@ int main(int argc, char *argv[]) {
 	if (argc < 2)
 		return -1;
 	QApplication app(argc, argv);
-	MachineView view(&gbaMachine, argv[1]);
+	EmuView view(&gbaEmu, argv[1]);
 	return app.exec();
 }
 
-void GbaMachine::sl() {
+void GbaEmu::sl() {
 	emsl.begin("machine");
 	emsl.var("cpu_ticks", cpu_ticks);
 	emsl.var("execute_cycles", execute_cycles);

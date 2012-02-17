@@ -35,9 +35,9 @@ Menu {
 		MenuItem {
 			text: qsTr("Advanced Launch")
 			onClicked: {
-				var machineName = diskListModel.getDiskMachine(diskIndex)
-				var qmlPage = machineName.charAt(0).toUpperCase() +
-						machineName.substr(1) + "AdvancedLaunchPage.qml"
+				var emuName = diskListModel.getDiskEmuName(diskIndex)
+				var qmlPage = emuName.charAt(0).toUpperCase() +
+						emuName.substr(1) + "AdvancedLaunchPage.qml"
 				appWindow.pageStack.push(Qt.resolvedUrl(qmlPage),
 										 { diskIndex: galleryMenu.diskIndex })
 			}

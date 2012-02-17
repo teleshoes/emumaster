@@ -17,7 +17,7 @@
 #ifndef MAPPER_H
 #define MAPPER_H
 
-#include "machine.h"
+#include "nes.h"
 #include "gamegeniecode.h"
 class NesMapper;
 

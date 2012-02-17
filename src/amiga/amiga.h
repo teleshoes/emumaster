@@ -14,61 +14,42 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef PSXMACHINE_H
-#define PSXMACHINE_H
+#ifndef AMIGAEMU_H
+#define AMIGAEMU_H
 
-#include <imachine.h>
+#include <emu.h>
 #include <QThread>
-#include <QSemaphore>
 
-class PsxMachine : public IMachine {
-	Q_OBJECT
-public:	
-	enum SystemType {
-		NtscType = 0,
-		PalType
-	};
-	enum CpuType {
-		CpuDynarec = 0,
-		CpuInterpreter
-	};
-	enum GpuType {
-		GpuUnai = 0
-	};
-	enum SpuType {
-		SpuNull = 0
-	};
+#define _GCCRES_ __restrict__
 
-	explicit PsxMachine(QObject *parent = 0);
+class AmigaEmu : public Emu {
+    Q_OBJECT
+public:
+	explicit AmigaEmu(QObject *parent = 0);
 	QString init(const QString &diskPath);
 	void shutdown();
 	void reset();
-	void updateGpuScale(int w, int h);
-	void flipScreen();
-
-	QString setDisk(const QString &path);
 	void emulateFrame(bool drawEnabled);
 	const QImage &frame() const;
 	int fillAudioBuffer(char *stream, int streamSize);
-	void setPadKeys(int pad, int keys);
+	void vSync();
+
+	void setJoy(int joy, int buttons);
+	void setMouse(int mouse, int buttons, int dx, int dy);
+	void updateInput();
 
 	void sl();
-
-	int systemType;
-protected:
-	void setAudioEnabled(bool on);
 private:
-	QSemaphore m_consSem;
-	QSemaphore m_prodSem;
+	bool m_inputPortToggle[2];
 };
 
-class PsxThread : public QThread {
+extern AmigaEmu amigaEmu;
+
+class AmigaThread : public QThread {
 	Q_OBJECT
 public:
 protected:
 	void run();
 };
 
-extern PsxMachine psxMachine;
-
-#endif // PSXMACHINE_H
+#endif // AMIGAEMU_H

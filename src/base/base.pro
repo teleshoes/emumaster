@@ -23,9 +23,6 @@ unix {
 DEFINES += BASE_PROJECT
 
 HEADERS += \
-    machineview.h \
-    imachine.h \
-    machinethread.h \
     hostaudio.h \
     hostvideo.h \
     hostinput.h \
@@ -40,12 +37,12 @@ HEADERS += \
     touchinputdevice.h \
     sixaxisinputdevice.h \
     keybinputdevice.h \
-    crc32.h
+    crc32.h \
+    emuview.h \
+    emuthread.h \
+    emu.h
 
 SOURCES += \
-    machineview.cpp \
-    imachine.cpp \
-    machinethread.cpp \
     hostaudio.cpp \
     hostvideo.cpp \
     hostinput.cpp \
@@ -59,7 +56,10 @@ SOURCES += \
     touchinputdevice.cpp \
     sixaxisinputdevice.cpp \
     keybinputdevice.cpp \
-    crc32.cpp
+    crc32.cpp \
+    emuview.cpp \
+    emuthread.cpp \
+    emu.cpp
 
 unix {
 	qml.path = /opt/emumaster/qml/base
@@ -67,7 +67,14 @@ unix {
         ../../qml/base/main.qml \
         ../../qml/base/error.qml \
         ../../qml/base/SettingsPage.qml \
+        ../../qml/base/SettingsSwitchItem.qml \
+        ../../qml/base/NesSettingsPage.qml \
         ../../qml/base/NesCheats.qml \
+        ../../qml/base/SnesSettingsPage.qml \
+        ../../qml/base/GbaSettingsPage.qml \
+        ../../qml/base/PsxSettingsPage.qml \
+        ../../qml/base/AmigaSettingsPage.qml \
+        ../../qml/base/PicoSettingsPage.qml \
 		\
         ../../qml/base/EMButtonOption.qml \
         ../../qml/base/EMSwitchOption.qml \
@@ -78,7 +85,7 @@ unix {
         ../../qml/base/SectionScrollerLabel.qml \
         ../../qml/base/SectionSeperator.qml \
         ../../qml/base/constants.js \
-        ../../qml/base/utils.js \
+        ../../qml/base/utils.js
 
 	pad.path = /opt/emumaster/data
 	pad.files = \

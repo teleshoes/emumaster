@@ -14,14 +14,14 @@
  */
 
 #include "statelistmodel.h"
-#include "imachine.h"
+#include "emu.h"
 #include "pathmanager.h"
 #include <QDataStream>
 #include <QDateTime>
 #include <QImage>
 
-StateListModel::StateListModel(IMachine *machine, const QString &diskFileName) :
-	m_machine(machine),
+StateListModel::StateListModel(Emu *emu, const QString &diskFileName) :
+	m_emu(emu),
 	m_screenShotUpdateCounter(0) {
 
 	QHash<int, QByteArray> roles;
@@ -80,7 +80,7 @@ QImage StateListModel::screenShot(int slot) const {
 }
 
 bool StateListModel::saveState(int slot) {
-	if (!m_machine)
+	if (!m_emu)
 		return false;
 	bool newState = false;
 	if (slot == NewSlot) {
@@ -91,7 +91,7 @@ bool StateListModel::saveState(int slot) {
 	}
 
 	QString statePath = m_dir.filePath(QString::number(slot));
-	if (!m_machine->saveState(statePath)) {
+	if (!m_emu->saveState(statePath)) {
 		emit slFailed();
 		return false;
 	}
@@ -113,10 +113,10 @@ bool StateListModel::saveState(int slot) {
 }
 
 bool StateListModel::loadState(int slot) {
-	Q_ASSERT(m_machine != 0);
+	Q_ASSERT(m_emu != 0);
 
 	QString statePath = m_dir.filePath(QString::number(slot));
-	bool ok = m_machine->loadState(statePath);
+	bool ok = m_emu->loadState(statePath);
 	if (!ok)
 		emit slFailed();
 	else

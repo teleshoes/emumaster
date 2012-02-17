@@ -41,7 +41,7 @@
 #ifndef _65c816_h_
 #define _65c816_h_
 
-#include <imachine.h>
+#include <emu.h>
 #include <QtEndian>
 
 #define AL A.B.l

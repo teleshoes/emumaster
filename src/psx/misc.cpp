@@ -28,7 +28,7 @@
 #include "coff.h"
 #include "cpu.h"
 #include "mem.h"
-#include "machine.h"
+#include "psx.h"
 
 char CdromId[10] = "";
 char CdromLabel[33] = "";
@@ -342,9 +342,9 @@ int CheckCdrom() {
 
 	if (Config.PsxAuto) { // autodetect system (pal or ntsc)
 		if (CdromId[2] == 'e' || CdromId[2] == 'E')
-			psxMachine.systemType = PsxMachine::PalType; // pal
+			psxEmu.systemType = PsxEmu::PalType; // pal
 		else
-			psxMachine.systemType = PsxMachine::NtscType; // ntsc
+			psxEmu.systemType = PsxEmu::NtscType; // ntsc
 	}
 
 	if (CdromLabel[0] == ' ') {

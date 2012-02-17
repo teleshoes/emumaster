@@ -13,10 +13,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "machineview.h"
-#include "imachine.h"
+#include "emuview.h"
+#include "emu.h"
 #include "configuration.h"
-#include "machinethread.h"
+#include "emuthread.h"
 #include "hostvideo.h"
 #include "hostaudio.h"
 #include "hostinput.h"
@@ -24,8 +24,10 @@
 #include "stateimageprovider.h"
 #include "statelistmodel.h"
 #include "pathmanager.h"
+#include "hostinputdevice.h"
 #include <QDeclarativeView>
 #include <QDeclarativeContext>
+#include <qdeclarative.h>
 #include <QCloseEvent>
 #include <QApplication>
 #include <QDeclarativeEngine>
@@ -34,8 +36,8 @@
 #include <QSettings>
 #include <QUdpSocket>
 
-MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
-	m_machine(machine),
+EmuView::EmuView(Emu *emu, const QString &diskFileName) :
+	m_emu(emu),
 	m_diskFileName(diskFileName),
 	m_running(false),
 	m_backgroundCounter(qAbs(qrand())/2),
@@ -44,15 +46,16 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	m_audioEnable(true),
 	m_autoSaveLoadEnable(true)
 {
-	Q_ASSERT(m_machine != 0);
+	Q_ASSERT(m_emu != 0);
 
 	Configuration::setupAppInfo();
-	PathManager::instance()->setMachine(machine->name());
+	registerClassesInQml();
+	PathManager::instance()->setCurrentEmu(emu->name());
 
-	m_thread = new MachineThread(m_machine);
-	m_hostInput = new HostInput(m_machine);
-	m_hostAudio = new HostAudio(m_machine);
-	m_hostVideo = new HostVideo(m_hostInput, m_machine, m_thread);
+	m_thread = new EmuThread(m_emu);
+	m_hostInput = new HostInput(m_emu);
+	m_hostAudio = new HostAudio(m_emu);
+	m_hostVideo = new HostVideo(m_hostInput, m_emu, m_thread);
 	m_hostVideo->installEventFilter(m_hostInput);
 	QObject::connect(m_hostVideo, SIGNAL(quit()), SLOT(close()));
 	QObject::connect(m_hostInput, SIGNAL(quit()), SLOT(close()));
@@ -60,12 +63,12 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	QObject::connect(m_hostInput, SIGNAL(devicesChanged()),
 					 SIGNAL(inputDevicesChanged()));
 
-	m_stateListModel = new StateListModel(m_machine, m_diskFileName);
+	m_stateListModel = new StateListModel(m_emu, m_diskFileName);
 	m_thread->setStateListModel(m_stateListModel);
 
-	// any config which modifies m_machine must be loaded later ...
+	// any config which modifies m_emu must be loaded later ...
 	QSettings s;
-	m_autoSaveLoadEnable = s.value("autoSaveLoadEnable", true).toBool();
+	m_autoSaveLoadEnable = s.value("autoSaveLoadEnable").toBool();
 	if (!loadConfiguration())
 		m_error = constructSlErrorString();
 
@@ -73,11 +76,11 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 		QString diskPath = QString("%1/%2")
 				.arg(PathManager::instance()->diskDirPath())
 				.arg(m_diskFileName);
-		m_error = m_machine->init(diskPath);
+		m_error = m_emu->init(diskPath);
 	}
 	if (m_error.isEmpty()) {
 		// ... loaded here
-		setAudioEnabled(loadOptionFromSettings(s, "audioEnable", true).toBool());
+		setAudioEnabled(loadOptionFromSettings(s, "audioEnable").toBool());
 	}
 
 	setupSettingsView();
@@ -103,14 +106,14 @@ MachineView::MachineView(IMachine *machine, const QString &diskFileName) :
 	QMetaObject::invokeMethod(this, method, Qt::QueuedConnection);
 }
 
-MachineView::~MachineView()
+EmuView::~EmuView()
 {
 	if (m_error.isEmpty()) {
 		if (m_autoSaveLoadEnable)
 			m_stateListModel->saveState(StateListModel::AutoSaveLoadSlot);
 		// auto save screenshot
 		saveScreenShotIfNotExists();
-		m_machine->shutdown();
+		m_emu->shutdown();
 	}
 	delete m_thread;
 	delete m_settingsView;
@@ -120,7 +123,7 @@ MachineView::~MachineView()
 	delete m_hostInput;
 }
 
-void MachineView::setupSettingsView()
+void EmuView::setupSettingsView()
 {
 	m_settingsView = new SettingsView();
 	QObject::connect(m_settingsView->engine(), SIGNAL(quit()), SLOT(close()));
@@ -128,13 +131,13 @@ void MachineView::setupSettingsView()
 
 	m_settingsView->engine()->addImageProvider("state", new StateImageProvider(m_stateListModel));
 	QDeclarativeContext *context = m_settingsView->rootContext();
-	context->setContextProperty("machineView", static_cast<QObject *>(this));
-	context->setContextProperty("machine", static_cast<QObject *>(m_machine));
+	context->setContextProperty("emuView", static_cast<QObject *>(this));
+	context->setContextProperty("emu", static_cast<QObject *>(m_emu));
 	context->setContextProperty("stateListModel", static_cast<QObject *>(m_stateListModel));
 }
 
 // two-stage pause preventing deadlocks
-void MachineView::pause()
+void EmuView::pause()
 {
 	if (!m_running || m_pauseRequested)
 		return;
@@ -146,7 +149,7 @@ void MachineView::pause()
 	QMetaObject::invokeMethod(this, "pauseStage2", Qt::QueuedConnection);
 }
 
-void MachineView::pauseStage2()
+void EmuView::pauseStage2()
 {
 	// the code below may be seen as bloat but it is needed
 	// we are waiting for the thread to exit, but at the same
@@ -155,12 +158,7 @@ void MachineView::pauseStage2()
 		m_closeTries++;
 		if (m_closeTries > 40) {
 			m_thread->terminate();
-			if (m_quit) {
-				close();
-				return;
-			} else {
-				m_error = tr("Emulated system is not responding.");
-			}
+			m_error = tr("Emulated system is not responding.");
 		} else {
 			QTimer::singleShot(10, this, SLOT(pauseStage2()));
 			return;
@@ -189,7 +187,7 @@ void MachineView::pauseStage2()
 	}
 }
 
-void MachineView::resume()
+void EmuView::resume()
 {
 	Q_ASSERT(m_error.isEmpty());
 	if (m_running)
@@ -211,7 +209,7 @@ void MachineView::resume()
 	QTimer::singleShot(500, m_thread, SLOT(resume()));
 }
 
-bool MachineView::close()
+bool EmuView::close()
 {
 	m_quit = true;
 	if (m_running) {
@@ -223,7 +221,7 @@ bool MachineView::close()
 	}
 }
 
-void MachineView::saveScreenShotIfNotExists()
+void EmuView::saveScreenShotIfNotExists()
 {
 	QString diskTitle = QFileInfo(m_diskFileName).completeBaseName();
 	QString path = PathManager::instance()->screenShotPath(diskTitle);
@@ -231,9 +229,9 @@ void MachineView::saveScreenShotIfNotExists()
 		saveScreenShot();
 }
 
-void MachineView::saveScreenShot()
+void EmuView::saveScreenShot()
 {
-	QImage img = m_machine->frame().copy(m_machine->videoSrcRect().toRect());
+	QImage img = m_emu->frame().copy(m_emu->videoSrcRect().toRect());
 	img = img.convertToFormat(QImage::Format_ARGB32);
 	QString diskTitle = QFileInfo(m_diskFileName).completeBaseName();
 	img.save(PathManager::instance()->screenShotPath(diskTitle));
@@ -244,30 +242,28 @@ void MachineView::saveScreenShot()
 	sock.writeDatagram(ba, QHostAddress::LocalHost, 5798);
 }
 
-void MachineView::loadSettings()
+void EmuView::loadSettings()
 {
 	QSettings s;
-	m_hostVideo->setSwipeEnabled(s.value("swipeEnable", false).toBool());
-	m_hostInput->setPadOpacity(loadOptionFromSettings(s, "padOpacity", 0.45f).toReal());
-	m_thread->setFrameSkip(loadOptionFromSettings(s, "frameSkip", 1).toInt());
-	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible", false).toBool());
-	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio", true).toBool());
-	m_hostVideo->setBilinearFiltering(loadOptionFromSettings(s, "bilinearFiltering", false).toBool());
-	if (!loadOptionFromSettings(s, "runInBackground", false).toBool())
+	m_hostVideo->setSwipeEnabled(loadOptionFromSettings(s, "swipeEnable").toBool());
+	m_hostInput->setPadOpacity(loadOptionFromSettings(s, "padOpacity").toReal());
+	m_thread->setFrameSkip(loadOptionFromSettings(s, "frameSkip").toInt());
+	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible").toBool());
+	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio").toBool());
+	m_hostVideo->setBilinearFiltering(loadOptionFromSettings(s, "bilinearFiltering").toBool());
+	if (!loadOptionFromSettings(s, "runInBackground").toBool())
 		QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
 }
 
-QVariant MachineView::loadOptionFromSettings(QSettings &s,
-											 const QString &name,
-											 const QVariant &defaultValue)
+QVariant EmuView::loadOptionFromSettings(QSettings &s, const QString &name) const
 {
 	QVariant option = emConf.value(name);
 	if (option.isNull())
-		option = s.value(name, defaultValue);
+		option = s.value(name, emConf.defaultValue(name));
 	return option;
 }
 
-QString MachineView::extractArg(const QStringList &args,
+QString EmuView::extractArg(const QStringList &args,
 								const QString &argName)
 {
 	int optionArgIndex = args.indexOf(argName);
@@ -278,7 +274,7 @@ QString MachineView::extractArg(const QStringList &args,
 	return QString();
 }
 
-void MachineView::parseConfArg(const QString &arg)
+void EmuView::parseConfArg(const QString &arg)
 {
 	QStringList lines = arg.split(',', QString::SkipEmptyParts);
 	foreach (QString line, lines) {
@@ -293,21 +289,23 @@ void MachineView::parseConfArg(const QString &arg)
 	}
 }
 
-void MachineView::onFrameGenerated(bool videoOn)
+void EmuView::onFrameGenerated(bool videoOn)
 {
 	m_safetyCheck = true;
 	if (m_audioEnable)
 		m_hostAudio->sendFrame();
 	if (videoOn)
 		m_hostVideo->repaint();
+	// sync input with the emulation
+	m_hostInput->update();
 }
 
-bool MachineView::isFpsVisible() const
+bool EmuView::isFpsVisible() const
 {
 	return m_hostVideo->isFpsVisible();
 }
 
-void MachineView::setFpsVisible(bool on)
+void EmuView::setFpsVisible(bool on)
 {
 	if (m_hostVideo->isFpsVisible() != on) {
 		m_hostVideo->setFpsVisible(on);
@@ -316,12 +314,12 @@ void MachineView::setFpsVisible(bool on)
 	}
 }
 
-int MachineView::frameSkip() const
+int EmuView::frameSkip() const
 {
 	return m_thread->frameSkip();
 }
 
-void MachineView::setFrameSkip(int n)
+void EmuView::setFrameSkip(int n)
 {
 	if (m_thread->frameSkip() != n) {
 		m_thread->setFrameSkip(n);
@@ -330,27 +328,27 @@ void MachineView::setFrameSkip(int n)
 	}
 }
 
-bool MachineView::isAudioEnabled() const
+bool EmuView::isAudioEnabled() const
 {
 	return m_audioEnable;
 }
 
-void MachineView::setAudioEnabled(bool on)
+void EmuView::setAudioEnabled(bool on)
 {
 	if (m_audioEnable != on) {
 		m_audioEnable = on;
-		m_machine->setAudioEnabled(on);
+		m_emu->setAudioEnabled(on);
 		emConf.setValue("audioEnable", on);
 		emit audioEnableChanged();
 	}
 }
 
-qreal MachineView::padOpacity() const
+qreal EmuView::padOpacity() const
 {
 	return m_hostInput->padOpacity();
 }
 
-void MachineView::setPadOpacity(qreal opacity)
+void EmuView::setPadOpacity(qreal opacity)
 {
 	if (m_hostInput->padOpacity() != opacity) {
 		m_hostInput->setPadOpacity(opacity);
@@ -359,12 +357,12 @@ void MachineView::setPadOpacity(qreal opacity)
 	}
 }
 
-bool MachineView::keepAspectRatio() const
+bool EmuView::keepAspectRatio() const
 {
 	return m_hostVideo->keepApsectRatio();
 }
 
-void MachineView::setKeepAspectRatio(bool on)
+void EmuView::setKeepAspectRatio(bool on)
 {
 	if (m_hostVideo->keepApsectRatio() != on) {
 		m_hostVideo->setKeepAspectRatio(on);
@@ -373,12 +371,12 @@ void MachineView::setKeepAspectRatio(bool on)
 	}
 }
 
-bool MachineView::bilinearFiltering() const
+bool EmuView::bilinearFiltering() const
 {
 	return m_hostVideo->bilinearFiltering();
 }
 
-void MachineView::setBilinearFiltering(bool enabled)
+void EmuView::setBilinearFiltering(bool enabled)
 {
 	if (m_hostVideo->bilinearFiltering() != enabled) {
 		m_hostVideo->setBilinearFiltering(enabled);
@@ -387,7 +385,7 @@ void MachineView::setBilinearFiltering(bool enabled)
 	}
 }
 
-int MachineView::determineLoadState(const QStringList &args)
+int EmuView::determineLoadState(const QStringList &args)
 {
 	int state = StateListModel::AutoSaveLoadSlot;
 	if (args.contains("-noAutoSaveLoad"))
@@ -407,7 +405,7 @@ int MachineView::determineLoadState(const QStringList &args)
 	return state;
 }
 
-bool MachineView::loadConfiguration()
+bool EmuView::loadConfiguration()
 {
 	emConf.setValue("version", QCoreApplication::applicationVersion());
 
@@ -434,7 +432,7 @@ bool MachineView::loadConfiguration()
 	return true;
 }
 
-void MachineView::onSlFailed()
+void EmuView::onSlFailed()
 {
 	if (!emsl.save && emsl.abortIfLoadFails) {
 		fatalError(constructSlErrorString());
@@ -443,7 +441,7 @@ void MachineView::onSlFailed()
 	}
 }
 
-QString MachineView::constructSlErrorString() const
+QString EmuView::constructSlErrorString() const
 {
 	QString result;
 	if (emsl.save)
@@ -454,7 +452,7 @@ QString MachineView::constructSlErrorString() const
 	return result;
 }
 
-void MachineView::fatalError(const QString &errorStr)
+void EmuView::fatalError(const QString &errorStr)
 {
 	m_error = errorStr;
 	if (m_running)
@@ -463,24 +461,26 @@ void MachineView::fatalError(const QString &errorStr)
 		pauseStage2();
 }
 
-QList<QObject *> MachineView::inputDevices() const
+void EmuView::registerClassesInQml()
+{
+	qmlRegisterType<HostInputDevice>();
+}
+
+QList<HostInputDevice *> EmuView::inputDevices() const
 {
 	return m_hostInput->devices();
 }
 
-QDeclarativeView *MachineView::settingsView() const
+void EmuView::onSafetyEvent()
 {
-	return m_settingsView;
-}
-
-void MachineView::onSafetyEvent()
-{
-	if (!m_safetyCheck)
+	if (!m_safetyCheck) {
+		m_thread->terminate();
 		fatalError(tr("Emulated system is not responding"));
+	}
 	m_safetyCheck = false;
 }
 
-void MachineView::onStateLoaded()
+void EmuView::onStateLoaded()
 {
-	m_hostInput->updateConfFromGlobalConfiguration();
+	m_hostInput->loadFromConf();
 }

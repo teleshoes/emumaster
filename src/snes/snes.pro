@@ -1,4 +1,4 @@
-include(../machine.pri)
+include(../emu.pri)
 
 ASM_SOURCES = \
 	os9x_65c816.S \
@@ -12,9 +12,9 @@ SOURCES += $$ASM_SOURCES \
     cheats2.cpp \
     cheats.cpp \
     spc700.cpp \
-    machine.cpp \
     mem.cpp \
-    spu.cpp
+    spu.cpp \
+    snes.cpp
 
 HEADERS += \
     sdd1emu.h \
@@ -37,7 +37,6 @@ HEADERS += \
     dsp1.h \
     cheats.h \
     cpu.h \
-    machine.h \
     missing.h \
     65c816.h \
     sa1.h \
@@ -48,7 +47,8 @@ HEADERS += \
     display.h \
     debug.h \
     spu.h \
-    mem.h
+    mem.h \
+    snes.h
 
 SOURCES += \
     sdd1emu.cpp \

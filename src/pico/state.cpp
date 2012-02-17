@@ -4,7 +4,6 @@
 	(c) Copyright 2011, elemental
 */
 
-#include "machine.h"
 #include "pico.h"
 #include "ym2612.h"
 #include "sn76496.h"
@@ -25,8 +24,8 @@ static void cycloneSl(const QString &name, Cyclone *cyclone) {
 
 static void picoCdSl() {
 	if (emsl.save) {
-		if (picoMachine.mp3Player())
-			Pico_mcd->m.audio_offset = picoMachine.mp3Player()->pos();
+		if (picoEmu.mp3Player())
+			Pico_mcd->m.audio_offset = picoEmu.mp3Player()->pos();
 		if (Pico_mcd->s68k_regs[3]&4) // 1M mode?
 			wram_1M_to_2M(Pico_mcd->word_ram2M);
 	}
@@ -53,14 +52,14 @@ static void picoCdSl() {
 		if (Pico_mcd->s68k_regs[3]&4)
 			PicoMemResetCDdecode(Pico_mcd->s68k_regs[3]);
 #endif
-		if (picoMachine.mp3Player()) {
+		if (picoEmu.mp3Player()) {
 			if (Pico_mcd->m.audio_track > 0 && Pico_mcd->m.audio_track < Pico_mcd->TOC.Last_Track)
 				Pico_mcd->TOC.playTrack(Pico_mcd->m.audio_track, Pico_mcd->m.audio_offset);
 		}
 	}
 }
 
-void PicoMachine::sl() {
+void PicoEmu::sl() {
 	if ((PicoMCD & 1) && emsl.save)
 		Pico_mcd->m.hint_vector = *(u16 *)(Pico_mcd->bios + 0x72);
 

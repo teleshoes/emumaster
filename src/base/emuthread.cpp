@@ -13,8 +13,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "machinethread.h"
-#include "imachine.h"
+#include "emuthread.h"
+#include "emu.h"
 #include "hostaudio.h"
 #include "statelistmodel.h"
 #include <QMutex>
@@ -22,29 +22,43 @@
 #include <QDateTime>
 #include <qmath.h>
 
-MachineThread::MachineThread(IMachine *machine) :
-	m_machine(machine),
+/*!
+	\class EmuThread
+	EmuThread class manages the execution of the emulation.
+ */
+
+/*! Creates a new object with the given \a emu. */
+EmuThread::EmuThread(Emu *emu) :
+	m_emu(emu),
 	m_running(false),
 	m_inFrameGenerated(false),
 	m_frameSkip(1),
 	m_firstRun(true),
 	m_loadSlot(StateListModel::InvalidSlot),
-	m_stateListModel(0) {
+	m_stateListModel(0)
+{
 }
 
-MachineThread::~MachineThread() {
+/*! Destroys the thread. */
+EmuThread::~EmuThread()
+{
 }
 
-void MachineThread::resume() {
+/*! Resumes the execution of the emulation. */
+void EmuThread::resume()
+{
 	m_running = true;
 	start();
 }
 
-void MachineThread::pause() {
+/*! Pauses the execution of the emulation. */
+void EmuThread::pause()
+{
 	m_running = false;
 }
 
-static void sleepMs(uint msecs) {
+static void sleepMs(uint msecs)
+{
 	QMutex mutex;
 	mutex.lock();
 	QWaitCondition waitCondition;
@@ -52,24 +66,32 @@ static void sleepMs(uint msecs) {
 	mutex.unlock();
 }
 
-void MachineThread::run() {
+/*! \internal */
+void EmuThread::run()
+{
+	// resume the emulation
+	if (!m_emu->isRunning())
+		m_emu->resume();
+
 	if (m_firstRun) {
-		// TODO load only from main thread
+		// emulate some amount of frames before loading a state
 		for (int i = 0; i < 60; i++)
-			m_machine->emulateFrame(false);
-		if (m_loadSlot != StateListModel::InvalidSlot) {
-			if (!m_stateListModel->loadState(m_loadSlot))
-				return;
-		}
+			m_emu->emulateFrame(false);
 		m_firstRun = false;
 	}
-	if (!m_machine->isRunning())
-		m_machine->resume();
+	if (m_loadSlot != StateListModel::InvalidSlot) {
+		// load state if load is pending
+		// TODO reorganize
+		if (!m_stateListModel->loadState(m_loadSlot))
+			return;
+		m_loadSlot = StateListModel::InvalidSlot;
+	}
 #if defined(MEEGO_EDITION_HARMATTAN)
+	// prevent screen from locking
 	int blankinkgPauseCounter = 0;
 	m_displayState.setBlankingPause();
 #endif
-	qreal frameTime = 1000.0 / m_machine->frameRate();
+	qreal frameTime = 1000.0 / m_emu->frameRate();
 	QTime time;
 	time.start();
 	qreal currentFrameTime = 0;
@@ -78,18 +100,20 @@ void MachineThread::run() {
 		qreal currentTime = time.elapsed();
 		currentFrameTime += frameTime;
 		if (currentTime < currentFrameTime && frameCounter == 0) {
-			m_machine->emulateFrame(true);
+			m_emu->emulateFrame(true);
 			m_inFrameGenerated = true;
 			emit frameGenerated(true);
 			m_inFrameGenerated = false;
-			qreal currentTime = time.elapsed();
+
+			qreal currentTime = time.addMSecs(5).elapsed();
 			if (currentTime < currentFrameTime)
 				sleepMs(qFloor(currentFrameTime - currentTime));
 		} else {
-			m_machine->emulateFrame(false);
+			m_emu->emulateFrame(false);
 			emit frameGenerated(false);
+
 			if (frameCounter != 0) {
-				qreal currentTime = time.elapsed();
+				qreal currentTime = time.addMSecs(5).elapsed();
 				if (currentTime < currentFrameTime)
 					sleepMs(qFloor(currentFrameTime - currentTime));
 			} else {
@@ -100,6 +124,7 @@ void MachineThread::run() {
 		if (++frameCounter > m_frameSkip)
 			frameCounter = 0;
 #if defined(MEEGO_EDITION_HARMATTAN)
+		// preventing screen from locking must occur at least one time in 60s
 		if (++blankinkgPauseCounter > 1000) {
 			m_displayState.setBlankingPause();
 			blankinkgPauseCounter = 0;
@@ -107,20 +132,33 @@ void MachineThread::run() {
 #endif
 	}
 #if defined(MEEGO_EDITION_HARMATTAN)
+	// stop preventing screen from locking
 	m_displayState.cancelBlankingPause();
 #endif
-	if (m_machine->isRunning())
-		m_machine->pause();
+	// pause the emulation
+	if (m_emu->isRunning())
+		m_emu->pause();
 }
 
-void MachineThread::setFrameSkip(int n) {
+/*! Sets frameskip to \a n. */
+void EmuThread::setFrameSkip(int n)
+{
 	m_frameSkip = n;
 }
 
-void MachineThread::setStateListModel(StateListModel *stateListModel) {
+/*!
+	\fn int EmuThread::frameSkip() const
+	Returns current frameskip.
+ */
+
+// TODO reorganize
+void EmuThread::setStateListModel(StateListModel *stateListModel)
+{
 	m_stateListModel = stateListModel;
 }
 
-void MachineThread::setLoadSlot(int i) {
+// TODO reorganize
+void EmuThread::setLoadSlot(int i)
+{
 	m_loadSlot = i;
 }

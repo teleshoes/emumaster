@@ -62,7 +62,7 @@ void SixAxisDevice::enableReporting() {
 	qDebug("SixAxis %s connected", qPrintable(bdaddrToString(&m_addr)));
 
 	uchar enablePacket[] = {
-		0x53,                              /* HIDP_TRANS_SET_REPORT | HIDP_DATA_RTYPE_FEATURE */
+		0x53,							  /* HIDP_TRANS_SET_REPORT | HIDP_DATA_RTYPE_FEATURE */
 		0xF4, 0x42, 0x03, 0x00, 0x00
 	};
 	send(m_ctrl, enablePacket, sizeof(enablePacket), 0);
@@ -72,7 +72,7 @@ void SixAxisDevice::enableReporting() {
 /** Sets LEDs at the back of the controller. */
 void SixAxisDevice::setLeds(int leds) {
 	uchar setLedsPacket[] = {
-		0x52,                              /* HIDP_TRANS_SET_REPORT | HIDP_DATA_RTYPE_OUTPUT */
+		0x52,							  /* HIDP_TRANS_SET_REPORT | HIDP_DATA_RTYPE_OUTPUT */
 		0x01,
 		0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x1E,

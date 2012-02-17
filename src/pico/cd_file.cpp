@@ -9,7 +9,6 @@
 #include "pico.h"
 #include "cd_file.h"
 #include "mp3player.h"
-#include "machine.h"
 #include <QDir>
 #include <QFileInfo>
 
@@ -208,9 +207,9 @@ void FILE_Read_One_LBA_CDC() {
 
 bool PicoMcdToc::playAudio()
 {
-	if (!picoMachine.mp3Player())
+	if (!picoEmu.mp3Player())
 		return false;
-	picoMachine.mp3Player()->stop();
+	picoEmu.mp3Player()->stop();
 
 	Q_ASSERT(Pico_mcd->scd.Cur_Track >= 1);
 	int index = Pico_mcd->scd.Cur_Track - 1;
@@ -234,7 +233,7 @@ bool PicoMcdToc::playAudio()
 
 void PicoMcdToc::playTrack(int index, int offset)
 {
-	Mp3Player *player = picoMachine.mp3Player();
+	Mp3Player *player = picoEmu.mp3Player();
 	if (!player)
 		return;
 	if (!Tracks[index].file)
@@ -245,14 +244,14 @@ void PicoMcdToc::playTrack(int index, int offset)
 							  "start",
 							  Qt::QueuedConnection,
 							  Q_ARG(QString, fileName),
-							  Q_ARG(bool, picoMachine.isRunning()),
+							  Q_ARG(bool, picoEmu.isRunning()),
 							  Q_ARG(int, offset));
 }
 
 void PicoMcdToc::stopAudio()
 {
 	Pico_mcd->m.audio_track = 0;
-	Mp3Player *player = picoMachine.mp3Player();
+	Mp3Player *player = picoEmu.mp3Player();
 	if (player) {
 		QMetaObject::invokeMethod(player,
 								  "stop",

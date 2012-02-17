@@ -7,7 +7,7 @@ SUBDIRS += \
 	diskgallery \
     sixaxismonitor
 
-# pico nes gba snes psx amiga pico \
+# nes gba snes psx amiga pico \
 
 OTHER_FILES += \
 	../todo.txt \

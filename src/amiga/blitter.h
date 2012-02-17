@@ -17,7 +17,7 @@
 #ifndef AMIGABLITTER_H
 #define AMIGABLITTER_H
 
-#include <imachine.h>
+#include <emu.h>
 
 struct bltinfo {
     int blitzero;

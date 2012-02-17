@@ -47,7 +47,7 @@
 #include "65c816.h"
 #include "messages.h"
 
-#include "machine.h"
+#include "snes.h"
 
 #if defined(USE_GLIDE) && !defined(GFX_MULTI_FORMAT)
 #define GFX_MULTI_FORMAT

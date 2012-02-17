@@ -20,21 +20,23 @@
 #include <QObject>
 #include <QVariant>
 
-class BASE_EXPORT Configuration : public QObject
+class BASE_EXPORT Configuration
 {
-    Q_OBJECT
 public:
 	static void setupAppInfo();
 
-	QVariant value(const QString &name,
-				  const QVariant &defaultValue = QVariant());
+	Configuration();
 	void setValue(const QString &name, const QVariant &value);
+	QVariant value(const QString &name,
+				   const QVariant &defaultValue = QVariant()) const;
+	QVariant defaultValue(const QString &name) const;
 
 	void sl();
 private:
-	QHash<QString, QVariant> m_data;
+	void constructDefaults();
 
-	static Configuration *m_instance;
+	QHash<QString, QVariant> m_data;
+	QHash<QString, QVariant> m_defaultData;
 };
 
 BASE_EXPORT extern Configuration emConf;

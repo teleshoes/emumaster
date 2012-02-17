@@ -13,8 +13,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef IMACHINE_H
-#define IMACHINE_H
+#ifndef EMU_H
+#define EMU_H
 
 #include "base_global.h"
 #include <QObject>
@@ -44,7 +44,7 @@ typedef quint64 u64;
 #define EM_MSG_DISK_LOAD_FAILED QObject::tr("Could not load the disk")
 #define EM_MSG_STATE_DIFFERS QObject::tr("Configuration of loaded state differs from the current one. Mismatch in")
 
-class BASE_EXPORT IMachine : public QObject
+class BASE_EXPORT Emu : public QObject
 {
 	Q_OBJECT
 	Q_PROPERTY(QString name READ name CONSTANT)
@@ -75,8 +75,8 @@ public:
 	static void keybEnqueue(int *data, int key);
 	static int keybDequeue(int *data);
 
-	explicit IMachine(const QString &name, QObject *parent = 0);
-	~IMachine();
+	explicit Emu(const QString &name, QObject *parent = 0);
+	~Emu();
 	QString name() const;
 
 	qreal frameRate() const;
@@ -115,25 +115,25 @@ private:
 	QRectF m_videoSrcRect;
 	bool m_running;
 
-	friend class MachineView;
+	friend class EmuView;
 	friend class HostInput;
 };
 
-inline QString IMachine::name() const
+inline QString Emu::name() const
 { return m_name; }
-inline qreal IMachine::frameRate() const
+inline qreal Emu::frameRate() const
 { return m_frameRate; }
-inline QRectF IMachine::videoSrcRect() const
+inline QRectF Emu::videoSrcRect() const
 { return m_videoSrcRect; }
 
-inline bool IMachine::isRunning() const
+inline bool Emu::isRunning() const
 { return m_running; }
 
-inline int *IMachine::padOffset(int *data, int pad)
+inline int *Emu::padOffset(int *data, int pad)
 { Q_ASSERT(pad >= 0 && pad < 2); return &data[pad*4]; }
-inline const int *IMachine::padOffset(const int *data, int pad)
+inline const int *Emu::padOffset(const int *data, int pad)
 { Q_ASSERT(pad >= 0 && pad < 2); return &data[pad*4]; }
-inline int *IMachine::mouseOffset(int *data, int mouse)
+inline int *Emu::mouseOffset(int *data, int mouse)
 { Q_ASSERT(mouse >= 0 && mouse < 2); return &data[(mouse+2)*4]; }
 
 // emumaster save/load functionality
@@ -190,4 +190,4 @@ inline void EMSL::var(const QString &name, T &t)
 	}
 }
 
-#endif // IMACHINE_H
+#endif // EMU_H

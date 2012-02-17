@@ -4,25 +4,24 @@
 	(c) Copyright 2011, elemental
 */
 
-#include "machine.h"
 #include "pico.h"
 
 static const int buttonsMapping[] = {
-	IMachine::PadKey_Up,
-	IMachine::PadKey_Down,
-	IMachine::PadKey_Left,
-	IMachine::PadKey_Right,
-	IMachine::PadKey_B,
-	IMachine::PadKey_X,
-	IMachine::PadKey_A,
-	IMachine::PadKey_Start,
-	IMachine::PadKey_R1,
-	IMachine::PadKey_L1,
-	IMachine::PadKey_Y,
-	IMachine::PadKey_Select
+	Emu::PadKey_Up,
+	Emu::PadKey_Down,
+	Emu::PadKey_Left,
+	Emu::PadKey_Right,
+	Emu::PadKey_B,
+	Emu::PadKey_X,
+	Emu::PadKey_A,
+	Emu::PadKey_Start,
+	Emu::PadKey_R1,
+	Emu::PadKey_L1,
+	Emu::PadKey_Y,
+	Emu::PadKey_Select
 };
 
-void PicoMachine::updateInput() {
+void PicoEmu::updateInput() {
 	for (int pad = 0; pad < 2; pad++) {
 		int buttons = 0;
 		int hostButtons = padOffset(m_inputData, pad)[0];

@@ -14,39 +14,49 @@
  */
 
 #include "sixaxisinputdevice.h"
-#include "imachine.h"
+#include "emu.h"
 #include <sixaxis.h>
 
 // TODO check mouse
 
 SixAxisInputDevice::SixAxisInputDevice(SixAxis *sixAxis, QObject *parent) :
-	HostInputDevice("sixaxis", parent),
-	m_sixAxis(sixAxis) {
+	HostInputDevice("sixaxis", QObject::tr("SixAxis"), parent),
+	m_sixAxis(sixAxis)
+{
+	QStringList functionNameList;
+	functionNameList << tr("None");
+	functionNameList << tr("Pad A");
+	functionNameList << tr("Pad B");
+	functionNameList << tr("Mouse A");
+	functionNameList << tr("Mouse B");
+	functionNameList << tr("Pad B + Mouse A");
+	functionNameList << tr("Pad A + Mouse B");
+	setEmuFunctionNameList(functionNameList);
 
 	QObject::connect(m_sixAxis, SIGNAL(updated()), SLOT(onSixAxisUpdated()));
 	QObject::connect(m_sixAxis, SIGNAL(disconnected()), SLOT(deleteLater()));
-	QObject::connect(this, SIGNAL(confChanged()), SLOT(onConfChanged()));
+	QObject::connect(this, SIGNAL(emuFunctionChanged()), SLOT(onConfChanged()));
 
 	m_sixAxis->setParent(this);
 }
 
 const int SixAxisInputDevice::m_buttonsMapping[] = {
-	IMachine::PadKey_Select,
+	Emu::PadKey_Select,
 	0,
 	0,
-	IMachine::PadKey_Start,
-	IMachine::PadKey_Up,
-	IMachine::PadKey_Right,
-	IMachine::PadKey_Down,
-	IMachine::PadKey_Left,
-	IMachine::PadKey_L2,
-	IMachine::PadKey_R2,
-	IMachine::PadKey_L1,
-	IMachine::PadKey_R1,
-	IMachine::PadKey_X,
-	IMachine::PadKey_A,
-	IMachine::PadKey_B,
-	IMachine::PadKey_Y
+	Emu::PadKey_Start,
+	Emu::PadKey_Up,
+	Emu::PadKey_Right,
+	Emu::PadKey_Down,
+	Emu::PadKey_Left,
+	Emu::PadKey_L2,
+	Emu::PadKey_R2,
+	Emu::PadKey_L1,
+	Emu::PadKey_R1,
+	Emu::PadKey_X,
+	Emu::PadKey_A,
+	Emu::PadKey_B,
+	Emu::PadKey_Y
 };
 
 void SixAxisInputDevice::onConfChanged() {
@@ -92,18 +102,18 @@ void SixAxisInputDevice::convertMouse() {
 }
 
 void SixAxisInputDevice::update(int *data) {
-	if (confIndex() <= 0)
+	if (emuFunction() <= 0)
 		return;
 
 	int pad = -1;
-	if (confIndex() <= 2)
-		pad = confIndex()-1;
-	else if (confIndex() >= 5)
-		pad = 6-confIndex();
+	if (emuFunction() <= 2)
+		pad = emuFunction()-1;
+	else if (emuFunction() >= 5)
+		pad = 6-emuFunction();
 
 	int mouse = -1;
-	if (confIndex() >= 3 && confIndex() <= 6)
-		mouse = confIndex() - (confIndex() & ~1);
+	if (emuFunction() >= 3 && emuFunction() <= 6)
+		mouse = emuFunction() - (emuFunction() & ~1);
 
 	if (!m_converted) {
 		if (pad >= 0)
@@ -114,11 +124,11 @@ void SixAxisInputDevice::update(int *data) {
 	}
 
 	if (pad >= 0) {
-		int *padData = IMachine::padOffset(data, pad);
+		int *padData = Emu::padOffset(data, pad);
 		padData[0] |= m_buttons;
 	}
 	if (mouse >= 0) {
-		int *mouseData = IMachine::mouseOffset(data, mouse);
+		int *mouseData = Emu::mouseOffset(data, mouse);
 		mouseData[0] = m_mouseButtons;
 		mouseData[1] = m_mouseX;
 		mouseData[2] = m_mouseY;

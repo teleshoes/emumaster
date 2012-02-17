@@ -18,12 +18,12 @@
 #define GAMEGENIECODELISTMODEL_H
 
 class GameGenieCode;
-class NesMachine;
+class NesEmu;
 #include <QAbstractListModel>
 #include <QStringList>
 
 class GameGenieCodeListModel : public QAbstractListModel {
-    Q_OBJECT
+	Q_OBJECT
 	Q_PROPERTY(int count READ count NOTIFY modified)
 public:
 	enum RoleType {

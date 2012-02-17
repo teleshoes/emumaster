@@ -41,6 +41,7 @@ unix {
 		../../qml/gallery/GalleryPage.qml \
         ../../qml/gallery/GalleryMenu.qml \
 		../../qml/gallery/GlobalSettings.qml \
+        ../../qml/gallery/GlobalSettingsSwitchItem.qml \
 		../../qml/gallery/AccelCalibrationPage.qml \
         ../../qml/gallery/KeybMappingPage.qml \
         ../../qml/gallery/KeybMappingItem.qml \

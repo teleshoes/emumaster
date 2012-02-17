@@ -14,8 +14,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <imachine.h>
-#include "machine.h"
+#include <emu.h>
+#include "amiga.h"
 #include "mem.h"
 #include "custom.h"
 #include "cpu.h"

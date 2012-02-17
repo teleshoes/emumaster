@@ -18,8 +18,9 @@
 
 #include <QDeclarativeView>
 
-class SettingsView : public QDeclarativeView {
-    Q_OBJECT
+class SettingsView : public QDeclarativeView
+{
+	Q_OBJECT
 public:
 	SettingsView();
 	void setMyVisible(bool visible);

@@ -15,7 +15,7 @@
  */
 
 #include "aputrianglechannel.h"
-#include <imachine.h>
+#include <emu.h>
 #include <QDataStream>
 
 NesApuTriangleChannel::NesApuTriangleChannel(int channelNo) :

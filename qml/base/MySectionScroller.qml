@@ -59,7 +59,10 @@ Item {
 		}
 	}
 
-	property Style platformStyle: SectionScrollerStyle { }
+	property Style platformStyle: SectionScrollerStyle {}
+
+	//Deprecated, TODO Remove this on w13
+	property alias style: root.platformStyle
 
 	Rectangle {
 		id: container
@@ -79,7 +82,7 @@ Item {
 			drag.maximumY: listView.y + listView.height - tooltip.height
 
 			onPressed: {
-				mouseDownTimer.restart()
+				mouseDownTimer.start()
 			}
 
 			onReleased: {
@@ -93,7 +96,7 @@ Item {
 
 			Timer {
 				id: mouseDownTimer
-				interval: 100
+				interval: 150
 
 				onTriggered: {
 					container.dragging = true;
@@ -113,7 +116,6 @@ Item {
 			objectName: "popup"
 			opacity: container.dragging ? 1 : 0
 			anchors.right: parent.right
-			anchors.rightMargin: 1
 			width: listView.width
 			height: childrenRect.height
 

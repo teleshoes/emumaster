@@ -17,11 +17,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <imachine.h>
+#include <emu.h>
 #include <QDataStream>
 #include "gpu.h"
 #include "mem.h"
-#include "machine.h"
+#include "gba.h"
 
 u16 *screen_pixels_ptr = 0;
 

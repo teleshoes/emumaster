@@ -1,7 +1,6 @@
-include(../machine.pri)
+include(../emu.pri)
 
 HEADERS += \
-	machine.h \
     ppf.h \
     misc.h \
     mdec.h \
@@ -47,10 +46,10 @@ HEADERS += \
     hw.h \
     mem.h \
     socket.h \
-    spu_fran.h
+    spu_fran.h \
+    psx.h
 
 SOURCES += \
-	machine.cpp \
 	gte_neon.S \
     cdriso.cpp \
     cdrom.cpp \
@@ -83,7 +82,8 @@ SOURCES += \
     hw.cpp \
     mem.cpp \
     socket.cpp \
-    spu_fran.cpp
+    spu_fran.cpp \
+    psx.cpp
 
 OTHER_FILES += \
 	new_dynarec/assem_arm.c \

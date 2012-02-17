@@ -24,15 +24,16 @@
 class QFontMetrics;
 
 class DiskListModel : public QAbstractListModel {
-    Q_OBJECT
+	Q_OBJECT
 	Q_PROPERTY(QString collection READ collection WRITE setCollection NOTIFY collectionChanged)
 	Q_PROPERTY(int count READ count NOTIFY collectionChanged)
 public:
 	enum RoleType {
 		TitleRole = Qt::UserRole+1,
 		TitleElidedRole,
-		MachineRole,
+		EmuNameRole,
 		AlphabetRole,
+		ImageSourceRole,
 		ScreenShotUpdateRole
 	};
 	explicit DiskListModel(QObject *parent = 0);
@@ -51,7 +52,7 @@ public:
 	Q_INVOKABLE QString getDiskFileName(int i) const;
 	Q_INVOKABLE QString getDiskTitle(int i) const;
 	Q_INVOKABLE QString getDiskTitleElided(int i) const;
-	Q_INVOKABLE QString getDiskMachine(int i) const;
+	Q_INVOKABLE QString getDiskEmuName(int i) const;
 	Q_INVOKABLE QString getAlphabet(int i) const;
 	Q_INVOKABLE int getScreenShotUpdate(int i) const;
 	Q_INVOKABLE void trash(int i);
@@ -67,7 +68,7 @@ public:
 signals:
 	void collectionChanged();
 private:
-	void setCollectionMachine();
+	void setCollectionEmu();
 	void setCollectionFav();
 	void includeSubDirs(QDir &dir);
 
@@ -92,9 +93,9 @@ private:
 	QString m_collection;
 
 	QStringList m_fullList;
-	QList<int> m_fullListMachine;
+	QList<int> m_fullListEmu;
 	QStringList m_list;
-	QList<int> m_listMachine;
+	QList<int> m_listEmu;
 
 	int m_screenShotUpdateCounter;
 
@@ -109,7 +110,7 @@ private:
 	QMap<QString, DiskFilter> m_diskFilters;
 
 	QStringList m_favList;
-	QList<int> m_favListMachine;
+	QList<int> m_favListEmu;
 
 	QFontMetrics *m_fontMetrics;
 };

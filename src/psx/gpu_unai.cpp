@@ -19,7 +19,7 @@
 ***************************************************************************/
 
 #include "gpu_unai.h"
-#include "machine.h"
+#include "psx.h"
 #include <QImage>
 #include <QDataStream>
 
@@ -549,7 +549,7 @@ static void gpuVideoOutput() {
 			qDebug("24 bit video %d %d", w0, h1);
 			gpuFrame = QImage((uchar *)src, width, h1, FRAME_WIDTH*2, QImage::Format_RGB888);
 		}
-		psxMachine.updateGpuScale(w0, h1);
+		psxEmu.updateGpuScale(w0, h1);
 	} else {
 		if (fmt == QImage::Format_RGB16) {
 			gpuUnaiConvertBgr555ToRgb565(gpuFrame.bits(), src, (w0+63)/64*64, h1);
@@ -566,7 +566,7 @@ static void gpuUnaiUpdateLace() {
 		return;
 	if (!isSkip)
 		gpuVideoOutput();
-	psxMachine.flipScreen();
+	psxEmu.flipScreen();
 }
 
 bool PsxGpuUnai::init() {

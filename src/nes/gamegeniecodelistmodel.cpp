@@ -15,7 +15,7 @@
  */
 
 #include "gamegeniecodelistmodel.h"
-#include "machine.h"
+#include "nes.h"
 #include "mapper.h"
 #include "disk.h"
 #include "gamegeniecode.h"
@@ -83,6 +83,9 @@ QVariant GameGenieCodeListModel::data(const QModelIndex &index, int role) const 
 }
 
 void GameGenieCodeListModel::addNew(const QString &code, const QString &description) {
+	if (!isCodeValid(code))
+		return;
+
 	QString codeUpper = code.toUpper();
 	if (m_codes.contains(codeUpper))
 		return;

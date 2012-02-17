@@ -16,23 +16,24 @@
 #ifndef HOSTAUDIO_H
 #define HOSTAUDIO_H
 
-class IMachine;
+class Emu;
+#include "base_global.h"
 #include <QObject>
 #include <pulse/pulseaudio.h>
 #include <pulse/stream.h>
 
-class HostAudio : public QObject {
-    Q_OBJECT
+class BASE_EXPORT HostAudio : public QObject
+{
+	Q_OBJECT
 public:
-	explicit HostAudio(IMachine *machine);
+	explicit HostAudio(Emu *emu);
 	~HostAudio();
 
 	void open();
 	void close();
 
 	void sendFrame();
-
-	pa_threaded_mainloop *mainloop() const;
+	pa_threaded_mainloop *mainloop() { return m_mainloop; }
 private:
 	void waitForStreamReady();
 
@@ -41,10 +42,7 @@ private:
 	pa_mainloop_api *m_api;
 	pa_stream *m_stream;
 
-	IMachine *m_machine;
+	Emu *m_emu;
 };
-
-inline pa_threaded_mainloop *HostAudio::mainloop() const
-{ return m_mainloop; }
 
 #endif // HOSTAUDIO_H

@@ -52,7 +52,7 @@
 #include "cheats.h"
 //#include "tile.h"
 #include "port.h"
-#include "machine.h"
+#include "snes.h"
 
 typedef unsigned int u32_t;
 
@@ -639,7 +639,7 @@ void S9xEndScreenRefresh ()
             GFX.Pitch = GFX.Pitch2 = GFX.RealPitch;
             GFX.PPL = GFX.PPLx2 >> 1;
 	}
-	snesMachine.sync(IPPU.RenderedScreenWidth, IPPU.RenderedScreenHeight);
+	snesEmu.sync(IPPU.RenderedScreenWidth, IPPU.RenderedScreenHeight);
 #ifndef RC_OPTIMIZED
     S9xApplyCheats ();
 #endif

@@ -21,7 +21,7 @@
 
 class DiskImageProvider : public QDeclarativeImageProvider {
 public:
-    DiskImageProvider();
+	DiskImageProvider();
 	QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);
 private:
 	QImage m_noScreenShot;

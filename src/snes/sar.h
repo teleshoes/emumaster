@@ -81,7 +81,7 @@
 #endif
 
 #include "port.h"
-#include "machine.h"
+#include "snes.h"
 
 #ifdef RIGHTSHIFT_IS_SAR
 #define SAR(b, n) ((b)>>(n))

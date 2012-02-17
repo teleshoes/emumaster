@@ -23,10 +23,10 @@ class DiskListModel;
 #include <QSettings>
 
 class DiskGallery : public QDeclarativeView {
-    Q_OBJECT
+	Q_OBJECT
 	Q_PROPERTY(int runCount READ runCount CONSTANT)
 public:
-    explicit DiskGallery(QWidget *parent = 0);
+	explicit DiskGallery(QWidget *parent = 0);
 	~DiskGallery();
 
 	int runCount() const;
@@ -39,7 +39,7 @@ public:
 	Q_INVOKABLE void wiki();
 	Q_INVOKABLE void sixAxisMonitor();
 
-	Q_INVOKABLE QVariant globalOption(const QString &name, const QVariant &defaultValue);
+	Q_INVOKABLE QVariant globalOption(const QString &name);
 	Q_INVOKABLE void setGlobalOption(const QString &name, const QVariant &value);
 signals:
 	void diskUpdate();

@@ -1,4 +1,4 @@
-include(../machine.pri)
+include(../emu.pri)
 QT += opengl declarative
 
 HEADERS += \
@@ -91,10 +91,10 @@ HEADERS += \
     cpu.h \
     disk.h \
     pad.h \
-    machine.h \
     mapper.h \
     ppu.h \
-    eeprom.h
+    eeprom.h \
+    nes.h
 
 SOURCES += \
     gamegeniecodelistmodel.cpp \
@@ -180,7 +180,6 @@ SOURCES += \
     ppu.cpp \
     pad.cpp \
     mapper.cpp \
-    machine.cpp \
     disk.cpp \
     cpu.cpp \
     apu.cpp \
@@ -189,4 +188,5 @@ SOURCES += \
     apunoisechannel.cpp \
     apurectanglechannel.cpp \
     aputrianglechannel.cpp \
-    eeprom.cpp
+    eeprom.cpp \
+    nes.cpp

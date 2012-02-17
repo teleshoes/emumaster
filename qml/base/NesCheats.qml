@@ -1,22 +1,20 @@
 /*
  * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 2 of
- * the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Lesser General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 import QtQuick 1.1
 import com.nokia.meego 1.0
-import "../base"
 import "constants.js" as UI
 
 Item {
@@ -36,14 +34,14 @@ Item {
 		}
 		Button {
 			text: qsTr("Remove")
-			onClicked: gameGenie.removeAt(listView.currentIndex)
+			onClicked: emu.gameGenie.removeAt(listView.currentIndex)
 		}
 	}
 	ListView {
 		id: listView
 		width: parent.width
-		height: gameGenie.count * UI.LIST_ITEM_HEIGHT
-		model: gameGenie
+		height: emu.gameGenie.count * UI.LIST_ITEM_HEIGHT
+		model: emu.gameGenie
 		delegate: MyListDelegate {
 			id: listViewDelegate
 			title: code
@@ -71,7 +69,7 @@ Item {
 				anchors.rightMargin: 20
 				checked: isEnabled
 				platformStyle: SwitchStyle { inverted: true }
-				onCheckedChanged: gameGenie.setEnabled(index, checked)
+				onCheckedChanged: emu.gameGenie.setEnabled(index, checked)
 			}
 		}
 	}
@@ -80,7 +78,7 @@ Item {
 	Sheet {
 		id: addCheatSheet
 
-		// TODO meego version acceptButton.enabled: false
+		acceptButton.enabled: false
 		acceptButtonText: qsTr("Add")
 		rejectButtonText: qsTr("Cancel")
 
@@ -93,15 +91,14 @@ Item {
 
 				Label { text: qsTr("Game Genie Code:") }
 				TextField {
-					// TODO error highlight not updated
 					id: codeEdit
 					anchors { left: parent.left; right: parent.right }
 					errorHighlight: true
 					inputMethodHints: Qt.ImhUppercaseOnly | Qt.ImhNoPredictiveText
-					// TODO new components version onAccepted: descriptionEdit.focus = true
+					onAccepted: descriptionEdit.focus = true
 					onTextChanged: {
-						var codeOk = gameGenie.isCodeValid(text)
-						// TODO new components version addCheatSheet.acceptButton.enabled = codeOk
+						var codeOk = emu.gameGenie.isCodeValid(text)
+						addCheatSheet.acceptButton.enabled = codeOk
 						errorHighlight = !codeOk
 					}
 				}
@@ -110,14 +107,11 @@ Item {
 				TextField {
 					id: descriptionEdit
 					anchors { left: parent.left; right: parent.right }
-					// TODO meego version onAccepted: addCheatSheet.accept()
+					onAccepted: addCheatSheet.accept()
 				}
 			}
 		}
 
-		onAccepted: {
-			if (gameGenie.isCodeValid(codeEdit.text))
-				gameGenie.addNew(codeEdit.text, descriptionEdit.text)
-		}
+		onAccepted: emu.gameGenie.addNew(codeEdit.text, descriptionEdit.text)
 	}
 }

@@ -42,7 +42,7 @@
 #define SNESPPU_H
 
 #include "port.h"
-#include "machine.h"
+#include "snes.h"
 
 extern void snesPpuSl();
 

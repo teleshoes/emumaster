@@ -38,7 +38,6 @@ Page {
 		anchors.centerIn: parent
 		width: parent.width
 		text: qsTr("Copy your covers (.jpg files) to\n\"emumaster/covers\"")
-		font.bold: true
 		horizontalAlignment: Text.AlignHCenter
 	}
 

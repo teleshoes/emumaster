@@ -27,7 +27,6 @@ Column {
 
 	Label {
 		id: label
-		font.bold: true
 	}
 	Button {
 		id: button

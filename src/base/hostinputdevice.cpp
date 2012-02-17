@@ -16,35 +16,86 @@
 #include "hostinputdevice.h"
 #include "configuration.h"
 
-HostInputDevice::HostInputDevice(const QString &name, QObject *parent) :
+/*!
+	\class HostInputDevice
+	HostInputDevice class is an abstract input device on the host side.
+	Each input device can execute one of the several possible functions
+	in the emulation, it can be pad, keyboard, mouse, etc. The function
+	is stored in the configuration.
+ */
+
+/*!
+	Creates a new object of HostInputDevice class with the given \a shortName,
+	\a name, and \a parent. The \a name is human readable name, while \a shortName
+	is used for storing info in the configuration and to resolve filename
+	of the image presenting the input device in QML code.
+ */
+HostInputDevice::HostInputDevice(const QString &shortName,
+								 const QString &name,
+								 QObject *parent) :
 	QObject(parent),
+	m_shortName(shortName),
 	m_name(name),
-	m_confIndex(0)
+	m_emuFunction(0)
 {
+	Q_ASSERT(!m_shortName.isEmpty());
+	setDeviceIndex(0);
 }
 
-void HostInputDevice::setConfIndex(int index)
+/*!
+	Changes current function in the emulation to the given \a index.
+	The \a index takes values from 0 to the number of available functions.
+	Available functions are set by setEmuFunctionNameList().
+	Returns true on success, otherwise false.
+
+	\sa setEmuFunctionNameList()
+ */
+bool HostInputDevice::setEmuFunction(int index)
 {
-	if (index < 0)
-		index = 0;
-	if (index != m_confIndex) {
-		if (!m_globalConfName.isEmpty())
-			emConf.setValue(m_globalConfName, index);
-		m_confIndex = index;
-		emit confChanged();
+	if (index < 0 || index >= m_emuFunctionNameList.size())
+		return false;
+	if (index != m_emuFunction) {
+		m_emuFunction = index;
+		emConf.setValue(m_confName, index);
+		emit emuFunctionChanged();
 	}
+	return true;
 }
 
-void HostInputDevice::setGlobalConfigurationName(const QString &name)
+/*! Returns a name of the current function that input device performs in the emulation. */
+QString HostInputDevice::emuFunctionName() const
 {
-	m_globalConfName = name;
+	return m_emuFunctionNameList.at(m_emuFunction);
 }
 
-void HostInputDevice::updateConfFromGlobalConfiguration()
+/*!
+	Sets a list with names of available functions that input device can perform
+	in the emulation.
+ */
+void HostInputDevice::setEmuFunctionNameList(const QStringList &list)
 {
-	int conf = emConf.value(m_globalConfName, -1).toInt();
+	m_emuFunctionNameList = list;
+}
+
+/*!
+	Returns a list with names of available functions that input device can perform
+	in the emulation.
+ */
+QStringList HostInputDevice::emuFunctionNameList() const
+{
+	return m_emuFunctionNameList;
+}
+
+void HostInputDevice::setDeviceIndex(int index)
+{
+	m_confName = QString("input.%1%2.emuFunction").arg(m_shortName).arg(index);
+}
+
+void HostInputDevice::updateEmuFunction()
+{
+	int conf = emConf.value(m_confName, -1).toInt();
 	if (conf >= 0)
-		setConfIndex(conf);
+		setEmuFunction(conf);
 }
 
 /*!
