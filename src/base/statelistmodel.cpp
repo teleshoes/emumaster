@@ -31,7 +31,7 @@ StateListModel::StateListModel(Emu *emu, const QString &diskFileName) :
 	setRoleNames(roles);
 
 	QString diskTitle = QFileInfo(diskFileName).completeBaseName();
-	QString path = PathManager::instance()->stateDirPath(diskTitle);
+	QString path = pathManager.stateDirPath(diskTitle);
 	m_dir.mkpath(path);
 	m_dir = QDir(path);
 

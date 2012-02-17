@@ -70,7 +70,7 @@ void DiskListModel::setCollection(const QString &name)
 
 void DiskListModel::setCollectionEmu()
 {
-	QDir dir(PathManager::instance()->diskDirPath(m_collection));
+	QDir dir(pathManager.diskDirPath(m_collection));
 	DiskFilter diskFilter = m_diskFilters.value(m_collection);
 
 	m_fullList = dir.entryList(diskFilter.included,
@@ -85,7 +85,7 @@ void DiskListModel::setCollectionEmu()
 	for (int i = 0; i < excluded.size(); i++)
 		m_fullList.removeOne(excluded.at(i));
 
-	int emuId = PathManager::instance()->emus().indexOf(m_collection);
+	int emuId = pathManager.emus().indexOf(m_collection);
 	m_fullListEmu = QList<int>::fromVector(QVector<int>(m_fullList.size(), emuId));
 }
 
@@ -175,7 +175,7 @@ QString DiskListModel::getDiskEmuName(int i) const
 	if (i < 0 || i >= m_list.size())
 		return QString();
 	int emuId = m_listEmu.at(i);
-	return PathManager::instance()->emus().at(emuId);
+	return pathManager.emus().at(emuId);
 }
 
 void DiskListModel::updateScreenShot(const QString &name)
@@ -193,7 +193,7 @@ int DiskListModel::getScreenShotUpdate(int i) const
 	QString diskEmuName = getDiskEmuName(i);
 	if (diskTitle.isEmpty())
 		return -1;
-	QString path = PathManager::instance()->screenShotPath(diskEmuName, diskTitle);
+	QString path = pathManager.screenShotPath(diskEmuName, diskTitle);
 	if (QFile::exists(path))
 		return m_screenShotUpdateCounter;
 	else
@@ -213,25 +213,25 @@ void DiskListModel::trash(int i)
 	QStringList args;
 	args << "-R";
 	args << QString("%1/%2")
-			.arg(PathManager::instance()->diskDirPath(emu))
+			.arg(pathManager.diskDirPath(emu))
 			.arg(fileName);
 	QProcess::startDetached("rm", args);
 	// delete an icon from the home screen
 	args.removeLast();
-	args << PathManager::instance()->homeScreenIconPath(emu, title);
+	args << pathManager.homeScreenIconPath(emu, title);
 	QProcess::startDetached("rm", args);
 	// delete stored states
 	args.removeLast();
-	args << PathManager::instance()->stateDirPath(emu, title);
+	args << pathManager.stateDirPath(emu, title);
 	QProcess::startDetached("rm", args);
 	// delete screenshot
 	args.removeLast();
-	args << PathManager::instance()->screenShotPath(emu, title);
+	args << pathManager.screenShotPath(emu, title);
 	QProcess::startDetached("rm", args);
 	// delete from fav
 	int favIndex = m_favList.indexOf(fileName);
 	if (favIndex >= 0) {
-		if (emu == PathManager::instance()->emus().at(m_favListEmu.at(favIndex))) {
+		if (emu == pathManager.emus().at(m_favListEmu.at(favIndex))) {
 			m_favList.removeAt(favIndex);
 			m_favListEmu.removeAt(favIndex);
 			saveFav();
@@ -254,7 +254,7 @@ void DiskListModel::setDiskCover(int i, const QUrl &coverUrl)
 	QString diskEmuName = getDiskEmuName(i);
 	if (diskTitle.isEmpty())
 		return;
-	QString path = PathManager::instance()->screenShotPath(diskEmuName, diskTitle);
+	QString path = pathManager.screenShotPath(diskEmuName, diskTitle);
 
 	QFile::remove(path);
 	QFile::copy(coverPath, path);

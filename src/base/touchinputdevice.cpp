@@ -38,7 +38,7 @@ TouchInputDevice::TouchInputDevice(QObject *parent) :
 
 	QObject::connect(this, SIGNAL(emuFunctionChanged()), SLOT(onEmuFunctionChanged()));
 
-	m_padImage.load(PathManager::instance()->installationDirPath()+"/data/pad.png");
+	m_padImage.load(pathManager.installationDirPath()+"/data/pad.png");
 }
 
 void TouchInputDevice::processTouch(QEvent *e) {

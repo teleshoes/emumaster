@@ -6,9 +6,9 @@
 
 QImage DiskListModel::applyMaskAndOverlay(const QImage &icon) {
 	QString iconMaskPath = QString("%1/data/icon_mask.png")
-			.arg(PathManager::instance()->installationDirPath());
+			.arg(pathManager.installationDirPath());
 	QString iconOverlayPath = QString("%1/data/icon_overlay.png")
-			.arg(PathManager::instance()->installationDirPath());
+			.arg(pathManager.installationDirPath());
 
 	QImage iconConverted = icon.convertToFormat(QImage::Format_ARGB32);
 	QImage result(80, 80, QImage::Format_ARGB32);
@@ -60,8 +60,8 @@ bool DiskListModel::addIconToHomeScreen(int i, qreal scale, int x, int y) {
 		return false;
 	icon = applyMaskAndOverlay(icon);
 
-	QString desktopFilePath = PathManager::instance()->desktopFilePath(diskEmuName, diskTitle);
-	QString iconFilePath = PathManager::instance()->homeScreenIconPath(diskEmuName, diskTitle);
+	QString desktopFilePath = pathManager.desktopFilePath(diskEmuName, diskTitle);
+	QString iconFilePath = pathManager.homeScreenIconPath(diskEmuName, diskTitle);
 	if (!icon.save(iconFilePath))
 		return false;
 	QString exec = QString(
@@ -70,7 +70,7 @@ bool DiskListModel::addIconToHomeScreen(int i, qreal scale, int x, int y) {
 		#elif defined(Q_WS_MAEMO_5)
 			"%1/bin/%2 \"%3\"")
 		#endif
-			.arg(PathManager::instance()->installationDirPath())
+			.arg(pathManager.installationDirPath())
 			.arg(diskEmuName)
 			.arg(diskFileName);
 	return createDesktopFile(desktopFilePath,
@@ -114,8 +114,8 @@ void DiskListModel::removeIconFromHomeScreen(int i) {
 	if (diskEmuName.isEmpty())
 		return;
 
-	QFile desktopFile(PathManager::instance()->desktopFilePath(diskEmuName, diskTitle));
-	QFile iconFile(PathManager::instance()->homeScreenIconPath(diskEmuName, diskTitle));
+	QFile desktopFile(pathManager.desktopFilePath(diskEmuName, diskTitle));
+	QFile iconFile(pathManager.homeScreenIconPath(diskEmuName, diskTitle));
 	desktopFile.remove();
 	iconFile.remove();
 }
@@ -125,7 +125,7 @@ bool DiskListModel::iconInHomeScreenExists(int i) {
 	QString diskEmuName = getDiskEmuName(i);
 	if (diskEmuName.isEmpty())
 		return false;
-	QString path = PathManager::instance()->desktopFilePath(diskEmuName, diskTitle);
+	QString path = pathManager.desktopFilePath(diskEmuName, diskTitle);
 	return QFile::exists(path);
 }
 

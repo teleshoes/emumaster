@@ -22,7 +22,7 @@
 int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
 	Configuration::setupAppInfo();
-	PathManager::instance()->buildLocalDirTree();
+	pathManager.buildLocalDirTree();
 
 	DiskGallery view;
 	view.showFullScreen();

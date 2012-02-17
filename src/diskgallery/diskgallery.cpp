@@ -56,7 +56,7 @@ void DiskGallery::setupQml()
 
 	QObject::connect(engine(), SIGNAL(quit()), SLOT(close()));
 	QString qmlPath = QString("%1/qml/gallery/main.qml")
-			.arg(PathManager::instance()->installationDirPath());
+			.arg(pathManager.installationDirPath());
 	setSource(QUrl::fromLocalFile(qmlPath));
 
 	if (m_runCount <= 10)
@@ -95,7 +95,7 @@ void DiskGallery::advancedLaunch(int index, bool autoSaveLoad, const QString &co
 	QProcess process;
 	QStringList args;
 	args << QString("%1/bin/%2")
-			.arg(PathManager::instance()->installationDirPath())
+			.arg(pathManager.installationDirPath())
 			.arg(diskEmuName);
 	args << diskFileName;
 	if (!autoSaveLoad)
@@ -139,7 +139,7 @@ void DiskGallery::wiki()
 /** Emitted on start if the phone uses USB mass storage. */
 void DiskGallery::emitDiskUpdate()
 {
-	if (!QFile::exists(PathManager::instance()->diskDirPath("nes"))) {
+	if (!QFile::exists(pathManager.diskDirPath("nes"))) {
 		emit detachUsb();
 		return;
 	}
@@ -162,7 +162,7 @@ void DiskGallery::receiveDatagram()
 void DiskGallery::sixAxisMonitor()
 {
 	QStringList args;
-	args << (PathManager::instance()->installationDirPath() + "/bin/sixaxismonitor");
+	args << (pathManager.installationDirPath() + "/bin/sixaxismonitor");
 	QProcess::startDetached("/usr/bin/single-instance", args);
 }
 

@@ -36,7 +36,7 @@ SixAxisMonitor::SixAxisMonitor() {
 	rootContext()->setContextProperty("sixAxisMonitor", this);
 
 	QString qmlSrcPath = QString("%1/qml/sixaxismonitor/main.qml")
-			.arg(PathManager::instance()->installationDirPath());
+			.arg(pathManager.installationDirPath());
 	setSource(QUrl::fromLocalFile(qmlSrcPath));
 }
 

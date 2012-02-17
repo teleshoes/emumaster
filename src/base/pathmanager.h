@@ -8,8 +8,7 @@ class QDir;
 class BASE_EXPORT PathManager
 {
 public:
-	static PathManager *instance();
-
+	PathManager();
 	QString installationDirPath() const;
 	QString userDataDirPath() const;
 	QString diskDirPath(const QString &emu) const;
@@ -33,7 +32,6 @@ public:
 	QStringList emus() const;
 private:
 	Q_DISABLE_COPY(PathManager)
-	PathManager();
 	void createEmusSubtree(QDir &dir);
 
 	QString m_currentEmu;
@@ -53,10 +51,6 @@ inline QString PathManager::installationDirPath() const
 inline QString PathManager::userDataDirPath() const
 { return m_userDataDirPath; }
 
-inline PathManager *PathManager::instance() {
-	if (!inst)
-		inst = new PathManager();
-	return inst;
-}
+BASE_EXPORT extern PathManager pathManager;
 
 #endif // PATHMANAGER_H

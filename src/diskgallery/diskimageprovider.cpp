@@ -44,7 +44,7 @@ QImage DiskImageProvider::requestImage(const QString &id, QSize *size, const QSi
 	Q_UNUSED(requestedSize)
 	QString idGoodPart = id.left(id.indexOf('*'));
 	QString path = QString("%1/screenshot/%2.jpg")
-			.arg(PathManager::instance()->userDataDirPath())
+			.arg(pathManager.userDataDirPath())
 			.arg(idGoodPart);
 	if (!QFile::exists(path))
 		return m_noScreenShot;

@@ -3,7 +3,7 @@
 #include <QDataStream>
 
 void DiskListModel::loadFav() {
-	QFile file(QString("%1/favourites").arg(PathManager::instance()->userDataDirPath()));
+	QFile file(QString("%1/favourites").arg(pathManager.userDataDirPath()));
 	if (!file.open(QIODevice::ReadOnly))
 		return;
 	QDataStream stream(&file);
@@ -12,7 +12,7 @@ void DiskListModel::loadFav() {
 }
 
 void DiskListModel::saveFav() {
-	QFile file(QString("%1/favourites").arg(PathManager::instance()->userDataDirPath()));
+	QFile file(QString("%1/favourites").arg(pathManager.userDataDirPath()));
 	if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
 		return;
 	QDataStream stream(&file);
@@ -26,7 +26,7 @@ void DiskListModel::addToFav(int i) {
 	QString emuName = getDiskEmuName(i);
 	if (emuName.isEmpty())
 		return;
-	int emuId = PathManager::instance()->emus().indexOf(emuName);
+	int emuId = pathManager.emus().indexOf(emuName);
 
 	int favIndex = m_favList.indexOf(fileName);
 	if (favIndex >= 0) {
@@ -49,7 +49,7 @@ void DiskListModel::removeFromFav(int i) {
 		if (emuName.isEmpty())
 			return;
 
-		int emuId = PathManager::instance()->emus().indexOf(emuName);
+		int emuId = pathManager.emus().indexOf(emuName);
 		i = m_favList.indexOf(fileName);
 		if (i < 0)
 			return;
@@ -78,7 +78,7 @@ bool DiskListModel::diskInFavExists(int i) {
 	if (emuName.isEmpty())
 		return false;
 
-	int emuId = PathManager::instance()->emus().indexOf(emuName);
+	int emuId = pathManager.emus().indexOf(emuName);
 	int favIndex = m_favList.indexOf(fileName);
 	if (favIndex >= 0) {
 		if (emuId == m_favListEmu.at(favIndex))

@@ -50,7 +50,7 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 
 	Configuration::setupAppInfo();
 	registerClassesInQml();
-	PathManager::instance()->setCurrentEmu(emu->name());
+	pathManager.setCurrentEmu(m_emu->name());
 
 	m_thread = new EmuThread(m_emu);
 	m_hostInput = new HostInput(m_emu);
@@ -74,7 +74,7 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 
 	if (m_error.isEmpty()) {
 		QString diskPath = QString("%1/%2")
-				.arg(PathManager::instance()->diskDirPath())
+				.arg(pathManager.diskDirPath())
 				.arg(m_diskFileName);
 		m_error = m_emu->init(diskPath);
 	}
@@ -174,7 +174,7 @@ void EmuView::pauseStage2()
 				path = "%1/qml/base/main.qml";
 			else
 				path = "%1/qml/base/error.qml";
-			path = path.arg(PathManager::instance()->installationDirPath());
+			path = path.arg(pathManager.installationDirPath());
 			QUrl url = QUrl::fromLocalFile(path);
 			m_settingsView->setSource(url);
 		}
@@ -224,7 +224,7 @@ bool EmuView::close()
 void EmuView::saveScreenShotIfNotExists()
 {
 	QString diskTitle = QFileInfo(m_diskFileName).completeBaseName();
-	QString path = PathManager::instance()->screenShotPath(diskTitle);
+	QString path = pathManager.screenShotPath(diskTitle);
 	if (!QFile::exists(path))
 		saveScreenShot();
 }
@@ -234,7 +234,7 @@ void EmuView::saveScreenShot()
 	QImage img = m_emu->frame().copy(m_emu->videoSrcRect().toRect());
 	img = img.convertToFormat(QImage::Format_ARGB32);
 	QString diskTitle = QFileInfo(m_diskFileName).completeBaseName();
-	img.save(PathManager::instance()->screenShotPath(diskTitle));
+	img.save(pathManager.screenShotPath(diskTitle));
 	QByteArray ba;
 	QDataStream s(&ba, QIODevice::WriteOnly);
 	s << m_diskFileName;
