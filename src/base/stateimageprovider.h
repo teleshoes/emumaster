@@ -25,8 +25,6 @@ public:
 	explicit StateImageProvider(StateListModel *stateListModel);
 	QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize);
 private:
-	QImage screenShotGrayscaled() const;
-
 	StateListModel *m_stateListModel;
 };
 

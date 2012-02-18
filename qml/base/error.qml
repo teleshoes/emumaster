@@ -38,7 +38,8 @@ PageStackWindow {
 		QueryDialog {
 			id: errorDialog
 			titleText: qsTr("Error")
-			message: emuView.error + qsTr("\n Application is going to shutdown :(")
+			message: emuView.error + qsTr("\n Application is going to shutdown")
+			icon: "image://theme/icon-m-messaging-smiley-sad"
 			rejectButtonText: qsTr("Close")
 			onRejected: Qt.quit()
 		}

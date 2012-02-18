@@ -19,10 +19,12 @@
 
 StateImageProvider::StateImageProvider(StateListModel *stateListModel) :
 	QDeclarativeImageProvider(Image),
-	m_stateListModel(stateListModel) {
+	m_stateListModel(stateListModel)
+{
 }
 
-QImage StateImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize) {
+QImage StateImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
+{
 	Q_UNUSED(size)
 	Q_UNUSED(requestedSize)
 	QImage result;
