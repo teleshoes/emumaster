@@ -24,7 +24,7 @@ class BASE_EXPORT KeybInputDevice : public HostInputDevice
 	Q_OBJECT
 public:
 	explicit KeybInputDevice(QObject *parent = 0);
-	void update(int *data);
+	void sync(EmuInput *emuInput);
 	void processKey(Qt::Key key, bool down);
 
 	Q_INVOKABLE void setPadButton(int buttonIndex, int hostKey, const QString hostKeyText);

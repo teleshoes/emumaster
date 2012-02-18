@@ -85,7 +85,7 @@ void GbaEmu::reset() {
 }
 
 QString GbaEmu::loadBios() {
-	QString path = PathManager::instance()->diskDirPath() + "/gba_bios.bin";
+	QString path = pathManager.diskDirPath() + "/gba_bios.bin";
 	QFile biosFile(path);
 
 	bool loaded = false;
@@ -145,20 +145,20 @@ void GbaEmu::sync() {
 }
 
 const int GbaEmu::m_buttonsMapping[10] = {
-	PadKey_A,
-	PadKey_B,
-	PadKey_Select,
-	PadKey_Start,
-	PadKey_Right,
-	PadKey_Left,
-	PadKey_Up,
-	PadKey_Down,
-	PadKey_R1,
-	PadKey_L1
+	EmuPad::Button_A,
+	EmuPad::Button_B,
+	EmuPad::Button_Select,
+	EmuPad::Button_Start,
+	EmuPad::Button_Right,
+	EmuPad::Button_Left,
+	EmuPad::Button_Up,
+	EmuPad::Button_Down,
+	EmuPad::Button_R1,
+	EmuPad::Button_L1
 };
 
 void GbaEmu::updateInput() {
-	int keys = padOffset(m_inputData, 0)[0];
+	int keys = input()->pad[0].buttons();
 	int gbaKeys = 0x3FF;
 	for (int i = 0; i < 10; i++) {
 		if (keys & m_buttonsMapping[i])
@@ -169,8 +169,11 @@ void GbaEmu::updateInput() {
 
 int GbaEmu::fillAudioBuffer(char *stream, int streamSize)
 { return gbaSpu.fillBuffer(stream, streamSize); }
-void GbaEmu::setAudioEnabled(bool on)
-{ gbaSpu.setEnabled(on); }
+
+void GbaEmu::resume()
+{
+	gbaSpu.setEnabled(isAudioEnabled());
+}
 
 void GbaThread::run() {
 	execute_arm_translate(execute_cycles, return_to_host_regs);

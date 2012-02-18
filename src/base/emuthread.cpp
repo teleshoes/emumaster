@@ -70,8 +70,7 @@ static void sleepMs(uint msecs)
 void EmuThread::run()
 {
 	// resume the emulation
-	if (!m_emu->isRunning())
-		m_emu->resume();
+	m_emu->setRunning(true);
 
 	if (m_firstRun) {
 		// emulate some amount of frames before loading a state
@@ -136,8 +135,7 @@ void EmuThread::run()
 	m_displayState.cancelBlankingPause();
 #endif
 	// pause the emulation
-	if (m_emu->isRunning())
-		m_emu->pause();
+	m_emu->setRunning(false);
 }
 
 /*! Sets frameskip to \a n. */

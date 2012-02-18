@@ -56,7 +56,7 @@ QString AmigaEmu::init(const QString &diskPath) {
 
 	amigaMemChipSize = 0x00100000; // TODO configurable chip size
 	amigaMemInit();
-	if (!amigaLoadKickstart(PathManager::instance()->diskDirPath()+"/kick13.rom"))
+	if (!amigaLoadKickstart(pathManager.diskDirPath()+"/kick13.rom"))
 		return tr("Could not load kickstart");
 
 	if (!amigaDrives[0].insertDisk(diskPath))
@@ -97,13 +97,13 @@ void AmigaEmu::setJoy(int joy, int buttons) {
 	if (!m_inputPortToggle[joy])
 		amigaInputPortDir[joy] = 0;
 	if (buttons & 0xF) {
-		if (buttons & PadKey_Up)
+		if (buttons & EmuPad::Button_Up)
 			amigaInputPortDir[joy] |= (1 << 8);
-		if (buttons & PadKey_Down)
+		if (buttons & EmuPad::Button_Down)
 			amigaInputPortDir[joy] |= (1 << 0);
-		if (buttons & PadKey_Left)
+		if (buttons & EmuPad::Button_Left)
 			amigaInputPortDir[joy] ^= (3 << 8);
-		if (buttons & PadKey_Right)
+		if (buttons & EmuPad::Button_Right)
 			amigaInputPortDir[joy] ^= (3 << 0);
 	}
 }
@@ -112,17 +112,17 @@ void AmigaEmu::updateInput() {
 	amigaInputPortButtons[0] = 0;
 	amigaInputPortButtons[1] = 0;
 
-	setJoy(0, padOffset(m_inputData, 0)[0]);
-	setJoy(1, padOffset(m_inputData, 1)[0]);
+	setJoy(0, input()->pad[0].buttons());
+	setJoy(1, input()->pad[1].buttons());
 
-	int *mouse0Data = mouseOffset(m_inputData, 0);
-	setMouse(0, mouse0Data[0], mouse0Data[1], mouse0Data[2]);
-	int *mouse1Data = mouseOffset(m_inputData, 1);
-	setMouse(1, mouse1Data[0], mouse1Data[1], mouse1Data[2]);
+	const EmuMouse &mouse0 = input()->mouse[0];
+	setMouse(0, mouse0.buttons(), mouse0.xRel(), mouse0.yRel());
+	const EmuMouse &mouse1 = input()->mouse[1];
+	setMouse(1, mouse1.buttons(), mouse1.xRel(), mouse1.yRel());
 
 	int key;
 	do {
-		key = keybDequeue(m_inputData);
+		key = input()->keyb.dequeue();
 		if (key)
 			amigaRecordKey(key & ~(1<<31), key & (1<<31));
 	} while (key != 0);

@@ -236,25 +236,25 @@ const int SnesEmu::m_keyMapping[16] = {
 	0,
 	0,
 	0,
-	PadKey_R1,
-	PadKey_L1,
-	PadKey_X,
-	PadKey_A,
-	PadKey_Right,
-	PadKey_Left,
-	PadKey_Down,
-	PadKey_Up,
-	PadKey_Start,
-	PadKey_Select,
-	PadKey_Y,
-	PadKey_B
+	EmuPad::Button_R1,
+	EmuPad::Button_L1,
+	EmuPad::Button_X,
+	EmuPad::Button_A,
+	EmuPad::Button_Right,
+	EmuPad::Button_Left,
+	EmuPad::Button_Down,
+	EmuPad::Button_Up,
+	EmuPad::Button_Start,
+	EmuPad::Button_Select,
+	EmuPad::Button_Y,
+	EmuPad::Button_B
 };
 
 int SnesEmu::gamePad(int i) const {
 	if (i > 1)
 		return 0;
 
-	int pad = padOffset(m_inputData, i)[0];
+	int pad = input()->pad[i].buttons();
 	int snesPad = 0;
 	for (int i = 0; i < 16; i++) {
 		if (pad & m_keyMapping[i])

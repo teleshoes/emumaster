@@ -66,12 +66,10 @@ public:
 	const QImage &frame() const;
 	int fillAudioBuffer(char *stream, int streamSize);
 	Mp3Player *mp3Player() const;
-
-	void pause();
-	void resume();
 protected:
 	void sl();
-	void setAudioEnabled(bool on);
+	void pause();
+	void resume();
 	void updateInput();
 private:
 	bool findMcdBios(QString *biosFileName, QString *error);

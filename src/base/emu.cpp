@@ -26,6 +26,7 @@ Emu::Emu(const QString &name, QObject *parent) :
 	QObject(parent),
 	m_name(name),
 	m_frameRate(1),
+	m_audioEnabled(true),
 	m_running(true)
 {
 }
@@ -49,15 +50,6 @@ void Emu::setVideoSrcRect(const QRectF &rect)
 		m_videoSrcRect = rect;
 		emit videoSrcRectChanged();
 	}
-}
-
-/*!
-	WARNING: It is called before init()
-	TODO call after init() maybe private and emit
-*/
-void Emu::setAudioEnabled(bool on)
-{
-	Q_UNUSED(on)
 }
 
 void EMSL::varNotExist(const QString &name)
@@ -196,38 +188,15 @@ bool Emu::loadState(const QString &statePath)
 	return loadInternal(&s);
 }
 
-void Emu::keybEnqueue(int *data, int key)
+void Emu::setRunning(bool running)
 {
-	// TODO declare num of pads and mouses as constants
-	int *keyb = &data[(2+2)*4];
-	int i = 0;
-	for (; i < 4; i++) {
-		if (!keyb[i])
-			break;
+	if (running != m_running) {
+		m_running = running;
+		if (m_running)
+			resume();
+		else
+			pause();
 	}
-	if (i < 4)
-		keyb[i] = key;
-}
-
-int Emu::keybDequeue(int *data)
-{
-	int *keyb = &data[(2+2)*4];
-	int key = keyb[0];
-	keyb[0] = keyb[1];
-	keyb[1] = keyb[2];
-	keyb[2] = keyb[3];
-	keyb[3] = 0;
-	return key;
-}
-
-void Emu::pause()
-{
-	m_running = false;
-}
-
-void Emu::resume()
-{
-	m_running = true;
 }
 
 void EMSL::begin(const QString &groupName)

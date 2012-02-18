@@ -57,8 +57,8 @@ PsxEmu::PsxEmu(QObject *parent) :
 QString PsxEmu::init(const QString &diskPath) {
 	Config.HLE = 0;
 
-	psxMcd1.init(PathManager::instance()->userDataDirPath() + "/psx_mcd1.mcr");
-	psxMcd2.init(PathManager::instance()->userDataDirPath() + "/psx_mcd2.mcr");
+	psxMcd1.init(pathManager.userDataDirPath() + "/psx_mcd1.mcr");
+	psxMcd2.init(pathManager.userDataDirPath() + "/psx_mcd2.mcr");
 	Config.PsxAuto = 1;
 	Config.Cdda = 0;
 	Config.Xa = 0;
@@ -69,7 +69,7 @@ QString PsxEmu::init(const QString &diskPath) {
 	Config.SpuIrq = 0;
 	Config.VSyncWA = 0;
 	// TODO give user ability to choose his bios
-	QDir diskDir(PathManager::instance()->diskDirPath());
+	QDir diskDir(pathManager.diskDirPath());
 	QStringList biosFilter;
 	biosFilter << "scph*.bin";
 	QStringList biosList = diskDir.entryList(biosFilter, QDir::NoFilter, QDir::Name);
@@ -183,10 +183,10 @@ QString PsxEmu::setDisk(const QString &path) {
 
 void PsxEmu::emulateFrame(bool drawEnabled) {
 	psxGpu->setDrawEnabled(drawEnabled);
+	setPadKeys(0, input()->pad[0].buttons());
+	setPadKeys(1, input()->pad[1].buttons());
 	m_prodSem.release();
 	m_consSem.acquire();
-	setPadKeys(0, padOffset(m_inputData, 0)[0]);
-	setPadKeys(1, padOffset(m_inputData, 1)[0]);
 }
 
 const QImage &PsxEmu::frame() const
@@ -194,8 +194,11 @@ const QImage &PsxEmu::frame() const
 
 int PsxEmu::fillAudioBuffer(char *stream, int streamSize)
 { return psxSpu->fillBuffer(stream, streamSize); }
-void PsxEmu::setAudioEnabled(bool on)
-{ psxSpu->setEnabled(on); }
+
+void PsxEmu::resume()
+{
+	psxSpu->setEnabled(isAudioEnabled());
+}
 
 extern void setPadButtons(int emuKeys);
 

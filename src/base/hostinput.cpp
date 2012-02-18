@@ -175,12 +175,12 @@ void HostInput::paint(QPainter *painter)
  */
 
 /*! Synchronizes input values from host to the emulation. */
-void HostInput::update()
+void HostInput::sync()
 {
-	int *data = m_emu->m_inputData;
-	memset(data, 0, sizeof(m_emu->m_inputData));
+	EmuInput *emuInput = m_emu->input();
+	memset(emuInput, 0, sizeof(EmuInput));
 	for (int i = 0; i < m_devices.size(); i++)
-		m_devices.at(i)->update(data);
+		m_devices.at(i)->sync(emuInput);
 }
 
 /*! Loads function in the emulation for each input device.  */

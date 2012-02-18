@@ -26,7 +26,7 @@ class BASE_EXPORT TouchInputDevice : public HostInputDevice
 	Q_OBJECT
 public:
 	explicit TouchInputDevice(QObject *parent = 0);
-	void update(int *data);
+	void sync(EmuInput *emuInput);
 	void processTouch(QEvent *e);
 	void paint(QPainter *painter);
 private slots:

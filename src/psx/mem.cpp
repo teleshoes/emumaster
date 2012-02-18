@@ -328,7 +328,7 @@ PsxMem psxMem;
 void PsxMem::loadBios() {
 	if (m_biosName != "HLE" && !m_biosName.isEmpty()) {
 		QString path = QString("%1/%2")
-				.arg(PathManager::instance()->diskDirPath())
+				.arg(pathManager.diskDirPath())
 				.arg(m_biosName);
 		QFile biosFile(path);
 		if (biosFile.open(QIODevice::ReadOnly)) {

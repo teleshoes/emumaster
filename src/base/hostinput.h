@@ -36,7 +36,7 @@ public:
 
 	QList<HostInputDevice *> devices() const;
 
-	void update();
+	void sync();
 
 	void paint(QPainter *painter);
 public slots:

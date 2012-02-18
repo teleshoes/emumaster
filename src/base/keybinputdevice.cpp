@@ -48,16 +48,16 @@ void KeybInputDevice::onConfChanged() {
 	m_keys.clear();
 }
 
-void KeybInputDevice::update(int *data) {
+void KeybInputDevice::sync(EmuInput *emuInput) {
 	if (emuFunction() <= 0)
 		return;
 
 	if (emuFunction() <= 2) {
-		int *pad = Emu::padOffset(data, emuFunction()-1);
-		pad[0] |= m_buttons;
+		int padIndex = emuFunction() - 1;
+		emuInput->pad[padIndex].setButtons(m_buttons);
 	} else if (emuFunction() == 3) {
 		while (!m_keys.isEmpty())
-			Emu::keybEnqueue(data, m_keys.takeFirst());
+			emuInput->keyb.enqueue(m_keys.takeFirst());
 	}
 }
 

@@ -13,35 +13,32 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef SIXAXISINPUTDEVICE_H
-#define SIXAXISINPUTDEVICE_H
+#include "emuinput.h"
 
-class SixAxis;
-#include "hostinputdevice.h"
+/*!
+	\class EmuInput
+	EmuInput is some sort of proxy between host and emulation. All input devices
+	from host write to, while emulation reads from it.
+ */
 
-class BASE_EXPORT SixAxisInputDevice : public HostInputDevice
+void EmuKeyb::enqueue(int key)
 {
-	Q_OBJECT
-public:
-	explicit SixAxisInputDevice(SixAxis *sixAxis, QObject *parent = 0);
-	void sync(EmuInput *emuInput);
-signals:
-	void pause();
-private slots:
-	void onSixAxisUpdated();
-	void onConfChanged();
-private:
-	void convertPad();
-	void convertMouse();
+	int i = 0;
+	for (; i < 4; i++) {
+		if (!m_keys[i])
+			break;
+	}
+	if (i < 4)
+		m_keys[i] = key;
+}
 
-	SixAxis *m_sixAxis;
-	int m_buttons;
-	int m_mouseX;
-	int m_mouseY;
-	int m_mouseButtons;
-	bool m_converted;
-
-	static const int m_buttonsMapping[];
-};
-
-#endif // SIXAXISINPUTDEVICE_H
+int EmuKeyb::dequeue()
+{
+	int *keyb = m_keys;
+	int key = keyb[0];
+	keyb[0] = keyb[1];
+	keyb[1] = keyb[2];
+	keyb[2] = keyb[3];
+	keyb[3] = 0;
+	return key;
+}

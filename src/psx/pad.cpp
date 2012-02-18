@@ -34,22 +34,22 @@
 #define PSE_PAD_TYPE_ANALOGPAD		7
 
 static const int mapping[16] = {
-	Emu::PadKey_Select,
+	EmuPad::Button_Select,
 	0,
 	0,
-	Emu::PadKey_Start,
-	Emu::PadKey_Up,
-	Emu::PadKey_Right,
-	Emu::PadKey_Down,
-	Emu::PadKey_Left,
-	Emu::PadKey_L2,
-	Emu::PadKey_R2,
-	Emu::PadKey_L1,
-	Emu::PadKey_R1,
-	Emu::PadKey_X,
-	Emu::PadKey_A,
-	Emu::PadKey_B,
-	Emu::PadKey_Y
+	EmuPad::Button_Start,
+	EmuPad::Button_Up,
+	EmuPad::Button_Right,
+	EmuPad::Button_Down,
+	EmuPad::Button_Left,
+	EmuPad::Button_L2,
+	EmuPad::Button_R2,
+	EmuPad::Button_L1,
+	EmuPad::Button_R1,
+	EmuPad::Button_X,
+	EmuPad::Button_A,
+	EmuPad::Button_B,
+	EmuPad::Button_Y
 };
 
 static int buttonStatus = 0xFFFF;

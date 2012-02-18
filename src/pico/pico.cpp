@@ -505,7 +505,7 @@ bool PicoEmu::findMcdBios(QString *biosFileName, QString *error)
 	}
 
 	*biosFileName = QString();
-	QDir dir(PathManager::instance()->diskDirPath());
+	QDir dir(pathManager.diskDirPath());
 	foreach (QString name, possibleBiosNames) {
 		if (dir.exists(name)) {
 			*biosFileName = dir.filePath(name);
@@ -627,7 +627,6 @@ const QImage &PicoEmu::frame() const
 
 void PicoEmu::pause()
 {
-	Emu::pause();
 	if (mp3Player()) {
 		QMetaObject::invokeMethod(mp3Player(),
 								  "pause",
@@ -637,7 +636,8 @@ void PicoEmu::pause()
 
 void PicoEmu::resume()
 {
-	Emu::resume();
+	picoSoundEnabled = isAudioEnabled();
+
 	if (mp3Player()) {
 		QMetaObject::invokeMethod(mp3Player(),
 								  "resume",

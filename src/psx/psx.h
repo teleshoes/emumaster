@@ -56,7 +56,7 @@ public:
 
 	int systemType;
 protected:
-	void setAudioEnabled(bool on);
+	void resume();
 private:
 	QSemaphore m_consSem;
 	QSemaphore m_prodSem;

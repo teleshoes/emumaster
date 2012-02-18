@@ -68,7 +68,7 @@ void TouchInputDevice::onEmuFunctionChanged() {
 	m_mouseX = m_mouseY = 0;
 }
 
-void TouchInputDevice::update(int *data) {
+void TouchInputDevice::sync(EmuInput *emuInput) {
 	if (emuFunction() <= 0)
 		return;
 
@@ -77,17 +77,18 @@ void TouchInputDevice::update(int *data) {
 			convertPad();
 			m_converted = true;
 		}
-		int *pad = Emu::padOffset(data, emuFunction()-1);
-		pad[0] |= m_buttons;
+		int padIndex = emuFunction() - 1;
+		emuInput->pad[padIndex].setButtons(m_buttons);
 	} else if (emuFunction() <= 4) {
 		if (!m_converted) {
 			convertMouse();
 			m_converted = true;
-			int *mouse = Emu::mouseOffset(data, emuFunction()-3);
-			mouse[0] = m_buttons >> 4;
-			mouse[1] = m_mouseX - m_lastMouseX;
-			mouse[2] = m_mouseY - m_lastMouseY;
 		}
+		int xRel = m_mouseX - m_lastMouseX;
+		int yRel = m_mouseY - m_lastMouseY;
+		int mouseIndex = emuFunction() - 3;
+		emuInput->mouse[mouseIndex].setButtons(m_buttons >> 4);
+		emuInput->mouse[mouseIndex].addRel(xRel, yRel);
 	}
 }
 
@@ -111,17 +112,17 @@ void TouchInputDevice::convertPad() {
 				// select, start
 				if (y >= CircleSize-ButtonHeight) {
 					if (x < HostVideo::Width/2)
-						m_buttons |= Emu::PadKey_Select;
+						m_buttons |= EmuPad::Button_Select;
 					else
-						m_buttons |= Emu::PadKey_Start;
+						m_buttons |= EmuPad::Button_Start;
 				}
 			}
 		} else if (y >= 120 && y < 120+ButtonHeight) {
 			// l1,r1
 			if (x < ButtonWidth)
-				m_buttons |= Emu::PadKey_L1;
+				m_buttons |= EmuPad::Button_L1;
 			else if (x >= HostVideo::Width-ButtonWidth)
-				m_buttons |= Emu::PadKey_R1;
+				m_buttons |= EmuPad::Button_R1;
 		}
 	}
 }
@@ -163,35 +164,35 @@ void TouchInputDevice::convertMouse() {
 int TouchInputDevice::buttonsInCircle(int x, int y) const {
 	int buttons = 0;
 	if (x < CircleSize/4) {
-		buttons |= Emu::PadKey_Left;
+		buttons |= EmuPad::Button_Left;
 		if (y < CircleSize/4)
-			buttons |= Emu::PadKey_Up;
+			buttons |= EmuPad::Button_Up;
 		else if (y >= CircleSize/4*3)
-			buttons |= Emu::PadKey_Down;
+			buttons |= EmuPad::Button_Down;
 	} else if (x >= CircleSize/4*3) {
-		buttons |= Emu::PadKey_Right;
+		buttons |= EmuPad::Button_Right;
 		if (y < CircleSize/4)
-			buttons |= Emu::PadKey_Up;
+			buttons |= EmuPad::Button_Up;
 		else if (y >= CircleSize/4*3)
-			buttons |= Emu::PadKey_Down;
+			buttons |= EmuPad::Button_Down;
 	} else {
 		if (y < CircleSize/4) {
-			buttons |= Emu::PadKey_Up;
+			buttons |= EmuPad::Button_Up;
 		} else if (y >= CircleSize/4*3) {
-			buttons |= Emu::PadKey_Down;
+			buttons |= EmuPad::Button_Down;
 		} else {
 			x -= CircleSize/2;
 			y -= CircleSize/2;
 			if (qAbs(x) > qAbs(y)) {
 				if (x > 0)
-					buttons |= Emu::PadKey_Right;
+					buttons |= EmuPad::Button_Right;
 				else
-					buttons |= Emu::PadKey_Left;
+					buttons |= EmuPad::Button_Left;
 			} else {
 				if (y > 0)
-					buttons |= Emu::PadKey_Down;
+					buttons |= EmuPad::Button_Down;
 				else
-					buttons |= Emu::PadKey_Up;
+					buttons |= EmuPad::Button_Up;
 			}
 		}
 	}
@@ -230,11 +231,11 @@ void TouchInputDevice::paint(QPainter *painter) {
 
 void TouchInputDevice::paintCircle(QPainter *painter, int buttons) {
 	painter->drawImage(0, 48, m_padImage,
-					   0, ((buttons & Emu::PadKey_Left) ? 256 : 0)+48, 64, 240-48*2);
+					   0, ((buttons & EmuPad::Button_Left) ? 256 : 0)+48, 64, 240-48*2);
 	painter->drawImage(0, 0, m_padImage,
-					   0, (buttons & Emu::PadKey_Up) ? 256 : 0, 240, 48);
+					   0, (buttons & EmuPad::Button_Up) ? 256 : 0, 240, 48);
 	painter->drawImage(240-64, 48, m_padImage,
-					   240-64, ((buttons & Emu::PadKey_Right) ? 256 : 0)+48, 64, 240-48*2);
+					   240-64, ((buttons & EmuPad::Button_Right) ? 256 : 0)+48, 64, 240-48*2);
 	painter->drawImage(0, 240-48, m_padImage,
-					   0, ((buttons & Emu::PadKey_Down) ? 256 : 0)+240-48, 240, 48);
+					   0, ((buttons & EmuPad::Button_Down) ? 256 : 0)+240-48, 240, 48);
 }

@@ -27,7 +27,7 @@ class BASE_EXPORT AccelInputDevice : public HostInputDevice
 	Q_OBJECT
 public:
 	explicit AccelInputDevice(QObject *parent = 0);
-	void update(int *data);
+	void sync(EmuInput *emuInput);
 
 	Q_INVOKABLE void calibrate(const QVector3D &init,
 							   const QVector3D &up,

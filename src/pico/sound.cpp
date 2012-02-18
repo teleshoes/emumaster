@@ -65,11 +65,6 @@ int PicoEmu::fillAudioBuffer(char *stream, int streamSize)
 	return length<<2;
 }
 
-void PicoEmu::setAudioEnabled(bool on)
-{
-	picoSoundEnabled = on;
-}
-
 static void picoSoundDacCalculateShrink(int lines, int mid)
 {
 	Q_UNUSED(mid)

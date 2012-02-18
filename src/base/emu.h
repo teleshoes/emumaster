@@ -17,6 +17,7 @@
 #define EMU_H
 
 #include "base_global.h"
+#include "emuinput.h"
 #include <QObject>
 #include <QHash>
 #include <QRectF>
@@ -49,34 +50,9 @@ class BASE_EXPORT Emu : public QObject
 	Q_OBJECT
 	Q_PROPERTY(QString name READ name CONSTANT)
 public:
-	enum PadKey {
-		PadKey_Right	= (1 <<  0),
-		PadKey_Down		= (1 <<  1),
-		PadKey_Up		= (1 <<  2),
-		PadKey_Left		= (1 <<  3),
-
-		PadKey_A		= (1 <<  4),
-		PadKey_B		= (1 <<  5),
-		PadKey_X		= (1 <<  6),
-		PadKey_Y		= (1 <<  7),
-
-		PadKey_L1		= (1 <<  8),
-		PadKey_R1		= (1 <<  9),
-		PadKey_L2		= (1 <<  10),
-		PadKey_R2		= (1 <<  11),
-
-		PadKey_Start	= (1 << 12),
-		PadKey_Select	= (1 << 13)
-	};
-
-	static int *padOffset(int *data, int pad);
-	static const int *padOffset(const int *data, int pad);
-	static int *mouseOffset(int *data, int mouse);
-	static void keybEnqueue(int *data, int key);
-	static int keybDequeue(int *data);
-
 	explicit Emu(const QString &name, QObject *parent = 0);
 	~Emu();
+
 	QString name() const;
 
 	qreal frameRate() const;
@@ -88,14 +64,20 @@ public:
 
 	virtual void emulateFrame(bool drawEnabled) = 0;
 	virtual const QImage &frame() const = 0;
+
+	void setAudioEnabled(bool on);
+	bool isAudioEnabled() const;
+
 	virtual int fillAudioBuffer(char *stream, int streamSize) = 0;
 
 	bool saveState(const QString &statePath);
 	bool loadState(const QString &statePath);
 
+	void setRunning(bool running);
 	bool isRunning() const;
-	virtual void pause();
-	virtual void resume();
+
+	EmuInput *input();
+	const EmuInput *input() const;
 signals:
 	void videoSrcRectChanged();
 protected:
@@ -103,20 +85,18 @@ protected:
 	void setFrameRate(qreal rate);
 	void setVideoSrcRect(const QRectF &rect);
 
-	virtual void setAudioEnabled(bool on);
-
-	int m_inputData[8*4];
+	virtual void pause() {}
+	virtual void resume() {}
 private:
 	bool saveInternal(QDataStream *stream);
 	bool loadInternal(QDataStream *stream);
 
+	EmuInput m_input;
 	QString m_name;
 	qreal m_frameRate;
 	QRectF m_videoSrcRect;
+	bool m_audioEnabled;
 	bool m_running;
-
-	friend class EmuView;
-	friend class HostInput;
 };
 
 inline QString Emu::name() const
@@ -126,15 +106,18 @@ inline qreal Emu::frameRate() const
 inline QRectF Emu::videoSrcRect() const
 { return m_videoSrcRect; }
 
+inline void Emu::setAudioEnabled(bool on)
+{ m_audioEnabled = on; }
+inline bool Emu::isAudioEnabled() const
+{ return m_audioEnabled; }
+
 inline bool Emu::isRunning() const
 { return m_running; }
 
-inline int *Emu::padOffset(int *data, int pad)
-{ Q_ASSERT(pad >= 0 && pad < 2); return &data[pad*4]; }
-inline const int *Emu::padOffset(const int *data, int pad)
-{ Q_ASSERT(pad >= 0 && pad < 2); return &data[pad*4]; }
-inline int *Emu::mouseOffset(int *data, int mouse)
-{ Q_ASSERT(mouse >= 0 && mouse < 2); return &data[(mouse+2)*4]; }
+inline EmuInput *Emu::input()
+{ return &m_input; }
+inline const EmuInput *Emu::input() const
+{ return &m_input; }
 
 // emumaster save/load functionality
 

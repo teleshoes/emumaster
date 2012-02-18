@@ -31,7 +31,7 @@ public:
 	QSemaphore m_consSem;
 protected:
 	void sl();
-	void setAudioEnabled(bool on);
+	void resume();
 private:
 	QString setDisk(const QString &path);
 	QString loadBios();

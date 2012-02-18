@@ -176,8 +176,8 @@ const QImage &NesEmu::frame() const
 
 void NesEmu::emulateFrame(bool drawEnabled)
 {
-	setPadKeys(0, *padOffset(m_inputData, 0));
-	setPadKeys(1, *padOffset(m_inputData, 1));
+	setPadKeys(0, input()->pad[0].buttons());
+	setPadKeys(1, input()->pad[1].buttons());
 
 	bZapper = false;
 	if (nesPpu.renderMethod() == NesPpu::TileRender)

@@ -2699,20 +2699,23 @@ QPair<QString, QString> GbaMem::parseLine(const QString &line) {
 	QPair<QString, QString> result;
 	if (line.at(0) == '\0' || line.at(0) == '#')
 		return result;
+
+	bool ok = false;
 	int i = line.indexOf(' ');
-	if (i < 0)
-		return result;
-	result.first = line.left(i);
-	while (i < line.size() && line.at(i) == ' ')
-		i++;
-	if (i >= line.size() || line.at(i) != ' =') {
-		result.first = QString();
-		return result;
+	if (i > 0) {
+		result.first = line.left(i);
+		while (i < line.size() && line.at(i) == ' ')
+			i++;
+		if (i < line.size() && line.at(i) == '=') {
+			i++;
+			while (i < line.size() && line.at(i) == ' ')
+				i++;
+			result.second = line.right(line.size() - i);
+			ok = true;
+		}
 	}
-	i++;
-	while (i < line.size() && line.at(i) == ' ')
-		i++;
-	result.second = line.right(line.size() - i);
+	if (!ok)
+		qDebug("invalid config line: %s", qPrintable(line));
 	return result;
 }
 
@@ -2724,7 +2727,7 @@ void GbaMem::loadConfig() {
 	translation_gate_targets = 0;
 	flash_device_id = FLASH_DEVICE_MACRONIX_64KB;
 
-	QString path = PathManager::instance()->installationDirPath() + "/data/gba_game_config.txt";
+	QString path = pathManager.installationDirPath() + "/data/gba_game_config.txt";
 	QFile f(path);
 	if (!f.open(QIODevice::ReadOnly)) {
 		printf("could not load gba_game_config.txt");

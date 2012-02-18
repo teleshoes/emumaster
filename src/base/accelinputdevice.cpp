@@ -23,7 +23,7 @@
 	because often the AccelInputDevice is not connected in any way to the
 	emulated system.
 
-	Available emu functions:
+	Available functions in the emulation:
 	  - None
 	  - Pad A
 	  - Pad B
@@ -127,7 +127,7 @@ void AccelInputDevice::setEnabled(bool on)
 }
 
 /*! \reimp */
-void AccelInputDevice::update(int *data)
+void AccelInputDevice::sync(EmuInput *emuInput)
 {
 	// exit if turned off
 	if (emuFunction() <= 0)
@@ -138,8 +138,8 @@ void AccelInputDevice::update(int *data)
 		m_converted = true;
 	}
 	// write data
-	int *pad = Emu::padOffset(data, emuFunction()-1);
-	pad[0] |= m_buttons;
+	int padIndex = emuFunction() - 1;
+	emuInput->pad[padIndex].setButtons(m_buttons);
 	// TODO accelerometer: write analog values
 }
 
@@ -166,12 +166,12 @@ void AccelInputDevice::convert()
 
 	m_buttons = 0;
 	if (up > treshold)
-		m_buttons |= Emu::PadKey_Up;
+		m_buttons |= EmuPad::Button_Up;
 	else if (up < -treshold)
-		m_buttons |= Emu::PadKey_Down;
+		m_buttons |= EmuPad::Button_Down;
 
 	if (right > treshold)
-		m_buttons |= Emu::PadKey_Right;
+		m_buttons |= EmuPad::Button_Right;
 	else if (right < -treshold)
-		m_buttons |= Emu::PadKey_Left;
+		m_buttons |= EmuPad::Button_Left;
 }

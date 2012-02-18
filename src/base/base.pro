@@ -40,7 +40,8 @@ HEADERS += \
     crc32.h \
     emuview.h \
     emuthread.h \
-    emu.h
+    emu.h \
+    emuinput.h
 
 SOURCES += \
     hostaudio.cpp \
@@ -59,7 +60,8 @@ SOURCES += \
     crc32.cpp \
     emuview.cpp \
     emuthread.cpp \
-    emu.cpp
+    emu.cpp \
+    emuinput.cpp
 
 unix {
 	qml.path = /opt/emumaster/qml/base

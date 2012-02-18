@@ -16,7 +16,7 @@
 #ifndef HOSTINPUTDEVICE_H
 #define HOSTINPUTDEVICE_H
 
-#include "base_global.h"
+#include "emuinput.h"
 #include <QObject>
 #include <QStringList>
 
@@ -44,7 +44,7 @@ public:
 
 	void setDeviceIndex(int index);
 
-	virtual void update(int *data) = 0;
+	virtual void sync(EmuInput *emuInput) = 0;
 signals:
 	void emuFunctionChanged();
 protected:

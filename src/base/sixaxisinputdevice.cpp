@@ -41,22 +41,22 @@ SixAxisInputDevice::SixAxisInputDevice(SixAxis *sixAxis, QObject *parent) :
 }
 
 const int SixAxisInputDevice::m_buttonsMapping[] = {
-	Emu::PadKey_Select,
+	EmuPad::Button_Select,
 	0,
 	0,
-	Emu::PadKey_Start,
-	Emu::PadKey_Up,
-	Emu::PadKey_Right,
-	Emu::PadKey_Down,
-	Emu::PadKey_Left,
-	Emu::PadKey_L2,
-	Emu::PadKey_R2,
-	Emu::PadKey_L1,
-	Emu::PadKey_R1,
-	Emu::PadKey_X,
-	Emu::PadKey_A,
-	Emu::PadKey_B,
-	Emu::PadKey_Y
+	EmuPad::Button_Start,
+	EmuPad::Button_Up,
+	EmuPad::Button_Right,
+	EmuPad::Button_Down,
+	EmuPad::Button_Left,
+	EmuPad::Button_L2,
+	EmuPad::Button_R2,
+	EmuPad::Button_L1,
+	EmuPad::Button_R1,
+	EmuPad::Button_X,
+	EmuPad::Button_A,
+	EmuPad::Button_B,
+	EmuPad::Button_Y
 };
 
 void SixAxisInputDevice::onConfChanged() {
@@ -101,36 +101,32 @@ void SixAxisInputDevice::convertMouse() {
 		m_mouseY = 0;
 }
 
-void SixAxisInputDevice::update(int *data) {
+void SixAxisInputDevice::sync(EmuInput *emuInput) {
 	if (emuFunction() <= 0)
 		return;
 
-	int pad = -1;
+	int padIndex = -1;
 	if (emuFunction() <= 2)
-		pad = emuFunction()-1;
+		padIndex = emuFunction()-1;
 	else if (emuFunction() >= 5)
-		pad = 6-emuFunction();
+		padIndex = 6-emuFunction();
 
-	int mouse = -1;
+	int mouseIndex = -1;
 	if (emuFunction() >= 3 && emuFunction() <= 6)
-		mouse = emuFunction() - (emuFunction() & ~1);
+		mouseIndex = emuFunction() - (emuFunction() & ~1);
 
 	if (!m_converted) {
-		if (pad >= 0)
+		if (padIndex >= 0)
 			convertPad();
-		if (mouse >= 0)
+		if (mouseIndex >= 0)
 			convertMouse();
 		m_converted = true;
 	}
 
-	if (pad >= 0) {
-		int *padData = Emu::padOffset(data, pad);
-		padData[0] |= m_buttons;
-	}
-	if (mouse >= 0) {
-		int *mouseData = Emu::mouseOffset(data, mouse);
-		mouseData[0] = m_mouseButtons;
-		mouseData[1] = m_mouseX;
-		mouseData[2] = m_mouseY;
+	if (padIndex >= 0)
+		emuInput->pad[padIndex].setButtons(m_buttons);
+	if (mouseIndex >= 0) {
+		emuInput->mouse[mouseIndex].setButtons(m_mouseButtons);
+		emuInput->mouse[mouseIndex].addRel(m_mouseX, m_mouseY);
 	}
 }

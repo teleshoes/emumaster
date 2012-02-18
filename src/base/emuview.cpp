@@ -66,7 +66,6 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	m_stateListModel = new StateListModel(m_emu, m_diskFileName);
 	m_thread->setStateListModel(m_stateListModel);
 
-	// any config which modifies m_emu must be loaded later ...
 	QSettings s;
 	m_autoSaveLoadEnable = s.value("autoSaveLoadEnable").toBool();
 	if (!loadConfiguration())
@@ -77,10 +76,6 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 				.arg(pathManager.diskDirPath())
 				.arg(m_diskFileName);
 		m_error = m_emu->init(diskPath);
-	}
-	if (m_error.isEmpty()) {
-		// ... loaded here
-		setAudioEnabled(loadOptionFromSettings(s, "audioEnable").toBool());
 	}
 
 	setupSettingsView();
@@ -251,6 +246,7 @@ void EmuView::loadSettings()
 	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible").toBool());
 	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio").toBool());
 	m_hostVideo->setBilinearFiltering(loadOptionFromSettings(s, "bilinearFiltering").toBool());
+	setAudioEnabled(loadOptionFromSettings(s, "audioEnable").toBool());
 	if (!loadOptionFromSettings(s, "runInBackground").toBool())
 		QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
 }
@@ -297,7 +293,7 @@ void EmuView::onFrameGenerated(bool videoOn)
 	if (videoOn)
 		m_hostVideo->repaint();
 	// sync input with the emulation
-	m_hostInput->update();
+	m_hostInput->sync();
 }
 
 bool EmuView::isFpsVisible() const

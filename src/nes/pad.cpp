@@ -27,20 +27,18 @@ static u8 padAReg;
 static u8 padBReg;
 
 static const int keyMapping[8] = {
-	Emu::PadKey_A,
-	Emu::PadKey_B,
-	Emu::PadKey_Select,
-	Emu::PadKey_Start,
-	Emu::PadKey_Up,
-	Emu::PadKey_Down,
-	Emu::PadKey_Left,
-	Emu::PadKey_Right
+	EmuPad::Button_A,
+	EmuPad::Button_B,
+	EmuPad::Button_Select,
+	EmuPad::Button_Start,
+	EmuPad::Button_Up,
+	EmuPad::Button_Down,
+	EmuPad::Button_Left,
+	EmuPad::Button_Right
 };
 
 void NesEmu::setPadKeys(int pad, int keys) {
-	if (pad > 1)
-		return;
-
+	Q_ASSERT(pad == 0 || pad == 1);
 	int nesKeys = 0;
 	for (int i = 0; i < 8; i++) {
 		if (keys & keyMapping[i])
