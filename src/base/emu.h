@@ -16,7 +16,6 @@
 #ifndef EMU_H
 #define EMU_H
 
-#include "base_global.h"
 #include "emuinput.h"
 #include <QObject>
 #include <QHash>

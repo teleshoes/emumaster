@@ -43,6 +43,7 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	m_backgroundCounter(qAbs(qrand())/2),
 	m_quit(false),
 	m_pauseRequested(false),
+	m_slotToBeLoadedOnStart(StateListModel::InvalidSlot),
 	m_audioEnable(true),
 	m_autoSaveLoadEnable(true)
 {
@@ -64,7 +65,6 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 					 SIGNAL(inputDevicesChanged()));
 
 	m_stateListModel = new StateListModel(m_emu, m_diskFileName);
-	m_thread->setStateListModel(m_stateListModel);
 
 	QSettings s;
 	m_autoSaveLoadEnable = s.value("autoSaveLoadEnable").toBool();
@@ -85,18 +85,18 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	m_safetyTimer->setSingleShot(false);
 	QObject::connect(m_safetyTimer, SIGNAL(timeout()), SLOT(onSafetyEvent()));
 
-	const char *method = "resume";
+	const char *method = "showEmulationView";
 	if (m_error.isEmpty()) {
 		QObject::connect(m_stateListModel, SIGNAL(slFailed()),
 						 SLOT(onSlFailed()), Qt::QueuedConnection);
 		QObject::connect(m_stateListModel, SIGNAL(stateLoaded()),
 						 SLOT(onStateLoaded()), Qt::QueuedConnection);
 #if defined(Q_WS_MAEMO_5)
-		method = "pauseStage2";
+		method = "showSettingsView";
 #endif
 		QObject::connect(m_hostVideo, SIGNAL(focusOut()), SLOT(pause()));
 	} else {
-		method = "pauseStage2";
+		method = "showSettingsView";
 	}
 	QMetaObject::invokeMethod(this, method, Qt::QueuedConnection);
 }
@@ -138,6 +138,8 @@ void EmuView::pause()
 		return;
 	m_closeTries = 0;
 	m_pauseRequested = true;
+
+	m_safetyTimer->stop();
 	QObject::disconnect(m_thread, SIGNAL(frameGenerated(bool)),
 						this, SLOT(onFrameGenerated(bool)));
 	m_thread->pause();
@@ -161,47 +163,41 @@ void EmuView::pauseStage2()
 	}
 	m_pauseRequested = false;
 	m_running = false;
-	m_safetyTimer->stop();
-	if (!m_quit) {
-		if (m_settingsView->source().isEmpty() || !m_error.isEmpty()) {
-			QString path;
-			if (m_error.isEmpty())
-				path = "%1/qml/base/main.qml";
-			else
-				path = "%1/qml/base/error.qml";
-			path = path.arg(pathManager.installationDirPath());
-			QUrl url = QUrl::fromLocalFile(path);
-			m_settingsView->setSource(url);
-		}
-		if (m_audioEnable)
-			m_hostAudio->close();
-		m_settingsView->setMyVisible(true);
-		m_hostVideo->setMyVisible(false);
-	} else {
+
+	if (m_quit) {
 		close();
+		return;
 	}
+	if (m_slotToBeLoadedOnStart != StateListModel::InvalidSlot && m_error.isEmpty()) {
+		if (m_stateListModel->loadState(m_slotToBeLoadedOnStart)) {
+			m_slotToBeLoadedOnStart = StateListModel::InvalidSlot;
+			resume();
+		}
+		return;
+	}
+	showSettingsView();
 }
 
 void EmuView::resume()
 {
 	Q_ASSERT(m_error.isEmpty());
+
 	if (m_running)
 		return;
-	m_hostVideo->setMyVisible(true);
-	m_settingsView->setMyVisible(false);
 
 	QObject::connect(m_thread, SIGNAL(frameGenerated(bool)),
 					 this, SLOT(onFrameGenerated(bool)),
 					 Qt::BlockingQueuedConnection);
-	if (m_audioEnable)
-		m_hostAudio->open();
 
 	m_safetyCheck = false;
 	m_safetyTimer->start();
 
+	m_thread->resume();
+
+	if (m_slotToBeLoadedOnStart != StateListModel::InvalidSlot)
+		QTimer::singleShot(1000, this, SLOT(pause()));
+
 	m_running = true;
-	// use delay to wait for animation end
-	QTimer::singleShot(500, m_thread, SLOT(resume()));
 }
 
 bool EmuView::close()
@@ -213,6 +209,39 @@ bool EmuView::close()
 	} else {
 		qApp->quit();
 		return true;
+	}
+}
+
+void EmuView::showSettingsView()
+{
+	if (m_running) {
+		pause();
+		return;
+	}
+	if (m_settingsView->source().isEmpty() || !m_error.isEmpty()) {
+		QString path;
+		if (m_error.isEmpty())
+			path = "%1/qml/base/main.qml";
+		else
+			path = "%1/qml/base/error.qml";
+		path = path.arg(pathManager.installationDirPath());
+		QUrl url = QUrl::fromLocalFile(path);
+		m_settingsView->setSource(url);
+	}
+	if (m_audioEnable)
+		m_hostAudio->close();
+	m_settingsView->setMyVisible(true);
+	m_hostVideo->setMyVisible(false);
+}
+
+void EmuView::showEmulationView()
+{
+	if (!m_running) {
+		m_hostVideo->setMyVisible(true);
+		m_settingsView->setMyVisible(false);
+		if (m_audioEnable)
+			m_hostAudio->open();
+		resume();
 	}
 }
 
@@ -235,28 +264,6 @@ void EmuView::saveScreenShot()
 	s << m_diskFileName;
 	QUdpSocket sock;
 	sock.writeDatagram(ba, QHostAddress::LocalHost, 5798);
-}
-
-void EmuView::loadSettings()
-{
-	QSettings s;
-	m_hostVideo->setSwipeEnabled(loadOptionFromSettings(s, "swipeEnable").toBool());
-	m_hostInput->setPadOpacity(loadOptionFromSettings(s, "padOpacity").toReal());
-	m_thread->setFrameSkip(loadOptionFromSettings(s, "frameSkip").toInt());
-	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible").toBool());
-	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio").toBool());
-	m_hostVideo->setBilinearFiltering(loadOptionFromSettings(s, "bilinearFiltering").toBool());
-	setAudioEnabled(loadOptionFromSettings(s, "audioEnable").toBool());
-	if (!loadOptionFromSettings(s, "runInBackground").toBool())
-		QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
-}
-
-QVariant EmuView::loadOptionFromSettings(QSettings &s, const QString &name) const
-{
-	QVariant option = emConf.value(name);
-	if (option.isNull())
-		option = s.value(name, emConf.defaultValue(name));
-	return option;
 }
 
 QString EmuView::extractArg(const QStringList &args,
@@ -294,6 +301,141 @@ void EmuView::onFrameGenerated(bool videoOn)
 		m_hostVideo->repaint();
 	// sync input with the emulation
 	m_hostInput->sync();
+}
+
+int EmuView::determineLoadSlot(const QStringList &args)
+{
+	int slot = StateListModel::InvalidSlot;
+
+	// check if auto load if forced to the state specified by an argument
+	if (args.contains("-autoSaveLoadEnable"))
+		m_autoSaveLoadEnable = true;
+	else if (args.contains("-autoSaveLoadDisable"))
+		m_autoSaveLoadEnable = false;
+
+	if (m_autoSaveLoadEnable)
+		slot = StateListModel::AutoSaveLoadSlot;
+
+	QString stateArg = extractArg(args, "-state");
+	if (!stateArg.isEmpty()) {
+		bool ok;
+		slot = stateArg.toInt(&ok);
+		if (!ok) {
+			qDebug("invalid -state arg passed: %s", qPrintable(stateArg));
+			slot = StateListModel::InvalidSlot;
+		}
+	}
+	if (slot != StateListModel::InvalidSlot) {
+		if (!m_stateListModel->exists(slot)) {
+			if (slot != StateListModel::AutoSaveLoadSlot)
+				qDebug("slot passed by -state arg not found: %s", qPrintable(stateArg));
+			slot = StateListModel::InvalidSlot;
+		}
+	}
+	return slot;
+}
+
+bool EmuView::loadConfiguration()
+{
+	emConf.setValue("version", QCoreApplication::applicationVersion());
+
+	QStringList args = QCoreApplication::arguments();
+
+	m_slotToBeLoadedOnStart = determineLoadSlot(args);
+
+	// load conf from state
+	if (m_slotToBeLoadedOnStart != StateListModel::InvalidSlot) {
+		emsl.loadConfOnly = true;
+		if (!m_stateListModel->loadState(m_slotToBeLoadedOnStart))
+			return false;
+		emsl.loadConfOnly = false;
+	}
+
+	// load conf from arg
+	QString confArg = extractArg(args, "-conf");
+	parseConfArg(confArg);
+
+	// load conf from global settings
+	loadSettings();
+
+	return true;
+}
+
+void EmuView::onSlFailed()
+{
+	if (!emsl.save && emsl.abortIfLoadFails) {
+		fatalError(constructSlErrorString());
+	} else {
+		emit faultOccured(constructSlErrorString());
+	}
+}
+
+QString EmuView::constructSlErrorString() const
+{
+	QString result;
+	if (emsl.save)
+		result = tr("Saving state failed: ");
+	else
+		result = tr("Loading state failed: ");
+	result += emsl.error;
+	return result;
+}
+
+void EmuView::fatalError(const QString &errorStr)
+{
+	m_error = errorStr;
+	showSettingsView();
+}
+
+void EmuView::registerClassesInQml()
+{
+}
+
+QList<QObject *> EmuView::inputDevices() const
+{
+	QList<QObject *> ret;
+	ret.reserve(m_hostInput->devices().size());
+	foreach (HostInputDevice *dev, m_hostInput->devices())
+		ret.append(dev);
+	return ret;
+}
+
+void EmuView::onSafetyEvent()
+{
+	if (!m_safetyCheck) {
+		m_thread->terminate();
+		fatalError(tr("Emulated system is not responding"));
+	}
+	m_safetyCheck = false;
+}
+
+void EmuView::onStateLoaded()
+{
+	m_hostInput->loadFromConf();
+}
+
+//-------------------------------SETTINGS SECTION-------------------------------
+
+void EmuView::loadSettings()
+{
+	QSettings s;
+	m_hostVideo->setSwipeEnabled(loadOptionFromSettings(s, "swipeEnable").toBool());
+	m_hostInput->setPadOpacity(loadOptionFromSettings(s, "padOpacity").toReal());
+	m_thread->setFrameSkip(loadOptionFromSettings(s, "frameSkip").toInt());
+	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible").toBool());
+	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio").toBool());
+	m_hostVideo->setBilinearFiltering(loadOptionFromSettings(s, "bilinearFiltering").toBool());
+	setAudioEnabled(loadOptionFromSettings(s, "audioEnable").toBool());
+	if (!loadOptionFromSettings(s, "runInBackground").toBool())
+		QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
+}
+
+QVariant EmuView::loadOptionFromSettings(QSettings &s, const QString &name) const
+{
+	QVariant option = emConf.value(name);
+	if (option.isNull())
+		option = s.value(name, emConf.defaultValue(name));
+	return option;
 }
 
 bool EmuView::isFpsVisible() const
@@ -379,104 +521,4 @@ void EmuView::setBilinearFiltering(bool enabled)
 		emConf.setValue("bilinearFiltering", enabled);
 		emit bilinearFilteringChanged();
 	}
-}
-
-int EmuView::determineLoadState(const QStringList &args)
-{
-	int state = StateListModel::AutoSaveLoadSlot;
-	if (args.contains("-noAutoSaveLoad"))
-		m_autoSaveLoadEnable = false;
-
-	if (!m_autoSaveLoadEnable) {
-		state = StateListModel::InvalidSlot;
-	} else {
-		QString stateArg = extractArg(args, "-state");
-		if (!stateArg.isEmpty())
-			state = stateArg.toInt();
-	}
-	if (state == StateListModel::AutoSaveLoadSlot) {
-		if (!m_stateListModel->exists(StateListModel::AutoSaveLoadSlot))
-			state = StateListModel::InvalidSlot;
-	}
-	return state;
-}
-
-bool EmuView::loadConfiguration()
-{
-	emConf.setValue("version", QCoreApplication::applicationVersion());
-
-	QStringList args = QCoreApplication::arguments();
-
-	int state = determineLoadState(args);
-	m_thread->setLoadSlot(state);
-
-	// load conf from state
-	if (state != StateListModel::InvalidSlot) {
-		emsl.loadConfOnly = true;
-		if (!m_stateListModel->loadState(state))
-			return false;
-		emsl.loadConfOnly = false;
-	}
-
-	// load conf from arg
-	QString confArg = extractArg(args, "-conf");
-	parseConfArg(confArg);
-
-	// load conf from global settings
-	loadSettings();
-
-	return true;
-}
-
-void EmuView::onSlFailed()
-{
-	if (!emsl.save && emsl.abortIfLoadFails) {
-		fatalError(constructSlErrorString());
-	} else {
-		emit faultOccured(constructSlErrorString());
-	}
-}
-
-QString EmuView::constructSlErrorString() const
-{
-	QString result;
-	if (emsl.save)
-		result = tr("Saving state failed: ");
-	else
-		result = tr("Loading state failed: ");
-	result += emsl.error;
-	return result;
-}
-
-void EmuView::fatalError(const QString &errorStr)
-{
-	m_error = errorStr;
-	if (m_running)
-		pause();
-	else
-		pauseStage2();
-}
-
-void EmuView::registerClassesInQml()
-{
-	qmlRegisterType<HostInputDevice>();
-}
-
-QList<HostInputDevice *> EmuView::inputDevices() const
-{
-	return m_hostInput->devices();
-}
-
-void EmuView::onSafetyEvent()
-{
-	if (!m_safetyCheck) {
-		m_thread->terminate();
-		fatalError(tr("Emulated system is not responding"));
-	}
-	m_safetyCheck = false;
-}
-
-void EmuView::onStateLoaded()
-{
-	m_hostInput->loadFromConf();
 }

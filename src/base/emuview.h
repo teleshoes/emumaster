@@ -39,7 +39,7 @@ class BASE_EXPORT EmuView : public QObject {
 	Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged)
 	Q_PROPERTY(bool bilinearFiltering READ bilinearFiltering WRITE setBilinearFiltering NOTIFY bilinearFilteringChanged)
 	Q_PROPERTY(QString error READ error CONSTANT)
-	Q_PROPERTY(QList<HostInputDevice *> inputDevices READ inputDevices NOTIFY inputDevicesChanged)
+	Q_PROPERTY(QList<QObject *> inputDevices READ inputDevices NOTIFY inputDevicesChanged)
 public:
 	explicit EmuView(Emu *emu, const QString &diskFileName);
 	~EmuView();
@@ -62,15 +62,15 @@ public:
 	void setBilinearFiltering(bool enabled);
 	bool bilinearFiltering() const;
 
-	QList<HostInputDevice *> inputDevices() const;
+	QList<QObject *> inputDevices() const;
 
 	QString error() const;
 public slots:
-	void pause();
-	void resume();
 	bool close();
 
 	void saveScreenShot();
+	void showSettingsView();
+	void showEmulationView();
 signals:
 	void fpsVisibleChanged();
 	void frameSkipChanged();
@@ -81,7 +81,9 @@ signals:
 	void faultOccured(QString faultMessage);
 	void inputDevicesChanged();
 private slots:
+	void pause();
 	void pauseStage2();
+	void resume();
 	void onFrameGenerated(bool videoOn);
 	void onSlFailed();
 	void onSafetyEvent();
@@ -94,7 +96,7 @@ private:
 	void parseConfArg(const QString &arg);
 	void setupSettingsView();
 	void saveScreenShotIfNotExists();
-	int determineLoadState(const QStringList &args);
+	int determineLoadSlot(const QStringList &args);
 	QString constructSlErrorString() const;
 	void fatalError(const QString &faultStr);
 
@@ -115,6 +117,7 @@ private:
 	bool m_quit;
 	bool m_pauseRequested;
 	int m_closeTries;
+	int m_slotToBeLoadedOnStart;
 
 	bool m_audioEnable;
 	bool m_autoSaveLoadEnable;

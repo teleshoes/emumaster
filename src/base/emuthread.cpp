@@ -32,10 +32,7 @@ EmuThread::EmuThread(Emu *emu) :
 	m_emu(emu),
 	m_running(false),
 	m_inFrameGenerated(false),
-	m_frameSkip(1),
-	m_firstRun(true),
-	m_loadSlot(StateListModel::InvalidSlot),
-	m_stateListModel(0)
+	m_frameSkip(1)
 {
 }
 
@@ -71,20 +68,6 @@ void EmuThread::run()
 {
 	// resume the emulation
 	m_emu->setRunning(true);
-
-	if (m_firstRun) {
-		// emulate some amount of frames before loading a state
-		for (int i = 0; i < 60; i++)
-			m_emu->emulateFrame(false);
-		m_firstRun = false;
-	}
-	if (m_loadSlot != StateListModel::InvalidSlot) {
-		// load state if load is pending
-		// TODO reorganize
-		if (!m_stateListModel->loadState(m_loadSlot))
-			return;
-		m_loadSlot = StateListModel::InvalidSlot;
-	}
 #if defined(MEEGO_EDITION_HARMATTAN)
 	// prevent screen from locking
 	int blankinkgPauseCounter = 0;
@@ -148,15 +131,3 @@ void EmuThread::setFrameSkip(int n)
 	\fn int EmuThread::frameSkip() const
 	Returns current frameskip.
  */
-
-// TODO reorganize
-void EmuThread::setStateListModel(StateListModel *stateListModel)
-{
-	m_stateListModel = stateListModel;
-}
-
-// TODO reorganize
-void EmuThread::setLoadSlot(int i)
-{
-	m_loadSlot = i;
-}

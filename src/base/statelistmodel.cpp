@@ -22,31 +22,37 @@
 
 StateListModel::StateListModel(Emu *emu, const QString &diskFileName) :
 	m_emu(emu),
-	m_screenShotUpdateCounter(0) {
-
+	m_screenShotUpdateCounter(0)
+{
+	// set role names
 	QHash<int, QByteArray> roles;
-	roles.insert(NameRole, "title");
-	roles.insert(ScreenShotUpdate, "screenShotUpdate");
+	roles.insert(SlotRole, "slot");
 	roles.insert(DateTimeRole, "saveDateTime");
+	roles.insert(ScreenShotUpdateRole, "screenShotUpdate");
 	setRoleNames(roles);
 
+	// make path to a dir with states
 	QString diskTitle = QFileInfo(diskFileName).completeBaseName();
 	QString path = pathManager.stateDirPath(diskTitle);
 	m_dir.mkpath(path);
 	m_dir = QDir(path);
 
+	// list the dir
 	m_list = m_dir.entryInfoList(QDir::Files, QDir::Time);
-	m_maxSaveIndex = 0;
+
+	// find maximum integer of slot names
+	m_maxSlotIndex = 0;
 	foreach (QFileInfo info, m_list) {
 		int i = info.fileName().toInt();
-		m_maxSaveIndex = qMax(i, m_maxSaveIndex);
+		m_maxSlotIndex = qMax(i, m_maxSlotIndex);
 	}
 }
 
-QVariant StateListModel::data(const QModelIndex &index, int role) const {
-	if (role == NameRole) {
+QVariant StateListModel::data(const QModelIndex &index, int role) const
+{
+	if (role == SlotRole) {
 		return m_list.at(index.row()).fileName();
-	} else if (role == ScreenShotUpdate) {
+	} else if (role == ScreenShotUpdateRole) {
 		return m_screenShotUpdateCounter;
 	} else if (role == DateTimeRole) {
 		return m_list.at(index.row()).lastModified();
@@ -54,18 +60,19 @@ QVariant StateListModel::data(const QModelIndex &index, int role) const {
 	return QVariant();
 }
 
-int StateListModel::rowCount(const QModelIndex &parent) const {
+int StateListModel::rowCount(const QModelIndex &parent) const
+{
 	Q_UNUSED(parent)
 	return m_list.size();
 }
 
 int StateListModel::count() const
-{ return m_list.size(); }
+{
+	return m_list.size();
+}
 
-QString StateListModel::indexToSlot(int i) const
-{ return m_list.at(i).fileName(); }
-
-QImage StateListModel::screenShot(int slot) const {
+QImage StateListModel::screenShot(int slot) const
+{
 	QString diskPath = m_dir.filePath(QString::number(slot));
 	QFile file(diskPath);
 	if (!file.open(QIODevice::ReadOnly))
@@ -79,12 +86,13 @@ QImage StateListModel::screenShot(int slot) const {
 	return screenShot;
 }
 
-bool StateListModel::saveState(int slot) {
+bool StateListModel::saveState(int slot)
+{
 	if (!m_emu)
 		return false;
 	bool newState = false;
 	if (slot == NewSlot) {
-		slot = ++m_maxSaveIndex;
+		slot = ++m_maxSlotIndex;
 		newState = true;
 	} else if (slot == AutoSaveLoadSlot) {
 		newState = (indexOfSlot(AutoSaveLoadSlot) < 0);
@@ -112,7 +120,8 @@ bool StateListModel::saveState(int slot) {
 	return true;
 }
 
-bool StateListModel::loadState(int slot) {
+bool StateListModel::loadState(int slot)
+{
 	Q_ASSERT(m_emu != 0);
 
 	QString statePath = m_dir.filePath(QString::number(slot));
@@ -124,7 +133,8 @@ bool StateListModel::loadState(int slot) {
 	return ok;
 }
 
-void StateListModel::removeState(int slot) {
+void StateListModel::removeState(int slot)
+{
 	int i = indexOfSlot(slot);
 	if (i >= 0) {
 		beginRemoveRows(QModelIndex(), i, i);
@@ -134,12 +144,14 @@ void StateListModel::removeState(int slot) {
 	}
 }
 
-void StateListModel::removeAll() {
+void StateListModel::removeAll()
+{
 	while (!m_list.isEmpty())
 		removeState(m_list.at(0).fileName().toInt());
 }
 
-int StateListModel::indexOfSlot(int slot) const {
+int StateListModel::indexOfSlot(int slot) const
+{
 	for (int x = 0; x < m_list.size(); x++) {
 		if (m_list.at(x).fileName().toInt() == slot)
 			return x;
@@ -147,6 +159,7 @@ int StateListModel::indexOfSlot(int slot) const {
 	return -1;
 }
 
-bool StateListModel::exists(int slot) const {
+bool StateListModel::exists(int slot) const
+{
 	return m_dir.exists(QString::number(slot));
 }

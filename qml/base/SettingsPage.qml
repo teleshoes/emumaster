@@ -27,7 +27,7 @@ Page {
 	tools: ToolBarLayout {
 		ToolIcon {
 			iconId: "toolbar-back"
-			onClicked: emuView.resume()
+			onClicked: emuView.showEmulationView()
 		}
 	}
 
@@ -44,12 +44,12 @@ Page {
 	function executeAction(action) {
 		switch (action) {
 		case "loadState":
-			stateListModel.loadState(stateMenu.stateSlot);
-			emuView.resume()
+			stateListModel.loadState(stateListView.selectedSlot);
+			emuView.showEmulationView()
 			break
 		case "saveState":		stateListModel.saveState(-1); break
-		case "overwriteState":	stateListModel.saveState(stateMenu.stateSlot); break
-		case "deleteState":		stateListModel.removeState(stateMenu.stateSlot); break
+		case "overwriteState":	stateListModel.saveState(stateListView.selectedSlot); break
+		case "deleteState":		stateListModel.removeState(stateListView.selectedSlot); break
 		case "deleteAllStates":	stateListModel.removeAll(); break
 		case "emuReset":		emu.reset(); break
 		default:				console.log("unknown action: " + action); break
@@ -71,12 +71,6 @@ Page {
 
 	Menu {
 		id: stateMenu
-		property int stateSlot
-
-		function prepareAndOpen(index) {
-			stateMenu.stateSlot = stateListModel.indexToSlot(index)
-			stateMenu.open()
-		}
 
 		MenuLayout {
 			MenuItem { text: qsTr("Load");		onClicked: settingsPage.initAction("loadState") }
@@ -99,6 +93,8 @@ Page {
 
 			SectionSeperator { text: qsTr("STATE") }
 			ListView {
+				property int selectedSlot: -3
+
 				id: stateListView
 				width: parent.width
 				height: 280
@@ -109,9 +105,10 @@ Page {
 				delegate: ImageListViewDelegate {
 					width: 380
 					height: 280
-					imgSource: "image://state/" + title + "*" + screenShotUpdate
+					imgSource: "image://state/" + slot + "*" + screenShotUpdate
 					text: Qt.formatDateTime(saveDateTime, "dd.MM.yyyy hh:mm:ss")
-					onClicked: stateMenu.prepareAndOpen(index)
+					onPressed: stateListView.selectedSlot = slot
+					onClicked: stateMenu.open()
 
 					BorderImage {
 						source: "image://theme/meegotouch-video-duration-background"
@@ -121,7 +118,7 @@ Page {
 						}
 						width: childrenRect.width+20
 						height: childrenRect.height+10
-						visible: title == -2
+						visible: slot == -2
 						border { left: 10; right: 10 }
 
 						Label { x: 10; y: 5; text: qsTr("AUTOSAVE"); color: "blue" }

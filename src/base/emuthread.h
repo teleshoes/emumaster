@@ -17,8 +17,6 @@
 #define EMUTHREAD_H
 
 class Emu;
-class HostAudio;
-class StateListModel;
 #include <QThread>
 #if defined(MEEGO_EDITION_HARMATTAN)
 #include <qmsystem2/qmdisplaystate.h>
@@ -33,9 +31,6 @@ public:
 
 	void setFrameSkip(int n);
 	int frameSkip() const;
-
-	void setLoadSlot(int i);
-	void setStateListModel(StateListModel *stateListModel);
 public slots:
 	void resume();
 	void pause();
@@ -50,10 +45,6 @@ private:
 	volatile bool m_inFrameGenerated;
 
 	int m_frameSkip;
-
-	bool m_firstRun;
-	int m_loadSlot;
-	StateListModel *m_stateListModel;
 #if defined(MEEGO_EDITION_HARMATTAN)
 	MeeGo::QmDisplayState m_displayState;
 #endif

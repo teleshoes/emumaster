@@ -25,15 +25,18 @@ class Emu;
 class StateListModel : public QAbstractListModel
 {
 	Q_OBJECT
+	Q_ENUMS(SpecialSlot)
 	Q_PROPERTY(int count READ count NOTIFY countChanged)
 public:
-	static const int NewSlot				= -1;
-	static const int AutoSaveLoadSlot		= -2;
-	static const int InvalidSlot			= -3;
+	enum SpecialSlot {
+		InvalidSlot			= -3,
+		AutoSaveLoadSlot	= -2,
+		NewSlot				= -1
+	};
 
 	enum RoleType {
-		NameRole = Qt::UserRole+1,
-		ScreenShotUpdate,
+		SlotRole = Qt::UserRole+1,
+		ScreenShotUpdateRole,
 		DateTimeRole
 	};
 
@@ -45,7 +48,6 @@ public:
 
 	bool exists(int slot) const;
 
-	Q_INVOKABLE QString indexToSlot(int i) const;
 	Q_INVOKABLE bool saveState(int slot);
 	Q_INVOKABLE bool loadState(int slot);
 	Q_INVOKABLE void removeState(int slot);
@@ -60,7 +62,7 @@ private:
 	Emu *m_emu;
 	QDir m_dir;
 	QFileInfoList m_list;
-	int m_maxSaveIndex;
+	int m_maxSlotIndex;
 	int m_screenShotUpdateCounter;
 };
 

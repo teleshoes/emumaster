@@ -50,13 +50,13 @@ Page {
 					anchors.horizontalCenter: parent.horizontalCenter
 					onClicked: {
 						var confStr = advancedRunPage.confString()
-						var autoSaveLoad = autoSaveLoadEnabled.checked
+						var autoSaveLoad = autoSaveLoadEnabled.checked ? 1 : -1
 						diskGallery.advancedLaunch(diskIndex, autoSaveLoad, confStr)
 					}
 				}
 				EMSwitchOption {
 					id: autoSaveLoadEnabled
-					checked: true
+					checked: diskGallery.globalOption("autoSaveLoadEnable")
 					text: qsTr("Auto Save/Load")
 				}
 			}

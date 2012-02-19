@@ -83,10 +83,15 @@ int DiskGallery::runCount() const
 
 void DiskGallery::launch(int index)
 {
-	advancedLaunch(index, true, QString());
+	advancedLaunch(index, 0, QString());
 }
 
-void DiskGallery::advancedLaunch(int index, bool autoSaveLoad, const QString &confStr)
+/*!
+	Launches the emulation with the given disk as \a index.
+	\a autoSaveLoad can take {-1,0,1}, 0 for default, -1 to force off auto load,
+	1 to force on.
+ */
+void DiskGallery::advancedLaunch(int index, int autoSaveLoad, const QString &confStr)
 {
 	QString diskFileName = m_diskListModel->getDiskFileName(index);
 	QString diskEmuName = m_diskListModel->getDiskEmuName(index);
@@ -98,8 +103,12 @@ void DiskGallery::advancedLaunch(int index, bool autoSaveLoad, const QString &co
 			.arg(pathManager.installationDirPath())
 			.arg(diskEmuName);
 	args << diskFileName;
-	if (!autoSaveLoad)
-		args << "-noAutoSaveLoad";
+
+	if (autoSaveLoad == 1)
+		args << "-autoSaveLoadEnable";
+	else if (autoSaveLoad == -1)
+		args << "-autoSaveLoadDisable";
+
 	if (!confStr.isEmpty()) {
 		args << "-conf";
 		args << confStr;

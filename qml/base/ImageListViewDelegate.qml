@@ -20,6 +20,7 @@ Item {
 	id: imageListViewDelegate
 
 	signal clicked
+	signal pressed
 	signal pressAndHold
 
 	property alias imgSource: screenShot.source
@@ -41,6 +42,7 @@ Item {
 		id: mouseArea
 		anchors.fill: parent
 		onClicked: imageListViewDelegate.clicked()
+		onPressed: imageListViewDelegate.pressed()
 		onPressAndHold: imageListViewDelegate.pressAndHold()
 	}
 
