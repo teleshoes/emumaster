@@ -30,7 +30,7 @@ class QThread;
 class QDeclarativeView;
 class QSettings;
 
-class BASE_EXPORT EmuView : public QObject {
+class BASE_EXPORT EmuView : public QWidget {
 	Q_OBJECT
 	Q_PROPERTY(bool fpsVisible READ isFpsVisible WRITE setFpsVisible NOTIFY fpsVisibleChanged)
 	Q_PROPERTY(int frameSkip READ frameSkip WRITE setFrameSkip NOTIFY frameSkipChanged)
@@ -80,6 +80,11 @@ signals:
 	void bilinearFilteringChanged();
 	void faultOccured(QString faultMessage);
 	void inputDevicesChanged();
+protected:
+	void paintEvent(QPaintEvent *);
+	void closeEvent(QCloseEvent *e);
+	void changeEvent(QEvent *e);
+	void focusOutEvent(QFocusEvent *);
 private slots:
 	void pause();
 	void pauseStage2();
@@ -110,7 +115,7 @@ private:
 	HostAudio *m_hostAudio;
 	HostVideo *m_hostVideo;
 	StateListModel *m_stateListModel;
-	SettingsView *m_settingsView;
+	QDeclarativeView *m_settingsView;
 
 	bool m_running;
 	int m_backgroundCounter;
@@ -125,6 +130,7 @@ private:
 
 	bool m_safetyCheck;
 	QTimer *m_safetyTimer;
+	bool m_runInBackground;
 };
 
 inline QString EmuView::error() const

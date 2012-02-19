@@ -26,7 +26,6 @@ HEADERS += \
     hostaudio.h \
     hostvideo.h \
     hostinput.h \
-    settingsview.h \
 	base_global.h \
     pathmanager.h \
     statelistmodel.h \
@@ -48,7 +47,6 @@ SOURCES += \
     hostaudio.cpp \
     hostvideo.cpp \
     hostinput.cpp \
-	settingsview.cpp \
     pathmanager.cpp \
     statelistmodel.cpp \
 	stateimageprovider.cpp \

@@ -35,7 +35,10 @@ public:
 	static const int Height = 480.0f;
 #endif
 
-	explicit HostVideo(HostInput *hostInput, Emu *emu, EmuThread *thread);
+	explicit HostVideo(HostInput *hostInput,
+					   Emu *emu,
+					   EmuThread *thread,
+					   QWidget *parent = 0);
 	~HostVideo();
 
 	bool isFpsVisible() const;
@@ -50,18 +53,9 @@ public:
 	bool bilinearFiltering() const;
 	void setBilinearFiltering(bool enabled);
 
-	void setMyVisible(bool visible);
-
 	QRectF dstRect() const;
-signals:
-	void quit();
-	void minimized();
-	void focusOut();
 protected:
 	void paintEvent(QPaintEvent *);
-	void closeEvent(QCloseEvent *e);
-	void changeEvent(QEvent *e);
-	void focusOutEvent(QFocusEvent *);
 private slots:
 	void updateRects();
 private:

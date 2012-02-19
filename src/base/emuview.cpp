@@ -20,7 +20,6 @@
 #include "hostvideo.h"
 #include "hostaudio.h"
 #include "hostinput.h"
-#include "settingsview.h"
 #include "stateimageprovider.h"
 #include "statelistmodel.h"
 #include "pathmanager.h"
@@ -46,9 +45,13 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	m_pauseRequested(false),
 	m_slotToBeLoadedOnStart(StateListModel::InvalidSlot),
 	m_audioEnable(true),
-	m_autoSaveLoadEnable(true)
+	m_autoSaveLoadEnable(true),
+	m_runInBackground(false)
 {
 	Q_ASSERT(m_emu != 0);
+
+	setAttribute(Qt::WA_NoSystemBackground);
+	setAutoFillBackground(false);
 
 	Configuration::setupAppInfo();
 	registerClassesInQml();
@@ -58,8 +61,9 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	m_hostInput = new HostInput(m_emu);
 	m_hostAudio = new HostAudio(m_emu);
 	m_hostVideo = new HostVideo(m_hostInput, m_emu, m_thread);
+	m_hostVideo->setParent(this);
+	m_hostVideo->resize(HostVideo::Width, HostVideo::Height);
 	m_hostVideo->installEventFilter(m_hostInput);
-	QObject::connect(m_hostVideo, SIGNAL(quit()), SLOT(close()));
 	QObject::connect(m_hostInput, SIGNAL(quit()), SLOT(close()));
 	QObject::connect(m_hostInput, SIGNAL(pause()), SLOT(pause()));
 	QObject::connect(m_hostInput, SIGNAL(devicesChanged()),
@@ -67,8 +71,6 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 
 	m_stateListModel = new StateListModel(m_emu, m_diskFileName);
 
-	QSettings s;
-	m_autoSaveLoadEnable = s.value("autoSaveLoadEnable").toBool();
 	if (!loadConfiguration())
 		m_error = constructSlErrorString();
 
@@ -95,11 +97,11 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 #if defined(Q_WS_MAEMO_5)
 		method = "showSettingsView";
 #endif
-		QObject::connect(m_hostVideo, SIGNAL(focusOut()), SLOT(pause()));
 	} else {
 		method = "showSettingsView";
 	}
 	QMetaObject::invokeMethod(this, method, Qt::QueuedConnection);
+	showFullScreen();
 }
 
 EmuView::~EmuView()
@@ -121,9 +123,10 @@ EmuView::~EmuView()
 
 void EmuView::setupSettingsView()
 {
-	m_settingsView = new SettingsView();
+	m_settingsView = new QDeclarativeView(this);
+	m_settingsView->setViewport(new QGLWidget());
+	m_settingsView->resize(HostVideo::Width, HostVideo::Height);
 	QObject::connect(m_settingsView->engine(), SIGNAL(quit()), SLOT(close()));
-	QObject::connect(m_settingsView, SIGNAL(quit()), SLOT(close()));
 
 	m_settingsView->engine()->addImageProvider("state", new StateImageProvider(m_stateListModel));
 	QDeclarativeContext *context = m_settingsView->rootContext();
@@ -231,15 +234,15 @@ void EmuView::showSettingsView()
 	}
 	if (m_audioEnable)
 		m_hostAudio->close();
-	m_settingsView->setMyVisible(true);
-	m_hostVideo->setMyVisible(false);
+	m_settingsView->setVisible(true);
+	m_hostVideo->setVisible(false);
 }
 
 void EmuView::showEmulationView()
 {
 	if (!m_running) {
-		m_hostVideo->setMyVisible(true);
-		m_settingsView->setMyVisible(false);
+		m_hostVideo->setVisible(true);
+		m_settingsView->setVisible(false);
 		if (m_audioEnable)
 			m_hostAudio->open();
 		resume();
@@ -338,6 +341,9 @@ int EmuView::determineLoadSlot(const QStringList &args)
 
 bool EmuView::loadConfiguration()
 {
+	QSettings s;
+	m_autoSaveLoadEnable = s.value("autoSaveLoadEnable").toBool();
+
 	emConf.setValue("version", QCoreApplication::applicationVersion());
 
 	QStringList args = QCoreApplication::arguments();
@@ -416,6 +422,32 @@ void EmuView::onStateLoaded()
 	m_hostInput->loadFromConf();
 }
 
+void EmuView::paintEvent(QPaintEvent *)
+{
+	// make sure no paint will occur for this widget
+}
+
+void EmuView::closeEvent(QCloseEvent *e)
+{
+	e->ignore();
+	close();
+}
+
+void EmuView::changeEvent(QEvent *e)
+{
+	QWidget::changeEvent(e);
+	if (e->type() == QEvent::WindowStateChange && windowState().testFlag(Qt::WindowMinimized)) {
+		if (!m_runInBackground)
+			pause();
+	}
+}
+
+void EmuView::focusOutEvent(QFocusEvent *)
+{
+	if (!windowState().testFlag(Qt::WindowMinimized))
+		pause();
+}
+
 //-------------------------------SETTINGS SECTION-------------------------------
 
 void EmuView::loadSettings()
@@ -428,8 +460,7 @@ void EmuView::loadSettings()
 	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio").toBool());
 	m_hostVideo->setBilinearFiltering(loadOptionFromSettings(s, "bilinearFiltering").toBool());
 	setAudioEnabled(loadOptionFromSettings(s, "audioEnable").toBool());
-	if (!loadOptionFromSettings(s, "runInBackground").toBool())
-		QObject::connect(m_hostVideo, SIGNAL(minimized()), SLOT(pause()));
+	m_runInBackground = loadOptionFromSettings(s, "runInBackground").toBool();
 }
 
 QVariant EmuView::loadOptionFromSettings(QSettings &s, const QString &name) const

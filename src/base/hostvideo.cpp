@@ -33,7 +33,11 @@
 	to generate frames, which in turn are passed to HostVideo to render on
 	screen. Above the frame buttons are rendered by the given \a hostInput.
  */
-HostVideo::HostVideo(HostInput *hostInput, Emu *emu, EmuThread *thread) :
+HostVideo::HostVideo(HostInput *hostInput,
+					 Emu *emu,
+					 EmuThread *thread,
+					 QWidget *parent) :
+	QGLWidget(parent),
 	m_hostInput(hostInput),
 	m_emu(emu),
 	m_thread(thread)
@@ -110,39 +114,6 @@ void HostVideo::paintFps(QPainter *painter)
 void HostVideo::setFpsVisible(bool on)
 {
 	m_fpsVisible = on;
-}
-
-/*! \internal */
-void HostVideo::setMyVisible(bool visible)
-{
-	if (visible) {
-		showFullScreen();
-		setFocus();
-	} else {
-		QGLWidget::setVisible(false);
-	}
-}
-
-/*! \internal */
-void HostVideo::closeEvent(QCloseEvent *e)
-{
-	e->ignore();
-	emit quit();
-}
-
-/*! \internal */
-void HostVideo::changeEvent(QEvent *e)
-{
-	QGLWidget::changeEvent(e);
-	if (e->type() == QEvent::WindowStateChange && windowState().testFlag(Qt::WindowMinimized))
-		emit minimized();
-}
-
-/*! \internal */
-void HostVideo::focusOutEvent(QFocusEvent *)
-{
-	if (!windowState().testFlag(Qt::WindowMinimized))
-		emit focusOut();
 }
 
 /*! \internal */
