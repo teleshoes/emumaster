@@ -44,9 +44,6 @@ public:
 	bool isFpsVisible() const;
 	void setFpsVisible(bool on);
 
-	bool isSwipeEnabled() const;
-	void setSwipeEnabled(bool on);
-
 	bool keepApsectRatio() const;
 	void setKeepAspectRatio(bool on);
 
@@ -73,7 +70,6 @@ private:
 	int m_fpsCounter;
 	QTime m_fpsCounterTime;
 
-	bool m_swipeEnabled;
 	bool m_keepAspectRatio;
 	bool m_bilinearFiltering;
 };
@@ -82,8 +78,6 @@ inline QRectF HostVideo::dstRect() const
 { return m_dstRect; }
 inline bool HostVideo::isFpsVisible() const
 { return m_fpsVisible; }
-inline bool HostVideo::isSwipeEnabled() const
-{ return m_swipeEnabled; }
 inline bool HostVideo::keepApsectRatio() const
 { return m_keepAspectRatio; }
 inline bool HostVideo::bilinearFiltering() const

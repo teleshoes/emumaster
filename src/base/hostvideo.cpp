@@ -52,7 +52,6 @@ HostVideo::HostVideo(HostInput *hostInput,
 	m_fpsCounter = 0;
 	m_fpsCounterTime.start();
 
-	m_swipeEnabled = emConf.defaultValue("swipeEnabled").toBool();
 	m_keepAspectRatio = emConf.defaultValue("keepAspectRatio").toBool();;
 	m_bilinearFiltering = emConf.defaultValue("bilinearFiltering").toBool();;
 
@@ -153,41 +152,4 @@ void HostVideo::setKeepAspectRatio(bool on)
 void HostVideo::setBilinearFiltering(bool enabled)
 {
 	m_bilinearFiltering = enabled;
-}
-
-#if defined(MEEGO_EDITION_HARMATTAN)
-#include <QX11Info>
-#include <X11/Xatom.h>
-#include <X11/Xlib.h>
-#endif
-
-/*! Enables/disables swipe. */
-void HostVideo::setSwipeEnabled(bool on)
-{
-#if defined(MEEGO_EDITION_HARMATTAN)
-	if (m_swipeEnabled == on)
-		return;
-	m_swipeEnabled = on;
-
-	Window w = effectiveWinId();
-	Display *dpy = QX11Info::display();
-	Atom atom;
-
-	uint customRegion[4];
-	customRegion[0] = 0;
-	customRegion[1] = 0;
-	customRegion[2] = width();
-	customRegion[3] = height();
-
-	atom = XInternAtom(dpy, "_MEEGOTOUCH_CUSTOM_REGION", False);
-	if (!on) {
-		XChangeProperty(dpy, w,
-						atom, XA_CARDINAL, 32, PropModeReplace,
-						reinterpret_cast<unsigned char *>(&customRegion[0]), 4);
-	} else {
-		XDeleteProperty(dpy, w, atom);
-	}
-#else
-	Q_UNUSED(on)
-#endif
 }

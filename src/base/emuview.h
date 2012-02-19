@@ -104,6 +104,7 @@ private:
 	int determineLoadSlot(const QStringList &args);
 	QString constructSlErrorString() const;
 	void fatalError(const QString &faultStr);
+	void setSwipeEnabled(bool on);
 
 	static void registerClassesInQml();
 
@@ -130,6 +131,7 @@ private:
 
 	bool m_safetyCheck;
 	QTimer *m_safetyTimer;
+	bool m_swipeEnabled;
 	bool m_runInBackground;
 };
 

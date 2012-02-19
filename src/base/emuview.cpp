@@ -46,6 +46,7 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	m_slotToBeLoadedOnStart(StateListModel::InvalidSlot),
 	m_audioEnable(true),
 	m_autoSaveLoadEnable(true),
+	m_swipeEnabled(false),
 	m_runInBackground(false)
 {
 	Q_ASSERT(m_emu != 0);
@@ -236,6 +237,7 @@ void EmuView::showSettingsView()
 		m_hostAudio->close();
 	m_settingsView->setVisible(true);
 	m_hostVideo->setVisible(false);
+	setSwipeEnabled(true);
 }
 
 void EmuView::showEmulationView()
@@ -243,6 +245,7 @@ void EmuView::showEmulationView()
 	if (!m_running) {
 		m_hostVideo->setVisible(true);
 		m_settingsView->setVisible(false);
+		setSwipeEnabled(m_swipeEnabled);
 		if (m_audioEnable)
 			m_hostAudio->open();
 		resume();
@@ -448,12 +451,45 @@ void EmuView::focusOutEvent(QFocusEvent *)
 		pause();
 }
 
+#if defined(MEEGO_EDITION_HARMATTAN)
+#include <QX11Info>
+#include <X11/Xatom.h>
+#include <X11/Xlib.h>
+#endif
+
+/*! Enables/disables swipe. */
+void EmuView::setSwipeEnabled(bool on)
+{
+#if defined(MEEGO_EDITION_HARMATTAN)
+	Window w = effectiveWinId();
+	Display *dpy = QX11Info::display();
+	Atom atom;
+
+	uint customRegion[4];
+	customRegion[0] = 0;
+	customRegion[1] = 0;
+	customRegion[2] = width();
+	customRegion[3] = height();
+
+	atom = XInternAtom(dpy, "_MEEGOTOUCH_CUSTOM_REGION", False);
+	if (!on) {
+		XChangeProperty(dpy, w,
+						atom, XA_CARDINAL, 32, PropModeReplace,
+						reinterpret_cast<unsigned char *>(&customRegion[0]), 4);
+	} else {
+		XDeleteProperty(dpy, w, atom);
+	}
+#else
+	Q_UNUSED(on)
+#endif
+}
+
 //-------------------------------SETTINGS SECTION-------------------------------
 
 void EmuView::loadSettings()
 {
 	QSettings s;
-	m_hostVideo->setSwipeEnabled(loadOptionFromSettings(s, "swipeEnable").toBool());
+	m_swipeEnabled = loadOptionFromSettings(s, "swipeEnable").toBool();
 	m_hostInput->setPadOpacity(loadOptionFromSettings(s, "padOpacity").toReal());
 	m_thread->setFrameSkip(loadOptionFromSettings(s, "frameSkip").toInt());
 	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible").toBool());
