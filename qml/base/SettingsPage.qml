@@ -15,6 +15,7 @@
 
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import EmuMaster 1.0
 
 Page {
 	id: settingsPage
@@ -189,7 +190,8 @@ Page {
 							width: 250
 							text: modelData.emuFunctionName
 							onClicked: {
-								inputDeviceFunctionSelector.model = modelData.emuFunctionNameList
+								inputDeviceFunctionModel.stringListModel = modelData.emuFunctionNameList
+								inputDeviceFunctionSelector.inputDevice = modelData
 								inputDeviceFunctionSelector.selectedIndex = modelData.emuFunction
 								inputDeviceFunctionSelector.open()
 							}
@@ -260,8 +262,13 @@ Page {
 		titleText: qsTr("Oops")
 		rejectButtonText: qsTr("Close")
 	}
+	StringListProxy {
+		id: inputDeviceFunctionModel
+	}
 	SelectionDialog {
+		property variant inputDevice
 		id: inputDeviceFunctionSelector
+		model: inputDeviceFunctionModel
 		titleText: qsTr("Select Configuration")
 		onAccepted: inputDevice.emuFunction = selectedIndex
 	}

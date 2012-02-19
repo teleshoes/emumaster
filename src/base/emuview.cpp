@@ -25,6 +25,7 @@
 #include "statelistmodel.h"
 #include "pathmanager.h"
 #include "hostinputdevice.h"
+#include "stringlistproxy.h"
 #include <QDeclarativeView>
 #include <QDeclarativeContext>
 #include <qdeclarative.h>
@@ -389,6 +390,7 @@ void EmuView::fatalError(const QString &errorStr)
 
 void EmuView::registerClassesInQml()
 {
+	qmlRegisterType<StringListProxy>("EmuMaster", 1, 0, "StringListProxy");
 }
 
 QList<QObject *> EmuView::inputDevices() const

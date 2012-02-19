@@ -15,6 +15,7 @@
 
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import EmuMaster 1.0
 
 SettingsPage {
 	columnContent: [
@@ -26,13 +27,19 @@ SettingsPage {
 			id: nesRenderMethodButton
 			labelText: qsTr("PPU Render Method")
 			buttonText: emu.ppu.renderMethodName
-			onClicked: nesRenderMethodDialog.open()
+			onClicked: {
+				nesRenderMethodDialog.selectedIndex = emu.ppu.renderMethod
+				nesRenderMethodDialog.open()
+			}
 		}
 	]
-
+	StringListProxy {
+		id: nesRenderMethodModel
+		stringListModel: emu.ppu.renderMethodNameList
+	}
 	SelectionDialog {
 		id: nesRenderMethodDialog
-		model: emu.ppu.renderMethodNameList
+		model: nesRenderMethodModel
 		titleText: qsTr("Select Render Method")
 		onAccepted: emu.ppu.renderMethod = selectedIndex
 	}

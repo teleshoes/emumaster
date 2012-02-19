@@ -41,7 +41,8 @@ HEADERS += \
     emuview.h \
     emuthread.h \
     emu.h \
-    emuinput.h
+    emuinput.h \
+    stringlistproxy.h
 
 SOURCES += \
     hostaudio.cpp \
@@ -61,7 +62,8 @@ SOURCES += \
     emuview.cpp \
     emuthread.cpp \
     emu.cpp \
-    emuinput.cpp
+    emuinput.cpp \
+    stringlistproxy.cpp
 
 unix {
 	qml.path = /opt/emumaster/qml/base
