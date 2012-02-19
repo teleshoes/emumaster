@@ -3,7 +3,7 @@ TEMPLATE = subdirs
 SUBDIRS += \
     sixaxisclient \
     base \
-    nes gba \
+    nes \
 	diskgallery \
     sixaxismonitor
 

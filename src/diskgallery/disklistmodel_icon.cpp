@@ -19,10 +19,11 @@ QImage DiskListModel::applyMaskAndOverlay(const QImage &icon) {
 	QRgb *data = (QRgb *)mask.bits();
 	for (int i = 0; i < pixelCount; ++i) {
 		uint val = data[i];
-		if (val < qRgb(0x80, 0x80, 0x80))
-			data[i] = qRgba(0, 0, 0, 0);
-		else
-			data[i] = qRgba(255, 255, 255, 255);
+		uint r = qRed(val);
+		uint g = qGreen(val);
+		uint b = qBlue(val);
+		uint a = (r+g+b)/3;
+		data[i] = qRgba(r, g, b, a);
 	}
 
 	QImage overlay;
@@ -31,6 +32,7 @@ QImage DiskListModel::applyMaskAndOverlay(const QImage &icon) {
 
 	QPainter painter;
 	painter.begin(&result);
+	painter.setRenderHints(QPainter::SmoothPixmapTransform|QPainter::HighQualityAntialiasing);
 	painter.fillRect(result.rect(), Qt::transparent);
 	painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 	painter.drawImage(0, 0, iconConverted);
