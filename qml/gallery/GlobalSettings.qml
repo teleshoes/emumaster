@@ -56,6 +56,9 @@ Page {
 			stepSize: 0.05
 			valueIndicatorVisible: true
 		}
+
+		GlobalSettingsSwitchItem { text: qsTr("Haptic Feedback Enabled"); optionName: "hapticFeedbackEnable" }
+
 		Button {
 			text: qsTr("Keyboard Configuration")
 			anchors.horizontalCenter: parent.horizontalCenter

@@ -24,6 +24,7 @@
 #include "statelistmodel.h"
 #include "pathmanager.h"
 #include "hostinputdevice.h"
+#include "touchinputdevice.h"
 #include "stringlistproxy.h"
 #include <QDeclarativeView>
 #include <QDeclarativeContext>
@@ -491,6 +492,8 @@ void EmuView::loadSettings()
 	QSettings s;
 	m_swipeEnabled = loadOptionFromSettings(s, "swipeEnable").toBool();
 	m_hostInput->setPadOpacity(loadOptionFromSettings(s, "padOpacity").toReal());
+	bool hapticFeedbackEnable = loadOptionFromSettings(s, "hapticFeedbackEnable").toBool();
+	m_hostInput->touchInputDevice()->setHapticFeedbackEnabled(hapticFeedbackEnable);
 	m_thread->setFrameSkip(loadOptionFromSettings(s, "frameSkip").toInt());
 	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible").toBool());
 	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio").toBool());

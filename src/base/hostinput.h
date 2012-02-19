@@ -34,6 +34,9 @@ public:
 	void setPadOpacity(qreal opacity);
 	qreal padOpacity() const;
 
+	TouchInputDevice *touchInputDevice() const;
+	KeybInputDevice *keybInputDevice() const;
+
 	QList<HostInputDevice *> devices() const;
 
 	void sync();
@@ -51,8 +54,6 @@ private slots:
 	void onSixAxisDetected();
 	void onSixAxisDestroyed();
 private:
-	TouchInputDevice *touchInputDevice() const;
-	KeybInputDevice *keybInputDevice() const;
 	void processTouch(QEvent *e);
 
 	Emu *m_emu;

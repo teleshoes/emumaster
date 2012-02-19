@@ -4,7 +4,7 @@ INCLUDEPATH += ../../include
 QT += declarative opengl network
 LIBS += -L../../lib -lpulse -lsixaxisclient
 CONFIG += mobility
-MOBILITY += sensors
+MOBILITY += sensors feedback
 
 linux-g++-maemo {
     MEEGO_VERSION_MAJOR     = 1

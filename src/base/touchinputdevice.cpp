@@ -21,8 +21,10 @@
 #include <QPainter>
 
 TouchInputDevice::TouchInputDevice(QObject *parent) :
-	HostInputDevice("touch", QObject::tr("Touch Screen"), parent) {
+	HostInputDevice("touch", QObject::tr("Touch Screen"), parent)
+{
 	m_numPoints = 0;
+	m_hapticEffect = 0;
 
 	QStringList functionNameList;
 	functionNameList << tr("None");
@@ -41,7 +43,8 @@ TouchInputDevice::TouchInputDevice(QObject *parent) :
 	m_padImage.load(pathManager.installationDirPath()+"/data/pad.png");
 }
 
-void TouchInputDevice::processTouch(QEvent *e) {
+void TouchInputDevice::processTouch(QEvent *e)
+{
 	m_numPoints = 0;
 
 	QTouchEvent *touchEvent = static_cast<QTouchEvent *>(e);
@@ -61,14 +64,16 @@ void TouchInputDevice::processTouch(QEvent *e) {
 	m_converted = false;
 }
 
-void TouchInputDevice::onEmuFunctionChanged() {
+void TouchInputDevice::onEmuFunctionChanged()
+{
 	m_converted = false;
 	m_numPoints = 0;
 	m_buttons = 0;
 	m_mouseX = m_mouseY = 0;
 }
 
-void TouchInputDevice::sync(EmuInput *emuInput) {
+void TouchInputDevice::sync(EmuInput *emuInput)
+{
 	if (emuFunction() <= 0)
 		return;
 
@@ -92,7 +97,9 @@ void TouchInputDevice::sync(EmuInput *emuInput) {
 	}
 }
 
-void TouchInputDevice::convertPad() {
+void TouchInputDevice::convertPad()
+{
+	int oldButtons = m_buttons;
 	m_buttons = 0;
 
 	for (int i = 0; i < m_numPoints; i++) {
@@ -125,9 +132,15 @@ void TouchInputDevice::convertPad() {
 				m_buttons |= EmuPad::Button_R1;
 		}
 	}
+	if (m_hapticEffect) {
+		// start feedback when new button is pressed
+		if ((m_buttons & oldButtons) != m_buttons)
+			m_hapticEffect->start();
+	}
 }
 
-void TouchInputDevice::convertMouse() {
+void TouchInputDevice::convertMouse()
+{
 	m_buttons = 0;
 	m_lastMouseX = m_mouseX;
 	m_lastMouseY = m_mouseY;
@@ -161,7 +174,8 @@ void TouchInputDevice::convertMouse() {
 	m_mouseMoving = newMoving;
 }
 
-int TouchInputDevice::buttonsInCircle(int x, int y) const {
+int TouchInputDevice::buttonsInCircle(int x, int y) const
+{
 	int buttons = 0;
 	if (x < CircleSize/4) {
 		buttons |= EmuPad::Button_Left;
@@ -199,7 +213,8 @@ int TouchInputDevice::buttonsInCircle(int x, int y) const {
 	return buttons;
 }
 
-void TouchInputDevice::paint(QPainter *painter) {
+void TouchInputDevice::paint(QPainter *painter)
+{
 	// pause,exit
 	painter->drawImage(0, 0, m_padImage,
 					   256, 128+64, ButtonWidth, ButtonHeight);
@@ -229,7 +244,22 @@ void TouchInputDevice::paint(QPainter *painter) {
 	paintCircle(painter, (m_buttons >> 4) & 0x0F);
 }
 
-void TouchInputDevice::paintCircle(QPainter *painter, int buttons) {
+void TouchInputDevice::setHapticFeedbackEnabled(bool on)
+{
+	if (on == (m_hapticEffect != 0))
+		return;
+	if (on) {
+		m_hapticEffect = new QFeedbackHapticsEffect(this);
+		m_hapticEffect->setIntensity(0.25f);
+		m_hapticEffect->setDuration(30);
+	} else {
+		delete m_hapticEffect;
+		m_hapticEffect = 0;
+	}
+}
+
+void TouchInputDevice::paintCircle(QPainter *painter, int buttons)
+{
 	painter->drawImage(0, 48, m_padImage,
 					   0, ((buttons & EmuPad::Button_Left) ? 256 : 0)+48, 64, 240-48*2);
 	painter->drawImage(0, 0, m_padImage,

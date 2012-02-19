@@ -78,6 +78,7 @@ void Configuration::constructDefaults()
 	m_defaultData.insert("padOpacity", 0.45f);
 	m_defaultData.insert("runInBackground", false);
 	m_defaultData.insert("swipeEnable", false);
+	m_defaultData.insert("hapticFeedbackEnable", false);
 }
 
 /*!

@@ -19,7 +19,10 @@
 #include "hostinputdevice.h"
 #include <QPoint>
 #include <QImage>
+#include <QFeedbackHapticsEffect>
 class QPainter;
+
+QTM_USE_NAMESPACE
 
 class BASE_EXPORT TouchInputDevice : public HostInputDevice
 {
@@ -29,6 +32,7 @@ public:
 	void sync(EmuInput *emuInput);
 	void processTouch(QEvent *e);
 	void paint(QPainter *painter);
+	void setHapticFeedbackEnabled(bool on);
 private slots:
 	void onEmuFunctionChanged();
 private:
@@ -54,6 +58,8 @@ private:
 	bool m_mouseMoving;
 
 	QImage m_padImage;
+
+	QFeedbackHapticsEffect *m_hapticEffect;
 };
 
 #endif // TOUCHINPUTDEVICE_H
