@@ -1106,3 +1106,15 @@ game_name = ALADDIN
 game_code = BADE
 vender_code = 08
 iwram_stack_optimize = no
+
+# The Legend of Zelda - The Minish Cap (E).gba
+game_name = GBAZELDA MC
+game_code = BZMP
+vender_code = 01
+bios_rom_hack_39 = yes
+
+# The Legend of Zelda - The Minish Cap (U).gba
+game_name = GBAZELDA MC
+game_code = BZME
+vender_code = 01
+bios_rom_hack_39 = yes
