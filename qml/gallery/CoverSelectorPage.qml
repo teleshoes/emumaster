@@ -49,6 +49,7 @@ Page {
 	}
 
 	ListView {
+		id: coverViewPortrait
 		anchors.fill: parent
 		visible: appWindow.inPortrait
 		model: folderModel
@@ -62,8 +63,12 @@ Page {
 			onClicked: coverSelector.coverSelected(filePath)
 		}
 	}
+	ScrollDecorator {
+		flickableItem: coverViewPortrait
+		__minIndicatorSize: 80
+	}
 	GridView {
-		id: gridView
+		id: coverViewLandscape
 		anchors.fill: parent
 		visible: !appWindow.inPortrait
 		cellWidth: 284
@@ -77,11 +82,15 @@ Page {
 			onClicked: coverSelector.coverSelected(filePath)
 		}
 	}
+	ScrollDecorator {
+		flickableItem: coverViewLandscape
+		__minIndicatorSize: 80
+	}
 
 	Timer {
 		interval: 50; repeat: false; running: true
 		onTriggered: {
-			gridView.model = folderModel
+			coverViewLandscape.model = folderModel
 			helpLabel.visible = (folderModel.count <= 0)
 		}
 	}
