@@ -45,6 +45,7 @@ unix {
 		../../qml/gallery/AccelCalibrationPage.qml \
         ../../qml/gallery/KeybMappingPage.qml \
         ../../qml/gallery/KeybMappingItem.qml \
+        ../../qml/gallery/TouchSettingsPage.qml \
         ../../qml/gallery/NesAdvancedLaunchPage.qml \
         ../../qml/gallery/SnesAdvancedLaunchPage.qml \
         ../../qml/gallery/GbaAdvancedLaunchPage.qml \

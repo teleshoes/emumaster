@@ -508,7 +508,7 @@ void EmuView::loadSettings()
 	touch->setGridColor(loadOptionFromSettings(s, "gridColor").value<QColor>());
 	setLRButtonsVisible(loadOptionFromSettings(s, "lrButtonsVisible").toBool());
 	touch->setDpadAreaSize(loadOptionFromSettings(s, "touchAreaSize").toInt());
-	touch->setDpadDiagonalAreaSize(loadOptionFromSettings(s, "touchDiagonalAreaSize").toInt());
+	touch->setDpadDiagonalAreaSize(loadOptionFromSettings(s, "touchAreaDiagonalSize").toInt());
 }
 
 QVariant EmuView::loadOptionFromSettings(QSettings &s, const QString &name) const
@@ -601,6 +601,7 @@ void EmuView::setLRButtonsVisible(bool on)
 		if (m_emu->name() != "nes" && m_emu->name() != "amiga") {
 			m_lrButtonsVisible = on;
 			m_hostInput->touchInputDevice()->setLRVisible(m_lrButtonsVisible);
+			emConf.setValue("lrButtonsVisible", on);
 			emit lrButtonsVisibleChanged();
 		}
 	}

@@ -46,19 +46,11 @@ Page {
 
 		GlobalSettingsSwitchItem { text: qsTr("Swipe Enabled"); optionName: "swipeEnable" }
 
-		Label { text: qsTr("Pad Opacity") }
-		Slider {
-			width: parent.width
-			minimumValue: 0.0
-			maximumValue: 1.0
-			value: diskGallery.globalOption("padOpacity")
-			onValueChanged: diskGallery.setGlobalOption("padOpacity", value)
-			stepSize: 0.05
-			valueIndicatorVisible: true
+		Button {
+			text: qsTr("Touch Screen Configuration")
+			anchors.horizontalCenter: parent.horizontalCenter
+			onClicked: appWindow.pageStack.push(Qt.resolvedUrl("TouchSettingsPage.qml"))
 		}
-
-		GlobalSettingsSwitchItem { text: qsTr("Haptic Feedback Enabled"); optionName: "hapticFeedbackEnable" }
-
 		Button {
 			text: qsTr("Keyboard Configuration")
 			anchors.horizontalCenter: parent.horizontalCenter

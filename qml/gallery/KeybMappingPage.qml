@@ -36,6 +36,7 @@ Page {
 	}
 
 	Flickable {
+		id: flickable
 		anchors {
 			top: titleLabel.bottom
 			topMargin: 10
@@ -82,6 +83,8 @@ Page {
 			}
 		}
 	}
+	ScrollDecorator { flickableItem: flickable }
+
 	Keys.onPressed: {
 		if (keybMappingPage.currentChanging !== -1) {
 			var text = ""
