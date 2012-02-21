@@ -267,7 +267,7 @@ void TouchInputDevice::paint(QPainter *painter)
 			painter->drawImage(i->dst, m_buttonsImage, i->src);
 	}
 	if (!m_grid.isEmpty())
-		painter->strokePath(m_grid, QPen(Qt::white));
+		painter->strokePath(m_grid, QPen(m_gridColor));
 }
 
 void TouchInputDevice::setHapticFeedbackEnabled(bool on)

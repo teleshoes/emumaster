@@ -78,6 +78,7 @@ unix {
         ../../qml/base/AmigaSettingsPage.qml \
         ../../qml/base/PicoSettingsPage.qml \
 		\
+        ../../qml/base/ColorDialog.qml \
         ../../qml/base/EMButtonOption.qml \
         ../../qml/base/EMSwitchOption.qml \
         ../../qml/base/ImageListViewDelegate.qml \

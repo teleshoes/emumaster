@@ -16,6 +16,7 @@
 
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import "../base"
 import EmuMaster 1.0
 
 Page {
@@ -121,16 +122,48 @@ Page {
 			}
 
 			GlobalSettingsSwitchItem { text: qsTr("Haptic Feedback Enabled"); optionName: "hapticFeedbackEnable" }
-			GlobalSettingsSwitchItem {
-				text: qsTr("Show Buttons")
-				optionName: "buttonsVisible"
-				onCheckedChanged: touchInputDevice.buttonsVisible = checked
-				Component.onCompleted: touchInputDevice[optionName] = diskGallery.globalOption(optionName)
-			}
+
 			GlobalSettingsSwitchItem {
 				text: qsTr("Show Grid")
 				optionName: "gridVisible"
 				onCheckedChanged: touchInputDevice.gridVisible = checked
+				Component.onCompleted: touchInputDevice[optionName] = diskGallery.globalOption(optionName)
+			}
+			Item {
+				width: parent.width
+				Label {
+					id: gridColorLabel
+					text: qsTr("Grid Color")
+					verticalCenter: parent
+				}
+				Button {
+					id: gridColorButton
+					width: 80
+					anchors.right: parent.right
+					onClicked: colorDialog.open()
+					verticalCenter: parent
+
+					Rectangle {
+						id: gridColorView
+						width: 40
+						height: 40
+						anchors.centerIn: parent
+
+						function refresh() {
+							var color = diskGallery.globalOption("gridColor")
+							touchInputDevice.gridColor = color
+							gridColorView.color = color
+						}
+						Component.onCompleted: refresh()
+					}
+				}
+				Component.onCompleted: height = Math.max(gridColorLabel.height, gridColorButton.height)
+			}
+
+			GlobalSettingsSwitchItem {
+				text: qsTr("Show Buttons")
+				optionName: "buttonsVisible"
+				onCheckedChanged: touchInputDevice.buttonsVisible = checked
 				Component.onCompleted: touchInputDevice[optionName] = diskGallery.globalOption(optionName)
 			}
 			GlobalSettingsSwitchItem {
@@ -143,4 +176,12 @@ Page {
 	}
 
 	ScrollDecorator { flickableItem: flickable }
+
+	ColorDialog {
+		id: colorDialog
+		onAccepted: {
+			diskGallery.setGlobalOption("gridColor", colorValue)
+			gridColorView.refresh()
+		}
+	}
 }
