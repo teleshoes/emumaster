@@ -16,27 +16,32 @@
 
 import QtQuick 1.1
 import com.nokia.meego 1.0
+import EmuMaster 1.0
 
 Page {
-	id: keybMappingPage
-
 	tools: ToolBarLayout {
 		ToolIcon {
 			iconId: "toolbar-back"
 			onClicked: appWindow.pageStack.pop()
 		}
 	}
+
 	Label {
 		id: titleLabel
-		text: qsTr("Touch Screen Settings")
+		text: qsTr("Touch Screen Configuration")
+		anchors.horizontalCenter: parent.horizontalCenter
+	}
+	Label {
+		id: titleLabel2
+		anchors.top: titleLabel.bottom
+		text: qsTr("Tip: Show grid to view diagonal area")
 		anchors.horizontalCenter: parent.horizontalCenter
 	}
 
 	Flickable {
 		id: flickable
 		anchors {
-			top: titleLabel.bottom
-			topMargin: 10
+			top: titleLabel2.bottom
 			bottom: parent.bottom
 		}
 		width: parent.width
@@ -48,11 +53,31 @@ Page {
 			id: items
 			width: parent.width
 			height: childrenRect.height
-			spacing: 10
+			spacing: 20
 
+			Item {
+				width: parent.width
+				height: 480
+
+				TouchInputView {
+					id: touchInputView
+					anchors.fill: parent
+					opacity: opacitySlider.value
+					anchors.horizontalCenter: parent.horizontalCenter
+					touchDevice: touchInputDevice
+				}
+				Label {
+					width: parent.width
+					text: qsTr("Pad is not visible")
+					font.pixelSize: 100
+					anchors.centerIn: parent
+					visible: touchInputView.opacity == 0 || !(touchInputDevice.buttonsVisible || touchInputDevice.gridVisible)
+				}
+			}
 
 			Label { text: qsTr("Pad Opacity") }
 			Slider {
+				id: opacitySlider
 				width: parent.width
 				minimumValue: 0.0
 				maximumValue: 1.0
@@ -66,11 +91,15 @@ Page {
 			Slider {
 				id: dpadSizeSlider
 				width: parent.width
-				onValueChanged: diskGallery.setGlobalOption("touchAreaSize", value)
 				stepSize: 2
 				valueIndicatorVisible: true
+				onValueChanged: {
+					diskGallery.setGlobalOption("touchAreaSize", value)
+					touchInputDevice.dpadAreaSize = value
+				}
 				Component.onCompleted: {
 					var initial = diskGallery.globalOption("touchAreaSize")
+					touchInputDevice.dpadAreaSize = initial
 					minimumValue = 160
 					maximumValue = 320
 					value = initial
@@ -81,16 +110,35 @@ Page {
 			Slider {
 				width: parent.width
 				maximumValue: dpadSizeSlider.value/2
-				value: diskGallery.globalOption("touchAreaDiagonalSize")
-				onValueChanged: diskGallery.setGlobalOption("touchAreaDiagonalSize", value)
 				stepSize: 1
 				valueIndicatorVisible: true
+				value: diskGallery.globalOption("touchAreaDiagonalSize")
+				onValueChanged: {
+					touchInputDevice.dpadAreaDiagonalSize = value
+					diskGallery.setGlobalOption("touchAreaDiagonalSize", value)
+				}
+				Component.onCompleted: touchInputDevice.dpadAreaDiagonalSize = diskGallery.globalOption("touchAreaDiagonalSize")
 			}
 
 			GlobalSettingsSwitchItem { text: qsTr("Haptic Feedback Enabled"); optionName: "hapticFeedbackEnable" }
-			GlobalSettingsSwitchItem { text: qsTr("Show Buttons"); optionName: "buttonsVisible" }
-			GlobalSettingsSwitchItem { text: qsTr("Show Grid"); optionName: "gridVisible" }
-			GlobalSettingsSwitchItem { text: qsTr("Show L/R Buttons"); optionName: "lrButtonsVisible" }
+			GlobalSettingsSwitchItem {
+				text: qsTr("Show Buttons")
+				optionName: "buttonsVisible"
+				onCheckedChanged: touchInputDevice.buttonsVisible = checked
+				Component.onCompleted: touchInputDevice[optionName] = diskGallery.globalOption(optionName)
+			}
+			GlobalSettingsSwitchItem {
+				text: qsTr("Show Grid")
+				optionName: "gridVisible"
+				onCheckedChanged: touchInputDevice.gridVisible = checked
+				Component.onCompleted: touchInputDevice[optionName] = diskGallery.globalOption(optionName)
+			}
+			GlobalSettingsSwitchItem {
+				text: qsTr("Show L/R Buttons")
+				optionName: "lrButtonsVisible"
+				onCheckedChanged: touchInputDevice.setLRVisible(checked)
+				Component.onCompleted: touchInputDevice.setLRVisible(diskGallery.globalOption(optionName))
+			}
 		}
 	}
 

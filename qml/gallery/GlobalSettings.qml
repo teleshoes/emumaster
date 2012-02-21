@@ -47,7 +47,7 @@ Page {
 		GlobalSettingsSwitchItem { text: qsTr("Swipe Enabled"); optionName: "swipeEnable" }
 
 		Button {
-			text: qsTr("Touch Screen Configuration")
+			text: qsTr("Touch Configuration")
 			anchors.horizontalCenter: parent.horizontalCenter
 			onClicked: appWindow.pageStack.push(Qt.resolvedUrl("TouchSettingsPage.qml"))
 		}

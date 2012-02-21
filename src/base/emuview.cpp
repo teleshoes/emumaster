@@ -508,7 +508,7 @@ void EmuView::loadSettings()
 	touch->setGridColor(loadOptionFromSettings(s, "gridColor").value<QColor>());
 	setLRButtonsVisible(loadOptionFromSettings(s, "lrButtonsVisible").toBool());
 	touch->setDpadAreaSize(loadOptionFromSettings(s, "touchAreaSize").toInt());
-	touch->setDpadDiagonalAreaSize(loadOptionFromSettings(s, "touchAreaDiagonalSize").toInt());
+	touch->setDpadAreaDiagonalSize(loadOptionFromSettings(s, "touchAreaDiagonalSize").toInt());
 }
 
 QVariant EmuView::loadOptionFromSettings(QSettings &s, const QString &name) const

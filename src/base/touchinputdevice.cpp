@@ -305,21 +305,21 @@ void TouchInputDevice::setDpadAreaSize(int size)
 	int rSize = qBound(160, size, 320);
 	if (m_areaSize != rSize) {
 		m_areaSize = rSize;
-		setDpadDiagonalAreaSize(m_diagonalAreaSize);
+		setDpadAreaDiagonalSize(m_diagonalAreaSize);
 		updateGrid();
 		updatePaintedButtons();
 		emit dpadAreaSizeChanged();
 	}
 }
 
-void TouchInputDevice::setDpadDiagonalAreaSize(int size)
+void TouchInputDevice::setDpadAreaDiagonalSize(int size)
 {
 	int rSize = qBound(0, size, m_areaSize/2);
 	if (m_diagonalAreaSize != rSize) {
 		m_diagonalAreaSize = rSize;
 		updateGrid();
 		updatePaintedButtons();
-		emit dpadDiagonalAreaSizeChanged();
+		emit dpadAreaDiagonalSizeChanged();
 	}
 }
 
@@ -524,7 +524,7 @@ void TouchInputDevice::addGridPad()
 	if (m_lrVisible) {
 		QRectF l1Rect(QPointF(0, m_lrYPos), sizeButton);
 		QRectF r1Rect = l1Rect;
-		r1Rect.moveRight(HostVideo::Width);
+		r1Rect.moveRight(HostVideo::Width-1);
 		m_grid.addRect(l1Rect);
 		m_grid.addRect(r1Rect);
 
@@ -533,7 +533,7 @@ void TouchInputDevice::addGridPad()
 		if (l2r2Visible) {
 			QRectF l2Rect(QPointF(ButtonWidth, m_lrYPos), sizeButton);
 			QRectF r2Rect = l2Rect;
-			r2Rect.moveRight(HostVideo::Width-ButtonWidth);
+			r2Rect.moveRight(HostVideo::Width-ButtonWidth-1);
 			m_grid.addRect(l2Rect);
 			m_grid.addRect(r2Rect);
 		}

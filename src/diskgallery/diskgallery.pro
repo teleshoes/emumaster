@@ -3,7 +3,7 @@ INCLUDEPATH += ../../include
 LIBS += -L../../lib -lbase
 QT += opengl declarative network
 CONFIG += mobility
-MOBILITY += sensors
+MOBILITY += sensors feedback
 
 SOURCES += \
     main.cpp \
@@ -11,12 +11,14 @@ SOURCES += \
     diskimageprovider.cpp \
     disklistmodel.cpp \
     disklistmodel_fav.cpp \
-    disklistmodel_icon.cpp
+    disklistmodel_icon.cpp \
+    touchinputview.cpp
 
 HEADERS += \
     diskgallery.h \
     diskimageprovider.h \
-    disklistmodel.h
+    disklistmodel.h \
+    touchinputview.h
 
 linux-g++-maemo {
 	MEEGO_VERSION_MAJOR     = 1

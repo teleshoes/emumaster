@@ -31,7 +31,7 @@ class BASE_EXPORT TouchInputDevice : public HostInputDevice
 	Q_OBJECT
 	Q_PROPERTY(bool gridVisible READ isGridVisible WRITE setGridVisible NOTIFY gridVisibleChanged)
 	Q_PROPERTY(int dpadAreaSize READ dpadAreaSize WRITE setDpadAreaSize NOTIFY dpadAreaSizeChanged)
-	Q_PROPERTY(int dpadDiagonalAreaSize READ dpadDiagonalAreaSize WRITE setDpadDiagonalAreaSize NOTIFY dpadDiagonalAreaSizeChanged)
+	Q_PROPERTY(int dpadAreaDiagonalSize READ dpadAreaDiagonalSize WRITE setDpadAreaDiagonalSize NOTIFY dpadAreaDiagonalSizeChanged)
 	Q_PROPERTY(QColor gridColor READ gridColor WRITE setGridColor NOTIFY gridColorChanged)
 	Q_PROPERTY(bool buttonsVisible READ areButtonsVisible WRITE setButtonsVisible NOTIFY buttonsVisibleChanged)
 public:
@@ -40,7 +40,7 @@ public:
 	void processTouch(QEvent *e);
 	void paint(QPainter *painter);
 	void setHapticFeedbackEnabled(bool on);
-	void setLRVisible(bool on);
+	Q_INVOKABLE void setLRVisible(bool on);
 
 	void setGridVisible(bool on);
 	bool isGridVisible() const;
@@ -48,8 +48,8 @@ public:
 	void setDpadAreaSize(int size);
 	int dpadAreaSize() const;
 
-	void setDpadDiagonalAreaSize(int size);
-	int dpadDiagonalAreaSize() const;
+	void setDpadAreaDiagonalSize(int size);
+	int dpadAreaDiagonalSize() const;
 
 	void setGridColor(const QColor &color);
 	QColor gridColor() const;
@@ -63,7 +63,7 @@ public:
 signals:
 	void gridVisibleChanged();
 	void dpadAreaSizeChanged();
-	void dpadDiagonalAreaSizeChanged();
+	void dpadAreaDiagonalSizeChanged();
 	void gridColorChanged();
 	void buttonsVisibleChanged();
 private slots:
@@ -130,7 +130,7 @@ inline bool TouchInputDevice::isGridVisible() const
 inline int TouchInputDevice::dpadAreaSize() const
 { return m_areaSize; }
 
-inline int TouchInputDevice::dpadDiagonalAreaSize() const
+inline int TouchInputDevice::dpadAreaDiagonalSize() const
 { return m_diagonalAreaSize; }
 
 inline QColor TouchInputDevice::gridColor() const

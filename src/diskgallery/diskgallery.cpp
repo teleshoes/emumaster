@@ -17,8 +17,10 @@
 #include "diskgallery.h"
 #include "disklistmodel.h"
 #include "diskimageprovider.h"
+#include "touchinputview.h"
 #include <accelinputdevice.h>
 #include <keybinputdevice.h>
+#include <touchinputdevice.h>
 #include <pathmanager.h>
 #include <configuration.h>
 #include <QDeclarativeEngine>
@@ -45,6 +47,7 @@ DiskGallery::~DiskGallery()
 /** Configures QML window. */
 void DiskGallery::setupQml()
 {
+	qmlRegisterType<TouchInputView>("EmuMaster", 1, 0, "TouchInputView");
 	engine()->addImageProvider("disk", new DiskImageProvider());
 
 	QDeclarativeContext *context = rootContext();
@@ -53,6 +56,7 @@ void DiskGallery::setupQml()
 	context->setContextProperty("appVersion", QCoreApplication::applicationVersion());
 	context->setContextProperty("accelInputDevice", new AccelInputDevice(this));
 	context->setContextProperty("keybInputDevice", new KeybInputDevice(this));
+	context->setContextProperty("touchInputDevice", new TouchInputDevice(this));
 
 	QObject::connect(engine(), SIGNAL(quit()), SLOT(close()));
 	QString qmlPath = QString("%1/qml/gallery/main.qml")
