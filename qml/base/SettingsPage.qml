@@ -52,7 +52,7 @@ Page {
 		case "overwriteState":	stateListModel.saveState(stateListView.selectedSlot); break
 		case "deleteState":		stateListModel.removeState(stateListView.selectedSlot); break
 		case "deleteAllStates":	stateListModel.removeAll(); break
-		case "emuReset":		emu.reset(); break
+		case "emuReset":		emu.reset(); emuView.showEmulationView(); break
 		default:				console.log("unknown action: " + action); break
 		}
 	}
@@ -197,6 +197,11 @@ Page {
 							}
 						}
 					}
+				}
+				SettingsSwitchItem {
+					text: qsTr("Show L/R Buttons")
+					paramName: "lrButtonsVisible"
+					visible: emu.name !== "nes" && emu.name !== "amiga"
 				}
 			}
 

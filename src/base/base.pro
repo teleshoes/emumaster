@@ -89,9 +89,9 @@ unix {
         ../../qml/base/constants.js \
         ../../qml/base/utils.js
 
-	pad.path = /opt/emumaster/data
-	pad.files = \
-        ../../data/pad.png
+    buttons.path = /opt/emumaster/data
+    buttons.files = \
+        ../../data/buttons.png
 
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = \
@@ -100,7 +100,7 @@ unix {
         ../../qml/img/input-sixaxis.png \
         ../../qml/img/input-touch.png
 
-	INSTALLS += qml qmlimg pad
+    INSTALLS += qml qmlimg buttons
 }
 
 contains(MEEGO_EDITION, harmattan) {

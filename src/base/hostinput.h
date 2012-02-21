@@ -55,6 +55,7 @@ private slots:
 	void onSixAxisDestroyed();
 private:
 	void processTouch(QEvent *e);
+	void setupTouchDevice();
 
 	Emu *m_emu;
 	QList<HostInputDevice *> m_devices;

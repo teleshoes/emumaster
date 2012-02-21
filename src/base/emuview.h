@@ -38,6 +38,7 @@ class BASE_EXPORT EmuView : public QWidget {
 	Q_PROPERTY(qreal padOpacity READ padOpacity WRITE setPadOpacity NOTIFY padOpacityChanged)
 	Q_PROPERTY(bool keepAspectRatio READ keepAspectRatio WRITE setKeepAspectRatio NOTIFY keepAspectRatioChanged)
 	Q_PROPERTY(bool bilinearFiltering READ bilinearFiltering WRITE setBilinearFiltering NOTIFY bilinearFilteringChanged)
+	Q_PROPERTY(bool lrButtonsVisible READ areLRButtonsVisible WRITE setLRButtonsVisible NOTIFY lrButtonsVisibleChanged)
 	Q_PROPERTY(QString error READ error CONSTANT)
 	Q_PROPERTY(QList<QObject *> inputDevices READ inputDevices NOTIFY inputDevicesChanged)
 public:
@@ -62,6 +63,9 @@ public:
 	void setBilinearFiltering(bool enabled);
 	bool bilinearFiltering() const;
 
+	void setLRButtonsVisible(bool on);
+	bool areLRButtonsVisible() const;
+
 	QList<QObject *> inputDevices() const;
 
 	QString error() const;
@@ -78,6 +82,7 @@ signals:
 	void padOpacityChanged();
 	void keepAspectRatioChanged();
 	void bilinearFilteringChanged();
+	void lrButtonsVisibleChanged();
 	void faultOccured(QString faultMessage);
 	void inputDevicesChanged();
 protected:
@@ -133,6 +138,7 @@ private:
 	QTimer *m_safetyTimer;
 	bool m_swipeEnabled;
 	bool m_runInBackground;
+	bool m_lrButtonsVisible;
 };
 
 inline QString EmuView::error() const

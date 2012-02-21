@@ -42,7 +42,7 @@ HostInput::HostInput(Emu *emu) :
 {
 	m_padOpacity = emConf.defaultValue("padOpacity").toReal();
 	// first device in the list is always touch device ...
-	m_devices.append(new TouchInputDevice(this));
+	setupTouchDevice();
 	// ... and second is always the keyboard
 	m_devices.append(new KeybInputDevice(this));
 	m_devices.append(new AccelInputDevice(this));
@@ -101,6 +101,23 @@ void HostInput::processTouch(QEvent *e)
 		}
 	}
 	touchInputDevice()->processTouch(e);
+}
+
+void HostInput::setupTouchDevice()
+{
+	TouchInputDevice *touchDevice = new TouchInputDevice(this);
+
+	if (m_emu->name() == "psx")
+		touchDevice->setPsxButtonsEnabled(true);
+	else if (m_emu->name() == "pico")
+		touchDevice->setPicoButtonsEnabled(true);
+	else if (m_emu->name() == "gba")
+		touchDevice->setGbaButtonsEnabled(true);
+
+#if defined(MEEGO_EDITION_HARMATTAN)
+	touchDevice->setEmuFunction(1);
+#endif
+	m_devices.append(touchDevice);
 }
 
 /*! \internal */

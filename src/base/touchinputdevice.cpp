@@ -20,27 +20,53 @@
 #include <QTouchEvent>
 #include <QPainter>
 
+enum ButtonsInImage {
+	Button_Settings,
+	Button_Exit,
+	Button_Left,
+	Button_Up,
+	Button_Right,
+	Button_Down,
+	Button_A,
+	Button_B,
+	Button_X,
+	Button_Y,
+	Button_Circle,
+	Button_Square,
+	Button_Triangle,
+	Button_L1,
+	Button_R1,
+	Button_L2,
+	Button_R2,
+	Button_L,
+	Button_R,
+	Button_M,
+	Button_Select,
+	Button_Start,
+	Button_Z,
+	Button_C,
+	Button_Cross = Button_X
+};
+
 TouchInputDevice::TouchInputDevice(QObject *parent) :
-	HostInputDevice("touch", QObject::tr("Touch Screen"), parent)
+	HostInputDevice("touch", QObject::tr("Touch Screen"), parent),
+	m_numPoints(0),
+	m_areaSize(240),
+	m_diagonalAreaSize(240/4),
+	m_gridVisible(true),
+	m_lrVisible(false),
+	m_gridColor(Qt::white),
+	m_buttonsVisible(true),
+	m_psxButtonsEnable(false),
+	m_picoButtonsEnable(false),
+	m_gbaButtonsEnable(false),
+	m_hapticEffect(0)
 {
-	m_numPoints = 0;
-	m_hapticEffect = 0;
-
-	QStringList functionNameList;
-	functionNameList << tr("None");
-	functionNameList << tr("Pad A");
-	functionNameList << tr("Pad B");
-	functionNameList << tr("Mouse A");
-	functionNameList << tr("Mouse B");
-	setEmuFunctionNameList(functionNameList);
-
-#if defined(MEEGO_EDITION_HARMATTAN)
-	setEmuFunction(1);
-#endif
+	setupEmuFunctionList();
 
 	QObject::connect(this, SIGNAL(emuFunctionChanged()), SLOT(onEmuFunctionChanged()));
 
-	m_padImage.load(pathManager.installationDirPath()+"/data/pad.png");
+	m_buttonsImage.load(pathManager.installationDirPath()+"/data/buttons.png");
 }
 
 void TouchInputDevice::processTouch(QEvent *e)
@@ -70,6 +96,20 @@ void TouchInputDevice::onEmuFunctionChanged()
 	m_numPoints = 0;
 	m_buttons = 0;
 	m_mouseX = m_mouseY = 0;
+
+	updateGrid();
+	updatePaintedButtons();
+}
+
+void TouchInputDevice::setupEmuFunctionList()
+{
+	QStringList functionNameList;
+	functionNameList << tr("None")
+					 << tr("Pad A")
+					 << tr("Pad B")
+					 << tr("Mouse A")
+					 << tr("Mouse B");
+	setEmuFunctionNameList(functionNameList);
 }
 
 void TouchInputDevice::sync(EmuInput *emuInput)
@@ -92,7 +132,7 @@ void TouchInputDevice::sync(EmuInput *emuInput)
 		int xRel = m_mouseX - m_lastMouseX;
 		int yRel = m_mouseY - m_lastMouseY;
 		int mouseIndex = emuFunction() - 3;
-		emuInput->mouse[mouseIndex].setButtons(m_buttons >> 4);
+		emuInput->mouse[mouseIndex].setButtons(m_buttons);
 		emuInput->mouse[mouseIndex].addRel(xRel, yRel);
 	}
 }
@@ -105,31 +145,35 @@ void TouchInputDevice::convertPad()
 	for (int i = 0; i < m_numPoints; i++) {
 		int x = m_points[i].x();
 		int y = m_points[i].y();
-		if (y >= HostVideo::Height-CircleSize) {
-			y -= HostVideo::Height-CircleSize;
-			if (x < CircleSize) {
+		if (y >= HostVideo::Height-m_areaSize) {
+			y -= HostVideo::Height-m_areaSize;
+			if (x < m_areaSize) {
 				// directions
-				m_buttons |= buttonsInCircle(x, y);
-			} else if (x >= HostVideo::Width-CircleSize) {
+				m_buttons |= buttonsInDpad(x, y);
+			} else if (x >= HostVideo::Width-m_areaSize) {
 				// a,b,x,y
-				x -= HostVideo::Width-CircleSize;
-				m_buttons |= buttonsInCircle(x, y) << 4;
+				x -= HostVideo::Width-m_areaSize;
+				m_buttons |= buttonsInDpad(x, y) << 4;
 			} else if (x >= HostVideo::Width/2-ButtonWidth &&
 					   x < HostVideo::Width/2+ButtonWidth) {
 				// select, start
-				if (y >= CircleSize-ButtonHeight) {
+				if (y >= m_areaSize-ButtonHeight) {
 					if (x < HostVideo::Width/2)
 						m_buttons |= EmuPad::Button_Select;
 					else
 						m_buttons |= EmuPad::Button_Start;
 				}
 			}
-		} else if (y >= 120 && y < 120+ButtonHeight) {
-			// l1,r1
+		} else if (y >= m_lrYPos && y < m_lrYPos+ButtonHeight) {
+			// l1,l2,r1,r2
 			if (x < ButtonWidth)
 				m_buttons |= EmuPad::Button_L1;
+			else if (x < ButtonWidth*2)
+				m_buttons |= EmuPad::Button_L2;
 			else if (x >= HostVideo::Width-ButtonWidth)
 				m_buttons |= EmuPad::Button_R1;
+			else if (x >= HostVideo::Width-ButtonWidth*2)
+				m_buttons |= EmuPad::Button_R2;
 		}
 	}
 	if (m_hapticEffect) {
@@ -149,54 +193,54 @@ void TouchInputDevice::convertMouse()
 	for (int i = 0; i < m_numPoints; i++) {
 		int x = m_points[i].x();
 		int y = m_points[i].y();
-		if (y >= HostVideo::Height-CircleSize) {
-			y -= HostVideo::Height-CircleSize;
-			if (x < CircleSize) {
-				m_mouseX = x - CircleSize/2;
-				m_mouseY = y - CircleSize/2;
+		if (y >= HostVideo::Height-m_areaSize) {
+			y -= HostVideo::Height-m_areaSize;
+			if (x < m_areaSize) {
+				m_mouseX = x - m_areaSize/2;
+				m_mouseY = y - m_areaSize/2;
 				// when moving started
 				if (!m_mouseMoving) {
 					m_lastMouseX = m_mouseX;
 					m_lastMouseY = m_mouseY;
 				}
 				newMoving = true;
-			} else if (x >= HostVideo::Width-CircleSize) {
-				x -= HostVideo::Width-CircleSize;
-				m_buttons |= buttonsInCircle(x, y) << 4;
+			} else if (x >= HostVideo::Width-m_areaSize) {
+				x -= HostVideo::Width-m_areaSize;
+				int buttons = buttonsInDpad(x, y);
 				// swap bits
-				int left   = (m_buttons & 2) >> 1;
-				int right  = (m_buttons & 1) >> 0;
-				int middle = (m_buttons & 4) >> 2;
-				m_buttons = (left << 0) | (right << 1) | (middle << 2);
+				int left   = (buttons & 2) >> 1;
+				int right  = (buttons & 0) >> 0;
+				int middle = (buttons & 4) >> 2;
+				m_buttons |= (left << 0) | (right << 1) | (middle << 2);
 			}
 		}
 	}
 	m_mouseMoving = newMoving;
 }
 
-int TouchInputDevice::buttonsInCircle(int x, int y) const
+int TouchInputDevice::buttonsInDpad(int x, int y) const
 {
 	int buttons = 0;
-	if (x < CircleSize/4) {
+	if (x < m_diagonalAreaSize) {
 		buttons |= EmuPad::Button_Left;
-		if (y < CircleSize/4)
+		if (y < m_diagonalAreaSize)
 			buttons |= EmuPad::Button_Up;
-		else if (y >= CircleSize/4*3)
+		else if (y >= m_areaSize-m_diagonalAreaSize)
 			buttons |= EmuPad::Button_Down;
-	} else if (x >= CircleSize/4*3) {
+	} else if (x >= m_areaSize-m_diagonalAreaSize) {
 		buttons |= EmuPad::Button_Right;
-		if (y < CircleSize/4)
+		if (y < m_diagonalAreaSize)
 			buttons |= EmuPad::Button_Up;
-		else if (y >= CircleSize/4*3)
+		else if (y >= m_areaSize-m_diagonalAreaSize)
 			buttons |= EmuPad::Button_Down;
 	} else {
-		if (y < CircleSize/4) {
+		if (y < m_diagonalAreaSize) {
 			buttons |= EmuPad::Button_Up;
-		} else if (y >= CircleSize/4*3) {
+		} else if (y >= m_areaSize-m_diagonalAreaSize) {
 			buttons |= EmuPad::Button_Down;
 		} else {
-			x -= CircleSize/2;
-			y -= CircleSize/2;
+			x -= m_areaSize/2;
+			y -= m_areaSize/2;
 			if (qAbs(x) > qAbs(y)) {
 				if (x > 0)
 					buttons |= EmuPad::Button_Right;
@@ -215,33 +259,15 @@ int TouchInputDevice::buttonsInCircle(int x, int y) const
 
 void TouchInputDevice::paint(QPainter *painter)
 {
-	// pause,exit
-	painter->drawImage(0, 0, m_padImage,
-					   256, 128+64, ButtonWidth, ButtonHeight);
-	painter->drawImage(HostVideo::Width-ButtonWidth, 0, m_padImage,
-					   256+80, 128+64, ButtonWidth, ButtonHeight);
-
-	if (emuFunction() <= 0)
-		return;
-
-	if (emuFunction() <= 2) {
-		// l1,r1
-		painter->drawImage(0, 120, m_padImage,
-						   256, 256, ButtonWidth, ButtonHeight);
-		painter->drawImage(HostVideo::Width-ButtonWidth, 120, m_padImage,
-						   256+80, 256, ButtonWidth, ButtonHeight);
-
-		// select, start
-		painter->drawImage(HostVideo::Width/2-ButtonWidth,
-						   HostVideo::Height-ButtonHeight,
-						   m_padImage,
-						   256, 128, ButtonWidth*2, ButtonHeight);
+	QVector<PaintedButton>::ConstIterator i = m_paintedButtons.constBegin();
+	for (; i != m_paintedButtons.constEnd(); i++) {
+		if (m_buttons & i->flag)
+			painter->drawImage(i->dst, m_buttonsImage, i->srcPressed);
+		else
+			painter->drawImage(i->dst, m_buttonsImage, i->src);
 	}
-	// left and right circle
-	painter->translate(0, HostVideo::Height-CircleSize);
-	paintCircle(painter, (m_buttons >> 0) & 0x0F);
-	painter->translate(HostVideo::Width-CircleSize, 0);
-	paintCircle(painter, (m_buttons >> 4) & 0x0F);
+	if (!m_grid.isEmpty())
+		painter->strokePath(m_grid, QPen(Qt::white));
 }
 
 void TouchInputDevice::setHapticFeedbackEnabled(bool on)
@@ -258,14 +284,298 @@ void TouchInputDevice::setHapticFeedbackEnabled(bool on)
 	}
 }
 
-void TouchInputDevice::paintCircle(QPainter *painter, int buttons)
+void TouchInputDevice::setLRVisible(bool on)
 {
-	painter->drawImage(0, 48, m_padImage,
-					   0, ((buttons & EmuPad::Button_Left) ? 256 : 0)+48, 64, 240-48*2);
-	painter->drawImage(0, 0, m_padImage,
-					   0, (buttons & EmuPad::Button_Up) ? 256 : 0, 240, 48);
-	painter->drawImage(240-64, 48, m_padImage,
-					   240-64, ((buttons & EmuPad::Button_Right) ? 256 : 0)+48, 64, 240-48*2);
-	painter->drawImage(0, 240-48, m_padImage,
-					   0, ((buttons & EmuPad::Button_Down) ? 256 : 0)+240-48, 240, 48);
+	m_lrVisible = on;
+	updateGrid();
+	updatePaintedButtons();
+}
+
+void TouchInputDevice::setGridVisible(bool on)
+{
+	if (m_gridVisible != on) {
+		m_gridVisible = on;
+		updateGrid();
+		emit gridVisibleChanged();
+	}
+}
+
+void TouchInputDevice::setDpadAreaSize(int size)
+{
+	int rSize = qBound(160, size, 320);
+	if (m_areaSize != rSize) {
+		m_areaSize = rSize;
+		setDpadDiagonalAreaSize(m_diagonalAreaSize);
+		updateGrid();
+		updatePaintedButtons();
+		emit dpadAreaSizeChanged();
+	}
+}
+
+void TouchInputDevice::setDpadDiagonalAreaSize(int size)
+{
+	int rSize = qBound(0, size, m_areaSize/2);
+	if (m_diagonalAreaSize != rSize) {
+		m_diagonalAreaSize = rSize;
+		updateGrid();
+		updatePaintedButtons();
+		emit dpadDiagonalAreaSizeChanged();
+	}
+}
+
+void TouchInputDevice::setGridColor(const QColor &color)
+{
+	if (m_gridColor != color) {
+		m_gridColor = color;
+		updateGrid();
+		emit gridColorChanged();
+	}
+}
+
+void TouchInputDevice::setButtonsVisible(bool on)
+{
+	if (m_buttonsVisible != on) {
+		m_buttonsVisible = on;
+		updatePaintedButtons();
+		emit buttonsVisibleChanged();
+	}
+}
+
+void TouchInputDevice::setPsxButtonsEnabled(bool on)
+{
+	m_psxButtonsEnable = on;
+	updatePaintedButtons();
+}
+
+void TouchInputDevice::setPicoButtonsEnabled(bool on)
+{
+	m_picoButtonsEnable = on;
+	updatePaintedButtons();
+}
+
+void TouchInputDevice::setGbaButtonsEnabled(bool on)
+{
+	m_gbaButtonsEnable = on;
+	updatePaintedButtons();
+}
+
+void TouchInputDevice::updatePaintedButtons()
+{
+	m_paintedButtons.clear();
+
+	if (!m_buttonsVisible)
+		return;
+	if (emuFunction() <= 0)
+		return;
+
+	// settings,exit
+	addPaintedButton(Button_Settings, 0, QPointF(0, 0));
+	addPaintedButton(Button_Exit, 0, QPointF(HostVideo::Width-PaintedButtonSize, 0));
+
+	if (emuFunction() <= 2)
+		addPaintedButtonsPad();
+	else if (emuFunction() <= 4)
+		addPaintedButtonsMouse();
+}
+
+void TouchInputDevice::addPaintedButtonsPad()
+{
+	// left dpad
+	QPointF leftPos(10, HostVideo::Height-m_areaSize/2-PaintedButtonSize/2);
+	addPaintedButton(Button_Left, EmuPad::Button_Left, leftPos);
+	QPointF rightPos(m_areaSize-PaintedButtonSize-10, leftPos.y());
+	addPaintedButton(Button_Right, EmuPad::Button_Right, rightPos);
+	QPointF upPos(m_areaSize/2-PaintedButtonSize/2,
+				  HostVideo::Height-m_areaSize+10);
+	addPaintedButton(Button_Up, EmuPad::Button_Up, upPos);
+	QPointF downPos(upPos.x(), HostVideo::Height-PaintedButtonSize-10);
+	addPaintedButton(Button_Down, EmuPad::Button_Down, downPos);
+	// buttons at the right
+	QPointF offset(HostVideo::Width-m_areaSize, 0);
+	if (!m_gbaButtonsEnable) {
+		if (!m_picoButtonsEnable) {
+			addPaintedButton(m_psxButtonsEnable ? Button_Square : Button_Y,
+							 EmuPad::Button_Y, leftPos + offset);
+			addPaintedButton(m_psxButtonsEnable ? Button_Triangle : Button_X,
+							 EmuPad::Button_X, upPos + offset);
+		} else {
+			addPaintedButton(Button_X, EmuPad::Button_Y, leftPos + offset);
+			addPaintedButton(Button_C, EmuPad::Button_X, upPos + offset);
+		}
+	}
+	addPaintedButton(m_psxButtonsEnable ? Button_Circle : Button_A,
+					 EmuPad::Button_A, rightPos + offset);
+	addPaintedButton(m_psxButtonsEnable ? Button_Cross : Button_B,
+					 EmuPad::Button_B, downPos + offset);
+	// l1,r1,l2,r2
+	QPointF lPos(ButtonWidth/2-PaintedButtonSize/2, m_lrYPos);
+	QPointF rPos = lPos + QPointF(HostVideo::Width-ButtonWidth, 0);
+	QPointF l2Pos = lPos + QPointF(ButtonWidth, 0);
+	QPointF r2Pos = rPos - QPointF(ButtonWidth, 0);
+	if (m_lrVisible) {
+		bool l2r2Visible = m_psxButtonsEnable;
+		if (!m_picoButtonsEnable) {
+			addPaintedButton(l2r2Visible ? Button_L1 : Button_L,
+							 EmuPad::Button_L1, lPos);
+			addPaintedButton(l2r2Visible ? Button_R1 : Button_R,
+							 EmuPad::Button_R1, rPos);
+		} else {
+			addPaintedButton(Button_Y, EmuPad::Button_L1, lPos);
+			addPaintedButton(Button_Z, EmuPad::Button_R1, rPos);
+		}
+		if (l2r2Visible) {
+			addPaintedButton(Button_L2, EmuPad::Button_L2, l2Pos);
+			addPaintedButton(Button_R2, EmuPad::Button_R2, r2Pos);
+		}
+	}
+	// select,start
+	QPointF selectPos(HostVideo::Width/2-ButtonWidth/2-PaintedButtonSize/2,
+					  HostVideo::Height-ButtonHeight/2-PaintedButtonSize/2);
+	QPointF startPos = selectPos + QPointF(ButtonWidth, 0);
+	addPaintedButton(Button_Select, EmuPad::Button_Select, selectPos);
+	addPaintedButton(Button_Start, EmuPad::Button_Start, startPos);
+}
+
+void TouchInputDevice::addPaintedButtonsMouse()
+{
+	QPointF leftPos(10, HostVideo::Height-m_areaSize/2-PaintedButtonSize/2);
+	QPointF rightPos(m_areaSize-PaintedButtonSize-10, leftPos.y());
+	QPointF upPos(m_areaSize/2-PaintedButtonSize/2,
+				  HostVideo::Height-m_areaSize+10);
+	QPointF downPos(upPos.x(), HostVideo::Height-PaintedButtonSize-10);
+	// buttons at the right
+	QPointF offset(HostVideo::Width-m_areaSize, 0);
+
+	addPaintedButton(Button_L, EmuMouse::Button_Left, downPos + offset);
+	addPaintedButton(Button_R, EmuMouse::Button_Right, rightPos + offset);
+	addPaintedButton(Button_M, EmuMouse::Button_Middle, upPos + offset);
+}
+
+void TouchInputDevice::addPaintedButton(int button, int flag, QPointF pos)
+{
+	int n = 512/64;
+	int row = button / n;
+	int column = button % n;
+
+	int y = row * 128;
+	int x = column * 64;
+	PaintedButton paintedButton;
+
+	paintedButton.flag = flag;
+	paintedButton.src = QRectF(x, y, 64, 64);
+	paintedButton.srcPressed = QRectF(x, y+64, 64, 64);
+	paintedButton.dst = pos;
+
+	m_paintedButtons.append(paintedButton);
+}
+
+void TouchInputDevice::updateGrid()
+{
+	m_lrYPos = ButtonHeight/2+(HostVideo::Height-m_areaSize-ButtonHeight)/2;
+	m_grid = QPainterPath();
+
+	if (emuFunction() <= 0)
+		return;
+
+	// add "touchpad" rect even if grid is not visible
+	if (emuFunction() >= 3 && emuFunction() <= 4 && (m_gridVisible || m_buttonsVisible)) {
+		// left "touchpad"
+		QPointF p1(0, HostVideo::Height-m_areaSize);
+		QSizeF sizeArea(m_areaSize-1, m_areaSize-1);
+		m_grid.addRect(QRectF(p1, sizeArea));
+	}
+
+	if (!m_gridVisible)
+		return;
+
+	QSizeF sizeButton(ButtonWidth-1, ButtonHeight-1);
+	// settings button
+	m_grid.addRect(QRectF(QPointF(0, 0), sizeButton));
+	// exit button
+	m_grid.addRect(QRectF(QPointF(HostVideo::Width-ButtonWidth, 0), sizeButton));
+
+	if (emuFunction() <= 2) {
+		addGridPad();
+	} else if (emuFunction() <= 4) {
+		// l,r,m mouse buttons
+		addDpadAreaToGrid(HostVideo::Width-m_areaSize,
+						  HostVideo::Height-m_areaSize);
+	}
+}
+
+void TouchInputDevice::addGridPad()
+{
+	QSizeF sizeButton(ButtonWidth-1, ButtonHeight-1);
+	// left dpad
+	addDpadAreaToGrid(0, HostVideo::Height-m_areaSize);
+	// right dpad
+	addDpadAreaToGrid(HostVideo::Width-m_areaSize, HostVideo::Height-m_areaSize);
+
+	// start,select
+	QRectF startRect(QPointF(HostVideo::Width/2-ButtonWidth,
+							 HostVideo::Height-ButtonHeight),
+					 sizeButton);
+	QRectF selectRect = startRect;
+	selectRect.moveLeft(HostVideo::Width/2);
+	m_grid.addRect(startRect);
+	m_grid.addRect(selectRect);
+
+	// l1,r1
+	if (m_lrVisible) {
+		QRectF l1Rect(QPointF(0, m_lrYPos), sizeButton);
+		QRectF r1Rect = l1Rect;
+		r1Rect.moveRight(HostVideo::Width);
+		m_grid.addRect(l1Rect);
+		m_grid.addRect(r1Rect);
+
+		bool l2r2Visible = (m_lrVisible && m_psxButtonsEnable);
+		// l2,r2
+		if (l2r2Visible) {
+			QRectF l2Rect(QPointF(ButtonWidth, m_lrYPos), sizeButton);
+			QRectF r2Rect = l2Rect;
+			r2Rect.moveRight(HostVideo::Width-ButtonWidth);
+			m_grid.addRect(l2Rect);
+			m_grid.addRect(r2Rect);
+		}
+	}
+}
+
+// p1-----------------p2------
+// |    |             |      |
+// |    |             |      |
+// -----p5            p6------
+// |     \            /      |
+// |       \        /        |
+// |         \    /          |
+// |           \/            |
+// |           /\            |
+// |         /    \          |
+// |       /        \        |
+// |     /            \      |
+// p3---p7             p4-----
+// |     |             |     |
+// |     |             |     |
+// ---------------------------
+void TouchInputDevice::addDpadAreaToGrid(int x, int y)
+{
+	QPointF p1(x, y);
+	QPointF p2(x+m_areaSize-m_diagonalAreaSize, y);
+	QPointF p3(x, y+m_areaSize-m_diagonalAreaSize);
+	QPointF p4(x+m_areaSize-m_diagonalAreaSize, y+m_areaSize-m_diagonalAreaSize);
+	QPointF p5(x+m_diagonalAreaSize, y+m_diagonalAreaSize);
+	QPointF p6(x+m_areaSize-m_diagonalAreaSize, y+m_diagonalAreaSize);
+	QPointF p7(x+m_diagonalAreaSize, y+m_areaSize-m_diagonalAreaSize);
+
+	QSizeF sizeArea(m_areaSize-1, m_areaSize-1);
+	QSizeF sizeDiagonal(m_diagonalAreaSize-1, m_diagonalAreaSize-1);
+
+	m_grid.addRect(QRectF(p1, sizeArea));
+	m_grid.addRect(QRectF(p1, sizeDiagonal));
+	m_grid.addRect(QRectF(p2, sizeDiagonal));
+	m_grid.addRect(QRectF(p3, sizeDiagonal));
+	m_grid.addRect(QRectF(p4, sizeDiagonal));
+	m_grid.moveTo(p5);
+	m_grid.lineTo(p4);
+	m_grid.moveTo(p7);
+	m_grid.lineTo(p6);
 }

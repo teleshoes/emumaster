@@ -16,6 +16,7 @@
 #include "configuration.h"
 #include "emu.h"
 #include <QCoreApplication>
+#include <QColor>
 
 Configuration emConf;
 
@@ -71,14 +72,20 @@ void Configuration::constructDefaults()
 {
 	m_defaultData.insert("audioEnable", true);
 	m_defaultData.insert("autoSaveLoadEnable", true);
+	m_defaultData.insert("buttonsVisible", true);
 	m_defaultData.insert("bilinearFiltering", true);
 	m_defaultData.insert("frameSkip", 0);
 	m_defaultData.insert("fpsVisible", false);
+	m_defaultData.insert("gridColor", QColor(Qt::white));
+	m_defaultData.insert("gridVisible", false);
+	m_defaultData.insert("hapticFeedbackEnable", false);
 	m_defaultData.insert("keepAspectRatio", true);
+	m_defaultData.insert("lrButtonsVisible", false);
 	m_defaultData.insert("padOpacity", 0.45f);
 	m_defaultData.insert("runInBackground", false);
 	m_defaultData.insert("swipeEnable", false);
-	m_defaultData.insert("hapticFeedbackEnable", false);
+	m_defaultData.insert("touchAreaSize", 240);
+	m_defaultData.insert("touchAreaDiagonalSize", 240/4);
 }
 
 /*!
@@ -92,5 +99,5 @@ void Configuration::setupAppInfo()
 	QCoreApplication::setOrganizationDomain("elemental-mk.blogspot.com");
 	QCoreApplication::setApplicationName("emumaster");
 	// TODO change on every release
-	QCoreApplication::setApplicationVersion("0.2.3");
+	QCoreApplication::setApplicationVersion("0.3.0");
 }

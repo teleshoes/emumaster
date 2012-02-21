@@ -36,6 +36,7 @@
 #include <QDir>
 #include <QSettings>
 #include <QUdpSocket>
+#include <QColor>
 
 EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	m_emu(emu),
@@ -48,7 +49,8 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	m_audioEnable(true),
 	m_autoSaveLoadEnable(true),
 	m_swipeEnabled(false),
-	m_runInBackground(false)
+	m_runInBackground(false),
+	m_lrButtonsVisible(false)
 {
 	Q_ASSERT(m_emu != 0);
 
@@ -491,15 +493,22 @@ void EmuView::loadSettings()
 {
 	QSettings s;
 	m_swipeEnabled = loadOptionFromSettings(s, "swipeEnable").toBool();
-	m_hostInput->setPadOpacity(loadOptionFromSettings(s, "padOpacity").toReal());
-	bool hapticFeedbackEnable = loadOptionFromSettings(s, "hapticFeedbackEnable").toBool();
-	m_hostInput->touchInputDevice()->setHapticFeedbackEnabled(hapticFeedbackEnable);
 	m_thread->setFrameSkip(loadOptionFromSettings(s, "frameSkip").toInt());
 	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible").toBool());
 	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio").toBool());
 	m_hostVideo->setBilinearFiltering(loadOptionFromSettings(s, "bilinearFiltering").toBool());
 	setAudioEnabled(loadOptionFromSettings(s, "audioEnable").toBool());
 	m_runInBackground = loadOptionFromSettings(s, "runInBackground").toBool();
+
+	m_hostInput->setPadOpacity(loadOptionFromSettings(s, "padOpacity").toReal());
+	TouchInputDevice *touch = m_hostInput->touchInputDevice();
+	touch->setHapticFeedbackEnabled(loadOptionFromSettings(s, "hapticFeedbackEnable").toBool());
+	touch->setButtonsVisible(loadOptionFromSettings(s, "buttonsVisible").toBool());
+	touch->setGridVisible(loadOptionFromSettings(s, "gridVisible").toBool());
+	touch->setGridColor(loadOptionFromSettings(s, "gridColor").value<QColor>());
+	setLRButtonsVisible(loadOptionFromSettings(s, "lrButtonsVisible").toBool());
+	touch->setDpadAreaSize(loadOptionFromSettings(s, "touchAreaSize").toInt());
+	touch->setDpadDiagonalAreaSize(loadOptionFromSettings(s, "touchDiagonalAreaSize").toInt());
 }
 
 QVariant EmuView::loadOptionFromSettings(QSettings &s, const QString &name) const
@@ -584,6 +593,22 @@ void EmuView::setKeepAspectRatio(bool on)
 bool EmuView::bilinearFiltering() const
 {
 	return m_hostVideo->bilinearFiltering();
+}
+
+void EmuView::setLRButtonsVisible(bool on)
+{
+	if (m_lrButtonsVisible != on) {
+		if (m_emu->name() != "nes" && m_emu->name() != "amiga") {
+			m_lrButtonsVisible = on;
+			m_hostInput->touchInputDevice()->setLRVisible(m_lrButtonsVisible);
+			emit lrButtonsVisibleChanged();
+		}
+	}
+}
+
+bool EmuView::areLRButtonsVisible() const
+{
+	return m_lrButtonsVisible;
 }
 
 void EmuView::setBilinearFiltering(bool enabled)
