@@ -30,7 +30,8 @@ class QThread;
 class QDeclarativeView;
 class QSettings;
 
-class BASE_EXPORT EmuView : public QWidget {
+class BASE_EXPORT EmuView : public QWidget
+{
 	Q_OBJECT
 	Q_PROPERTY(bool fpsVisible READ isFpsVisible WRITE setFpsVisible NOTIFY fpsVisibleChanged)
 	Q_PROPERTY(int frameSkip READ frameSkip WRITE setFrameSkip NOTIFY frameSkipChanged)

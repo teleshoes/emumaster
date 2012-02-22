@@ -23,24 +23,30 @@ SixAxisInputDevice::SixAxisInputDevice(SixAxis *sixAxis, QObject *parent) :
 	HostInputDevice("sixaxis", QObject::tr("SixAxis"), parent),
 	m_sixAxis(sixAxis)
 {
-	QStringList functionNameList;
-	functionNameList << tr("None");
-	functionNameList << tr("Pad A");
-	functionNameList << tr("Pad B");
-	functionNameList << tr("Mouse A");
-	functionNameList << tr("Mouse B");
-	functionNameList << tr("Pad B + Mouse A");
-	functionNameList << tr("Pad A + Mouse B");
-	setEmuFunctionNameList(functionNameList);
+	setupEmuFunctionList();
 
 	QObject::connect(m_sixAxis, SIGNAL(updated()), SLOT(onSixAxisUpdated()));
 	QObject::connect(m_sixAxis, SIGNAL(disconnected()), SLOT(deleteLater()));
-	QObject::connect(this, SIGNAL(emuFunctionChanged()), SLOT(onConfChanged()));
+	QObject::connect(this, SIGNAL(emuFunctionChanged()), SLOT(enEmuFunctionChanged()));
 
 	m_sixAxis->setParent(this);
 }
 
-const int SixAxisInputDevice::m_buttonsMapping[] = {
+void SixAxisInputDevice::setupEmuFunctionList()
+{
+	QStringList functionNameList;
+	functionNameList << tr("None")
+					 << tr("Pad A")
+					 << tr("Pad B")
+					 << tr("Mouse A")
+					 << tr("Mouse B")
+					 << tr("Pad B + Mouse A")
+					 << tr("Pad A + Mouse B");
+	setEmuFunctionNameList(functionNameList);
+}
+
+const int SixAxisInputDevice::m_buttonsMapping[] =
+{
 	EmuPad::Button_Select,
 	0,
 	0,
@@ -59,18 +65,21 @@ const int SixAxisInputDevice::m_buttonsMapping[] = {
 	EmuPad::Button_Y
 };
 
-void SixAxisInputDevice::onConfChanged() {
+void SixAxisInputDevice::enEmuFunctionChanged()
+{
 	m_converted = false;
 	m_buttons = 0;
 	m_mouseX = m_mouseY = 0;
 	m_mouseButtons = 0;
 }
 
-void SixAxisInputDevice::onSixAxisUpdated() {
+void SixAxisInputDevice::onSixAxisUpdated()
+{
 	m_converted = false;
 }
 
-void SixAxisInputDevice::convertPad() {
+void SixAxisInputDevice::convertPad()
+{
 	int b = m_sixAxis->buttons();
 	if (b & (1<<SixAxis::PS)) {
 		emit pause();
@@ -83,7 +92,8 @@ void SixAxisInputDevice::convertPad() {
 	}
 }
 
-void SixAxisInputDevice::convertMouse() {
+void SixAxisInputDevice::convertMouse()
+{
 	m_mouseButtons = 0;
 
 	if (m_sixAxis->buttons() & (1<<SixAxis::L3))
@@ -101,7 +111,8 @@ void SixAxisInputDevice::convertMouse() {
 		m_mouseY = 0;
 }
 
-void SixAxisInputDevice::sync(EmuInput *emuInput) {
+void SixAxisInputDevice::sync(EmuInput *emuInput)
+{
 	if (emuFunction() <= 0)
 		return;
 

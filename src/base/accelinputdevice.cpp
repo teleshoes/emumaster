@@ -47,9 +47,9 @@ AccelInputDevice::AccelInputDevice(QObject *parent) :
 void AccelInputDevice::setupEmuFunctionList()
 {
 	QStringList functionNameList;
-	functionNameList << tr("None");
-	functionNameList << tr("Pad A");
-	functionNameList << tr("Pad B");
+	functionNameList << tr("None")
+					 << tr("Pad A")
+					 << tr("Pad B");
 	setEmuFunctionNameList(functionNameList);
 }
 

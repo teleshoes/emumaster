@@ -33,8 +33,10 @@ public:
 	Q_INVOKABLE void resetToDefaults();
 	Q_INVOKABLE QString padButtonName(int buttonIndex) const;
 private slots:
-	void onConfChanged();
+	void onEmuFunctionChanged();
 private:
+	void setupEmuFunctionList();
+
 	QHash<int, int> m_mapping;
 	int m_buttons;
 	QList<int> m_keys;

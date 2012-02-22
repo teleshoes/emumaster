@@ -16,9 +16,10 @@
 #ifndef STRINGLISTPROXY_H
 #define STRINGLISTPROXY_H
 
+#include "base_global.h"
 #include <QStringListModel>
 
-class StringListProxy : public QStringListModel
+class BASE_EXPORT StringListProxy : public QStringListModel
 {
 	Q_OBJECT
 	Q_PROPERTY(QStringList stringListModel READ stringList WRITE setStringList NOTIFY stringListChanged)

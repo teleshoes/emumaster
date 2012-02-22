@@ -22,12 +22,7 @@ KeybInputDevice::KeybInputDevice(QObject *parent) :
 	HostInputDevice("keyb", QObject::tr("Keyboard"), parent) ,
 	m_buttons(0)
 {
-	QStringList functionNameList;
-	functionNameList << tr("None");
-	functionNameList << tr("Pad A");
-	functionNameList << tr("Pad B");
-	functionNameList << tr("Keyboard");
-	setEmuFunctionNameList(functionNameList);
+	setupEmuFunctionList();
 
 	QSettings s;
 	s.beginGroup("keyboard");
@@ -40,15 +35,27 @@ KeybInputDevice::KeybInputDevice(QObject *parent) :
 
 	setEmuFunction(1);
 
-	QObject::connect(this, SIGNAL(emuFunctionChanged()), SLOT(onConfChanged()));
+	QObject::connect(this, SIGNAL(emuFunctionChanged()), SLOT(onEmuFunctionChanged()));
 }
 
-void KeybInputDevice::onConfChanged() {
+void KeybInputDevice::setupEmuFunctionList()
+{
+	QStringList functionNameList;
+	functionNameList << tr("None")
+					 << tr("Pad A")
+					 << tr("Pad B")
+					 << tr("Keyboard");
+	setEmuFunctionNameList(functionNameList);
+}
+
+void KeybInputDevice::onEmuFunctionChanged()
+{
 	m_buttons = 0;
 	m_keys.clear();
 }
 
-void KeybInputDevice::sync(EmuInput *emuInput) {
+void KeybInputDevice::sync(EmuInput *emuInput)
+{
 	if (emuFunction() <= 0)
 		return;
 
@@ -61,7 +68,8 @@ void KeybInputDevice::sync(EmuInput *emuInput) {
 	}
 }
 
-void KeybInputDevice::processKey(Qt::Key key, bool down) {
+void KeybInputDevice::processKey(Qt::Key key, bool down)
+{
 	if (emuFunction() <= 0)
 		return;
 
@@ -79,7 +87,8 @@ void KeybInputDevice::processKey(Qt::Key key, bool down) {
 	}
 }
 
-const int KeybInputDevice::m_defaultMapping[14] = {
+const int KeybInputDevice::m_defaultMapping[14] =
+{
 	Qt::Key_Right,
 	Qt::Key_Down,
 	Qt::Key_Up,
@@ -99,7 +108,8 @@ const int KeybInputDevice::m_defaultMapping[14] = {
 	Qt::Key_W
 };
 
-const char *KeybInputDevice::m_defaultMappingText[] = {
+const char *KeybInputDevice::m_defaultMappingText[] =
+{
 	"Right",
 	"Down",
 	"Up",
@@ -119,7 +129,8 @@ const char *KeybInputDevice::m_defaultMappingText[] = {
 	"w"
 };
 
-void KeybInputDevice::setPadButton(int buttonIndex, int hostKey, const QString hostKeyText) {
+void KeybInputDevice::setPadButton(int buttonIndex, int hostKey, const QString hostKeyText)
+{
 	QSettings s;
 	s.beginGroup("keyboard");
 	s.setValue(QString::number(buttonIndex), hostKey);
@@ -128,11 +139,13 @@ void KeybInputDevice::setPadButton(int buttonIndex, int hostKey, const QString h
 	s.endGroup();
 }
 
-int KeybInputDevice::padButton(int buttonIndex) const {
+int KeybInputDevice::padButton(int buttonIndex) const
+{
 	return m_mapping.key(buttonIndex << 1);
 }
 
-QString KeybInputDevice::padButtonText(int buttonIndex) const {
+QString KeybInputDevice::padButtonText(int buttonIndex) const
+{
 	QSettings s;
 	s.beginGroup("keyboard");
 	QString text = s.value(QString("%1.text").arg(buttonIndex),
@@ -152,7 +165,8 @@ void KeybInputDevice::resetToDefaults() {
 	s.endGroup();
 }
 
-const char *KeybInputDevice::m_padButtonName[] = {
+const char *KeybInputDevice::m_padButtonName[] =
+{
 	"Right",
 	"Down",
 	"Up",
@@ -172,6 +186,7 @@ const char *KeybInputDevice::m_padButtonName[] = {
 	"Select"
 };
 
-QString KeybInputDevice::padButtonName(int buttonIndex) const {
+QString KeybInputDevice::padButtonName(int buttonIndex) const
+{
 	return m_padButtonName[buttonIndex];
 }

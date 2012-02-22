@@ -29,8 +29,9 @@ signals:
 	void pause();
 private slots:
 	void onSixAxisUpdated();
-	void onConfChanged();
+	void enEmuFunctionChanged();
 private:
+	void setupEmuFunctionList();
 	void convertPad();
 	void convertMouse();
 
