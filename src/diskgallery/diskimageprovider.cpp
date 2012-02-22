@@ -22,7 +22,8 @@
 
 DiskImageProvider::DiskImageProvider() :
 	QDeclarativeImageProvider(Image),
-	m_noScreenShot(256, 256, QImage::Format_RGB32) {
+	m_noScreenShot(256, 256, QImage::Format_RGB32)
+{
 	QPainter painter;
 	painter.begin(&m_noScreenShot);
 	painter.fillRect(QRectF(QPointF(), m_noScreenShot.size()), QColor(qRgb(0x4B, 0x4A, 0x4C)));
@@ -39,7 +40,8 @@ DiskImageProvider::DiskImageProvider() :
 	painter.end();
 }
 
-QImage DiskImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize) {
+QImage DiskImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
+{
 	Q_UNUSED(size)
 	Q_UNUSED(requestedSize)
 	QString idGoodPart = id.left(id.indexOf('*'));

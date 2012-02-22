@@ -43,7 +43,6 @@ DiskListModel::DiskListModel(QObject *parent) :
 	QFont font;
 	font.setFamily("Nokia Pure Text");
 	font.setPointSize(18);
-	font.setBold(true);
 
 	m_fontMetrics = new QFontMetrics(font);
 }

@@ -14,48 +14,42 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef ROMGALLERY_H
-#define ROMGALLERY_H
+#ifndef DISKGALLERY_H
+#define DISKGALLERY_H
 
 class DiskListModel;
 #include <QDeclarativeView>
 #include <QUdpSocket>
 #include <QSettings>
 
-class DiskGallery : public QDeclarativeView {
+class DiskGallery : public QDeclarativeView
+{
 	Q_OBJECT
-	Q_PROPERTY(int runCount READ runCount CONSTANT)
 public:
 	explicit DiskGallery(QWidget *parent = 0);
 	~DiskGallery();
-
-	int runCount() const;
 
 	Q_INVOKABLE void launch(int index);
 	Q_INVOKABLE void advancedLaunch(int index, int autoSaveLoad, const QString &confStr);
 
 	Q_INVOKABLE void donate();
-	Q_INVOKABLE void homepage();
+	Q_INVOKABLE void maemoThread();
 	Q_INVOKABLE void wiki();
 	Q_INVOKABLE void sixAxisMonitor();
 
 	Q_INVOKABLE QVariant globalOption(const QString &name);
 	Q_INVOKABLE void setGlobalOption(const QString &name, const QVariant &value);
 signals:
-	void diskUpdate();
 	void detachUsb();
-	void showFirstRunMsg();
 private slots:
-	void emitDiskUpdate();
+	void checkUsb();
 	void receiveDatagram();
 private:
 	void setupQml();
-	void incrementRunCount();
 
 	DiskListModel *m_diskListModel;
-	int m_runCount;
 	QUdpSocket m_sock;
 	QSettings m_settings;
 };
 
-#endif // ROMGALLERY_H
+#endif // DISKGALLERY_H

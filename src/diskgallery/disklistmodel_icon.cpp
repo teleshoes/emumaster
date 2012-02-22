@@ -4,7 +4,8 @@
 #include <QPainter>
 #include <QTextStream>
 
-QImage DiskListModel::applyMaskAndOverlay(const QImage &icon) {
+QImage DiskListModel::applyMaskAndOverlay(const QImage &icon)
+{
 	QString iconMaskPath = QString("%1/data/icon_mask.png")
 			.arg(pathManager.installationDirPath());
 	QString iconOverlayPath = QString("%1/data/icon_overlay.png")
@@ -44,7 +45,8 @@ QImage DiskListModel::applyMaskAndOverlay(const QImage &icon) {
 	return result;
 }
 
-bool DiskListModel::addIconToHomeScreen(int i, qreal scale, int x, int y) {
+bool DiskListModel::addIconToHomeScreen(int i, qreal scale, int x, int y)
+{
 	QString diskFileName = getDiskFileName(i);
 	QString diskTitle = getDiskTitle(i);
 	QString diskEmuName = getDiskEmuName(i);
@@ -86,7 +88,8 @@ bool DiskListModel::createDesktopFile(const QString &fileName,
 									 const QString &title,
 									 const QString &exec,
 									 const QString &icon,
-									 const QString &categories) {
+									 const QString &categories)
+{
 	QString desktopFileContent = QString(
 				"[Desktop Entry]\n"
 				"Version=1.0\n"
@@ -110,7 +113,8 @@ bool DiskListModel::createDesktopFile(const QString &fileName,
 	return true;
 }
 
-void DiskListModel::removeIconFromHomeScreen(int i) {
+void DiskListModel::removeIconFromHomeScreen(int i)
+{
 	QString diskTitle = getDiskTitle(i);
 	QString diskEmuName = getDiskEmuName(i);
 	if (diskEmuName.isEmpty())
@@ -122,7 +126,8 @@ void DiskListModel::removeIconFromHomeScreen(int i) {
 	iconFile.remove();
 }
 
-bool DiskListModel::iconInHomeScreenExists(int i) {
+bool DiskListModel::iconInHomeScreenExists(int i)
+{
 	QString diskTitle = getDiskTitle(i);
 	QString diskEmuName = getDiskEmuName(i);
 	if (diskEmuName.isEmpty())

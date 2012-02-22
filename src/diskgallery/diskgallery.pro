@@ -66,6 +66,7 @@ unix {
         ../../qml/img/collection-pico.png \
 		../../qml/img/alpha-overlay.png \
 		../../qml/img/btn_donateCC_LG.png \
+        ../../qml/img/maemo.png \
 		../../qml/img/wiki.png \
 
 	datafiles.path = /opt/emumaster/data

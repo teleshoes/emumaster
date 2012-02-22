@@ -134,14 +134,14 @@ Page {
 				Label {
 					id: gridColorLabel
 					text: qsTr("Grid Color")
-					verticalCenter: parent
+					anchors.verticalCenter: parent.verticalCenter
 				}
 				Button {
 					id: gridColorButton
 					width: 80
 					anchors.right: parent.right
 					onClicked: colorDialog.open()
-					verticalCenter: parent
+					anchors.verticalCenter: parent.verticalCenter
 
 					Rectangle {
 						id: gridColorView

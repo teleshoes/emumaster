@@ -35,71 +35,52 @@ PageStackWindow {
 		diskListModel.collection = name
 		if (diskListModel.count <= 0) {
 			if (name == "fav")
-				howToAddToFavDialog.open()
+				showHowToAddToFavDialog()
 			else
-				howToInstallDiskDialog.open()
+				showHowToAddDialog()
 		} else {
 			appWindow.pageStack.push(galleryPage)
 		}
 		galleryPage.updateModel()
 	}
 
-	QueryDialog {
-		id: howToInstallDiskDialog
-		rejectButtonText: qsTr("Close")
-		titleText: qsTr("Help")
-		message: qsTr("The directory is empty. To install a disk you need to attach " +
-					  "the phone to the PC and copy your files to \"emumaster/%1\" " +
-					  "directory. Remember to detach the phone from the PC.")
-						.arg(diskListModel.collection)
+	function showHowToAddToFavDialog() {
+		errorDialog.message = qsTr("The favourite category is empty. To add a disk to favourite list " +
+								   "just select the disk from one of emulated systems (press and hold), " +
+								   "a menu will appear, choose \"Add To Favourites\"")
+		errorDialog.open()
 	}
 
-	QueryDialog {
-		id: howToAddToFavDialog
-		rejectButtonText: qsTr("Close")
-		titleText: qsTr("Help")
-		message: qsTr("The favourite category is empty. To add a disk to favourite list " +
-					  "just select the disk from one of emulated systems (press and hold), " +
-					  "a menu will appear, choose \"Add To Favourites\"")
-	}
-
-	QueryDialog {
-		id: firstRunMsg
-		titleText: qsTr("Info")
-		rejectButtonText: qsTr("Close")
-		message:	qsTr("Hi! Few clues: Please let me know about any problems " +
-						"before you make a review in the Store since I cannot " +
-						"answer you there. You can find wiki address and contact info at the about " +
-						"page:\n MainWindow->Menu->About EmuMaster...\n Enjoy :)\n " +
-						"Have you got some idea? Share it with me.\n" +
-						"Consider a donation if you find this software useful.") +
-						(diskGallery.runCount < 10
-							?	qsTr("\n\nThis message will be shown %1 more times")
-									.arg(10-diskGallery.runCount)
-							: "")
-
-	}
-
-	QueryDialog {
-		id: detachUsbDialog
-		message: qsTr(	"\"emumaster\" folder not found! Detach USB cable if " +
-						"connected and restart the application."	)
-		rejectButtonText: qsTr("Close")
-		onRejected: Qt.quit()
+	function showHowToAddDialog() {
+		errorDialog.message = qsTr("The directory is empty. To install a disk you need to attach " +
+								   "the phone to the PC and copy your files to \"emumaster/%1\" " +
+								   "directory. Remember to detach the phone from the PC.")
+									 .arg(diskListModel.collection)
+		errorDialog.open()
 	}
 
 	Connections {
 		target: diskGallery
-		//onDiskUpdate: selectCollection(diskListModel.collectionLastUsed)
-		onDetachUsb: detachUsbDialog.open()
-		onShowFirstRunMsg: firstRunMsg.open()
+		onDetachUsb: {
+			errorDialog.message = qsTr("\"emumaster\" directory not found! Detach USB cable if " +
+									   "connected and restart the application."	)
+			errorDialog.quitOnReject = true
+			errorDialog.open()
+		}
 	}
 
 	QueryDialog {
+		property bool quitOnReject: false
+
 		id: errorDialog
 		titleText: qsTr("Oops")
 		message: qsTr("Something went wrong!")
 		rejectButtonText: qsTr("Close")
+
+		onRejected: {
+			if (quitOnReject)
+				Qt.quit()
+		}
 	}
 
 	Component.onCompleted: {

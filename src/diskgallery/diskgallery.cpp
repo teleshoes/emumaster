@@ -33,7 +33,6 @@ DiskGallery::DiskGallery(QWidget *parent) :
 	QDeclarativeView(parent)
 {
 	m_diskListModel = new DiskListModel(this);
-	incrementRunCount();
 	setupQml();
 
 	m_sock.bind(QHostAddress::LocalHost, 5798);
@@ -63,26 +62,7 @@ void DiskGallery::setupQml()
 			.arg(pathManager.installationDirPath());
 	setSource(QUrl::fromLocalFile(qmlPath));
 
-	if (m_runCount <= 10)
-		QMetaObject::invokeMethod(this, "showFirstRunMsg", Qt::QueuedConnection);
-	else
-		QMetaObject::invokeMethod(this, "emitDiskUpdate", Qt::QueuedConnection);
-}
-
-/** Increments emumaster execute counter. */
-void DiskGallery::incrementRunCount()
-{
-	m_settings.beginGroup("diskgallery");
-	m_runCount = m_settings.value("runCount", 0).toInt() + 1;
-	m_settings.setValue("runCount", m_runCount);
-	m_settings.endGroup();
-	m_settings.sync();
-}
-
-/** Returns how many times emumaster was executed. */
-int DiskGallery::runCount() const
-{
-	return m_runCount;
+	QMetaObject::invokeMethod(this, "checkUsb", Qt::QueuedConnection);
 }
 
 void DiskGallery::launch(int index)
@@ -134,10 +114,10 @@ void DiskGallery::donate()
 }
 
 /** Starts web browser with blog address. */
-void DiskGallery::homepage()
+void DiskGallery::maemoThread()
 {
 	QStringList args;
-	args << "http://elemental-mk.blogspot.com";
+	args << "http://talk.maemo.org/showthread.php?t=81136";
 	QProcess::startDetached("grob", args);
 }
 
@@ -150,13 +130,10 @@ void DiskGallery::wiki()
 }
 
 /** Emitted on start if the phone uses USB mass storage. */
-void DiskGallery::emitDiskUpdate()
+void DiskGallery::checkUsb()
 {
-	if (!QFile::exists(pathManager.diskDirPath("nes"))) {
+	if (!QFile::exists(pathManager.diskDirPath("nes")))
 		emit detachUsb();
-		return;
-	}
-	emit diskUpdate();
 }
 
 /** Received from one of emulated systems. Decodes the packet,

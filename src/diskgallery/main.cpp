@@ -19,7 +19,8 @@
 #include <pathmanager.h>
 #include <QApplication>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	QApplication app(argc, argv);
 	Configuration::setupAppInfo();
 	pathManager.buildLocalDirTree();

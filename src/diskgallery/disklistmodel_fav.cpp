@@ -2,7 +2,8 @@
 #include <pathmanager.h>
 #include <QDataStream>
 
-void DiskListModel::loadFav() {
+void DiskListModel::loadFav()
+{
 	QFile file(QString("%1/favourites").arg(pathManager.userDataDirPath()));
 	if (!file.open(QIODevice::ReadOnly))
 		return;
@@ -11,7 +12,8 @@ void DiskListModel::loadFav() {
 	stream >> m_favListEmu;
 }
 
-void DiskListModel::saveFav() {
+void DiskListModel::saveFav()
+{
 	QFile file(QString("%1/favourites").arg(pathManager.userDataDirPath()));
 	if (!file.open(QIODevice::WriteOnly|QIODevice::Truncate))
 		return;
@@ -20,7 +22,8 @@ void DiskListModel::saveFav() {
 	stream << m_favListEmu;
 }
 
-void DiskListModel::addToFav(int i) {
+void DiskListModel::addToFav(int i)
+{
 	Q_ASSERT(m_collection != "fav");
 	QString fileName = getDiskFileName(i);
 	QString emuName = getDiskEmuName(i);
@@ -42,7 +45,8 @@ void DiskListModel::addToFav(int i) {
 	saveFav();
 }
 
-void DiskListModel::removeFromFav(int i) {
+void DiskListModel::removeFromFav(int i)
+{
 	if (m_collection != "fav") {
 		QString fileName = getDiskFileName(i);
 		QString emuName = getDiskEmuName(i);
@@ -72,7 +76,8 @@ void DiskListModel::removeFromFav(int i) {
 	saveFav();
 }
 
-bool DiskListModel::diskInFavExists(int i) {
+bool DiskListModel::diskInFavExists(int i)
+{
 	QString fileName = getDiskFileName(i);
 	QString emuName = getDiskEmuName(i);
 	if (emuName.isEmpty())

@@ -14,8 +14,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef ROMLISTMODEL_H
-#define ROMLISTMODEL_H
+#ifndef DISKLISTMODEL_H
+#define DISKLISTMODEL_H
 
 #include <QAbstractListModel>
 #include <QStringList>
@@ -23,7 +23,8 @@
 #include <QVector>
 class QFontMetrics;
 
-class DiskListModel : public QAbstractListModel {
+class DiskListModel : public QAbstractListModel
+{
 	Q_OBJECT
 	Q_PROPERTY(QString collection READ collection WRITE setCollection NOTIFY collectionChanged)
 	Q_PROPERTY(int count READ count NOTIFY collectionChanged)
@@ -118,4 +119,4 @@ private:
 inline QString DiskListModel::collection() const
 { return m_collection; }
 
-#endif // ROMLISTMODEL_H
+#endif // DISKLISTMODEL_H

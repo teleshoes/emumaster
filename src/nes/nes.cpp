@@ -143,7 +143,7 @@ void NesEmu::setupTvEncodingSystem(const QString &path)
 
 bool NesEmu::slCheckTvEncodingSystem() const
 {
-	// in versions before 0.2.3 system has not been saved and there is no
+	// in versions before 0.3.0 system has not been saved and there is no
 	// sense of checking it, since we must save file name in order to do it
 	bool ok = true;
 	// check if TV system used in the saved state is the same as current
@@ -153,6 +153,13 @@ bool NesEmu::slCheckTvEncodingSystem() const
 		bool slSys = (typeStr == "NTSC");
 		bool emuSys = (nesSystemType == NES_NTSC);
 		ok = (slSys == emuSys);
+	} else {
+		// TODO do it in state converter
+		// write tv system to configuration in case of version < 0.3.0
+		if (nesSystemType == NES_NTSC)
+			emConf.setValue(tvSystemConfName, "NTSC");
+		else
+			emConf.setValue(tvSystemConfName, "PAL");
 	}
 	if (!ok) {
 		emsl.error = QString("%1 \"%2\"").arg(EM_MSG_STATE_DIFFERS)

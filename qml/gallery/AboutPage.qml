@@ -40,7 +40,7 @@ Page {
 		Label {
 			width: parent.width
 			text: qsTr("EmuMaster %1\nAuthor: elemental\n" +
-					   "Want new features?\nFound a bug?\nVisit the homepage or the wiki")
+					   "Want new features?\nFound a bug?\nVisit the wiki or the thread at maemo forum")
 						.arg(appVersion)
 			wrapMode: Text.WordWrap
 			horizontalAlignment: Text.AlignHCenter
@@ -51,16 +51,16 @@ Page {
 
 			Column {
 				Image {
-					id: iconHome
-					source: "image://theme/icon-l-browser"
+					id: iconMaemo
+					source: "../img/maemo.png"
 					MouseArea {
 						anchors.fill: parent
-						onClicked: diskGallery.homepage()
+						onClicked: diskGallery.maemoThread()
 					}
 				}
 				Label {
-					anchors.horizontalCenter: iconHome.horizontalCenter
-					text: qsTr("Home")
+					anchors.horizontalCenter: iconMaemo.horizontalCenter
+					text: qsTr("Forum")
 				}
 			}
 			Column {
