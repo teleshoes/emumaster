@@ -14,10 +14,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "pad.h"
+#include "input.h"
 #include "nes.h"
-
-NesPad nesPad;
 
 static bool nextStrobe;
 static u8 padA;
@@ -26,7 +24,8 @@ static u8 padB;
 static u8 padAReg;
 static u8 padBReg;
 
-static const int keyMapping[8] = {
+static const int buttonMapping[8] =
+{
 	EmuPad::Button_A,
 	EmuPad::Button_B,
 	EmuPad::Button_Select,
@@ -37,25 +36,26 @@ static const int keyMapping[8] = {
 	EmuPad::Button_Right
 };
 
-void NesEmu::setPadKeys(int pad, int keys) {
+static inline void strobe()
+{
+	padAReg = padA;
+	padBReg = padB;
+	// TODO expad
+}
+
+static inline u8 hostToEmu(int buttons)
+{
 	Q_ASSERT(pad == 0 || pad == 1);
-	int nesKeys = 0;
+	u8 result = 0;
 	for (int i = 0; i < 8; i++) {
-		if (keys & keyMapping[i])
-			nesKeys |= 1 << i;
+		if (buttons & buttonMapping[i])
+			result |= 1 << i;
 	}
-	nesPad.setKeys(pad, nesKeys);
+	return result;
 }
 
-void NesPad::setKeys(int pad, int keys) {
-	Q_ASSERT(pad == 0 || pad == 1);
-	if (!pad)
-		padA = keys;
-	else
-		padB = keys;
-}
-
-void NesPad::init() {
+void nesPadInit()
+{
 	padA = 0;
 	padB = 0;
 	padAReg = 0;
@@ -63,9 +63,19 @@ void NesPad::init() {
 	nextStrobe = false;
 }
 
-void NesPad::write(u16 address, u8 data) {
-	Q_ASSERT(address < 2);
-	if (address == 0) {
+void nesPadSetButtons(int pad, int buttons)
+{
+	Q_ASSERT(pad == 0 || pad == 1);
+	if (!pad)
+		padA = hostToEmu(buttons);
+	else
+		padB = hostToEmu(buttons);
+}
+
+void nesPadWrite(u16 addr, u8 data)
+{
+	Q_ASSERT(addr < 2);
+	if (addr == 0) {
 		if (data & 0x01) {
 			nextStrobe = true;
 		} else if (nextStrobe) {
@@ -77,10 +87,11 @@ void NesPad::write(u16 address, u8 data) {
 	}
 }
 
-u8 NesPad::read(u16 address) {
-	Q_ASSERT(address < 2);
+u8 nesPadRead(u16 addr)
+{
+	Q_ASSERT(addr < 2);
 	u8 data;
-	if (address == 0) {
+	if (addr == 0) {
 		data = padAReg & 1;
 		padAReg >>= 1;
 		// TODO expad
@@ -90,10 +101,4 @@ u8 NesPad::read(u16 address) {
 		// TODO expad
 	}
 	return	data;
-}
-
-void NesPad::strobe() {
-	padAReg = padA;
-	padBReg = padB;
-	// TODO expad
 }

@@ -19,7 +19,7 @@
 #include "ppu.h"
 #include "apu.h"
 #include "disk.h"
-#include "pad.h"
+#include "input.h"
 #include "mapper.h"
 #include "cheats.h"
 #include "timings.h"
@@ -62,7 +62,7 @@ QString NesEmu::init(const QString &diskPath)
 	setRenderMethod(PreRender);
 	nesCpu.init();
 	nesApuInit();
-	nesPad.init();
+	nesPadInit();
 	nesPpu.init();
 	return QString();
 }
@@ -193,8 +193,8 @@ const QImage &NesEmu::frame() const
 
 void NesEmu::emulateFrame(bool drawEnabled)
 {
-	setPadKeys(0, input()->pad[0].buttons());
-	setPadKeys(1, input()->pad[1].buttons());
+	nesPadSetButtons(0, input()->pad[0].buttons());
+	nesPadSetButtons(1, input()->pad[1].buttons());
 
 	nesApuBeginFrame();
 	bZapper = false;
@@ -207,7 +207,7 @@ void NesEmu::emulateFrame(bool drawEnabled)
 
 inline void NesEmu::updateZapper()
 {
-	if (nesPad.isZapperMode())
+	if (nesPadIsZapperMode())
 		bZapper = (nesPpuScanline == ZapperY);
 }
 
@@ -237,7 +237,7 @@ void NesEmu::emulateFrameNoTile(bool drawEnabled)
 		if (drawEnabled) {
 			nesPpu.processScanline();
 		} else {
-			if (nesPad.isZapperMode() && nesPpuScanline == ZapperY ) {
+			if (nesPadIsZapperMode() && nesPpuScanline == ZapperY ) {
 				nesPpu.processScanline();
 			} else {
 				if (nesPpu.checkSprite0HitHere())
@@ -322,7 +322,7 @@ void NesEmu::emulateFrameTile(bool drawEnabled)
 		}
 	} else {
 		for (; nesPpuScanline < 240; nesPpu.nextScanline()) {
-			if (nesPad.isZapperMode() && nesPpuScanline == ZapperY)
+			if (nesPadIsZapperMode() && nesPpuScanline == ZapperY)
 				nesPpu.processScanline();
 			else {
 				if (nesPpu.checkSprite0HitHere()) {

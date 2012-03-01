@@ -88,13 +88,13 @@ HEADERS += \
     aputrianglechannel.h \
     cpu.h \
     disk.h \
-    pad.h \
     mapper.h \
     ppu.h \
     eeprom.h \
     nes.h \
     timings.h \
-    cheats.h
+    cheats.h \
+    input.h
 
 SOURCES += \
 	mapper/mapper255.cpp \
@@ -176,7 +176,6 @@ SOURCES += \
 	mapper/mapper001.cpp \
 	mapper/mapper000.cpp \
     ppu.cpp \
-    pad.cpp \
     mapper.cpp \
     disk.cpp \
     cpu.cpp \
@@ -188,4 +187,5 @@ SOURCES += \
     aputrianglechannel.cpp \
     eeprom.cpp \
     nes.cpp \
-    cheats.cpp
+    cheats.cpp \
+    input.cpp

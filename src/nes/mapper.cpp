@@ -20,7 +20,7 @@
 #include "cpu.h"
 #include "ppu.h"
 #include "apu.h"
-#include "pad.h"
+#include "input.h"
 #include "cheats.h"
 #include <QDataStream>
 
@@ -341,10 +341,10 @@ void NesMapper::writeReg(u16 address, u8 data) {
 		// TODO check it
 		nesCpu.dma(514);
 	} else if (address == 0x4016) {
-		nesPad.write(0, data);
+		nesPadWrite(0, data);
 	} else if (address == 0x4017) {
 		nesApuWrite(0x17, data);
-		nesPad.write(1, data);
+		nesPadWrite(1, data);
 	} else if (address < 0x4017) {
 		nesApuWrite(address & 0x1F, data);
 	} else {
@@ -356,10 +356,10 @@ u8 NesMapper::readReg(u16 address) {
 	if (address == 0x4014) {
 		return 0x14;
 	} if (address == 0x4016) {
-		u8 data = nesPad.read(0);
+		u8 data = nesPadRead(0);
 		return data | 0x40; // TODO | m_TapeOut
 	} else if (address == 0x4017) {
-		u8 data = nesPad.read(1);
+		u8 data = nesPadRead(1);
 		return data | nesApuRead(0x17);
 	} else if (address < 0x4017) {
 		return nesApuRead(address & 0x1F);

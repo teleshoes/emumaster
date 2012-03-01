@@ -14,38 +14,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef NESPAD_H
-#define NESPAD_H
+#ifndef NESINPUT_H
+#define NESINPUT_H
 
 #include <emu.h>
 
-class NesPad {
-public:
-	enum Button {
-		A = 0x01,
-		B = 0x02,
-		Select = 0x04,
-		Start = 0x08,
-		Up = 0x10,
-		Down = 0x20,
-		Left = 0x40,
-		Right = 0x80
-	};
-	Q_DECLARE_FLAGS(Buttons, Button)
+void nesPadInit();
+void nesPadSetButtons(int pad, int buttons);
+void nesPadWrite(u16 addr, u8 data);
+  u8 nesPadRead(u16 addr);
 
-	void init();
-	bool isZapperMode() const;
-
-	void setKeys(int pad, int keys);
-	void write(u16 address, u8 data);
-	u8 read(u16 address);
-private:
-	void strobe();
-};
-
-inline bool NesPad::isZapperMode() const
+static inline bool nesPadIsZapperMode()
 { return false; } // TODO zapper
 
-extern NesPad nesPad;
-
-#endif // NESPAD_H
+#endif // NESINPUT_H

@@ -66,7 +66,6 @@ private:
 	void emulateVisibleScanlineTile();
 
 	void updateZapper();
-	void setPadKeys(int pad, int keys);
 
 	void setupTvEncodingSystem(const QString &path);
 	bool slCheckTvEncodingSystem() const;

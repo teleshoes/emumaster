@@ -18,7 +18,8 @@
 #include <emu.h>
 #include <QDataStream>
 
-void X24C01::reset(u8 *eedata) {
+void X24C01::reset(u8 *eedata)
+{
 	m_nowState = Idle;
 	m_nextState = Idle;
 	m_address = 0;
@@ -30,7 +31,8 @@ void X24C01::reset(u8 *eedata) {
 	m_eedata = eedata;
 }
 
-void X24C01::write(bool scl_in, bool sda_in) {
+void X24C01::write(bool scl_in, bool sda_in)
+{
 	// clock line
 	bool scl_rise = (!m_sclOld && scl_in);
 	bool scl_fall = (m_sclOld && !scl_in);
@@ -122,9 +124,12 @@ void X24C01::write(bool scl_in, bool sda_in) {
 }
 
 bool X24C01::read() const
-{ return m_sda; }
+{
+	return m_sda;
+}
 
-void X24C01::sl(const QString &groupName) {
+void X24C01::sl(const QString &groupName)
+{
 	emsl.begin(groupName);
 	emsl.var("nowState", m_nowState);
 	emsl.var("nextState", m_nextState);
@@ -137,7 +142,8 @@ void X24C01::sl(const QString &groupName) {
 	emsl.end();
 }
 
-void X24C02::reset(u8 *eedata) {
+void X24C02::reset(u8 *eedata)
+{
 	m_nowState = Idle;
 	m_nextState = Idle;
 	m_address = 0;
@@ -150,7 +156,8 @@ void X24C02::reset(u8 *eedata) {
 	m_eedata = eedata;
 }
 
-void X24C02::write(bool scl_in, bool sda_in) {
+void X24C02::write(bool scl_in, bool sda_in)
+{
 	// clock line
 	bool scl_rise = (!m_sclOld && scl_in);
 	bool scl_fall = (m_sclOld && !scl_in);
@@ -279,9 +286,12 @@ void X24C02::write(bool scl_in, bool sda_in) {
 }
 
 bool X24C02::read() const
-{ return m_sda; }
+{
+	return m_sda;
+}
 
-void X24C02::sl(const QString &groupName) {
+void X24C02::sl(const QString &groupName)
+{
 	emsl.begin(groupName);
 	emsl.var("nowState", m_nowState);
 	emsl.var("nextState", m_nextState);
