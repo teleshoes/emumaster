@@ -19,41 +19,56 @@
 
 #include "apuchannel.h"
 
-class NesApuRectangleChannel : public NesApuChannel {
+class NesApuRectangleChannel
+{
 public:
-	explicit NesApuRectangleChannel(int channelNo);
+	enum Register {
+		EnvelopeReg,
+		SweepReg,
+		WaveLengthLow,
+		WaveLengthHigh
+	};
+
 	void reset();
 
-	void setSweep(u8 data);
+	void setActive(bool on);
+	void write(int addr, u8 data);
+	void update(bool clock2nd, int complement);
+	int render(int cycleRate);
 
-	void clockSweep();
-	void updateSampleValue();
+	void syncSetActive(bool on);
+	bool syncIsActive() const;
+	void syncWrite(int addr, u8 data);
+	void syncUpdate(bool clock2nd);
 
-	void clock(int nCycles);
-
-protected:
-	void extSl();
+	void sl();
 private:
-	int m_sweepShiftAmount;
-	bool m_sweepDirection;
-	int m_sweepUpdateRate;
-	bool m_sweepEnable;
-	int m_sweepCounter;
-	bool m_sweepCarry;
-	bool m_updateSweepPeriod;
-	int m_rectangleCounter;
+	void clockSweep(int complement);
 
-	static int m_dutyLUT[32];
+	u8 m_regs[4];
+	u8 m_duty;
+	u8 m_sweepEnable;
+	u8 m_sweepIncrease;
+	u8 m_sweepShift;
+	u8 m_sweepRate;
+	u8 m_sweepCounter;
+	u8 m_adder;
+
+	int m_timer;
+	int m_frequency;
+	int m_frequencyLimit;
+
+	NesApuEnvelope m_envelope;
+	NesApuLengthCounter m_lengthCounter;
+
+	NesApuEnvelope m_syncEnvelope;
+	NesApuLengthCounter m_syncLengthCounter;
+
+	static const u8 m_dutyLut[4];
+	static const int m_frequencyLimitLut[8];
 };
 
-inline void NesApuRectangleChannel::clock(int nCycles) {
-	progTimerCount -= nCycles;
-	if (progTimerCount <= 0) {
-		progTimerCount += (progTimerMax + 1) << 1;
-		m_rectangleCounter++;
-		m_rectangleCounter &= 0x7;
-		updateSampleValue();
-	}
-}
+inline bool NesApuRectangleChannel::syncIsActive() const
+{ return m_syncLengthCounter.count(); }
 
 #endif // NESAPURECTANGLECHANNEL_H

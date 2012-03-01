@@ -22,17 +22,20 @@
 #include <emu.h>
 #include <QDataStream>
 
+static const int NmiVectorAddress		= 0xFFFA;
+static const int ResetVectorAddress		= 0xFFFC;
+static const int IrqVectorAddress		= 0xFFFE;
+
 enum StatusFlag {
-	N = 0x80, // Negative
-	V = 0x40, // Overflow
-	U = 0x20, // Unused
-	B = 0x10, // BrkCommand
-	D = 0x08, // DecimalMode
-	I = 0x04, // IrqDisable
-	Z = 0x02, // Zero
-	C = 0x01  // Carry
+	C = 0x01, // carry
+	Z = 0x02, // zero
+	I = 0x04, // irq disable
+	D = 0x08, // decimal mode (not supported on the 2A03)
+	B = 0x10, // break command (software interrupt)
+	U = 0x20, // unused - always 1
+	V = 0x40, // overflow
+	N = 0x80  // negative
 };
-Q_DECLARE_FLAGS(StatusFlags, StatusFlag)
 
 enum AddressingMode {
 	Impli = 0,
@@ -54,82 +57,114 @@ NesCpu nesCpu;
 
 static const int StackBase = 0x100;
 
-#define PUSH(data) WRITE(StackBase+S, data); S--
-#define POP() READ(StackBase + (++S & 0xFF))
-
 static u8 A; // accumulator register
 static u8 Y, X; // index registers
 static u16 PC; // program counter register
 static u8 S; // stack pointer register
 static u8 P; // processor status register
 
-static u8 ZNTable[256];
+static u16	EA; // effective address
+static u16	ET; // effective address temp
+//     u16	WT; // word temp
+static u8	DT; // data
+
+enum SignalIn { Irq0 = 1, Nmi = 2 };
 
 static u32 cpuSignals;
 static bool nmiState;
-static u32 currentCycles;
+static u32 executedCycles;
+static u32 instructionCycles;
 
 static u32 dmaCycles;
 
 static bool apuIrq;
 static bool mapperIrq;
 
-void NesCpu::init() {
+static void execute(u8 opcode);
+static inline void HW_INTERRUPT(u16 vector);
+
+static inline void WRITE8(u16 address, u8 data)
+{
+	nesMapper->write(address, data);
+}
+
+static inline u8 READ8(u16 address)
+{
+	return nesMapper->read(address);
+}
+
+static inline u16 READ16(u16 address)
+{
+	u16 ret = nesMapper->read(address);
+	ret |= nesMapper->read(address+1) << 8;
+	return ret;
+}
+
+static inline void PUSH8(u8 data)
+{
+	nesRam[StackBase+S] = data;
+	S--;
+}
+
+static inline u8 POP8()
+{
+	S++;
+	return nesRam[StackBase+S];
+}
+
+static inline void PUSH16(u16 data)
+{
+	PUSH8(data>>8);
+	PUSH8(data);
+}
+
+static inline u16 POP16()
+{
+	u16 ret = POP8();
+	ret |= POP8() << 8;
+	return ret;
+}
+
+static inline u8 FETCH_PC8()
+{
+	u8 ret = READ8(PC);
+	PC++;
+	return ret;
+}
+
+static inline u16 FETCH_PC16()
+{
+	u16 ret = READ16(PC);
+	PC += 2;
+	return ret;
+}
+
+static inline u8 FETCH_ZP8(u8 address)
+{
+	return nesRam[address];
+}
+
+static inline u16 FETCH_ZP16(u8 address)
+{
+	u16 lo = nesRam[address];
+	u16 hi = nesRam[(address+1) & 0xFF];
+	return lo | (hi<<8);
+}
+
+static inline void ADDCYC(u32 n)
+{
+	instructionCycles += n;
+}
+
+void NesCpu::init()
+{
 	nmiState = false;
-	qMemSet(ZNTable + 0x00, 0, 0x80);
-	qMemSet(ZNTable + 0x80, N, 0x80);
-	ZNTable[0] = Z;
 }
 
-u32 NesCpu::clock(u32 cycles) {
-	u32 executedCycles = 0;
-	while (executedCycles < cycles) {
-		if (dmaCycles) {
-			u32 remaining = cycles - executedCycles;
-			if (remaining <= dmaCycles) {
-				dmaCycles -= remaining;
-				executedCycles += remaining;
-				nesMapper->clock(remaining);
-				break;
-			} else {
-				executedCycles += dmaCycles;
-				nesMapper->clock(dmaCycles);
-				dmaCycles = 0;
-			}
-		}
-		u32 instrCycles = executeOne();
-		// TODO mapper clock enable
-		nesMapper->clock(instrCycles);
-		executedCycles += instrCycles;
-		nesApu.clockFrameCounter(instrCycles);
-	}
-	//		TODO nesApu.clockFrameCounter(executedCycles);
-	return executedCycles;
-}
-
-void NesCpu::dma(u32 cycles)
-{ dmaCycles += cycles; }
-
-void NesCpu::apu_irq_i(bool on) {
-	bool oldIrqState = (apuIrq || mapperIrq);
-	apuIrq = on;
-	bool newIrqState = (apuIrq || mapperIrq);
-	if (newIrqState != oldIrqState)
-		irq0_i(newIrqState);
-}
-
-void NesCpu::mapper_irq_i(bool on) {
-	bool oldIrqState = (apuIrq || mapperIrq);
-	mapperIrq = on;
-	bool newIrqState = (apuIrq || mapperIrq);
-	if (newIrqState != oldIrqState)
-		irq0_i(newIrqState);
-}
-
-u32 NesCpu::executeOne() {
-	currentCycles = 0;
-	u8 opcode = READ(PC);
-	ADDCYC(cyclesTable[opcode]);
+static inline void executeOne()
+{
+	u8 opcode = READ8(PC);
+	instructionCycles = NesCpu::cyclesTable[opcode];
 	PC++;
 
 	u16 vector = 0;
@@ -146,32 +181,79 @@ u32 NesCpu::executeOne() {
 
 	execute(opcode);
 
-	if (vector) {
-		ADDCYC(7);
-		PUSH(PC >> 8);
-		PUSH(PC);
-		PUSH((P & ~B) | U);
-		P |= I;
-		PC = READ(vector);
-		PC |= READ(vector + 1) << 8;
-	}
-	return currentCycles;
+	if (vector)
+		HW_INTERRUPT(vector);
 }
 
-void NesCpu::ADDCYC(u32 n)
-{ currentCycles += n; }
+u32 NesCpu::clock(u32 cycles)
+{
+	executedCycles = 0;
+	while (executedCycles < cycles) {
+		if (dmaCycles) {
+			u32 remaining = cycles - executedCycles;
+			if (remaining <= dmaCycles) {
+				dmaCycles -= remaining;
+				executedCycles += remaining;
+				nesMapper->clock(remaining);
+				break;
+			} else {
+				executedCycles += dmaCycles;
+				nesMapper->clock(dmaCycles);
+				dmaCycles = 0;
+			}
+		}
+		executeOne();
+		executedCycles += instructionCycles;
+		// TODO mapper clock enable
+		nesMapper->clock(instructionCycles);
+	}
+	nesApuClock(executedCycles);
+	return executedCycles;
+}
 
-void NesCpu::setSignal(SignalIn sig, bool on) {
+void NesCpu::dma(u32 cycles)
+{
+	dmaCycles += cycles;
+}
+
+u32 NesCpu::ticks() const
+{
+	return executedCycles;
+}
+
+static inline void setSignal(SignalIn sig, bool on)
+{
 	if (on)
 		cpuSignals |=  sig;
 	else
 		cpuSignals &= ~sig;
 }
 
-void NesCpu::irq0_i(bool on)
-{ setSignal(Irq0, on); }
+void NesCpu::apu_irq_i(bool on)
+{
+	bool oldIrqState = (apuIrq || mapperIrq);
+	apuIrq = on;
+	bool newIrqState = (apuIrq || mapperIrq);
+	if (newIrqState != oldIrqState)
+		irq0_i(newIrqState);
+}
 
-void NesCpu::nmi_i(bool on) {
+void NesCpu::mapper_irq_i(bool on) {
+
+	bool oldIrqState = (apuIrq || mapperIrq);
+	mapperIrq = on;
+	bool newIrqState = (apuIrq || mapperIrq);
+	if (newIrqState != oldIrqState)
+		irq0_i(newIrqState);
+}
+
+void NesCpu::irq0_i(bool on)
+{
+	setSignal(Irq0, on);
+}
+
+void NesCpu::nmi_i(bool on)
+{
 	if (on && !nmiState)
 		setSignal(Nmi, true);
 	nmiState = on;
@@ -188,16 +270,15 @@ void NesCpu::reset()
 	apuIrq = false;
 	mapperIrq = false;
 	irq0_i(false);
-	nesApu.reset();
 	dmaCycles = 0;
 	cpuSignals = 0;
+	executedCycles = 0;
 
-	u16 vector = ResetVectorAddress;
-	PC = READ(vector);
-	PC |= READ(vector+1) << 8;
+	PC = READ16(ResetVectorAddress);
 }
 
-void NesCpu::sl() {
+void NesCpu::sl()
+{
 	emsl.begin("cpu");
 	emsl.var("dmaCycles", dmaCycles);
 	emsl.var("apuIrq", apuIrq);
@@ -213,556 +294,752 @@ void NesCpu::sl() {
 	emsl.end();
 }
 
-#define X_ZN(val)	P &= ~(Z|N); P |= ZNTable[val]
-#define X_ZNT(val)	P |= ZNTable[val]
-
-#define JR(cond) { \
-	s32 disp = static_cast<s8> (READ(PC)); \
-	if (cond) { \
-		u32 tmp; \
-		PC++; \
-		ADDCYC(1); \
-		tmp = PC; \
-		PC += disp; \
-		if ((tmp^PC) & 0x100) \
-			ADDCYC(1); \
-	} else { \
-		PC++; \
-	} \
+static inline u8 calcZN(u8 val)
+{
+	u8 zn = val & N;
+	if (!val)
+		zn |= Z;
+	return zn;
 }
 
-#define LDA  A = x; X_ZN(A)
-#define LDX  X = x; X_ZN(X)
-#define LDY  Y = x; X_ZN(Y)
-
-#define AND  A &= x; X_ZN(A)
-#define BIT  P &= ~(Z|V|N); P |= ZNTable[x&A]&Z; P |= x&(V|N)
-#define EOR  A ^= x; X_ZN(A)
-#define ORA  A |= x; X_ZN(A)
-
-#define ADC { \
-	u32 l = A+x+(P&1); \
-	P &= ~(Z|C|N|V); \
-	P |= ((((A^x)&0x80)^0x80) & ((A^l)&0x80)) >> 1; \
-	P |= (l>>8)&C;  \
-	A = l; \
-	X_ZNT(A); \
+static inline void X_ZN(u8 val)
+{
+	P &= ~(Z|N);
+	P |= calcZN(val);
 }
 
-#define SBC { \
-	u32 l = A-x-((P&1)^1); \
-	P &= ~(Z|C|N|V); \
-	P |= ((A^l) & (A^x)&0x80) >> 1; \
-	P |= ((l>>8)&C) ^ C; \
-	A = l; \
-	X_ZNT(A); \
+static inline void X_ZNT(u8 val)
+{
+	P |= calcZN(val);
 }
 
-#define CMPL(a1,a2) { \
-	u32 t = a1-a2; \
-	X_ZN(t & 0xFF); \
-	P &= ~C; \
-	P |= ((t>>8)&C) ^ C; \
+static inline bool CHECK_EA()
+{
+	// (ET^EA) & 0x100
+	bool boundary = ((ET^EA) >> 8) & 1;
+	if (boundary) {
+		READ8(EA-0x100);
+		ADDCYC(1);
+	}
+	return boundary;
 }
 
-#define AXS { \
-	u32 t = (A&X) - x; \
-	X_ZN(t & 0xFF); \
-	P &= ~C; \
-	P |= ((t>>8)&C) ^ C; \
-	X = t; \
+static inline void NOP() {}
+
+//----------------------------- load instructions ------------------------------
+
+static inline void LDA() { A = DT; X_ZN(DT); }
+static inline void LDX() { X = DT; X_ZN(DT); }
+static inline void LDY() { Y = DT; X_ZN(DT); }
+
+//---------------------------- store instructions ------------------------------
+
+static inline void STA() { DT = A; }
+static inline void STX() { DT = X; }
+static inline void STY() { DT = Y; }
+
+//----------------------------- move instructions ------------------------------
+
+static inline void TAX() { X = A; X_ZN(A); }
+static inline void TXA() { A = X; X_ZN(A); }
+static inline void TAY() { Y = A; X_ZN(A); }
+static inline void TYA() { A = Y; X_ZN(A); }
+
+static inline void TSX() { X = S; X_ZN(X); }
+static inline void TXS() { S = X; }
+
+//----------------------------- flow instructions ------------------------------
+
+static inline void JMP_ABS()
+{
+	PC = READ16(PC);
 }
 
-#define CMP CMPL(A, x)
-#define CPX CMPL(X, x)
-#define CPY CMPL(Y, x)
-
-#define DEC x--; X_ZN(x)
-#define INC x++; X_ZN(x)
-
-#define ASL P &= ~C; P |= x>>7; x<<=1; X_ZN(x)
-#define LSR P &= ~(C|N|Z); P |= x&1; x>>=1; X_ZNT(x)
-
-#define LSRA P &= ~(C|N|Z); P |= A&1; A>>=1; X_ZNT(A)
-
-#define ROL { \
-	u8 l = x>>7; \
-	x <<= 1; \
-	x |= P&C; \
-	P &= ~(Z|N|C); \
-	P |= l; \
-	X_ZNT(x); \
-}
-#define ROR { \
-	u8 l = x&1; \
-	x >>= 1; \
-	x |= (P&C) << 7; \
-	P &= ~(Z|N|C); \
-	P |= l; \
-	X_ZNT(x); \
+static inline void JMP_IND()
+{
+	u16 WT = READ16(PC);
+	EA = READ8(WT);
+	WT = ((WT+1)&0x00FF) | (WT&0xFF00);
+	PC = EA | (READ8(WT)<<8);
 }
 
-#define RMW_A(op)	{ u8 x = A; op; A=x; }
-#define RMW_AB(op)	{ u32 a; getAB(a); u8 x = READ(a); op; WRITE(a,x); } // TODO WRITE(a,x);
-#define RMW_ABI(reg, op) { u32 a; getABIWR(a,reg); u8 x = READ(a); op; WRITE(a,x); } // TODO WRITE(a,x);
-#define RMW_ABX(op)	RMW_ABI(X, op)
-#define RMW_ABY(op)	RMW_ABI(Y, op)
-#define RMW_IX(op)  { u32 a; getIX(a); u8 x = READ(a); op; WRITE(a,x); } // TODO WRITE(a,x);
-#define RMW_IY(op)  { u32 a; getIYWR(a); u8 x = READ(a); op; WRITE(a,x); } // WRITE(a,x);
-#define RMW_ZP(op)  { u8 a = getZP(); u8 x = READ(a); op; WRITE(a,x); }
-#define RMW_ZPX(op) { u8 a = getZPI(X); u8 x = READ(a); op; WRITE(a,x); }
-
-#define LD_IM(op)	{ u8 x = READ(PC); PC++; op; }
-#define LD_ZP(op)	{ u8 a = getZP(); u8 x = READ(a); op; }
-#define LD_ZPX(op)	{ u8 a = getZPI(X); u8 x = READ(a); op; }
-#define LD_ZPY(op)	{ u8 a = getZPI(Y); u8 x = READ(a); op; }
-#define LD_AB(op)	{ u32 a; getAB(a); u8 x = READ(a); op; }
-#define LD_ABI(reg,op)	{ u32 a; getABIRD(a,reg); u8 x = READ(a); op; }
-#define LD_ABX(op)	LD_ABI(X,op)
-#define LD_ABY(op)	LD_ABI(Y,op)
-#define LD_IX(op)	{ u32 a; getIX(a); u8 x = READ(a); op; }
-#define LD_IY(op)	{ u32 a; getIYRD(a); u8 x = READ(a); op; }
-
-#define ST_ZP(r)	{ u8 a = getZP(); WRITE(a,r); }
-#define ST_ZPX(r)	{ u8 a = getZPI(X); WRITE(a,r); }
-#define ST_ZPY(r)	{ u8 a = getZPI(Y); WRITE(a,r); }
-#define ST_AB(r)	{ u32 a; getAB(a); WRITE(a,r); }
-#define ST_ABI(reg,r)	{ u32 a; getABIWR(a,reg); WRITE(a,r); }
-#define ST_ABX(r)	ST_ABI(X, r)
-#define ST_ABY(r)	ST_ABI(Y, r)
-#define ST_IX(r)	{ u32 a; getIX(a); WRITE(a,r); }
-#define ST_IY(r)	{ u32 a; getIYWR(a); WRITE(a,r); }
-
-#define getAB(target) { \
-	target = READ(PC++); \
-	target |= READ(PC++)<<8; \
+static inline void JSR()
+{
+	EA = READ16(PC);
+	PUSH16(PC+1);
+	PC = EA;
 }
 
-#define getABIRD(target,i) { \
-	u32 tmp; \
-	getAB(tmp); \
-	target = tmp; \
-	target += i; \
-	if ((target^tmp) & 0x100) { \
-		target &= 0xFFFF; \
-		ADDCYC(1); \
-	} \
+static inline void RTI()
+{
+	P = POP8();
+	PC = POP16();
 }
 
-//  TODO READ(target ^ 0x100); after target &= 0xFFFF;
-
-#define getABIWR(target,i) { \
-	u32 rt; \
-	getAB(rt); \
-	target = rt; \
-	target += i; \
-	target &= 0xFFFF; \
+static inline void RTS()
+{
+	PC = POP16() + 1;
 }
 
-// TODO READ((target&0x00FF) | (rt&0xFF00)); to getABIWR??
-
-#define getZP() READ(PC++)
-#define getZPI(i) i+READ(PC++)
-
-#define getIX(target) { \
-	u8 tmp = READ(PC++); \
-	tmp += X; \
-	target = READ(tmp++); \
-	target |= READ(tmp) << 8; \
+static inline void BRK()
+{
+	PUSH16(PC+1);
+	PUSH8(P|U|B);
+	P |= I;
+	PC = READ16(IrqVectorAddress);
 }
 
-#define getIYRD(target) { \
-	u8 tmp = READ(PC++); \
-	u32 rt = READ(tmp++); \
-	rt |= READ(tmp) << 8; \
-	target = rt + Y; \
-	if ((target^rt) & 0x100) { \
-		target &= 0xFFFF; \
-		ADDCYC(1); \
-	} \
+static inline void HW_INTERRUPT(u16 vector)
+{
+	PUSH16(PC);
+	PUSH8((P&~B) | U);
+	P |= I;
+	PC = READ16(vector);
+	ADDCYC(7);
 }
 
-// TODO READ(target ^ 0x100); after target &= 0xFFFF;
-
-#define getIYWR(target) { \
-	u8 tmp = READ(PC++); \
-	uint rt = READ(tmp++); \
-	rt |= READ(tmp) << 8; \
-	target = (rt + Y) & 0xFFFF; \
+static inline void BRANCH()
+{
+	ET = PC;
+	EA = PC + (s8)DT;
+	PC = EA;
+	ADDCYC(1);
+	CHECK_EA();
 }
 
-// TODO READ((target&0x00FF) | (rt&0xFF00)); after target = (rt + Y) & 0xFFFF;
+static inline void BCC() { if (!(P&C)) BRANCH(); }
+static inline void BCS() { if (  P&C ) BRANCH(); }
+static inline void BNE() { if (!(P&Z)) BRANCH(); }
+static inline void BEQ() { if (  P&Z ) BRANCH(); }
+static inline void BPL() { if (!(P&N)) BRANCH(); }
+static inline void BMI() { if (  P&N ) BRANCH(); }
+static inline void BVC() { if (!(P&V)) BRANCH(); }
+static inline void BVS() { if (  P&V ) BRANCH(); }
 
-#define BRK \
-	PC++; \
-	PUSH(PC >> 8); \
-	PUSH(PC); \
-	PUSH(P|U|B); \
-	P |= I; \
-	PC = READ(0xFFFE); \
-	PC |= READ(0xFFFF) << 8;
+//----------------------------- math instructions ------------------------------
 
-#define RTI \
-	P = POP(); \
-	PC = POP(); \
-	PC |= POP() << 8;
-
-#define RTS \
-	PC = POP(); \
-	PC |= POP() << 8; \
-	PC++;
-
-#define PHA PUSH(A)
-#define PHP PUSH(P|U|B)
-#define PLA A = POP(); X_ZN(A)
-#define PLP P = POP()
-
-#define JMP_ABS { \
-	u32 npc = READ(PC); \
-	npc |= READ(PC+1) << 8; \
-	PC = npc; \
+static inline void ADC()
+{
+	// the N2A03 has no BCD mode
+	u16 WT = A+DT+(P&C);
+	P &= ~(V|C|N|Z);
+	P |= (~(A^DT) & (A^WT) & 0x80) >> 1;
+	P |= (WT>>8)&C;
+	A = WT;
+	X_ZNT(A);
 }
 
-#define JMP_IND { \
-	u32 tmp; \
-	getAB(tmp); \
-	PC = READ(tmp); \
-	PC |= READ(((tmp+1)&0x00FF) | (tmp&0xFF00)) << 8; \
+static inline void SBC()
+{
+	DT = ~DT;
+	ADC();
 }
 
-#define JSR { \
-	u16 npc = READ(PC++); \
-	npc |= READ(PC) << 8; \
-	PUSH(PC >> 8); \
-	PUSH(PC); \
-	PC = npc; \
+//--------------------------- logical instructions -----------------------------
+
+static inline void AND() { A &= DT; X_ZN(A); }
+static inline void ORA() { A |= DT; X_ZN(A); }
+static inline void EOR() { A ^= DT; X_ZN(A); }
+
+static inline void BIT()
+{
+	P &= ~(V|N|Z);
+	if (!(DT & A))
+		P |= Z;
+	P |= DT & (V|N);
 }
 
-#define TAX X = A; X_ZN(A)
-#define TXA A = X; X_ZN(A)
-#define TAY Y = A; X_ZN(A)
-#define TYA A = Y; X_ZN(A)
-#define TSX X = S; X_ZN(X)
-#define TXS S = X
-#define DEX X--; X_ZN(X)
-#define DEY Y--; X_ZN(Y)
-#define INX X++; X_ZN(X)
-#define INY Y++; X_ZN(Y)
-#define CLC P &= ~C
-#define CLD P &= ~D
-#define CLI P &= ~I
-#define CLV P &= ~V
-#define SEC P |= C
-#define SED P |= D
-#define SEI P |= I
-#define NOP
-
-#define BCC JR(!(P&C))
-#define BCS JR(P&C)
-#define BEQ JR(P&Z)
-#define BNE JR(!(P&Z))
-#define BMI JR(P&N)
-#define BPL JR(!(P&N))
-#define BVC JR(!(P&V))
-#define BVS JR(P&V)
-
-#define AAC AND;P &= ~C; P |= A>>7
-#define AAX A&X
-
-#define ARR {\
-	AND; \
-	P &= ~V; \
-	P |= (A^(A>>1)) & 0x40; \
-	u8 arrtmp = A >> 7; \
-	A >>= 1; \
-	A |= (P&C) << 7; \
-	P &= ~C; \
-	P |= arrtmp; \
-	X_ZN(A); \
+static inline void CMP_GENERIC(u8 reg)
+{
+	u16 WT = (u16)reg - (u16)DT;
+	P &= ~(C|N|Z);
+	P |= ((WT>>8)&C) ^ C;
+	X_ZNT(WT);
 }
 
-#define ASR AND;LSRA
-#define ATX A |= 0xFF; AND; X = A
-#define DCP DEC;CMP
-#define ISB INC;SBC
-#define DOP PC++;
-#define KIL ADDCYC(0xFF); PC--; // m_jammed = true;
-#define LAR S &= x; A = X = S; X_ZN(X)
-#define LAX LDA;LDX
-#define RLA ROL;AND
-#define RRA ROR;ADC
-#define SHA A&X & (((a-Y)>>8)+1)
-#define SLO ASL;ORA
-#define SRE LSR;EOR
-#define SYA Y & (((a-X)>>8)+1)
-#define SXA X & (((a-Y)>>8)+1)
-#define XAA A |= 0xEE; A &= X; LD_IM(AND);
-#define XAS S = A & X; ST_ABY(S & (((a-Y)>>8)+1))
+static inline void CMP() { CMP_GENERIC(A); }
+static inline void CPX() { CMP_GENERIC(X); }
+static inline void CPY() { CMP_GENERIC(Y); }
 
-#define OP(ci,op) case ci: op; break
+//---------------------------- shift instructions ------------------------------
 
-void NesCpu::execute(u8 instr) {
-	switch (instr) {
-	OP(0x00, BRK);
-	OP(0x01, LD_IX(ORA));
-	OP(0x02, KIL);
-	OP(0x03, RMW_IX(SLO));
-	OP(0x04, DOP);
-	OP(0x05, LD_ZP(ORA));
-	OP(0x06, RMW_ZP(ASL));
-	OP(0x07, RMW_ZP(SLO));
-	OP(0x08, PHP);
-	OP(0x09, LD_IM(ORA));
-	OP(0x0A, RMW_A(ASL));
-	OP(0x0B, LD_IM(AAC));
-	OP(0x0C, LD_AB(Q_UNUSED(x)));
-	OP(0x0D, LD_AB(ORA));
-	OP(0x0E, RMW_AB(ASL));
-	OP(0x0F, RMW_AB(SLO));
-	OP(0x10, BPL);
-	OP(0x11, LD_IY(ORA));
-	OP(0x12, KIL);
-	OP(0x13, RMW_IY(SLO));
-	OP(0x14, DOP);
-	OP(0x15, LD_ZPX(ORA));
-	OP(0x16, RMW_ZPX(ASL));
-	OP(0x17, RMW_ZPX(SLO));
-	OP(0x18, CLC);
-	OP(0x19, LD_ABY(ORA));
-	OP(0x1A, NOP);
-	OP(0x1B, RMW_ABY(SLO));
-	OP(0x1C, LD_ABX(Q_UNUSED(x)));
-	OP(0x1D, LD_ABX(ORA));
-	OP(0x1E, RMW_ABX(ASL));
-	OP(0x1F, RMW_ABX(SLO));
-	OP(0x20, JSR);
-	OP(0x21, LD_IX(AND));
-	OP(0x22, KIL);
-	OP(0x23, RMW_IX(RLA));
-	OP(0x24, LD_ZP(BIT));
-	OP(0x25, LD_ZP(AND));
-	OP(0x26, RMW_ZP(ROL));
-	OP(0x27, RMW_ZP(RLA));
-	OP(0x28, PLP);
-	OP(0x29, LD_IM(AND));
-	OP(0x2A, RMW_A(ROL));
-	OP(0x2B, LD_IM(AAC));
-	OP(0x2C, LD_AB(BIT));
-	OP(0x2D, LD_AB(AND));
-	OP(0x2E, RMW_AB(ROL));
-	OP(0x2F, RMW_AB(RLA));
-	OP(0x30, BMI);
-	OP(0x31, LD_IY(AND));
-	OP(0x32, KIL);
-	OP(0x33, RMW_IY(RLA));
-	OP(0x34, DOP);
-	OP(0x35, LD_ZPX(AND));
-	OP(0x36, RMW_ZPX(ROL));
-	OP(0x37, RMW_ZPX(RLA));
-	OP(0x38, SEC);
-	OP(0x39, LD_ABY(AND));
-	OP(0x3A, NOP);
-	OP(0x3B, RMW_ABY(RLA));
-	OP(0x3C, LD_ABX(Q_UNUSED(x)));
-	OP(0x3D, LD_ABX(AND));
-	OP(0x3E, RMW_ABX(ROL));
-	OP(0x3F, RMW_ABX(RLA));
-	OP(0x40, RTI);
-	OP(0x41, LD_IX(EOR));
-	OP(0x42, KIL);
-	OP(0x43, RMW_IX(SRE));
-	OP(0x44, DOP);
-	OP(0x45, LD_ZP(EOR));
-	OP(0x46, RMW_ZP(LSR));
-	OP(0x47, RMW_ZP(SRE));
-	OP(0x48, PHA);
-	OP(0x49, LD_IM(EOR));
-	OP(0x4A, RMW_A(LSR));
-	OP(0x4B, LD_IM(ASR));
-	OP(0x4C, JMP_ABS);
-	OP(0x4D, LD_AB(EOR));
-	OP(0x4E, RMW_AB(LSR));
-	OP(0x4F, RMW_AB(SRE));
-	OP(0x50, BVC);
-	OP(0x51, LD_IY(EOR));
-	OP(0x52, KIL);
-	OP(0x53, RMW_IY(SRE));
-	OP(0x54, DOP);
-	OP(0x55, LD_ZPX(EOR));
-	OP(0x56, RMW_ZPX(LSR));
-	OP(0x57, RMW_ZPX(SRE));
-	OP(0x58, CLI);
-	OP(0x59, LD_ABY(EOR));
-	OP(0x5A, NOP);
-	OP(0x5B, RMW_ABY(SRE));
-	OP(0x5C, LD_ABX(Q_UNUSED(x)));
-	OP(0x5D, LD_ABX(EOR));
-	OP(0x5E, RMW_ABX(LSR));
-	OP(0x5F, RMW_ABX(SRE));
-	OP(0x60, RTS);
-	OP(0x61, LD_IX(ADC));
-	OP(0x62, KIL);
-	OP(0x63, RMW_IX(RRA));
-	OP(0x64, DOP);
-	OP(0x65, LD_ZP(ADC));
-	OP(0x66, RMW_ZP(ROR));
-	OP(0x67, RMW_ZP(RRA));
-	OP(0x68, PLA);
-	OP(0x69, LD_IM(ADC));
-	OP(0x6A, RMW_A(ROR));
-	OP(0x6B, LD_IM(ARR));
-	OP(0x6C, JMP_IND);
-	OP(0x6D, LD_AB(ADC));
-	OP(0x6E, RMW_AB(ROR));
-	OP(0x6F, RMW_AB(RRA));
-	OP(0x70, BVS);
-	OP(0x71, LD_IY(ADC));
-	OP(0x72, KIL);
-	OP(0x73, RMW_IY(RRA));
-	OP(0x74, DOP);
-	OP(0x75, LD_ZPX(ADC));
-	OP(0x76, RMW_ZPX(ROR));
-	OP(0x77, RMW_ZPX(RRA));
-	OP(0x78, SEI);
-	OP(0x79, LD_ABY(ADC));
-	OP(0x7A, NOP);
-	OP(0x7B, RMW_ABY(RRA));
-	OP(0x7C, LD_ABX(Q_UNUSED(x)));
-	OP(0x7D, LD_ABX(ADC));
-	OP(0x7E, RMW_ABX(ROR));
-	OP(0x7F, RMW_ABX(RRA));
-	OP(0x80, DOP);
-	OP(0x81, ST_IX(A));
-	OP(0x82, DOP);
-	OP(0x83, ST_IX(AAX));
-	OP(0x84, ST_ZP(Y));
-	OP(0x85, ST_ZP(A));
-	OP(0x86, ST_ZP(X));
-	OP(0x87, ST_ZP(AAX));
-	OP(0x88, DEY);
-	OP(0x89, DOP);
-	OP(0x8A, TXA);
-	OP(0x8B, XAA);
-	OP(0x8C, ST_AB(Y));
-	OP(0x8D, ST_AB(A));
-	OP(0x8E, ST_AB(X));
-	OP(0x8F, ST_AB(AAX));
-	OP(0x90, BCC);
-	OP(0x91, ST_IY(A));
-	OP(0x92, KIL);
-	OP(0x93, ST_IY(SHA));
-	OP(0x94, ST_ZPX(Y));
-	OP(0x95, ST_ZPX(A));
-	OP(0x96, ST_ZPY(X));
-	OP(0x97, ST_ZPY(AAX));
-	OP(0x98, TYA);
-	OP(0x99, ST_ABY(A));
-	OP(0x9A, TXS);
-	OP(0x9B, XAS);
-	OP(0x9C, ST_ABX(SYA));
-	OP(0x9D, ST_ABX(A));
-	OP(0x9E, ST_ABY(SXA));
-	OP(0x9F, ST_ABY(SHA));
-	OP(0xA0, LD_IM(LDY));
-	OP(0xA1, LD_IX(LDA));
-	OP(0xA2, LD_IM(LDX));
-	OP(0xA3, LD_IX(LAX));
-	OP(0xA4, LD_ZP(LDY));
-	OP(0xA5, LD_ZP(LDA));
-	OP(0xA6, LD_ZP(LDX));
-	OP(0xA7, LD_ZP(LAX));
-	OP(0xA8, TAY);
-	OP(0xA9, LD_IM(LDA));
-	OP(0xAA, TAX);
-	OP(0xAB, LD_IM(ATX));
-	OP(0xAC, LD_AB(LDY));
-	OP(0xAD, LD_AB(LDA));
-	OP(0xAE, LD_AB(LDX));
-	OP(0xAF, LD_AB(LAX));
-	OP(0xB0, BCS);
-	OP(0xB1, LD_IY(LDA));
-	OP(0xB2, KIL);
-	OP(0xB3, LD_IY(LAX));
-	OP(0xB4, LD_ZPX(LDY));
-	OP(0xB5, LD_ZPX(LDA));
-	OP(0xB6, LD_ZPY(LDX));
-	OP(0xB7, LD_ZPY(LAX));
-	OP(0xB8, CLV);
-	OP(0xB9, LD_ABY(LDA));
-	OP(0xBA, TSX);
-	OP(0xBB, RMW_ABY(LAR));
-	OP(0xBC, LD_ABX(LDY));
-	OP(0xBD, LD_ABX(LDA));
-	OP(0xBE, LD_ABY(LDX));
-	OP(0xBF, LD_ABY(LAX));
-	OP(0xC0, LD_IM(CPY));
-	OP(0xC1, LD_IX(CMP));
-	OP(0xC2, DOP);
-	OP(0xC3, RMW_IX(DCP));
-	OP(0xC4, LD_ZP(CPY));
-	OP(0xC5, LD_ZP(CMP));
-	OP(0xC6, RMW_ZP(DEC));
-	OP(0xC7, RMW_ZP(DCP));
-	OP(0xC8, INY);
-	OP(0xC9, LD_IM(CMP));
-	OP(0xCA, DEX);
-	OP(0xCB, LD_IM(AXS));
-	OP(0xCC, LD_AB(CPY));
-	OP(0xCD, LD_AB(CMP));
-	OP(0xCE, RMW_AB(DEC));
-	OP(0xCF, RMW_AB(DCP));
-	OP(0xD0, BNE);
-	OP(0xD1, LD_IY(CMP));
-	OP(0xD2, KIL);
-	OP(0xD3, RMW_IY(DCP));
-	OP(0xD4, DOP);
-	OP(0xD5, LD_ZPX(CMP));
-	OP(0xD6, RMW_ZPX(DEC));
-	OP(0xD7, RMW_ZPX(DCP));
-	OP(0xD8, CLD);
-	OP(0xD9, LD_ABY(CMP));
-	OP(0xDA, NOP);
-	OP(0xDB, RMW_ABY(DCP));
-	OP(0xDC, LD_ABX(Q_UNUSED(x)));
-	OP(0xDD, LD_ABX(CMP));
-	OP(0xDE, RMW_ABX(DEC));
-	OP(0xDF, RMW_ABX(DCP));
-	OP(0xE0, LD_IM(CPX));
-	OP(0xE1, LD_IX(SBC));
-	OP(0xE2, DOP);
-	OP(0xE3, RMW_IX(ISB));
-	OP(0xE4, LD_ZP(CPX));
-	OP(0xE5, LD_ZP(SBC));
-	OP(0xE6, RMW_ZP(INC));
-	OP(0xE7, RMW_ZP(ISB));
-	OP(0xE8, INX);
-	OP(0xE9, LD_IM(SBC));
-	OP(0xEA, NOP);
-	OP(0xEB, LD_IM(SBC));
-	OP(0xEC, LD_AB(CPX));
-	OP(0xED, LD_AB(SBC));
-	OP(0xEE, RMW_AB(INC));
-	OP(0xEF, RMW_AB(ISB));
-	OP(0xF0, BEQ);
-	OP(0xF1, LD_IY(SBC));
-	OP(0xF2, KIL);
-	OP(0xF3, RMW_IY(ISB));
-	OP(0xF4, DOP);
-	OP(0xF5, LD_ZPX(SBC));
-	OP(0xF6, RMW_ZPX(INC));
-	OP(0xF7, RMW_ZPX(ISB));
-	OP(0xF8, SED);
-	OP(0xF9, LD_ABY(SBC));
-	OP(0xFA, NOP);
-	OP(0xFB, RMW_ABY(ISB));
-	OP(0xFC, LD_ABX(Q_UNUSED(x)));
-	OP(0xFD, LD_ABX(SBC));
-	OP(0xFE, RMW_ABX(INC));
-	OP(0xFF, RMW_ABX(ISB));
+static inline void ASL()
+{
+	P &= ~(C|N|Z);
+	P |= DT>>7;
+	DT <<= 1;
+	X_ZNT(DT);
+}
+
+static inline void LSR()
+{
+	P &= ~(C|N|Z);
+	P |= DT&1;
+	DT >>= 1;
+	X_ZNT(DT);
+}
+
+static inline void ROL()
+{
+	u8 c = DT>>7;
+	DT <<= 1;
+	DT |= P&C;
+	P &= ~(Z|N|C);
+	P |= c;
+	X_ZNT(DT);
+}
+
+static inline void ROR()
+{
+	u8 c = DT&1;
+	DT >>= 1;
+	DT |= (P&C) << 7;
+	P &= ~(Z|N|C);
+	P |= c;
+	X_ZNT(DT);
+}
+
+//--------------------------- inc/dec instructions -----------------------------
+
+static inline void INC() { DT++; X_ZN(DT); }
+static inline void INX() { X++;  X_ZN(X);  }
+static inline void INY() { Y++;  X_ZN(Y);  }
+
+static inline void DEC() { DT--; X_ZN(DT); }
+static inline void DEX() { X--;  X_ZN(X);  }
+static inline void DEY() { Y--;  X_ZN(Y);  }
+
+//---------------------------- flags instructions ------------------------------
+
+static inline void CLC() { P &= ~C; }
+static inline void CLD() { P &= ~D; }
+static inline void CLI() { P &= ~I; }
+static inline void CLV() { P &= ~V; }
+
+static inline void SEC() { P |=  C; }
+static inline void SED() { P |=  D; }
+static inline void SEI() { P |=  I; }
+
+//---------------------------- stack instructions ------------------------------
+
+static inline void PHA() { PUSH8(A); }
+static inline void PHP() { PUSH8(P|U|B); }
+static inline void PLA() { A = POP8(); X_ZN(A); }
+static inline void PLP() { P = POP8(); }
+
+//------------------------ undocummented instructions --------------------------
+
+static inline void AAC()
+{
+	AND();
+	P &= ~C;
+	P |= A>>7;
+}
+
+static inline void XAA()
+{
+	A = (A|0xEE) & X & DT;
+	X_ZN(A);
+}
+
+static inline void ARR()
+{
+	DT &= A;
+	A = (DT>>1) | ((P&C)<<7);
+	P &= ~(V|C|N|Z);
+	P |= (A^(A>>1)) & V;
+	P |= (A>>6) & C;
+	X_ZNT(A);
+}
+
+static inline void ASR() // AND,LSRA
+{
+	DT &= A;
+	P &= ~(C|N|Z);
+	P |= DT&C;
+	DT >>= 1;
+	A = DT;
+	X_ZNT(A);
+}
+
+static inline void DCP() { DEC(); CMP(); }
+static inline void ISB() { INC(); SBC(); }
+static inline void LAX() { LDA(); LDX(); }
+static inline void RLA() { ROL(); AND(); }
+static inline void RRA() { ROR(); ADC(); }
+static inline void SLO() { ASL(); ORA(); }
+static inline void SRE() { LSR(); EOR(); }
+
+static inline void LAR()
+{
+	S &= DT;
+	A = X = S;
+	X_ZN(X);
+}
+
+static inline void XAS()
+{
+	S = A & X;
+	DT = S & ((EA>>8)+1);
+}
+
+static inline void AXS()
+{
+	u16 WT = (u16)(A&X) - (u16)DT;
+	X = WT;
+	P &= ~(C|N|Z);
+	P |= ((WT>>8)&C) ^ C;
+	X_ZNT(X);
+}
+
+static inline void AAX() { DT = A&X; }
+static inline void ATX() { A |= 0xEE; AND(); X = A; }
+
+static inline void SYA() { DT = Y & ((EA>>8)+1); }
+static inline void SXA() { DT = X & ((EA>>8)+1); }
+
+static inline void DOP() { PC++; }
+static inline void TOP() { PC+=2; }
+static inline void KIL() { ADDCYC(0xFF); PC--; }
+
+static inline void SHA() { DT = A & X & ((EA>>8)+1); }
+
+//--------------------------- immediate addressing -----------------------------
+
+static inline void IMM_R()
+{
+	DT = FETCH_PC8();
+}
+
+//--------------------------- zero page addressing -----------------------------
+
+static inline void ZPG_W()
+{
+	EA = FETCH_PC8();
+}
+
+static inline void ZPG_R()
+{
+	ZPG_W();
+	DT = FETCH_ZP8(EA);
+}
+
+static inline void ZPG_RW()
+{
+	ZPG_R();
+}
+
+//----------------------- zero page indexed addressing -------------------------
+
+static inline void ZPI_W(u8 reg)
+{
+	DT = FETCH_PC8();
+	EA = (u8)(DT+reg);
+}
+
+static inline void ZPI_R(u8 reg)
+{
+	ZPI_W(reg);
+	DT = FETCH_ZP8(EA);
+}
+
+static inline void ZPX_W() { ZPI_W(X); }
+static inline void ZPY_W() { ZPI_W(Y); }
+
+static inline void ZPX_R() { ZPI_R(X); }
+static inline void ZPY_R() { ZPI_R(Y); }
+
+static inline void ZPX_RW() { ZPI_R(X); }
+static inline void ZPY_RW() { ZPI_R(Y); }
+
+//--------------------------- absolute addressing ------------------------------
+
+static inline void ABS_W()
+{
+	EA = FETCH_PC16();
+}
+
+static inline void ABS_R()
+{
+	ABS_W();
+	DT = READ8(EA);
+}
+
+static inline void ABS_RW()
+{
+	ABS_R();
+	WRITE8(EA, DT);
+}
+
+//----------------------- absolute indexed addressing --------------------------
+
+static inline void ABI_W(u8 reg)
+{
+	ET = FETCH_PC16();
+	EA = ET + reg;
+	READ8((EA&0x00FF) | (ET&0xFF00));
+}
+
+static inline void ABI_R(u8 reg)
+{
+	ET = FETCH_PC16();
+	EA = ET + reg;
+	CHECK_EA();
+	DT = READ8(EA);
+}
+
+static inline void ABI_RW(u8 reg)
+{
+	ABI_W(reg);
+	DT = READ8(EA);
+	WRITE8(EA, DT);
+}
+
+static inline void ABX_W() { ABI_W(X); }
+static inline void ABY_W() { ABI_W(Y); }
+
+static inline void ABX_R() { ABI_R(X); }
+static inline void ABY_R() { ABI_R(Y); }
+
+static inline void ABX_RW() { ABI_RW(X); }
+static inline void ABY_RW() { ABI_RW(Y); }
+
+//----------------------- indexed indirect addressing --------------------------
+
+static inline void IDX_W()
+{
+	DT = FETCH_PC8();
+	EA = FETCH_ZP16(DT + X);
+}
+
+static inline void IDX_R()
+{
+	IDX_W();
+	DT = READ8(EA);
+}
+
+static inline void IDX_RW()
+{
+	IDX_R();
+	WRITE8(EA, DT);
+}
+
+static inline void IDY_W()
+{
+	DT = FETCH_PC8();
+	ET = FETCH_ZP16(DT);
+	EA = ET + Y;
+	READ8((EA&0x00FF) | (ET&0xFF00));
+}
+
+static inline void IDY_R()
+{
+	DT = FETCH_PC8();
+	ET = FETCH_ZP16(DT);
+	EA = ET + Y;
+	CHECK_EA();
+	DT = READ8(EA);
+}
+
+static inline void IDY_RW()
+{
+	IDY_W();
+	DT = READ8(EA);
+	WRITE8(EA, DT);
+}
+
+//------------------------- accumulator addressing -----------------------------
+
+static inline void ACC_RW()
+{
+	DT = A;
+}
+
+static inline void STORE_ACC()
+{
+	A = DT;
+}
+
+static inline void STORE_ZPG() { nesRam[EA&0xFF] = DT; }
+static inline void STORE_ZPX() { STORE_ZPG(); }
+static inline void STORE_ZPY() { STORE_ZPG(); }
+
+static inline void STORE_MEM() { WRITE8(EA, DT); }
+static inline void STORE_ABS() { STORE_MEM(); }
+static inline void STORE_ABX() { STORE_MEM(); }
+static inline void STORE_ABY() { STORE_MEM(); }
+static inline void STORE_IDX() { STORE_MEM(); }
+static inline void STORE_IDY() { STORE_MEM(); }
+
+#define OP___(ci,op) case ci: op(); break
+#define OP_R_(ci,op,addr) case ci: addr##_R(); op(); break
+#define OP__W(ci,op,addr) case ci: addr##_W(); op(); STORE_##addr(); break
+#define OP_RW(ci,op,addr) case ci: addr##_RW(); op(); STORE_##addr(); break
+
+static void execute(u8 opcode)
+{
+	switch (opcode) {
+	OP___(0x00, BRK     );
+	OP_R_(0x01, ORA, IDX);
+	OP___(0x02, KIL     );
+	OP_RW(0x03, SLO, IDX);
+	OP___(0x04, DOP     );
+	OP_R_(0x05, ORA, ZPG);
+	OP_RW(0x06, ASL, ZPG);
+	OP_RW(0x07, SLO, ZPG);
+	OP___(0x08, PHP     );
+	OP_R_(0x09, ORA, IMM);
+	OP_RW(0x0A, ASL, ACC);
+	OP_R_(0x0B, AAC, IMM);
+	OP_R_(0x0C, NOP, ABS);
+	OP_R_(0x0D, ORA, ABS);
+	OP_RW(0x0E, ASL, ABS);
+	OP_RW(0x0F, SLO, ABS);
+	OP_R_(0x10, BPL, IMM);
+	OP_R_(0x11, ORA, IDY);
+	OP___(0x12, KIL     );
+	OP_RW(0x13, SLO, IDY);
+	OP___(0x14, DOP     );
+	OP_R_(0x15, ORA, ZPX);
+	OP_RW(0x16, ASL, ZPX);
+	OP_RW(0x17, SLO, ZPX);
+	OP___(0x18, CLC     );
+	OP_R_(0x19, ORA, ABY);
+	OP___(0x1A, NOP     );
+	OP_RW(0x1B, SLO, ABY);
+	OP_R_(0x1C, NOP, ABX);
+	OP_R_(0x1D, ORA, ABX);
+	OP_RW(0x1E, ASL, ABX);
+	OP_RW(0x1F, SLO, ABX);
+	OP___(0x20, JSR     );
+	OP_R_(0x21, AND, IDX);
+	OP___(0x22, KIL     );
+	OP_RW(0x23, RLA, IDX);
+	OP_R_(0x24, BIT, ZPG);
+	OP_R_(0x25, AND, ZPG);
+	OP_RW(0x26, ROL, ZPG);
+	OP_RW(0x27, RLA, ZPG);
+	OP___(0x28, PLP     );
+	OP_R_(0x29, AND, IMM);
+	OP_RW(0x2A, ROL, ACC);
+	OP_R_(0x2B, AAC, IMM);
+	OP_R_(0x2C, BIT, ABS);
+	OP_R_(0x2D, AND, ABS);
+	OP_RW(0x2E, ROL, ABS);
+	OP_RW(0x2F, RLA, ABS);
+	OP_R_(0x30, BMI, IMM);
+	OP_R_(0x31, AND, IDY);
+	OP___(0x32, KIL     );
+	OP_RW(0x33, RLA, IDY);
+	OP___(0x34, DOP     );
+	OP_R_(0x35, AND, ZPX);
+	OP_RW(0x36, ROL, ZPX);
+	OP_RW(0x37, RLA, ZPX);
+	OP___(0x38, SEC     );
+	OP_R_(0x39, AND, ABY);
+	OP___(0x3A, NOP     );
+	OP_RW(0x3B, RLA, ABY);
+	OP_R_(0x3C, NOP, ABX);
+	OP_R_(0x3D, AND, ABX);
+	OP_RW(0x3E, ROL, ABX);
+	OP_RW(0x3F, RLA, ABX);
+	OP___(0x40, RTI     );
+	OP_R_(0x41, EOR, IDX);
+	OP___(0x42, KIL     );
+	OP_RW(0x43, SRE, IDX);
+	OP___(0x44, DOP     );
+	OP_R_(0x45, EOR, ZPG);
+	OP_RW(0x46, LSR, ZPG);
+	OP_RW(0x47, SRE, ZPG);
+	OP___(0x48, PHA     );
+	OP_R_(0x49, EOR, IMM);
+	OP_RW(0x4A, LSR, ACC);
+	OP_R_(0x4B, ASR, IMM);
+	OP___(0x4C, JMP_ABS );
+	OP_R_(0x4D, EOR, ABS);
+	OP_RW(0x4E, LSR, ABS);
+	OP_RW(0x4F, SRE, ABS);
+	OP_R_(0x50, BVC, IMM);
+	OP_R_(0x51, EOR, IDY);
+	OP___(0x52, KIL     );
+	OP_RW(0x53, SRE, IDY);
+	OP___(0x54, DOP     );
+	OP_R_(0x55, EOR, ZPX);
+	OP_RW(0x56, LSR, ZPX);
+	OP_RW(0x57, SRE, ZPX);
+	OP___(0x58, CLI     );
+	OP_R_(0x59, EOR, ABY);
+	OP___(0x5A, NOP     );
+	OP_RW(0x5B, SRE, ABY);
+	OP_R_(0x5C, NOP, ABX);
+	OP_R_(0x5D, EOR, ABX);
+	OP_RW(0x5E, LSR, ABX);
+	OP_RW(0x5F, SRE, ABX);
+	OP___(0x60, RTS     );
+	OP_R_(0x61, ADC, IDX);
+	OP___(0x62, KIL);
+	OP_RW(0x63, RRA, IDX);
+	OP___(0x64, DOP);
+	OP_R_(0x65, ADC, ZPG);
+	OP_RW(0x66, ROR, ZPG);
+	OP_RW(0x67, RRA, ZPG);
+	OP___(0x68, PLA     );
+	OP_R_(0x69, ADC, IMM);
+	OP_RW(0x6A, ROR, ACC);
+	OP_R_(0x6B, ARR, IMM);
+	OP___(0x6C, JMP_IND );
+	OP_R_(0x6D, ADC, ABS);
+	OP_RW(0x6E, ROR, ABS);
+	OP_RW(0x6F, RRA, ABS);
+	OP_R_(0x70, BVS, IMM);
+	OP_R_(0x71, ADC, IDY);
+	OP___(0x72, KIL     );
+	OP_RW(0x73, RRA, IDY);
+	OP___(0x74, DOP     );
+	OP_R_(0x75, ADC, ZPX);
+	OP_RW(0x76, ROR, ZPX);
+	OP_RW(0x77, RRA, ZPX);
+	OP___(0x78, SEI     );
+	OP_R_(0x79, ADC, ABY);
+	OP___(0x7A, NOP     );
+	OP_RW(0x7B, RRA, ABY);
+	OP_R_(0x7C, NOP, ABX);
+	OP_R_(0x7D, ADC, ABX);
+	OP_RW(0x7E, ROR, ABX);
+	OP_RW(0x7F, RRA, ABX);
+	OP___(0x80, DOP     );
+	OP__W(0x81, STA, IDX);
+	OP___(0x82, DOP     );
+	OP__W(0x83, AAX, IDX);
+	OP__W(0x84, STY, ZPG);
+	OP__W(0x85, STA, ZPG);
+	OP__W(0x86, STX, ZPG);
+	OP__W(0x87, AAX, ZPG);
+	OP___(0x88, DEY     );
+	OP___(0x89, DOP     );
+	OP___(0x8A, TXA     );
+	OP_R_(0x8B, XAA, IMM);
+	OP__W(0x8C, STY, ABS);
+	OP__W(0x8D, STA, ABS);
+	OP__W(0x8E, STX, ABS);
+	OP__W(0x8F, AAX, ABS);
+	OP_R_(0x90, BCC, IMM);
+	OP__W(0x91, STA, IDY);
+	OP___(0x92, KIL);
+	OP__W(0x93, SHA, IDY);
+	OP__W(0x94, STY, ZPX);
+	OP__W(0x95, STA, ZPX);
+	OP__W(0x96, STX, ZPY);
+	OP__W(0x97, AAX, ZPY);
+	OP___(0x98, TYA     );
+	OP__W(0x99, STA, ABY);
+	OP___(0x9A, TXS     );
+	OP__W(0x9B, XAS, ABY);
+	OP__W(0x9C, SYA, ABX);
+	OP__W(0x9D, STA, ABX);
+	OP__W(0x9E, SXA, ABY);
+	OP__W(0x9F, SHA, ABY);
+	OP_R_(0xA0, LDY, IMM);
+	OP_R_(0xA1, LDA, IDX);
+	OP_R_(0xA2, LDX, IMM);
+	OP_R_(0xA3, LAX, IDX);
+	OP_R_(0xA4, LDY, ZPG);
+	OP_R_(0xA5, LDA, ZPG);
+	OP_R_(0xA6, LDX, ZPG);
+	OP_R_(0xA7, LAX, ZPG);
+	OP___(0xA8, TAY     );
+	OP_R_(0xA9, LDA, IMM);
+	OP___(0xAA, TAX     );
+	OP_R_(0xAB, ATX, IMM);
+	OP_R_(0xAC, LDY, ABS);
+	OP_R_(0xAD, LDA, ABS);
+	OP_R_(0xAE, LDX, ABS);
+	OP_R_(0xAF, LAX, ABS);
+	OP_R_(0xB0, BCS, IMM);
+	OP_R_(0xB1, LDA, IDY);
+	OP___(0xB2, KIL     );
+	OP_R_(0xB3, LAX, IDY);
+	OP_R_(0xB4, LDY, ZPX);
+	OP_R_(0xB5, LDA, ZPX);
+	OP_R_(0xB6, LDX, ZPY);
+	OP_R_(0xB7, LAX, ZPY);
+	OP___(0xB8, CLV     );
+	OP_R_(0xB9, LDA, ABY);
+	OP___(0xBA, TSX     );
+	OP_R_(0xBB, LAR, ABY);
+	OP_R_(0xBC, LDY, ABX);
+	OP_R_(0xBD, LDA, ABX);
+	OP_R_(0xBE, LDX, ABY);
+	OP_R_(0xBF, LAX, ABY);
+	OP_R_(0xC0, CPY, IMM);
+	OP_R_(0xC1, CMP, IDX);
+	OP___(0xC2, DOP     );
+	OP_RW(0xC3, DCP, IDX);
+	OP_R_(0xC4, CPY, ZPG);
+	OP_R_(0xC5, CMP, ZPG);
+	OP_RW(0xC6, DEC, ZPG);
+	OP_RW(0xC7, DCP, ZPG);
+	OP___(0xC8, INY     );
+	OP_R_(0xC9, CMP, IMM);
+	OP___(0xCA, DEX     );
+	OP_R_(0xCB, AXS, IMM);
+	OP_R_(0xCC, CPY, ABS);
+	OP_R_(0xCD, CMP, ABS);
+	OP_RW(0xCE, DEC, ABS);
+	OP_RW(0xCF, DCP, ABS);
+	OP_R_(0xD0, BNE, IMM);
+	OP_R_(0xD1, CMP, IDY);
+	OP___(0xD2, KIL     );
+	OP_RW(0xD3, DCP, IDY);
+	OP___(0xD4, DOP     );
+	OP_R_(0xD5, CMP, ZPX);
+	OP_RW(0xD6, DEC, ZPX);
+	OP_RW(0xD7, DCP, ZPX);
+	OP___(0xD8, CLD     );
+	OP_R_(0xD9, CMP, ABY);
+	OP___(0xDA, NOP     );
+	OP_RW(0xDB, DCP, ABY);
+	OP_R_(0xDC, NOP, ABX);
+	OP_R_(0xDD, CMP, ABX);
+	OP_RW(0xDE, DEC, ABX);
+	OP_RW(0xDF, DCP, ABX);
+	OP_R_(0xE0, CPX, IMM);
+	OP_R_(0xE1, SBC, IDX);
+	OP___(0xE2, DOP     );
+	OP_RW(0xE3, ISB, IDX);
+	OP_R_(0xE4, CPX, ZPG);
+	OP_R_(0xE5, SBC, ZPG);
+	OP_RW(0xE6, INC, ZPG);
+	OP_RW(0xE7, ISB, ZPG);
+	OP___(0xE8, INX     );
+	OP_R_(0xE9, SBC, IMM);
+	OP___(0xEA, NOP     );
+	OP_R_(0xEB, SBC, IMM);
+	OP_R_(0xEC, CPX, ABS);
+	OP_R_(0xED, SBC, ABS);
+	OP_RW(0xEE, INC, ABS);
+	OP_RW(0xEF, ISB, ABS);
+	OP_R_(0xF0, BEQ, IMM);
+	OP_R_(0xF1, SBC, IDY);
+	OP___(0xF2, KIL     );
+	OP_RW(0xF3, ISB, IDY);
+	OP___(0xF4, DOP     );
+	OP_R_(0xF5, SBC, ZPX);
+	OP_RW(0xF6, INC, ZPX);
+	OP_RW(0xF7, ISB, ZPX);
+	OP___(0xF8, SED     );
+	OP_R_(0xF9, SBC, ABY);
+	OP___(0xFA, NOP     );
+	OP_RW(0xFB, ISB, ABY);
+	OP_R_(0xFC, NOP, ABX);
+	OP_R_(0xFD, SBC, ABX);
+	OP_RW(0xFE, INC, ABX);
+	OP_RW(0xFF, ISB, ABX);
 	}
 }
 
-const u8 NesCpu::cyclesTable[256] = {
+const u8 NesCpu::cyclesTable[256] =
+{
 /* 0x00 */7, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,
 /* 0x10 */2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
 /* 0x20 */6, 6, 2, 8, 3, 3, 5, 5, 4, 2, 2, 2, 4, 4, 6, 6,
@@ -778,9 +1055,11 @@ const u8 NesCpu::cyclesTable[256] = {
 /* 0xC0 */2, 6, 2, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,
 /* 0xD0 */2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
 /* 0xE0 */2, 6, 3, 8, 3, 3, 5, 5, 2, 2, 2, 2, 4, 4, 6, 6,
-/* 0xF0 */2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7, };
+/* 0xF0 */2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7
+};
 
-const u8 NesCpu::sizeTable[256] = {
+const u8 NesCpu::sizeTable[256] =
+{
 /* 0x00 */1, 2, 1, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
 /* 0x10 */2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
 /* 0x20 */3, 2, 1, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
@@ -796,9 +1075,11 @@ const u8 NesCpu::sizeTable[256] = {
 /* 0xC0 */2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
 /* 0xD0 */2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3,
 /* 0xE0 */2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 3, 3, 3, 3,
-/* 0xF0 */2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3 };
+/* 0xF0 */2, 2, 1, 2, 2, 2, 2, 2, 1, 3, 1, 3, 3, 3, 3, 3
+};
 
-const u8 NesCpu::addressingModeTable[256] = {
+const u8 NesCpu::addressingModeTable[256] =
+{
 /* 0x00 */Impli, IndiX, Impli, IndiX, ZeroP, ZeroP, ZeroP, ZeroP,
 /* 0x08 */Impli, Immed, Accum, Immed, Absol, Absol, Absol, Absol,
 /* 0x10 */Relat, IndiY, Impli, IndiY, ZerPX, ZerPX, ZerPX, ZerPX,
@@ -830,9 +1111,11 @@ const u8 NesCpu::addressingModeTable[256] = {
 /* 0xE0 */Immed, IndiX, Immed, IndiX, ZeroP, ZeroP, ZeroP, ZeroP,
 /* 0xE8 */Impli, Immed, Impli, Immed, Absol, Absol, Absol, Absol,
 /* 0xF0 */Relat, IndiY, Impli, IndiY, ZerPX, ZerPX, ZerPX, ZerPX,
-/* 0xF8 */Impli, AbsoY, Impli, AbsoY, AbsoX, AbsoX, AbsoX, AbsoX };
+/* 0xF8 */Impli, AbsoY, Impli, AbsoY, AbsoX, AbsoX, AbsoX, AbsoX
+};
 
-const char *NesCpu::nameTable[256] = {
+const char *NesCpu::nameTable[256] =
+{
 /* 0x00 */"BRK", "ORA", "KIL", "SLO", "DOP", "ORA", "ASL", "SLO",
 /* 0x08 */"PHP", "ORA", "ASL", "AAC", "TOP", "ORA", "ASL", "SLO",
 /* 0x10 */"BPL", "ORA", "KIL", "SLO", "DOP", "ORA", "ASL", "SLO",
@@ -864,4 +1147,5 @@ const char *NesCpu::nameTable[256] = {
 /* 0xE0 */"CPX", "SBC", "DOP", "ISC", "CPX", "SBC", "INC", "ISC",
 /* 0xE8 */"INX", "SBC", "NOP", "SBC", "CPX", "SBC", "INC", "ISC",
 /* 0xF0 */"BEQ", "SBC", "KIL", "ISC", "DOP", "SBC", "INC", "ISC",
-/* 0xF8 */"SED", "SBC", "NOP", "ISC", "TOP", "SBC", "INC", "ISC" };
+/* 0xF8 */"SED", "SBC", "NOP", "ISC", "TOP", "SBC", "INC", "ISC"
+};

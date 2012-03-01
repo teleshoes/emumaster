@@ -98,14 +98,14 @@ public:
 		TileRender
 	};
 	enum Register {
-		Control0,
-		Control1,
-		Status,
-		SpriteRAMAddress,
-		SpriteRAMIO,
-		Scroll,
-		VRAMAddress,
-		VRAMIO
+		Control0 = 0,
+		Control1 = 1,
+		Status = 2,
+		SpriteRAMAddress = 3,
+		SpriteRAMIO = 4,
+		Scroll = 5,
+		VRAMAddress = 6,
+		VRAMIO = 7
 	};
 	enum ControlReg0Bit {
 		//	Indicates whether a NMI should occur upon V-Blank.

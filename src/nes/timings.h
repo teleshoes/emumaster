@@ -14,13 +14,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef NESDISK_H
-#define NESDISK_H
+#ifndef NESTIMINGS_H
+#define NESTIMINGS_H
 
-#include <emu.h>
+#define NES_BASE_NTSC_CLK			21477270.0
+#define NES_BASE_PAL_CLK			26601714.0
 
-extern bool nesDiskLoad(const QString &fileName, QString *error);
-extern bool nesDiskHasBatteryBackedRam();
-extern u32 nesDiskCrc;
+#define NES_CPU_NTSC_CLK			NES_BASE_NTSC_CLK/12.0
+#define NES_CPU_PAL_CLK				NES_BASE_PAL_CLK/15.0
 
-#endif // NESDISK_H
+#define NES_NTSC_FRAMERATE			60.0
+#define NES_PAL_FRAMERATE			50.0
+
+#define NES_NTSC_SCANLINE_CLOCKS	1364
+#define NES_PAL_SCANLINE_CLOCKS		1278
+
+#define NES_NTSC_SCANLINE_COUNT		262
+#define NES_PAL_SCANLINE_COUNT		312
+
+#endif // NESTIMINGS_H

@@ -231,7 +231,7 @@ void NesMapper::reset() {
 	if (nesDiskCrc == 0x29401686) // Minna no Taabou no Nakayoshi Dai Sakusen(J)
 		qMemSet(nesRam, 0xFF, sizeof(nesRam));
 
-	if (!nesDisk.hasBatteryBackedRam() && nesMapperType != 20)
+	if (!nesDiskHasBatteryBackedRam() && nesMapperType != 20)
 		qMemSet(nesWram, 0xFF, sizeof(nesWram));
 
 	qMemCopy(nesWram + 0x1000, nesTrainer, 512);
@@ -338,14 +338,15 @@ void NesMapper::writeHigh(u16 address, u8 data) {
 void NesMapper::writeReg(u16 address, u8 data) {
 	if (address == 0x4014) {
 		nesPpu.dma(data);
+		// TODO check it
 		nesCpu.dma(514);
 	} else if (address == 0x4016) {
 		nesPad.write(0, data);
 	} else if (address == 0x4017) {
-		nesApu.write(0x17, data);
+		nesApuWrite(0x17, data);
 		nesPad.write(1, data);
 	} else if (address < 0x4017) {
-		nesApu.write(address & 0x1F, data);
+		nesApuWrite(address & 0x1F, data);
 	} else {
 		writeEx(address, data);
 	}
@@ -359,9 +360,9 @@ u8 NesMapper::readReg(u16 address) {
 		return data | 0x40; // TODO | m_TapeOut
 	} else if (address == 0x4017) {
 		u8 data = nesPad.read(1);
-		return data | nesApu.read(0x17);
+		return data | nesApuRead(0x17);
 	} else if (address < 0x4017) {
-		return nesApu.read(address & 0x1F);
+		return nesApuRead(address & 0x1F);
 	} else {
 		return readEx(address);
 	}

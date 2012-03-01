@@ -20,18 +20,6 @@
 #include <emu.h>
 class NesPpu;
 
-#define NES_PPU_NTSC_CLK	21477270.0
-#define NES_PPU_PAL_CLK		26601712.0
-
-#define NES_CPU_NTSC_CLK	NES_PPU_NTSC_CLK/12.0
-#define NES_CPU_PAL_CLK		NES_PPU_PAL_CLK/15.0
-
-#define NES_NTSC_FRAMERATE	60.098
-#define NES_PAL_FRAMERATE	50.007
-
-#define NES_NTSC_SCANLINE_CLOCKS	1364
-#define NES_PAL_SCANLINE_CLOCKS		1705
-
 enum SystemType { NES_NTSC, NES_PAL };
 
 class NesEmu : public Emu {
@@ -44,8 +32,11 @@ public:
 	void shutdown();
 	void reset();
 
+	void resume();
+
 	NesPpu *ppu() const;
 	QObject *gameGenie() const;
+	u64 cpuCycles() const;
 
 	QString setDisk(const QString &path);
 

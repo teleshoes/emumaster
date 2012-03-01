@@ -19,7 +19,8 @@
 #include <crc32.h>
 #include <QAbstractFileEngine>
 
-class NesDiskHeader {
+class NesDiskHeader
+{
 public:
 	static const int FourScreenFlagA		= 0x08;
 	static const int TrainerFlagA			= 0x04;
@@ -37,18 +38,19 @@ public:
 	u8 flagsC;
 } Q_PACKED;
 
-NesDisk nesDisk;
 u32 nesDiskCrc = 0;
-QString nesDiskFileName;
 
 static NesDiskHeader header;
 
 static void patchRom();
 
 static inline bool hasTrainer()
-{ return header.flagsA & NesDiskHeader::TrainerFlagA; }
+{
+	return header.flagsA & NesDiskHeader::TrainerFlagA;
+}
 
-static void computeChecksum(QFile &file) {
+static void computeChecksum(QFile &file)
+{
 	if (hasTrainer()) {
 		file.seek(sizeof(NesDiskHeader));
 		QByteArray ba = file.read(nesRomSizeInBytes+512);
@@ -58,26 +60,23 @@ static void computeChecksum(QFile &file) {
 	}
 }
 
-bool NesDisk::load(const QString &fileName) {
-	nesDiskFileName = fileName;
-	QFile file(fileName);
-	if (!file.open(QIODevice::ReadOnly))
-		return false;
-	if (file.read((char *)&header, sizeof(header)) != sizeof(header))
+static bool loadHeaderAndMemory(QFile *file)
+{
+	if (file->read((char *)&header, sizeof(header)) != sizeof(header))
 		return false;
 	if (qstrncmp(header.magic, "NES\x1A", 4))
 		return false;
 
-	file.seek(16);
+	file->seek(16);
 	if (hasTrainer()) {
-		if (file.read((char *)nesTrainer, 512) != 512)
+		if (file->read((char *)nesTrainer, 512) != 512)
 			return false;
 	}
 	nesRomSize16KB = header.num16KBRomBanks;
 	nesRomSize8KB = nesRomSize16KB << 1;
 	nesRomSizeInBytes = nesRomSize16KB * 0x4000;
 	nesRom = new u8[nesRomSizeInBytes];
-	if (file.read((char *)nesRom, nesRomSizeInBytes) != nesRomSizeInBytes)
+	if (file->read((char *)nesRom, nesRomSizeInBytes) != nesRomSizeInBytes)
 		return false;
 
 	nesVromSize8KB = header.num8KBVRomBanks;
@@ -86,8 +85,23 @@ bool NesDisk::load(const QString &fileName) {
 	nesVromSize1KB = nesVromSize2KB << 1;
 	nesVromSizeInBytes = nesVromSize8KB * 0x2000;
 	nesVrom = new u8[nesVromSizeInBytes];
-	if (file.read((char *)nesVrom, nesVromSizeInBytes) != nesVromSizeInBytes)
+	if (file->read((char *)nesVrom, nesVromSizeInBytes) != nesVromSizeInBytes)
 		return false;
+
+	return true;
+}
+
+bool nesDiskLoad(const QString &fileName, QString *error)
+{
+	QFile file(fileName);
+	if (!file.open(QIODevice::ReadOnly)) {
+		*error = EM_MSG_OPEN_FILE_FAILED;
+		return false;
+	}
+	if (!loadHeaderAndMemory(&file)) {
+		*error = EM_MSG_FILE_CORRUPTED;
+		return false;
+	}
 
 	computeChecksum(file);
 	patchRom();
@@ -105,12 +119,17 @@ bool NesDisk::load(const QString &fileName) {
 	return true;
 }
 
-bool NesDisk::hasBatteryBackedRam() const
-{ return header.flagsA & NesDiskHeader::BatteryBackedRamFlagA; }
+bool nesDiskHasBatteryBackedRam()
+{
+	return header.flagsA & NesDiskHeader::BatteryBackedRamFlagA;
+}
 //bool NesDisk::isVSSystem() const
-//{ return header.flagsB & NesDiskHeader::VSSystemFlagB; }
+//{
+//	return header.flagsB & NesDiskHeader::VSSystemFlagB;
+//}
 
-static void patchRom() {
+static void patchRom()
+{
 	// Mapper 000
 	if (nesDiskCrc == 0x57970078) {	// F-1 Race(J)
 		nesRom[0x078C] = 0x6C;

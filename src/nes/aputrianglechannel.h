@@ -19,52 +19,53 @@
 
 #include "apuchannel.h"
 
-class NesApuTriangleChannel : public NesApuChannel {
+class NesApuTriangleChannel
+{
 public:
-	explicit NesApuTriangleChannel(int channelNo);
+	enum Register {
+		ControlReg,
+		UnusedReg,
+		WaveLengthLow,
+		WaveLengthHigh
+	};
+
+	enum Reg0 {
+		Reg0LinearCounterLoad	= 0x7F,
+		Reg0LinearCounterStart	= 0x80
+	};
+
 	void reset();
 
-	void setLinearCounter(u8 data);
+	void setActive(bool on);
+	void write(int addr, u8 data);
+	void update(bool clock2nd);
+	int render(int cycleRate);
 
-	void clockLinearCounter();
-	void clockProgrammableTimer(int nCycles);
-	void clockTriangleGenerator();
+	void syncSetActive(bool on);
+	bool syncIsActive() const;
+	void syncWrite(int addr, u8 data);
+	void syncUpdate(bool clock2nd);
 
-	void updateSampleCondition();
-	void clock(int nCycles);
-
-	int triangleCounter() const;
-
-protected:
-	void extSl();
+	void sl();
 private:
-	bool m_linearCounterControl;
-	int m_linearCounterLoadValue;
+	u8 m_regs[4];
+	bool m_counterReload;
 	int m_linearCounter;
-	int m_triangleCounter;
+
+	int m_timer;
+	int m_frequency;
+	int m_output;
+	int m_adder;
+
+	NesApuLengthCounter m_lengthCounter;
+
+	u8 m_syncRegs[4];
+	bool m_syncCounterReload;
+	int m_syncLinearCounter;
+	NesApuLengthCounter m_syncLengthCounter;
 };
 
-inline void NesApuTriangleChannel::clock(int nCycles) {
-	if (progTimerMax > 0) {
-		progTimerCount -= nCycles;
-		while (progTimerCount <= 0) {
-			progTimerCount += progTimerMax + 1;
-			if (m_linearCounter > 0 && lengthCounter > 0) {
-				m_triangleCounter++;
-				m_triangleCounter &= 0x1F;
-				if (isEnabled()) {
-					if (m_triangleCounter > 0x0F)
-						sampleValue = (m_triangleCounter & 0xF);
-					else
-						sampleValue = 0xF - (m_triangleCounter & 0xF);
-					sampleValue <<= 4;
-				}
-			}
-		}
-	}
-}
-
-inline int NesApuTriangleChannel::triangleCounter() const
-{ return m_triangleCounter; }
+inline bool NesApuTriangleChannel::syncIsActive() const
+{ return m_syncLengthCounter.count(); }
 
 #endif // NESAPUTRIANGLECHANNEL_H

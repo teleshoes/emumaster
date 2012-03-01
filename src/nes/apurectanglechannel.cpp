@@ -15,81 +15,175 @@
  */
 
 #include "apurectanglechannel.h"
-#include <emu.h>
+#include "nes.h"
 #include <QDataStream>
+#include <qmath.h>
 
-NesApuRectangleChannel::NesApuRectangleChannel(int channelNo) :
-	NesApuChannel(channelNo) {
+void NesApuRectangleChannel::reset()
+{
+	memset(this, 0, sizeof(NesApuRectangleChannel));
+	for (int i = 0; i < 4; i++)
+		write(i, 0);
+	m_envelope.reset();
+	m_lengthCounter.reset();
+
+	for (int i = 0; i < 4; i++)
+		syncWrite(i, 0);
+	m_syncEnvelope.reset();
+	m_syncLengthCounter.reset();
 }
 
-void NesApuRectangleChannel::reset() {
-	NesApuChannel::reset();
-	m_sweepShiftAmount = 0;
-	m_sweepDirection = false;
-	m_sweepUpdateRate = 0;
-	m_sweepEnable = false;
-	m_sweepCounter = 0;
-	m_sweepCarry = false;
-	m_updateSweepPeriod = false;
-	m_rectangleCounter = 0;
+void NesApuRectangleChannel::setActive(bool on)
+{
+	m_lengthCounter.setEnabled(on);
 }
 
-void NesApuRectangleChannel::setSweep(u8 data) {
-	m_sweepShiftAmount = data & 0x07;
-	m_sweepDirection = data & 0x08;
-	m_sweepUpdateRate = ((data >> 4) & 0x07) + 1;
-	m_sweepEnable = data & 0x80;
-	m_updateSweepPeriod = true;
+void NesApuRectangleChannel::write(int addr, u8 data)
+{
+	Q_ASSERT(addr >= 0 && addr <= 3);
+	m_regs[addr] = data;
+
+	switch (addr) {
+	case EnvelopeReg:
+		m_envelope.write(data);
+		m_duty = m_dutyLut[data>>6];
+		break;
+	case SweepReg:
+		m_sweepEnable = data & 0x80;
+		m_sweepIncrease = !(data & 0x08);
+		m_sweepShift = data & 0x07;
+		m_sweepRate = ((data&0x70) >> 4) + 1;
+
+		m_frequencyLimit = m_frequencyLimitLut[m_sweepShift];
+		break;
+	case WaveLengthLow:
+		m_frequency = (m_frequency & ~0xFF) | data;
+		break;
+	case WaveLengthHigh:
+		m_frequency = ((data&0x07) << 8) | (m_frequency & 0xFF);
+		m_envelope.resetClock();
+		m_lengthCounter.write(data);
+		m_adder = 0;
+		break;
+	}
 }
 
-void NesApuRectangleChannel::clockSweep() {
-	if (--m_sweepCounter <= 0) {
-		m_sweepCounter = m_sweepUpdateRate;
-		if (m_sweepEnable && m_sweepShiftAmount > 0 && progTimerMax > 7) {
-			m_sweepCarry = false;
-			if (!m_sweepDirection) {
-				progTimerMax += (progTimerMax >> m_sweepShiftAmount);
-				if (progTimerMax > 4095){
-					progTimerMax = 4095;
-					m_sweepCarry = true;
-				}
-			} else {
-				progTimerMax -= ((progTimerMax >> m_sweepShiftAmount) - channelNo());
-			}
+void NesApuRectangleChannel::update(bool clock2nd, int complement)
+{
+	if (m_lengthCounter.count()) {
+		if (!clock2nd) {
+			if (!m_envelope.isLooping())
+				m_lengthCounter.clock();
+
+			clockSweep(complement);
+		}
+		m_envelope.clock();
+	}
+}
+
+void NesApuRectangleChannel::clockSweep(int complement)
+{
+	if (m_sweepEnable && m_sweepShift) {
+		if (m_sweepCounter)
+			m_sweepCounter--;
+		if (!m_sweepCounter) {
+			m_sweepCounter = m_sweepRate;
+
+			int shifted = m_frequency>>m_sweepShift;
+			if (m_sweepIncrease)
+				m_frequency += shifted;
+			else
+				m_frequency += complement - shifted;
 		}
 	}
-	if (m_updateSweepPeriod) {
-		m_updateSweepPeriod = false;
-		m_sweepCounter = m_sweepUpdateRate;
+}
+
+int NesApuRectangleChannel::render(int cycleRate)
+{
+	if (!m_lengthCounter.count())
+		return 0;
+	if (m_frequency < 8)
+		return 0;
+	if (m_sweepIncrease && m_frequency > m_frequencyLimit)
+		return 0;
+
+	qreal sampleWeight = qMin(m_timer, cycleRate);
+	qreal total = (m_adder < m_duty) ? sampleWeight : -sampleWeight;
+
+	int freqFixed = IntToFixed(m_frequency+1);
+	m_timer -= cycleRate;
+	while (m_timer < 0) {
+		m_timer += freqFixed;
+		m_adder = (m_adder+1) & 0x0F;
+
+		sampleWeight = freqFixed;
+		if (m_timer > 0)
+			sampleWeight -= m_timer;
+		total += (m_adder < m_duty) ? sampleWeight : -sampleWeight;
+	}
+	return floor(total*qreal(m_envelope.output())/cycleRate + 0.5f);
+}
+
+void NesApuRectangleChannel::syncSetActive(bool on)
+{
+	m_syncLengthCounter.setEnabled(on);
+}
+
+void NesApuRectangleChannel::syncWrite(int addr, u8 data)
+{
+	Q_ASSERT(addr >= 0 && addr <= 3);
+	switch (addr) {
+	case EnvelopeReg:
+		m_syncEnvelope.write(data);
+		break;
+	case SweepReg:
+		break;
+	case WaveLengthLow:
+		break;
+	case WaveLengthHigh:
+		m_syncLengthCounter.write(data);
+		break;
 	}
 }
 
-void NesApuRectangleChannel::updateSampleValue() {
-	if (sampleCondition) {
-		if (!m_sweepDirection && (progTimerMax + (progTimerMax >> m_sweepShiftAmount)) > 4095) {
-			sampleValue = 0;
-		} else {
-			sampleValue = masterVolume() * m_dutyLUT[(dutyMode() << 3) + m_rectangleCounter];
+void NesApuRectangleChannel::syncUpdate(bool clock2nd)
+{
+	if (!clock2nd) {
+		if (m_syncLengthCounter.count()) {
+			if (!m_syncEnvelope.isLooping())
+				m_syncLengthCounter.clock();
 		}
-	} else {
-		sampleValue = 0;
 	}
 }
 
-int NesApuRectangleChannel::m_dutyLUT[32] = {
-	0, 1, 0, 0, 0, 0, 0, 0,
-	0, 1, 1, 0, 0, 0, 0, 0,
-	0, 1, 1, 1, 1, 0, 0, 0,
-	1, 0, 0, 1, 1, 1, 1, 1
+void NesApuRectangleChannel::sl()
+{
+	emsl.array("regs", m_regs, sizeof(m_regs));
+
+	if (!emsl.save) {
+		for (int i = 0; i < 4; i++)
+			write(i, m_regs[i]);
+	}
+
+	emsl.var("sweepCounter", m_sweepCounter);
+	emsl.var("adder", m_adder);
+	emsl.var("timer", m_timer);
+
+	m_envelope.sl();
+	m_lengthCounter.sl();
+
+	if (!emsl.save) {
+		m_syncEnvelope = m_envelope;
+		m_syncLengthCounter = m_lengthCounter;
+	}
+}
+
+const u8 NesApuRectangleChannel::m_dutyLut[4] =
+{
+	2, 4, 8, 12
 };
 
-void NesApuRectangleChannel::extSl() {
-	emsl.var("sweepShiftAmount", m_sweepShiftAmount);
-	emsl.var("sweepDirection", m_sweepDirection);
-	emsl.var("sweepUpdateRate", m_sweepUpdateRate);
-	emsl.var("sweepEnable", m_sweepEnable);
-	emsl.var("sweepCounter", m_sweepCounter);
-	emsl.var("sweepCarry", m_sweepCarry);
-	emsl.var("updateSweepPeriod", m_updateSweepPeriod);
-	emsl.var("rectangleCounter", m_rectangleCounter);
-}
+const int NesApuRectangleChannel::m_frequencyLimitLut[8] =
+{
+	0x03FF, 0x0555, 0x0666, 0x071C, 0x0787, 0x07C1, 0x07E0, 0x07F0
+};

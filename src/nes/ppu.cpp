@@ -21,7 +21,8 @@
 #include <qmath.h>
 #include <QDataStream>
 
-static const u8 paletteDefaultMem[] = {
+static const u8 paletteDefaultMem[] =
+{
 	0,	1,	2,	3,
 	0,	5,	6,	7,
 	0,	9,	10,	11,
@@ -101,7 +102,11 @@ void NesPpu::init()
 
 	nesPpuFrame = QImage(8+VisibleScreenWidth+8, VisibleScreenHeight, QImage::Format_RGB32);
 
-	setChipType(PPU2C02);
+	if (nesSystemType == NES_PAL)
+		setChipType(PPU2C07);
+	else
+		setChipType(PPU2C02);
+
 	setRenderMethod(PreRender);
 
 	nesPpuScanline = 0;

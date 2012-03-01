@@ -94,7 +94,8 @@ HEADERS += \
     mapper.h \
     ppu.h \
     eeprom.h \
-    nes.h
+    nes.h \
+    timings.h
 
 SOURCES += \
     gamegeniecodelistmodel.cpp \

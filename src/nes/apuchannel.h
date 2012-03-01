@@ -19,73 +19,67 @@
 
 #include <emu.h>
 
-class NesApuChannel {
-public:
-	explicit NesApuChannel(int channelNo);
-	virtual void reset();
+static inline int IntToFixed(int val)
+{ return val << 16; }
 
-	int channelNo() const;
-	void setVolumeDecay(u8 data);
-	int masterVolume() const;
-	void setLinearCounter(u8 data);
-	void setFrequency(u8 data);
-	void setLength(u8 data);
+class NesApuLengthCounter
+{
+public:
+	void reset();
 	void setEnabled(bool on);
 	bool isEnabled() const;
-
-	bool lengthStatus() const;
-	int dutyMode() const;
-
-	void clockLengthCounter();
-	void clockEnvelopeDecay();
-
-	void updateMasterVolume();
-	virtual void updateSampleCondition();
-	virtual void updateSampleValue() {}
-
-	bool sampleCondition;
-	int sampleValue;
-
-	int progTimerMax;
-	int progTimerCount;
-
-	void sl(int i);
-protected:
-	virtual void extSl() = 0;
-
-	union {
-		bool envelopeReset;
-		bool linearCounterHalt;
-	};
-	bool lengthCounterEnable;
-	int lengthCounter;
+	void write(u8 data);
+	void clock();
+	u8 count() const;
+	void sl();
 private:
-	int m_channelNo;
-	bool m_enabled;
+	u8 m_count;
+	u8 m_enabled;
 
-	int m_masterVolume;
-	int m_volume;
-
-	int m_envelopeVolume;
-	int m_envelopeDecayRate;
-	bool m_envelopeDecayDisable;
-	bool m_envelopeDecayLoopEnable;
-	int m_envelopeDecayCounter;
-
-	int m_dutyMode;
-
-	static int m_lengthMaxLUT[32];
+	static const u8 m_lut[32];
 };
 
-inline int NesApuChannel::channelNo() const
-{ return m_channelNo; }
-inline int NesApuChannel::masterVolume() const
-{ return m_masterVolume; }
-inline bool NesApuChannel::isEnabled() const
+inline void NesApuLengthCounter::reset()
+{ m_count = m_enabled = 0x00; }
+inline void NesApuLengthCounter::setEnabled(bool on)
+{ m_enabled = on ? 0xFF : 0x00; m_count &= m_enabled; }
+inline bool NesApuLengthCounter::isEnabled() const
 { return m_enabled; }
-inline bool NesApuChannel::lengthStatus() const
-{ return lengthCounter != 0 && m_enabled; }
-inline int NesApuChannel::dutyMode() const
-{ return m_dutyMode; }
+inline void NesApuLengthCounter::write(u8 data)
+{ m_count = (m_lut[data>>3]*2) & m_enabled; }
+inline void NesApuLengthCounter::clock()
+{ if (m_count) m_count--; }
+inline u8 NesApuLengthCounter::count() const
+{ return m_count; }
+
+class NesApuEnvelope
+{
+public:
+	void reset();
+	void resetClock();
+	u8 output() const;
+	void write(u8 data);
+	void clock();
+	bool isLooping() const;
+	void sl();
+private:
+	void updateOutput();
+
+	u8 m_regs[2];
+	u8 m_output;
+	u8 m_count;
+	bool m_reset;
+};
+
+inline void NesApuEnvelope::resetClock()
+{ m_reset = true; }
+inline u8 NesApuEnvelope::output() const
+{ return m_output; }
+inline void NesApuEnvelope::write(u8 data)
+{ m_regs[1] = data; updateOutput(); }
+inline bool NesApuEnvelope::isLooping() const
+{ return m_regs[1] & 0x20; }
+inline void NesApuEnvelope::updateOutput()
+{ m_output = m_regs[(m_regs[1]>>4) & 1] & 0xF; }
 
 #endif // NESAPUCHANNEL_H

@@ -41,7 +41,8 @@ HEADERS += \
     emuthread.h \
     emu.h \
     emuinput.h \
-    stringlistproxy.h
+    stringlistproxy.h \
+    audioringbuffer.h
 
 SOURCES += \
     hostaudio.cpp \

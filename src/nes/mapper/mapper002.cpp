@@ -22,7 +22,7 @@ void Mapper002::reset() {
 
 	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 	patch = 0;
-	hasBattery = nesDisk.hasBatteryBackedRam();
+	hasBattery = nesDiskHasBatteryBackedRam();
 
 	u32 crc = nesDiskCrc;
 	if( crc == 0x8c3d54e8		// Ikari(J)

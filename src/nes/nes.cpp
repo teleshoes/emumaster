@@ -23,6 +23,7 @@
 #include "mapper.h"
 #include "gamegeniecode.h"
 #include "gamegeniecodelistmodel.h"
+#include "timings.h"
 #include <emuview.h>
 #include <configuration.h>
 #include <QSettings>
@@ -53,11 +54,14 @@ NesEmu::NesEmu() :
 
 QString NesEmu::init(const QString &diskPath)
 {
+	QString error = setDisk(diskPath);
+	if (!error.isEmpty())
+		return error;
 	nesCpu.init();
-	nesApu.init();
+	nesApuInit();
 	nesPad.init();
 	nesPpu.init();
-	return setDisk(diskPath);
+	return QString();
 }
 
 void NesEmu::shutdown()
@@ -70,16 +74,25 @@ void NesEmu::shutdown()
 
 void NesEmu::reset()
 {
-	nesMapper->reset();
-	nesCpu.reset();
 	cpuCycleCounter = 0;
 	ppuCycleCounter = 0;
+	nesMapper->reset();
+	nesCpu.reset();
+	nesApuReset();
+}
+
+void NesEmu::resume()
+{
+	nesApuSetOutputEnabled(isAudioEnabled());
 }
 
 QString NesEmu::setDisk(const QString &path)
 {
-	if (!nesDisk.load(path))
-		return "Could not load ROM file";
+	QString loadError;
+	if (!nesDiskLoad(path, &loadError)) {
+		return QString("%1 (%2)").arg(EM_MSG_DISK_LOAD_FAILED)
+				.arg(loadError);
+	}
 
 	nesMapper = NesMapper::create(nesMapperType);
 	if (!nesMapper)
@@ -87,17 +100,9 @@ QString NesEmu::setDisk(const QString &path)
 
 	setupTvEncodingSystem(path);
 
-	QString diskInfo = QString("Disk Info: Mapper %1(%2), CRC: %3, %4 System\n")
-			.arg(nesMapper->name())
-			.arg(nesMapperType)
-			.arg(nesDiskCrc, 8, 16)
-			.arg((nesSystemType == NES_PAL) ? "PAL" : "NTSC");
-	qDebug("%s", qPrintable(diskInfo));
-
 	// TODO VS system
 	if (nesSystemType == NES_NTSC) {
 		setVideoSrcRect(QRect(8, 8, NesPpu::VisibleScreenWidth-8, NesPpu::VisibleScreenHeight-16));
-		nesPpu.setChipType(NesPpu::PPU2C02);
 		setFrameRate(NES_NTSC_FRAMERATE);
 		scanlineCycles = NES_NTSC_SCANLINE_CLOCKS;
 		hDrawCycles = 1024;
@@ -105,14 +110,12 @@ QString NesEmu::setDisk(const QString &path)
 		scanlineEndCycles = 4;
 	} else {
 		setVideoSrcRect(QRect(8, 1, NesPpu::VisibleScreenWidth-8, NesPpu::VisibleScreenHeight-1));
-		nesPpu.setChipType(NesPpu::PPU2C07);
 		setFrameRate(NES_PAL_FRAMERATE);
 		scanlineCycles = NES_PAL_SCANLINE_CLOCKS;
-		hDrawCycles = 1280;
-		hBlankCycles = 425;
-		scanlineEndCycles = 5;
+		hDrawCycles = 960;
+		hBlankCycles = 318;
+		scanlineEndCycles = 2;
 	}
-	nesApu.updateMachineType();
 	reset();
 	return QString();
 }
@@ -186,11 +189,13 @@ void NesEmu::emulateFrame(bool drawEnabled)
 	setPadKeys(0, input()->pad[0].buttons());
 	setPadKeys(1, input()->pad[1].buttons());
 
+	nesApuBeginFrame();
 	bZapper = false;
 	if (nesPpu.renderMethod() == NesPpu::TileRender)
 		emulateFrameTile(drawEnabled);
 	else
 		emulateFrameNoTile(drawEnabled);
+	nesApuProcessFrame();
 }
 
 inline void NesEmu::updateZapper()
@@ -349,7 +354,7 @@ void NesEmu::emulateFrameTile(bool drawEnabled)
 
 int NesEmu::fillAudioBuffer(char *stream, int streamSize)
 {
-	return nesApu.fillBuffer(stream, streamSize);
+	return nesApuFillBuffer(stream, streamSize);
 }
 
 NesPpu *NesEmu::ppu() const
@@ -362,6 +367,11 @@ QObject *NesEmu::gameGenie() const
 	return &nesGameGenie;
 }
 
+u64 NesEmu::cpuCycles() const
+{
+	return cpuCycleCounter + nesCpu.ticks();
+}
+
 void NesEmu::sl()
 {
 	if (!slCheckTvEncodingSystem())
@@ -369,7 +379,7 @@ void NesEmu::sl()
 	nesMapper->sl();
 	nesCpu.sl();
 	nesPpu.sl();
-	nesApu.sl();
+	nesApuSl();
 	nesGameGenie.sl();
 
 	emsl.begin("machine");

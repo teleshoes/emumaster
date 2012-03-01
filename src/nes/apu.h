@@ -19,23 +19,29 @@
 
 #include <emu.h>
 
-class NesApu {
+extern void nesApuInit();
+extern void nesApuReset();
+extern void nesApuSetOutputEnabled(bool on);
+
+extern void nesApuWrite(u16 addr, u8 data);
+extern   u8 nesApuRead(u16 addr);
+extern void nesApuClock(int nCycles);
+
+extern void nesApuBeginFrame();
+extern void nesApuProcessFrame();
+extern  int nesApuFillBuffer(char *stream, int size);
+
+extern void nesApuSl();
+
+class NesApuDcBlocker
+{
 public:
-	void init();
 	void reset();
-	void updateMachineType();
-
-	void write(u16 address, u8 data);
-	u8 read(u16 address);
-
-	u8 fetchData(u16 address);
-
-	void clockFrameCounter(int nCycles);
-	int fillBuffer(char *stream, int size);
-
-	void sl();
+	int process(int sample);
+private:
+	int m_prev;
+	int m_next;
+	int m_acc;
 };
-
-extern NesApu nesApu;
 
 #endif // NESAPU_H

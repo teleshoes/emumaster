@@ -17,60 +17,83 @@
 #ifndef NESAPUDPCMCHANNEL_H
 #define NESAPUDPCMCHANNEL_H
 
-class NesApu;
 #include "apuchannel.h"
 
-class NesApuDMChannel : public NesApuChannel {
+class NesApuDMChannel
+{
 public:
 	enum Mode { Normal, Loop, Irq };
 
-	explicit NesApuDMChannel(int channelNo);
+	enum Register {
+		ControlReg,
+		DacReg,
+		AddressReg,
+		LengthReg
+	};
+
+	enum Reg0 {
+		Reg0Frequency	= 0x0F,
+		Reg0Loop		= 0x40,
+		Reg0IrqEnable	= 0x80
+	};
+
 	void reset();
 
-	void write0x4010(u8 data);
-	void write0x4011(u8 data);
-	void write0x4012(u8 data);
-	void write0x4013(u8 data);
-	void write0x4015(u8 data);
+	void setActive(bool on);
+	bool isActive() const;
+	void write(int addr, u8 data);
+	int render(int cycleRate);
 
-	void updateSampleValue(); // for setEnabled
+	void syncSetActive(bool on);
+	bool syncIsActive() const;
+	void syncWrite(int addr, u8 data);
+	void syncUpdate(int cycles);
 
-	void clockDM();
-	void endOfSample();
-	void nextSample();
+	bool irq() const;
+	void clearIrq();
 
-	void clock(int nCycles);
-
-	bool irqGenerated;
-protected:
-	void extSl();
+	void sl();
 private:
-	bool m_hasSample;
+	bool clockDma();
+	void clockDac();
+	void restart();
 
-	Mode m_playMode;
-	int m_dmaFrequency;
-	int m_dmaCounter;
-	int m_deltaCounter;
-	int m_playLength;
-	int m_shiftCounter;
-	int m_status;
-	int m_dacLsb;
-	int m_shiftReg;
+	u8 m_regs[4];
+	u16 m_dmaLength;
+	u16 m_initialDmaLength;
+	u16 m_address;
+	u16 m_startAddress;
+	u8 m_buffer;
+	u8 m_looping;
+	u8 m_dac;
+	u8 m_pad; // unused
 
-	uint m_playStartAddress;
-	uint m_playAddress;
+	int m_timer;
+	int m_frequency;
 
-	static int m_frequencyLUT[16];
+	bool m_syncIrqEnable;
+	bool m_syncIrq;
+	int m_syncCycles;
+	int m_syncCyclesDelta;
+	u16 m_syncDmaLength;
+	u16 m_syncInitialDmaLength;
+	u8 m_syncLooping;
+
+	const int *m_currentFrequencyLut;
+
+	static const int m_frequencyLut[2][16];
 };
 
-inline void NesApuDMChannel::clock(int nCycles) {
-	if (isEnabled()) {
-		m_shiftCounter -= (nCycles << 3);
-		while (m_shiftCounter <= 0 && m_dmaFrequency > 0) {
-			m_shiftCounter += m_dmaFrequency;
-			clockDM();
-		}
-	}
-}
+inline bool NesApuDMChannel::isActive() const
+{ return m_dmaLength; }
+
+inline bool NesApuDMChannel::syncIsActive() const
+{ return m_syncDmaLength; }
+
+inline bool NesApuDMChannel::irq() const
+{ return m_syncIrq; }
+
+inline void NesApuDMChannel::clearIrq()
+{ m_syncIrq = false; }
 
 #endif // NESAPUDPCMCHANNEL_H

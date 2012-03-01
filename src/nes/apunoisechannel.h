@@ -19,66 +19,56 @@
 
 #include "apuchannel.h"
 
-class NesApuNoiseChannel : public NesApuChannel {
+class NesApuNoiseChannel
+{
 public:
-	explicit NesApuNoiseChannel(int channelNo);
+	enum Register {
+		EnvelopeReg,
+		UnusedReg,
+		FrequencyReg,
+		LengthCounterReg
+	};
+
+	enum Reg2 {
+		Reg2Frequency	= 0x0F,
+		Reg2RandomMode	= 0x80
+	};
+
 	void reset();
 
-	void setFrequency(u8 data);
-	void updateSampleValue();
+	void setActive(bool on);
+	void write(int addr, u8 data);
+	void update(bool clock2nd);
+	int render(int cycleRate);
 
-	int sample();
-	void clock(int nCycles);
-protected:
-	void extSl();
+	void syncSetActive(bool on);
+	bool syncIsActive() const;
+	void syncWrite(int addr, u8 data);
+	void syncUpdate(bool clock2nd);
+
+	void sl();
 private:
-	int m_randomBit;
-	bool m_randomMode;
-	int m_shiftReg;
-	int m_accValue;
-	int m_accCount;
+	bool shift();
 
-	static int m_noiseWavelengthLUT[16];
+	u8 m_regs[4];
+	uint m_bits;
+	uint m_shifter;
+
+	int m_timer;
+	int m_frequency;
+	int m_output;
+	const int *m_currentFrequencyLut;
+
+	NesApuEnvelope m_envelope;
+	NesApuLengthCounter m_lengthCounter;
+
+	NesApuEnvelope m_syncEnvelope;
+	NesApuLengthCounter m_syncLengthCounter;
+
+	static const int m_frequencyLut[2][16];
 };
 
-inline int NesApuNoiseChannel::sample() {
-	int result = (m_accValue << 4) / m_accCount;
-	m_accValue = result >> 4;
-	m_accCount = 1;
-	return result;
-}
-
-inline void NesApuNoiseChannel::clock(int nCycles) {
-	Q_ASSERT(nCycles > 0);
-	if (progTimerCount - nCycles > 0) {
-		// do all cycles at once
-		progTimerCount -= nCycles;
-		m_accCount += nCycles;
-		m_accValue += nCycles * sampleValue;
-	} else {
-		// slow-step
-		for (; nCycles > 0; nCycles--) {
-			progTimerCount--;
-			if (progTimerCount <= 0 && progTimerMax > 0) {
-				m_shiftReg <<= 1;
-				int noiseTmp = m_shiftReg;
-				noiseTmp <<= (m_randomMode ? 6 : 1);
-				noiseTmp ^= m_shiftReg;
-				noiseTmp &= 0x8000;
-				if (noiseTmp) {
-					m_shiftReg |= 0x01;
-					m_randomBit = 0;
-					sampleValue = 0;
-				} else {
-					m_randomBit = 1;
-					sampleValue = (lengthStatus() ? masterVolume() : 0);
-				}
-				progTimerCount += progTimerMax;
-			}
-			m_accValue += sampleValue;
-			m_accCount++;
-		}
-	}
-}
+inline bool NesApuNoiseChannel::syncIsActive() const
+{ return m_syncLengthCounter.count(); }
 
 #endif // NESAPUNOISECHANNEL_H

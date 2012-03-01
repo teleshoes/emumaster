@@ -42,6 +42,8 @@ typedef quint64 u64;
 #define U32_MAX UINT_MAX
 
 #define EM_MSG_DISK_LOAD_FAILED QObject::tr("Could not load the disk")
+#define EM_MSG_OPEN_FILE_FAILED QObject::tr("Unable to open the file")
+#define EM_MSG_FILE_CORRUPTED QObject::tr("File is corrupted")
 #define EM_MSG_STATE_DIFFERS QObject::tr("Configuration of loaded state differs from the current one. Mismatch in")
 
 class BASE_EXPORT Emu : public QObject
