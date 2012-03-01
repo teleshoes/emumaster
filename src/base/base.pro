@@ -80,12 +80,11 @@ unix {
         ../../qml/base/PicoSettingsPage.qml \
 		\
         ../../qml/base/ColorDialog.qml \
-        ../../qml/base/EMButtonOption.qml \
         ../../qml/base/EMSwitchOption.qml \
         ../../qml/base/ImageListViewDelegate.qml \
         ../../qml/base/MySectionScroller.js \
         ../../qml/base/MySectionScroller.qml \
-        ../../qml/base/MyListDelegate.qml \
+        ../../qml/base/SelectionItem.qml \
         ../../qml/base/SectionScrollerLabel.qml \
         ../../qml/base/SectionSeperator.qml \
         ../../qml/base/constants.js \

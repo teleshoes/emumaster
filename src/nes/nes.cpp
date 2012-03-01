@@ -21,18 +21,18 @@
 #include "disk.h"
 #include "pad.h"
 #include "mapper.h"
-#include "gamegeniecode.h"
-#include "gamegeniecodelistmodel.h"
+#include "cheats.h"
 #include "timings.h"
 #include <emuview.h>
 #include <configuration.h>
 #include <QSettings>
 #include <QApplication>
-#include <QtDeclarative>
+#include <qdeclarative.h>
 
 NesEmu nesEmu;
 SystemType nesSystemType;
-GameGenieCodeListModel nesGameGenie;
+static NesEmu::RenderMethod nesRenderMethod;
+NesCheats nesCheats;
 
 static u32 scanlineCycles;
 static u32 scanlineEndCycles;
@@ -46,6 +46,7 @@ static bool bZapper; // TODO zapper
 static int ZapperY;
 
 static const char *tvSystemConfName = "nes.tvSystem";
+static const char *renderMethodConfName = "nes.renderMethod";
 
 NesEmu::NesEmu() :
 	Emu("nes")
@@ -54,9 +55,11 @@ NesEmu::NesEmu() :
 
 QString NesEmu::init(const QString &diskPath)
 {
+	qmlRegisterType<GameGenieValidator>("EmuMaster", 1, 0, "GameGenieValidator");
 	QString error = setDisk(diskPath);
 	if (!error.isEmpty())
 		return error;
+	setRenderMethod(PreRender);
 	nesCpu.init();
 	nesApuInit();
 	nesPad.init();
@@ -94,11 +97,11 @@ QString NesEmu::setDisk(const QString &path)
 				.arg(loadError);
 	}
 
+	setupTvEncodingSystem(path);
+
 	nesMapper = NesMapper::create(nesMapperType);
 	if (!nesMapper)
 		return QString("Mapper %1 is not supported").arg(nesMapperType);
-
-	setupTvEncodingSystem(path);
 
 	// TODO VS system
 	if (nesSystemType == NES_NTSC) {
@@ -120,6 +123,16 @@ QString NesEmu::setDisk(const QString &path)
 	return QString();
 }
 
+NesEmu::RenderMethod NesEmu::renderMethod() const
+{
+	return nesRenderMethod;
+}
+
+void NesEmu::setRenderMethod(RenderMethod method)
+{
+	nesRenderMethod = method;
+}
+
 void NesEmu::setupTvEncodingSystem(const QString &path)
 {
 	// detect system name by checking file name
@@ -136,6 +149,8 @@ void NesEmu::setupTvEncodingSystem(const QString &path)
 			nesSystemType = NES_NTSC;
 		else if (typeStr == "PAL")
 			nesSystemType = NES_PAL;
+		else
+			qDebug("Unknown TV system set: %s", qPrintable(typeStr));
 	}
 	// set value in conf in case of auto-detection (needed for load check)
 	if (nesSystemType == NES_NTSC)
@@ -146,9 +161,8 @@ void NesEmu::setupTvEncodingSystem(const QString &path)
 
 bool NesEmu::slCheckTvEncodingSystem() const
 {
-	// in versions before 0.3.0 system has not been saved and there is no
-	// sense of checking it, since we must save file name in order to do it
-	bool ok = true;
+	// TODO add it in state converter
+	bool ok = false;
 	// check if TV system used in the saved state is the same as current
 	QVariant forcedSystemType = emConf.value(tvSystemConfName);
 	if (!forcedSystemType.isNull()) {
@@ -156,13 +170,6 @@ bool NesEmu::slCheckTvEncodingSystem() const
 		bool slSys = (typeStr == "NTSC");
 		bool emuSys = (nesSystemType == NES_NTSC);
 		ok = (slSys == emuSys);
-	} else {
-		// TODO do it in state converter
-		// write tv system to configuration in case of version < 0.3.0
-		if (nesSystemType == NES_NTSC)
-			emConf.setValue(tvSystemConfName, "NTSC");
-		else
-			emConf.setValue(tvSystemConfName, "PAL");
 	}
 	if (!ok) {
 		emsl.error = QString("%1 \"%2\"").arg(EM_MSG_STATE_DIFFERS)
@@ -191,7 +198,7 @@ void NesEmu::emulateFrame(bool drawEnabled)
 
 	nesApuBeginFrame();
 	bZapper = false;
-	if (nesPpu.renderMethod() == NesPpu::TileRender)
+	if (nesEmu.renderMethod() == NesEmu::TileRender)
 		emulateFrameTile(drawEnabled);
 	else
 		emulateFrameNoTile(drawEnabled);
@@ -206,8 +213,8 @@ inline void NesEmu::updateZapper()
 
 void NesEmu::emulateFrameNoTile(bool drawEnabled)
 {
-	NesPpu::RenderMethod renderMethod = nesPpu.renderMethod();
-	bool all = (renderMethod < NesPpu::PostRender);
+	RenderMethod renderMethod = nesRenderMethod;
+	bool all = (renderMethod < NesEmu::PostRender);
 	bool pre = (renderMethod & 1);
 
 	clockCpu(all ? scanlineCycles : hDrawCycles);
@@ -362,9 +369,9 @@ NesPpu *NesEmu::ppu() const
 	return &nesPpu;
 }
 
-QObject *NesEmu::gameGenie() const
+QObject *NesEmu::cheats() const
 {
-	return &nesGameGenie;
+	return &nesCheats;
 }
 
 u64 NesEmu::cpuCycles() const
@@ -380,7 +387,7 @@ void NesEmu::sl()
 	nesCpu.sl();
 	nesPpu.sl();
 	nesApuSl();
-	nesGameGenie.sl();
+	nesCheats.sl();
 
 	emsl.begin("machine");
 	emsl.var("cpuCycleCounter", cpuCycleCounter);

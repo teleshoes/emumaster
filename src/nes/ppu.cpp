@@ -37,7 +37,6 @@ QImage nesPpuFrame;
 NesPpu nesPpu;
 
 static NesPpu::ChipType ppuType;
-static NesPpu::RenderMethod ppuRenderMethod;
 
 u8 nesPpuRegs[4]; // registers at 0x2000-0x2003
 static bool regToggle;
@@ -98,16 +97,12 @@ static void updateColorEmphasisAndMask() {
 
 void NesPpu::init()
 {
-	setupRenderMethodNameList();
-
 	nesPpuFrame = QImage(8+VisibleScreenWidth+8, VisibleScreenHeight, QImage::Format_RGB32);
 
 	if (nesSystemType == NES_PAL)
 		setChipType(PPU2C07);
 	else
 		setChipType(PPU2C02);
-
-	setRenderMethod(PreRender);
 
 	nesPpuScanline = 0;
 	scanlineData = 0;
@@ -335,35 +330,6 @@ void NesPpu::setChipType(ChipType newType) {
 }
 
 
-NesPpu::RenderMethod NesPpu::renderMethod() const
-{ return ppuRenderMethod; }
-
-void NesPpu::setRenderMethod(RenderMethod method) {
-	if (ppuRenderMethod != method) {
-		ppuRenderMethod = method;
-		emit renderMethodChanged();
-	}
-}
-
-QString NesPpu::renderMethodName() const
-{
-	return m_renderMethodNameList.at(ppuRenderMethod);
-}
-
-QStringList NesPpu::renderMethodNameList() const
-{
-	return m_renderMethodNameList;
-}
-
-void NesPpu::setupRenderMethodNameList()
-{
-	m_renderMethodNameList << tr("Post All Render");
-	m_renderMethodNameList << tr("Pre All Render");
-	m_renderMethodNameList << tr("Post Render");
-	m_renderMethodNameList << tr("Pre Render");
-	m_renderMethodNameList << tr("Tile Render");
-}
-
 void NesPpu::nextScanline() {
 	nesPpuScanline++;
 	scanlineData += nesPpuFrame.bytesPerLine()/sizeof(QRgb);
@@ -429,11 +395,11 @@ void NesPpu::drawBackground() {
 	qMemSet(bgWritten, 0, sizeof(bgWritten));
 	if (!isBackgroundVisible()) {
 		fillScanline(0, 8+VisibleScreenWidth);
-		if (renderMethod() == TileRender)
+		if (nesEmu.renderMethod() == NesEmu::TileRender)
 			nesEmu.clockCpu(FetchCycles*4*32);
 		return;
 	}
-	if (renderMethod() != TileRender) {
+	if (nesEmu.renderMethod() != NesEmu::TileRender) {
 		if (!externalLatchEnabled)
 			drawBackgroundNoTileNoExtLatch();
 		else
@@ -825,7 +791,7 @@ static void fillPens() {
 	/* The 16 colors circle around the YUV color space,      */
 
 	int entry = 0;
-	qreal tint = 0.22f;	/* adjust to taste */
+	qreal tint = 0.22f;	/* adjust to taste */ // TODO as an option
 	qreal hue = 287.0f;
 
 	qreal Kr = 0.2989f;
@@ -889,11 +855,8 @@ static void fillPens() {
 }
 
 void NesPpu::sl() {
-	// TODO ppu type to hard configuration
-	u8 renderMethod_ = ppuRenderMethod;
 	emsl.begin("ppu");
 	emsl.var("scanlinesPerFrame", nesPpuScanlinesPerFrame);
-	emsl.var("renderMethod", renderMethod_);
 	emsl.var("vramAddress", nesVramAddress);
 	emsl.var("refreshLatch", refreshLatch);
 	emsl.var("scrollTileXOffset", scrollTileXOffset);
@@ -903,7 +866,6 @@ void NesPpu::sl() {
 	emsl.var("loopyShift", loopyShift);
 	emsl.var("vBlankOut", vBlankOut);
 	emsl.array("spriteMem", spriteMem, sizeof(spriteMem));
-	ppuRenderMethod = static_cast<RenderMethod>(renderMethod_);
 
 	emsl.array("regs", nesPpuRegs, sizeof(nesPpuRegs));
 	emsl.var("regToggle", regToggle);
@@ -916,5 +878,7 @@ void NesPpu::sl() {
 	emsl.var("paletteMask", paletteMask);
 	emsl.var("paletteEmphasis", paletteEmphasis);
 	emsl.end();
-	palettePenLutNeedsRebuild = true;
+
+	if (!emsl.save)
+		palettePenLutNeedsRebuild = true;
 }

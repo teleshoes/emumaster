@@ -18,7 +18,7 @@
 #define MAPPER_H
 
 #include "nes.h"
-#include "gamegeniecode.h"
+class GameGenieCode;
 class NesMapper;
 
 enum NesMirroring {
@@ -101,7 +101,7 @@ public:
 
 	void setIrqSignalOut(bool on);
 
-	void setGameGenieCodeList(const QList<GameGenieCode> &codes);
+	void setCheats(const QList<GameGenieCode> &codes);
 	void processGameGenieCodes();
 
 	void writeDirect(u16 address, u8 data);

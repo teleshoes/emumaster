@@ -38,7 +38,7 @@ void Mapper069::reset() {
 	u32 crc = nesDiskCrc;
 
 	if (crc == 0xfeac6916)	// Honoo no Toukyuuji - Dodge Danpei 2(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
+		nesEmu.setRenderMethod(NesEmu::TileRender);
 
 	if (crc == 0xad28aef6)	// Dynamite Batman(J) / Dynamite Batman - Return of the Joker(U)
 		patch = 1;

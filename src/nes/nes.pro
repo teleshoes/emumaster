@@ -2,8 +2,6 @@ include(../emu.pri)
 QT += opengl declarative
 
 HEADERS += \
-    gamegeniecodelistmodel.h \
-    gamegeniecode.h \
 	mapper/mapper255.h \
 	mapper/mapper254.h \
 	mapper/mapper252.h \
@@ -95,11 +93,10 @@ HEADERS += \
     ppu.h \
     eeprom.h \
     nes.h \
-    timings.h
+    timings.h \
+    cheats.h
 
 SOURCES += \
-    gamegeniecodelistmodel.cpp \
-    gamegeniecode.cpp \
 	mapper/mapper255.cpp \
 	mapper/mapper254.cpp \
 	mapper/mapper252.cpp \
@@ -190,4 +187,5 @@ SOURCES += \
     apurectanglechannel.cpp \
     aputrianglechannel.cpp \
     eeprom.cpp \
-    nes.cpp
+    nes.cpp \
+    cheats.cpp

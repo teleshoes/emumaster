@@ -21,7 +21,7 @@
 #include "ppu.h"
 #include "apu.h"
 #include "pad.h"
-#include "gamegeniecode.h"
+#include "cheats.h"
 #include <QDataStream>
 
 #include "mapper/mapper000.h"
@@ -255,7 +255,7 @@ void NesMapper::reset() {
 	qMemSet(nesVram, 0, sizeof(nesVram));
 	qMemSet(nesCram, 0, sizeof(nesCram));
 
-	nesPpu.setRenderMethod(NesPpu::PreRender);
+	nesEmu.setRenderMethod(NesEmu::PreRender);
 	nesPpu.setCharacterLatchEnabled(false);
 	nesPpu.setExternalLatchEnabled(false);
 
@@ -388,7 +388,7 @@ void NesMapper::setIrqSignalOut(bool on) {
 	}
 }
 
-void NesMapper::setGameGenieCodeList(const QList<GameGenieCode> &codes) {
+void NesMapper::setCheats(const QList<GameGenieCode> &codes) {
 	for (int i = 0; i < nesGameGenieList.size(); i++) {
 		const GameGenieCode &code = nesGameGenieList.at(i);
 		u16 address = code.address() | 0x8000;

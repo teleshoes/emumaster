@@ -14,7 +14,7 @@
  */
 
 import QtQuick 1.1
-import com.nokia.meego 1.0
+import com.nokia.meego 1.1
 import EmuMaster 1.0
 
 Page {
@@ -168,33 +168,15 @@ Page {
 					id: inputDevicesView
 					model: emuView.inputDevices
 
-					Item {
-						width: parent.width
-						height: childrenRect.height
-
-						Image {
-							id: inputDeviceIcon
-							source: qsTr("../img/input-%1.png").arg(modelData.shortName)
-						}
-						Label {
-							id: inputDeviceNameLabel
-							anchors {
-								left: inputDeviceIcon.right; leftMargin: 8
-								verticalCenter: inputDeviceIcon.verticalCenter
-							}
-							text: modelData.name
-						}
-						Button {
-							id: inputDeviceFunctionButton
-							anchors.right: parent.right
-							width: 250
-							text: modelData.emuFunctionName
-							onClicked: {
-								inputDeviceFunctionModel.stringListModel = modelData.emuFunctionNameList
-								inputDeviceFunctionSelector.inputDevice = modelData
-								inputDeviceFunctionSelector.selectedIndex = modelData.emuFunction
-								inputDeviceFunctionSelector.open()
-							}
+					SelectionItem {
+						imageSource: qsTr("../img/input-%1.png").arg(modelData.shortName)
+						titleText: modelData.name
+						subtitleText: modelData.emuFunctionName
+						onClicked: {
+							inputDeviceFunctionModel.stringListModel = modelData.emuFunctionNameList
+							inputDeviceFunctionSelector.inputDevice = modelData
+							inputDeviceFunctionSelector.selectedIndex = modelData.emuFunction
+							inputDeviceFunctionSelector.open()
 						}
 					}
 				}
@@ -235,9 +217,12 @@ Page {
 
 				SectionSeperator { text: qsTr("MISC") }
 				SettingsSwitchItem { text: qsTr("Audio Enabled"); paramName: "audioEnable" }
-				EMButtonOption {
-					labelText: qsTr("Overwrite Image in Gallery")
-					buttonText: qsTr("Take Screenshot")
+
+				// TODO animation on screenshot
+				SelectionItem {
+					titleText: qsTr("Take Screenshot")
+					subtitleText: qsTr("Overwrite Image in Disk Gallery")
+					iconSource: "image://theme/icon-m-toolbar-captured-white"
 					onClicked: emuView.saveScreenShot()
 				}
 			}

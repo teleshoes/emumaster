@@ -14,25 +14,59 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef GAMEGENIECODELISTMODEL_H
-#define GAMEGENIECODELISTMODEL_H
+#ifndef NESCHEATS_H
+#define NESCHEATS_H
 
-class GameGenieCode;
-class NesEmu;
+#include <emu.h>
 #include <QAbstractListModel>
 #include <QStringList>
+#include <QValidator>
 
-class GameGenieCodeListModel : public QAbstractListModel {
+class GameGenieCode
+{
+public:
+	bool parse(const QString &s);
+	u16 address() const;
+	u8 expectedData() const;
+	u8 replaceData() const;
+	bool isEightCharWide() const;
+
+	void setExpectedData(u8 data);
+private:
+	u16 m_address;
+	u8 m_expected;
+	u8 m_replace;
+	bool m_eightChars;
+};
+
+inline u16 GameGenieCode::address() const
+{ return m_address; }
+inline u8 GameGenieCode::expectedData() const
+{ return m_expected; }
+inline u8 GameGenieCode::replaceData() const
+{ return m_replace; }
+inline bool GameGenieCode::isEightCharWide() const
+{ return m_eightChars; }
+inline void GameGenieCode::setExpectedData(u8 data)
+{ m_expected = data; }
+
+class GameGenieValidator : public QValidator
+{
+public:
+	void fixup(QString & s) const;
+	State validate(QString & input, int & pos) const;
+};
+
+class NesCheats : public QAbstractListModel
+{
 	Q_OBJECT
-	Q_PROPERTY(int count READ count NOTIFY modified)
 public:
 	enum RoleType {
 		CodeRole = Qt::UserRole+1,
 		DescriptionRole,
 		EnableRole
 	};
-	explicit GameGenieCodeListModel();
-	int count() const;
+	NesCheats();
 	int rowCount(const QModelIndex &parent) const;
 	QVariant data(const QModelIndex &index, int role) const;
 
@@ -41,8 +75,6 @@ public:
 	Q_INVOKABLE void setEnabled(int i, bool on);
 	Q_INVOKABLE void addNew(const QString &code, const QString &description);
 	Q_INVOKABLE void removeAt(int i);
-
-	Q_INVOKABLE bool isCodeValid(const QString &s);
 signals:
 	void modified();
 private:
@@ -51,4 +83,4 @@ private:
 	QList<bool> m_enable;
 };
 
-#endif // GAMEGENIECODELISTMODEL_H
+#endif // NESCHEATS_H

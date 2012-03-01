@@ -14,7 +14,7 @@
  */
 
 import QtQuick 1.1
-import com.nokia.meego 1.0
+import com.nokia.meego 1.1
 
 Dialog {
 	property color colorValue: hsba(hueSlider.value, colorPicker.saturation,
@@ -26,7 +26,6 @@ Dialog {
 		height: 40
 		anchors.horizontalCenter: parent.horizontalCenter
 	}
-	platformStyle: DialogStyle { dim: 0.9 }
 
 	//  creates color value from hue, saturation, brightness, alpha
 	function hsba(h, s, b, a) {

@@ -34,7 +34,7 @@ void Mapper067::reset() {
 	u32 crc = nesDiskCrc;
 
 	if (crc == 0x7f2a04bf) // For Fantasy Zone 2(J)
-		nesPpu.setRenderMethod(NesPpu::PreAllRender);
+		nesEmu.setRenderMethod(NesEmu::PreAllRender);
 }
 
 void Mapper067::writeHigh(u16 address, u8 data) {

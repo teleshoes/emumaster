@@ -73,12 +73,9 @@ inline bool NesPpuSprite::flipVertically() const
 inline bool NesPpuSprite::isBehindBackground() const
 { return m_attributes & BehindBackground; }
 
-class NesPpu : public QObject {
+class NesPpu : public QObject
+{
 	Q_OBJECT
-	Q_ENUMS(RenderMethod)
-	Q_PROPERTY(RenderMethod renderMethod READ renderMethod WRITE setRenderMethod NOTIFY renderMethodChanged)
-	Q_PROPERTY(QString renderMethodName READ renderMethodName NOTIFY renderMethodChanged)
-	Q_PROPERTY(QStringList renderMethodNameList READ renderMethodNameList CONSTANT)
 public:
 	enum ChipType {
 		PPU2C02,	// NTSC NES
@@ -89,13 +86,6 @@ public:
 		PPU2C05_03,	// Vs. Unisystem (Gumshoe) // TODO test
 		PPU2C05_04,	// Vs. Unisystem (Top Gun) // TODO test
 		PPU2C07		// PAL NES
-	};
-	enum RenderMethod {
-		PostAllRender,
-		PreAllRender,
-		PostRender,
-		PreRender,
-		TileRender
 	};
 	enum Register {
 		Control0 = 0,
@@ -182,12 +172,6 @@ public:
 
 	void setChipType(ChipType newType);
 
-	RenderMethod renderMethod() const;
-	void setRenderMethod(RenderMethod method);
-
-	QString renderMethodName() const;
-	QStringList renderMethodNameList() const;
-
 	bool isBackgroundVisible() const;
 	bool isSpriteVisible() const;
 	bool isDisplayOn() const;
@@ -208,8 +192,6 @@ public:
 	bool checkSprite0HitHere() const;
 
 	void sl();
-signals:
-	void renderMethodChanged();
 private:
 	void drawBackground();
 	void drawBackgroundNoTileNoExtLatch();
@@ -219,10 +201,6 @@ private:
 
 	void drawSprites();
 	void fillScanline(int color, int count);
-
-	void setupRenderMethodNameList();
-
-	QStringList m_renderMethodNameList;
 };
 
 inline bool NesPpu::isBackgroundVisible() const

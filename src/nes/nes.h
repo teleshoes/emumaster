@@ -22,11 +22,20 @@ class NesPpu;
 
 enum SystemType { NES_NTSC, NES_PAL };
 
-class NesEmu : public Emu {
+class NesEmu : public Emu
+{
 	Q_OBJECT
 	Q_PROPERTY(NesPpu *ppu READ ppu CONSTANT)
-	Q_PROPERTY(QObject *gameGenie READ gameGenie CONSTANT)
+	Q_PROPERTY(QObject *cheats READ cheats CONSTANT)
 public:
+	enum RenderMethod {
+		PostAllRender,
+		PreAllRender,
+		PostRender,
+		PreRender,
+		TileRender
+	};
+
 	NesEmu();
 	QString init(const QString &diskPath);
 	void shutdown();
@@ -35,10 +44,13 @@ public:
 	void resume();
 
 	NesPpu *ppu() const;
-	QObject *gameGenie() const;
+	QObject *cheats() const;
 	u64 cpuCycles() const;
 
 	QString setDisk(const QString &path);
+
+	RenderMethod renderMethod() const;
+	void setRenderMethod(RenderMethod method);
 
 	void clockCpu(u32 cycles);
 	const QImage &frame() const;

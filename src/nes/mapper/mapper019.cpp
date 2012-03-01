@@ -52,18 +52,18 @@ void Mapper019::reset() {
 	}
 
 	if (crc == 0x968dcf09) {	// Final Lap(J)
-		nesPpu.setRenderMethod(NesPpu::PreAllRender);
+		nesEmu.setRenderMethod(NesEmu::PreAllRender);
 	}
 	if (crc == 0x3deac303) {	// Rolling Thunder(J)
-		nesPpu.setRenderMethod(NesPpu::PostAllRender);
+		nesEmu.setRenderMethod(NesEmu::PostAllRender);
 	}
 
 	if (crc == 0xb1b9e187) {	// For Kaijuu Monogatari(J)
-		nesPpu.setRenderMethod(NesPpu::PreAllRender);
+		nesEmu.setRenderMethod(NesEmu::PreAllRender);
 	}
 
 	if (crc == 0x6901346e) {	// For Sangokushi 2 - Haou no Tairiku(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
+		nesEmu.setRenderMethod(NesEmu::TileRender);
 	}
 
 	if (crc == 0xaf15338f		// For Mindseeker(J)

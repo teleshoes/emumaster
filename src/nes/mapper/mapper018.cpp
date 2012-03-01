@@ -37,10 +37,10 @@ void Mapper018::reset() {
 	u32 crc = nesDiskCrc;
 
 	if (crc == 0xefb1df9e) {	// The Lord of King(J)
-		nesPpu.setRenderMethod(NesPpu::PreAllRender);
+		nesEmu.setRenderMethod(NesEmu::PreAllRender);
 	}
 	if (crc == 0x3746f951) {	// Pizza Pop!(J)
-		nesPpu.setRenderMethod(NesPpu::PreAllRender);
+		nesEmu.setRenderMethod(NesEmu::PreAllRender);
 	}
 }
 

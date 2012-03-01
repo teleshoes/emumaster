@@ -91,7 +91,7 @@ void Mapper005::reset() {
 	}
 
 	if (crc == 0x95ca9ec7) { // Castlevania 3 - Dracula's Curse(U)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
+		nesEmu.setRenderMethod(NesEmu::TileRender);
 	}
 
 	if (crc == 0xcd9acf43) { // Metal Slader Glory(J)

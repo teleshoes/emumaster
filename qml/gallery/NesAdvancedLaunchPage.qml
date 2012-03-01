@@ -15,7 +15,7 @@
  */
 
 import QtQuick 1.1
-import com.nokia.meego 1.0
+import com.nokia.meego 1.1
 import "../base"
 
 AdvancedLaunchPage {
@@ -28,18 +28,32 @@ AdvancedLaunchPage {
 		checkedButton: tvSystemAuto
 		spacing: 5
 
-		Button {
-			id: tvSystemAuto
-			text: qsTr("AUTO")
-		}
-		Button {
-			id: tvSystemNtsc
-			text: qsTr("NTSC")
-		}
-		Button {
-			id: tvSystemPal
-			text: qsTr("PAL")
-		}
+		Button { id: tvSystemAuto; text: qsTr("AUTO") }
+		Button { id: tvSystemNtsc; text: qsTr("NTSC") }
+		Button { id: tvSystemPal;  text: qsTr("PAL")  }
+	}
+
+	ListModel {
+		id: renderMethodModel
+		ListElement { name: QT_TR_NOOP("Auto") }
+		ListElement { name: QT_TR_NOOP("Post All Render") }
+		ListElement { name: QT_TR_NOOP("Pre All Render") }
+		ListElement { name: QT_TR_NOOP("Post Render") }
+		ListElement { name: QT_TR_NOOP("Pre Render") }
+		ListElement { name: QT_TR_NOOP("Tile Render") }
+	}
+
+	SelectionItem {
+		titleText: qsTr("Render Method")
+		subtitleText: renderMethodModel[renderMethodDialog.selectedIndex]
+		onClicked: renderMethodDialog.open()
+	}
+
+	SelectionDialog {
+		id: renderMethodDialog
+		model: renderMethodModel
+		titleText: qsTr("Select Render Method")
+		selectedIndex: 0
 	}
 
 	function confString() {
@@ -50,6 +64,10 @@ AdvancedLaunchPage {
 				str += "NTSC"
 			else
 				str += "PAL"
+		}
+		if (renderMethodDialog.selectedIndex > 0) {
+			str += ","
+			str += "nes.renderMethod="+(renderMethodDialog.selectedIndex-1)
 		}
 		// str += ","
 		return str

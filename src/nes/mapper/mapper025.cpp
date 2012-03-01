@@ -38,13 +38,13 @@ void Mapper025::reset() {
 
 	u32 crc = nesDiskCrc;
 	if (crc == 0xa2e68da8) {	// For Racer Mini Yonku - Japan Cup(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
+		nesEmu.setRenderMethod(NesEmu::TileRender);
 	}
 	if (crc == 0xea74c587) {	// For Teenage Mutant Ninja Turtles(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
+		nesEmu.setRenderMethod(NesEmu::TileRender);
 	}
 	if (crc == 0x0bbd85ff) {	// For Bio Miracle Bokutte Upa(J)
-		nesPpu.setRenderMethod(NesPpu::PreAllRender);
+		nesEmu.setRenderMethod(NesEmu::PreAllRender);
 	}
 }
 

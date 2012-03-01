@@ -46,76 +46,40 @@ void Mapper004::reset() {
 
 	u32 crc = nesDiskCrc;
 
-	if (crc == 0x5c707ac4) {	// Mother(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
-	}
-	if (crc == 0xcb106f49) {	// F-1 Sensation(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
-	}
-	if (crc == 0x14a01c70) {	// Gun-Dec(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
+	if (crc == 0x5c707ac4 || // Mother(J)
+		crc == 0xcb106f49 || // F-1 Sensation(J)
+		crc == 0x14a01c70 || // Gun-Dec(J)
+		crc == 0xc17ae2dc || // God Slayer - Haruka Tenkuu no Sonata(J)
+		crc == 0xe19a2473 || // Sugoro Quest - Dice no Senshi Tachi(J)
+		crc == 0xa9a0d729 || // Dai Kaijuu - Deburas(J)
+		crc == 0xd852c2f7 || // Time Zone(J)
+		crc == 0xecfd3c69 || // Taito Chase H.Q.(J)
+		crc == 0xaafe699c || // Ninja Ryukenden 3 - Yomi no Hakobune(J)
+		crc == 0x6cc62c06 || // Hoshi no Kirby - Yume no Izumi no Monogatari(J)
+		crc == 0x8685f366 || // Matendouji(J)
+		crc == 0x8635fed1 || // Mickey Mouse 3 - Yume Fuusen(J)
+		crc == 0x7c7ab58e || // Walkuere no Bouken - Toki no Kagi Densetsu(J)
+		crc == 0x26ff3ea2 || // Yume Penguin Monogatari(J)
+		crc == 0x126ea4a0 || // Summer Carnival '92 Recca(J)
+		crc == 0xA67EA466) { // Alien 3(U)
+		nesEmu.setRenderMethod(NesEmu::TileRender);
 	}
 	if (crc == 0xeffeea40) {	// For Klax(J)
 		irq_type = IrqKlax;
-		nesPpu.setRenderMethod(NesPpu::TileRender);
+		nesEmu.setRenderMethod(NesEmu::TileRender);
 	}
-	if (crc == 0xc17ae2dc) {	// God Slayer - Haruka Tenkuu no Sonata(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
-	}
-	if (crc == 0x5a6860f1) {	// Shougi Meikan '92(J)
+	if (crc == 0x5a6860f1 || // Shougi Meikan '92(J)
+		crc == 0xae280e20) { // Shougi Meikan '93(J)
 		irq_type = IrqShougimeikan;
-	}
-	if (crc == 0xae280e20) {	// Shougi Meikan '93(J)
-		irq_type = IrqShougimeikan;
-	}
-	if (crc == 0xe19a2473) {	// Sugoro Quest - Dice no Senshi Tachi(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
-	}
-	if (crc == 0xa9a0d729) {	// Dai Kaijuu - Deburas(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
 	}
 	if (crc == 0xc5fea9f2) {	// Dai 2 Ji - Super Robot Taisen(J)
 		irq_type = IrqDai2JiSuper;
 	}
-	if (crc == 0xd852c2f7) {	// Time Zone(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
-	}
-	if (crc == 0xecfd3c69) {	// Taito Chase H.Q.(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
-	}
-	if (crc == 0xaafe699c) {	// Ninja Ryukenden 3 - Yomi no Hakobune(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
-	}
-	if (crc == 0x6cc62c06) {	// Hoshi no Kirby - Yume no Izumi no Monogatari(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
-	}
-	if (crc == 0x8685f366) {	// Matendouji(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
-	}
-	if (crc == 0x8635fed1) {	// Mickey Mouse 3 - Yume Fuusen(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
-	}
-	if (crc == 0x7c7ab58e) {	// Walkuere no Bouken - Toki no Kagi Densetsu(J)
-		nesPpu.setRenderMethod(NesPpu::PostRender);
-	}
-	if (crc == 0x26ff3ea2) {	// Yume Penguin Monogatari(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
-	}
-	if (crc == 0x126ea4a0) {	// Summer Carnival '92 Recca(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
-	}
 
 	if (crc == 0x1d2e5018		// Rockman 3(J)
-	 || crc == 0x6b999aaf) {	// Megaman 3(U)
+	 || crc == 0x6b999aaf		// Megaman 3(U)
+	 || crc == 0xd88d48d7) {	// Kick Master(U)
 		irq_type = IrqRockman3;
-	}
-
-	if (crc == 0xd88d48d7) {	// Kick Master(U)
-		irq_type = IrqRockman3;
-	}
-
-	if (crc == 0xA67EA466) {	// Alien 3(U)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
 	}
 
 	if (crc == 0xe763891b) {	// DBZ2

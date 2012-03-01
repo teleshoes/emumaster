@@ -14,7 +14,7 @@
  */
 
 import QtQuick 1.1
-import com.nokia.meego 1.0
+import com.nokia.meego 1.1
 import EmuMaster 1.0
 
 SettingsPage {
@@ -22,25 +22,4 @@ SettingsPage {
 		SectionSeperator { text: qsTr("ChEaTs") },
 		NesCheats {}
 	]
-	videoContent: [
-		EMButtonOption {
-			id: nesRenderMethodButton
-			labelText: qsTr("PPU Render Method")
-			buttonText: emu.ppu.renderMethodName
-			onClicked: {
-				nesRenderMethodDialog.selectedIndex = emu.ppu.renderMethod
-				nesRenderMethodDialog.open()
-			}
-		}
-	]
-	StringListProxy {
-		id: nesRenderMethodModel
-		stringListModel: emu.ppu.renderMethodNameList
-	}
-	SelectionDialog {
-		id: nesRenderMethodDialog
-		model: nesRenderMethodModel
-		titleText: qsTr("Select Render Method")
-		onAccepted: emu.ppu.renderMethod = selectedIndex
-	}
 }

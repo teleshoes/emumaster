@@ -14,104 +14,92 @@
  */
 
 import QtQuick 1.1
-import com.nokia.meego 1.0
-import "constants.js" as UI
+import com.nokia.meego 1.1
+import EmuMaster 1.0
 
 Item {
 	width: parent.width
 	height: childrenRect.height
 
 	Column {
+		id: column
 		width: parent.width
 
-	ButtonRow {
-		anchors.horizontalCenter: parent.horizontalCenter
-		exclusive: false
+		ButtonRow {
+			anchors.horizontalCenter: parent.horizontalCenter
+			exclusive: false
+			spacing: 5
 
-		Button {
-			text: qsTr("Add")
-			onClicked: addCheatSheet.open()
-		}
-		Button {
-			text: qsTr("Remove")
-			onClicked: emu.gameGenie.removeAt(listView.currentIndex)
-		}
-	}
-	ListView {
-		id: listView
-		width: parent.width
-		height: emu.gameGenie.count * UI.LIST_ITEM_HEIGHT
-		model: emu.gameGenie
-		delegate: MyListDelegate {
-			id: listViewDelegate
-			title: code
-			subtitle: description
-			subtitleSize: 16
-
-			BorderImage {
-				id: overlay
-				anchors.fill: parent
-				source: "image://theme/meegotouch-panel-background-selected"
-				opacity: 0.5
-				visible: false
+			Button {
+				text: qsTr("Add")
+				onClicked: addCheatSheet.clearAndOpen()
 			}
-			onClicked: listView.currentIndex = index
+			Button {
+				text: qsTr("Remove")
+				onClicked: emu.cheats.removeAt(cheatsView.currentIndex)
+			}
+		}
+		Repeater {
+			property int currentIndex: 0
+			id: cheatsView
+			model: emu.cheats
+			delegate: SelectionItem {
+				titleText: code
+				subtitleText: codeDescription
+				onClicked: cheatsView.currentIndex = index
+				selected: cheatsView.currentIndex === index
+				iconSource: ""
+				width: column.width
 
-			states: [
-				State {
-					name: "selected"; when: listView.currentIndex === index
-					PropertyChanges { target: overlay; visible: true }
+				Switch {
+					anchors {
+						verticalCenter: parent.verticalCenter
+						right: parent.right
+						rightMargin: 20
+					}
+					checked: codeEnabled
+					platformStyle: SwitchStyle { inverted: true }
+					onCheckedChanged: emu.cheats.setEnabled(index, checked)
 				}
-			]
-			Switch {
-				anchors.verticalCenter: parent.verticalCenter
-				anchors.right: parent.right
-				anchors.rightMargin: 20
-				checked: isEnabled
-				platformStyle: SwitchStyle { inverted: true }
-				onCheckedChanged: emu.gameGenie.setEnabled(index, checked)
 			}
 		}
-	}
 
 	}
 	Sheet {
 		id: addCheatSheet
 
-		acceptButton.enabled: false
+		acceptButton.enabled: !codeEdit.errorHighlight
 		acceptButtonText: qsTr("Add")
 		rejectButtonText: qsTr("Cancel")
 
-		content: Item {
+		content: Column {
+			y:10
+			spacing: 10
 			anchors.fill: parent
-			Column {
-				y:10
-				spacing: 10
-				width: parent.width
 
-				Label { text: qsTr("Game Genie Code:") }
-				TextField {
-					id: codeEdit
-					anchors { left: parent.left; right: parent.right }
-					errorHighlight: true
-					inputMethodHints: Qt.ImhUppercaseOnly | Qt.ImhNoPredictiveText
-					onAccepted: descriptionEdit.focus = true
-					onTextChanged: {
-						var codeOk = emu.gameGenie.isCodeValid(text)
-						addCheatSheet.acceptButton.enabled = codeOk
-						errorHighlight = !codeOk
-					}
-				}
+			Label { text: qsTr("Game Genie Code:") }
+			TextField {
+				id: codeEdit
+				anchors { left: parent.left; right: parent.right }
+				inputMethodHints: Qt.ImhUppercaseOnly | Qt.ImhNoPredictiveText
+				onAccepted: descriptionEdit.focus = true
+				validator: GameGenieValidator { }
+			}
 
-				Label { text: qsTr("Description:") }
-				TextField {
-					id: descriptionEdit
-					anchors { left: parent.left; right: parent.right }
-					onAccepted: addCheatSheet.accept()
-				}
+			Label { text: qsTr("Description:") }
+			TextField {
+				id: descriptionEdit
+				anchors { left: parent.left; right: parent.right }
+				onAccepted: addCheatSheet.accept()
 			}
 		}
 
-		onAccepted: emu.gameGenie.addNew(codeEdit.text, descriptionEdit.text)
+		onAccepted: emu.cheats.addNew(codeEdit.text, descriptionEdit.text)
+
+		function clearAndOpen() {
+			codeEdit.text = ""
+			descriptionEdit.text = ""
+			open()
+		}
 	}
 }

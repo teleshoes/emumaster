@@ -52,13 +52,13 @@ void Mapper033::reset() {
 		patch = 1;
 	}
 
-	nesPpu.setRenderMethod(NesPpu::PreRender);
+	nesEmu.setRenderMethod(NesEmu::PreRender);
 
 	if (crc == 0x202df297) {	// Captain Saver(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
+		nesEmu.setRenderMethod(NesEmu::TileRender);
 	}
 	if (crc == 0x63bb86b5) {	// The Jetsons(J)
-		nesPpu.setRenderMethod(NesPpu::TileRender);
+		nesEmu.setRenderMethod(NesEmu::TileRender);
 	}
 }
 

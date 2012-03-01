@@ -26,7 +26,7 @@ void Mapper070::reset() {
 	u32 crc = nesDiskCrc;
 	if (crc == 0xa59ca2ef) {	// Kamen Rider Club(J)
 		patch = 1;
-		nesPpu.setRenderMethod(NesPpu::PostAllRender);
+		nesEmu.setRenderMethod(NesEmu::PostAllRender);
 	}
 	if (crc == 0x10bb8f9a) {	// Family Trainer - Manhattan Police(J)
 		patch = 1;

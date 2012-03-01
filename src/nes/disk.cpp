@@ -31,7 +31,7 @@ public:
 
 	char magic[4];
 	u8 num16KBRomBanks;
-	u8 num8KBVRomBanks;
+	u8 num8KBVromBanks;
 	u8 flagsA;
 	u8 flagsB;
 	u8 num8KBRamBanks;
@@ -49,11 +49,11 @@ static inline bool hasTrainer()
 	return header.flagsA & NesDiskHeader::TrainerFlagA;
 }
 
-static void computeChecksum(QFile &file)
+static void computeChecksum(QFile *file)
 {
 	if (hasTrainer()) {
-		file.seek(sizeof(NesDiskHeader));
-		QByteArray ba = file.read(nesRomSizeInBytes+512);
+		file->seek(sizeof(NesDiskHeader));
+		QByteArray ba = file->read(nesRomSizeInBytes+512);
 		nesDiskCrc = qChecksum32(ba.constData(), nesRomSizeInBytes+512);
 	} else {
 		nesDiskCrc = qChecksum32((const char *)nesRom, nesRomSizeInBytes);
@@ -79,7 +79,7 @@ static bool loadHeaderAndMemory(QFile *file)
 	if (file->read((char *)nesRom, nesRomSizeInBytes) != nesRomSizeInBytes)
 		return false;
 
-	nesVromSize8KB = header.num8KBVRomBanks;
+	nesVromSize8KB = header.num8KBVromBanks;
 	nesVromSize4KB = nesVromSize8KB << 1;
 	nesVromSize2KB = nesVromSize4KB << 1;
 	nesVromSize1KB = nesVromSize2KB << 1;
@@ -103,11 +103,12 @@ bool nesDiskLoad(const QString &fileName, QString *error)
 		return false;
 	}
 
-	computeChecksum(file);
+	computeChecksum(&file);
 	patchRom();
 
 	nesMapperType = (header.flagsA >> 4) | (header.flagsB & 0xF0);
-	nesSystemType = (header.flagsC & 0x01) ? NES_PAL : NES_NTSC;
+	// PAL/NTSC is rarely provided, so we don't rely on this flag
+	// nesSystemType = (header.flagsC & 0x01) ? NES_PAL : NES_NTSC;
 
 	if (header.flagsA & NesDiskHeader::FourScreenFlagA)
 		nesMirroring = FourScreenMirroring;

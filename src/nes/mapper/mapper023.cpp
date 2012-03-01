@@ -40,10 +40,10 @@ void Mapper023::reset() {
 	 || crc == 0xc7829dae		// Akumajou Special Boku Dracula Kun(T-Eng)
 	 || crc == 0xf82dc02f) {	// Akumajou Special Boku Dracula Kun(T-Eng v1.02)
 		addrmask = 0xF00C;
-		nesPpu.setRenderMethod(NesPpu::PreAllRender);
+		nesEmu.setRenderMethod(NesEmu::PreAllRender);
 	}
 	if (crc == 0xdd53c4ae) {	// Tiny Toon Adventures(J)
-		nesPpu.setRenderMethod(NesPpu::PostAllRender);
+		nesEmu.setRenderMethod(NesEmu::PostAllRender);
 	}
 }
 
