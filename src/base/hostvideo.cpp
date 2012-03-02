@@ -153,3 +153,15 @@ void HostVideo::setBilinearFiltering(bool enabled)
 {
 	m_bilinearFiltering = enabled;
 }
+
+/*!
+	Converts position from host coordinates to emulation coordinates and
+	returns as a point.
+ */
+QPoint HostVideo::convertCoordHostToEmu(const QPoint &hostPos)
+{
+	QPoint rel = hostPos - m_dstRect.topLeft().toPoint();
+	int x = rel.x()*m_srcRect.width()/m_dstRect.width();
+	int y = rel.y()*m_srcRect.height()/m_dstRect.height();
+	return QPoint(x, y);
+}

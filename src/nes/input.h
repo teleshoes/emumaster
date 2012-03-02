@@ -19,12 +19,42 @@
 
 #include <emu.h>
 
-void nesPadInit();
-void nesPadSetButtons(int pad, int buttons);
-void nesPadWrite(u16 addr, u8 data);
-  u8 nesPadRead(u16 addr);
+class NesInput : public QObject
+{
+	Q_OBJECT
+	Q_ENUMS(ExtraDevice)
+	Q_PROPERTY(ExtraDevice extraDevice READ extraDevice WRITE setExtraDevice NOTIFY extraDeviceChanged)
+public:
+	enum ExtraDevice {
+		None,
+		Zapper,
+		Paddle
+	};
 
-static inline bool nesPadIsZapperMode()
-{ return false; } // TODO zapper
+	void setExtraDevice(ExtraDevice extraDevice);
+	ExtraDevice extraDevice() const;
+
+	void sl();
+signals:
+	void extraDeviceChanged();
+};
+
+class NesInputExtraDevice
+{
+public:
+	virtual void reset() {}
+	virtual void strobe() {}
+	virtual void write(u16 addr, u8 data) { Q_UNUSED(addr) Q_UNUSED(data) }
+	virtual   u8 read(u16 addr) { Q_UNUSED(addr) return 0x00; }
+	virtual void sync(const EmuInput *hostInput) { Q_UNUSED(hostInput) }
+};
+
+extern NesInput nesInput;
+extern NesInputExtraDevice nesInputNullExtra;
+
+extern void nesInputReset();
+extern void nesInputWrite(u16 addr, u8 data);
+extern   u8 nesInputRead(u16 addr);
+extern void nesInputSync(const EmuInput *hostInput);
 
 #endif // NESINPUT_H

@@ -20,6 +20,7 @@
 #include "apu.h"
 #include "disk.h"
 #include "input.h"
+#include "inputzapper.h"
 #include "mapper.h"
 #include "cheats.h"
 #include "timings.h"
@@ -42,9 +43,6 @@ static u32 hBlankCycles;
 static u64 cpuCycleCounter;
 static u64 ppuCycleCounter;
 
-static bool bZapper; // TODO zapper
-static int ZapperY;
-
 static const char *tvSystemConfName = "nes.tvSystem";
 static const char *renderMethodConfName = "nes.renderMethod";
 
@@ -62,7 +60,6 @@ QString NesEmu::init(const QString &diskPath)
 	setRenderMethod(PreRender);
 	nesCpu.init();
 	nesApuInit();
-	nesPadInit();
 	nesPpu.init();
 	return QString();
 }
@@ -82,6 +79,7 @@ void NesEmu::reset()
 	nesMapper->reset();
 	nesCpu.reset();
 	nesApuReset();
+	nesInputReset();
 }
 
 void NesEmu::resume()
@@ -104,15 +102,14 @@ QString NesEmu::setDisk(const QString &path)
 		return QString("Mapper %1 is not supported").arg(nesMapperType);
 
 	// TODO VS system
+	setVideoSrcRect(QRect(8, 0, NesPpu::VisibleScreenWidth, NesPpu::VisibleScreenHeight));
 	if (nesSystemType == NES_NTSC) {
-		setVideoSrcRect(QRect(8, 8, NesPpu::VisibleScreenWidth-8, NesPpu::VisibleScreenHeight-16));
 		setFrameRate(NES_NTSC_FRAMERATE);
 		scanlineCycles = NES_NTSC_SCANLINE_CLOCKS;
 		hDrawCycles = 1024;
 		hBlankCycles = 340;
 		scanlineEndCycles = 4;
 	} else {
-		setVideoSrcRect(QRect(8, 1, NesPpu::VisibleScreenWidth-8, NesPpu::VisibleScreenHeight-1));
 		setFrameRate(NES_PAL_FRAMERATE);
 		scanlineCycles = NES_PAL_SCANLINE_CLOCKS;
 		hDrawCycles = 960;
@@ -193,22 +190,18 @@ const QImage &NesEmu::frame() const
 
 void NesEmu::emulateFrame(bool drawEnabled)
 {
-	nesPadSetButtons(0, input()->pad[0].buttons());
-	nesPadSetButtons(1, input()->pad[1].buttons());
-
+	nesInputSync(input());
 	nesApuBeginFrame();
-	bZapper = false;
-	if (nesEmu.renderMethod() == NesEmu::TileRender)
+	if (renderMethod() == TileRender)
 		emulateFrameTile(drawEnabled);
 	else
 		emulateFrameNoTile(drawEnabled);
 	nesApuProcessFrame();
 }
 
-inline void NesEmu::updateZapper()
+static inline void updateZapper()
 {
-	if (nesPadIsZapperMode())
-		bZapper = (nesPpuScanline == ZapperY);
+	nesInputZapper.setScanlineHit(nesPpuScanline == nesInputZapper.pos().y());
 }
 
 void NesEmu::emulateFrameNoTile(bool drawEnabled)
@@ -237,7 +230,7 @@ void NesEmu::emulateFrameNoTile(bool drawEnabled)
 		if (drawEnabled) {
 			nesPpu.processScanline();
 		} else {
-			if (nesPadIsZapperMode() && nesPpuScanline == ZapperY ) {
+			if (nesPpuScanline == nesInputZapper.pos().y()) {
 				nesPpu.processScanline();
 			} else {
 				if (nesPpu.checkSprite0HitHere())
@@ -322,9 +315,9 @@ void NesEmu::emulateFrameTile(bool drawEnabled)
 		}
 	} else {
 		for (; nesPpuScanline < 240; nesPpu.nextScanline()) {
-			if (nesPadIsZapperMode() && nesPpuScanline == ZapperY)
+			if (nesPpuScanline == nesInputZapper.pos().y()) {
 				nesPpu.processScanline();
-			else {
+			} else {
 				if (nesPpu.checkSprite0HitHere()) {
 					nesPpu.processScanline();
 				} else {
@@ -364,9 +357,14 @@ int NesEmu::fillAudioBuffer(char *stream, int streamSize)
 	return nesApuFillBuffer(stream, streamSize);
 }
 
-NesPpu *NesEmu::ppu() const
+QObject *NesEmu::ppu() const
 {
 	return &nesPpu;
+}
+
+QObject *NesEmu::pad() const
+{
+	return &nesInput;
 }
 
 QObject *NesEmu::cheats() const
@@ -388,6 +386,7 @@ void NesEmu::sl()
 	nesPpu.sl();
 	nesApuSl();
 	nesCheats.sl();
+	nesInput.sl();
 
 	emsl.begin("machine");
 	emsl.var("cpuCycleCounter", cpuCycleCounter);

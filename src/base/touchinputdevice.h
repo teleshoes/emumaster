@@ -16,6 +16,7 @@
 #ifndef TOUCHINPUTDEVICE_H
 #define TOUCHINPUTDEVICE_H
 
+class HostVideo;
 #include "hostinputdevice.h"
 #include <QPoint>
 #include <QImage>
@@ -36,6 +37,8 @@ class BASE_EXPORT TouchInputDevice : public HostInputDevice
 	Q_PROPERTY(bool buttonsVisible READ areButtonsVisible WRITE setButtonsVisible NOTIFY buttonsVisibleChanged)
 public:
 	explicit TouchInputDevice(QObject *parent = 0);
+	void setHostVideo(HostVideo *hostVideo);
+
 	void sync(EmuInput *emuInput);
 	void processTouch(QEvent *e);
 	void paint(QPainter *painter);
@@ -77,6 +80,7 @@ private:
 	void setupEmuFunctionList();
 	void convertPad();
 	void convertMouse();
+	void convertTouch();
 	int buttonsInDpad(int x, int y) const;
 	void addDpadAreaToGrid(int x, int y);
 
@@ -106,6 +110,8 @@ private:
 	QPainterPath m_grid;
 	QColor m_gridColor;
 
+	QPoint m_touchPointInEmu;
+
 	class PaintedButton {
 	public:
 		int flag;
@@ -122,6 +128,8 @@ private:
 	QImage m_buttonsImage;
 
 	QFeedbackHapticsEffect *m_hapticEffect;
+
+	HostVideo *m_hostVideo;
 };
 
 inline bool TouchInputDevice::isGridVisible() const

@@ -15,11 +15,31 @@
 
 import QtQuick 1.1
 import com.nokia.meego 1.1
-import EmuMaster 1.0
 
 SettingsPage {
+	inputContent: [
+		SelectionItem {
+			titleText: qsTr("NES Extra Input")
+			subtitleText: extraInputModel.get(extraInputDialog.selectedIndex).name
+			onClicked: extraInputDialog.open()
+		}
+	]
+
 	columnContent: [
 		SectionSeperator { text: qsTr("ChEaTs") },
 		NesCheats {}
 	]
+
+	SelectionDialog {
+		id: extraInputDialog
+		model: ListModel {
+			id: extraInputModel
+			ListElement { name: QT_TR_NOOP("None") }
+			ListElement { name: QT_TR_NOOP("Zapper") }
+			ListElement { name: QT_TR_NOOP("Paddle") }
+		}
+		titleText: qsTr("Select Extra Input")
+		selectedIndex: emu.pad.extraDevice
+		onSelectedIndexChanged: emu.pad.extraDevice = selectedIndex
+	}
 }

@@ -60,13 +60,19 @@ TouchInputDevice::TouchInputDevice(QObject *parent) :
 	m_psxButtonsEnable(false),
 	m_picoButtonsEnable(false),
 	m_gbaButtonsEnable(false),
-	m_hapticEffect(0)
+	m_hapticEffect(0),
+	m_hostVideo(0)
 {
 	setupEmuFunctionList();
 
 	QObject::connect(this, SIGNAL(emuFunctionChanged()), SLOT(onEmuFunctionChanged()));
 
 	m_buttonsImage.load(pathManager.installationDirPath()+"/data/buttons.png");
+}
+
+void TouchInputDevice::setHostVideo(HostVideo *hostVideo)
+{
+	m_hostVideo = hostVideo;
 }
 
 void TouchInputDevice::processTouch(QEvent *e)
@@ -108,7 +114,8 @@ void TouchInputDevice::setupEmuFunctionList()
 					 << tr("Pad A")
 					 << tr("Pad B")
 					 << tr("Mouse A")
-					 << tr("Mouse B");
+					 << tr("Mouse B")
+					 << tr("Touch");
 	setEmuFunctionNameList(functionNameList);
 }
 
@@ -117,14 +124,14 @@ void TouchInputDevice::sync(EmuInput *emuInput)
 	if (emuFunction() <= 0)
 		return;
 
-	if (emuFunction() <= 2) {
+	if (emuFunction() <= 2) { // Pad
 		if (!m_converted) {
 			convertPad();
 			m_converted = true;
 		}
 		int padIndex = emuFunction() - 1;
 		emuInput->pad[padIndex].setButtons(m_buttons);
-	} else if (emuFunction() <= 4) {
+	} else if (emuFunction() <= 4) { // Mouse
 		if (!m_converted) {
 			convertMouse();
 			m_converted = true;
@@ -134,6 +141,12 @@ void TouchInputDevice::sync(EmuInput *emuInput)
 		int mouseIndex = emuFunction() - 3;
 		emuInput->mouse[mouseIndex].setButtons(m_buttons);
 		emuInput->mouse[mouseIndex].addRel(xRel, yRel);
+	} else if (emuFunction() == 5) { // Touch
+		if (!m_converted) {
+			convertTouch();
+			m_converted = true;
+		}
+		emuInput->touch.setPos(m_touchPointInEmu.x(), m_touchPointInEmu.y());
 	}
 }
 
@@ -216,6 +229,14 @@ void TouchInputDevice::convertMouse()
 		}
 	}
 	m_mouseMoving = newMoving;
+}
+
+void TouchInputDevice::convertTouch()
+{
+	if (m_numPoints <= 0)
+		m_touchPointInEmu = QPoint(-1, -1);
+	else
+		m_touchPointInEmu = m_hostVideo->convertCoordHostToEmu(m_points[0]);
 }
 
 int TouchInputDevice::buttonsInDpad(int x, int y) const

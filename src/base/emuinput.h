@@ -94,12 +94,32 @@ inline int EmuMouse::xRel() const
 inline int EmuMouse::yRel() const
 { return m_y; }
 
+class BASE_EXPORT EmuTouch
+{
+public:
+	void setPos(int x, int y);
+	int x() const;
+	int y() const;
+private:
+	int m_x;
+	int m_y;
+};
+
+// +-1 needed when there is no device attached
+inline void EmuTouch::setPos(int x, int y)
+{ m_x = x+1; m_y = y+1; }
+inline int EmuTouch::x() const
+{ return m_x-1; }
+inline int EmuTouch::y() const
+{ return m_y-1; }
+
 class BASE_EXPORT EmuInput
 {
 public:
 	EmuPad pad[2];
 	EmuKeyb keyb;
 	EmuMouse mouse[2];
+	EmuTouch touch;
 };
 
 #endif // EMUINPUT_H

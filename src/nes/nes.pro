@@ -2,7 +2,24 @@ include(../emu.pri)
 QT += opengl declarative
 
 HEADERS += \
-	mapper/mapper255.h \
+    apu.h \
+    apuchannel.h \
+    apudmchannel.h \
+    apunoisechannel.h \
+    apurectanglechannel.h \
+    aputrianglechannel.h \
+    cpu.h \
+    disk.h \
+    mapper.h \
+    ppu.h \
+    eeprom.h \
+    nes.h \
+    timings.h \
+    cheats.h \
+    input.h \
+    inputpaddle.h \
+    inputzapper.h \
+    mapper/mapper255.h \
 	mapper/mapper254.h \
 	mapper/mapper252.h \
 	mapper/mapper251.h \
@@ -79,25 +96,26 @@ HEADERS += \
 	mapper/mapper003.h \
 	mapper/mapper002.h \
 	mapper/mapper001.h \
-	mapper/mapper000.h \
-    apu.h \
-    apuchannel.h \
-    apudmchannel.h \
-    apunoisechannel.h \
-    apurectanglechannel.h \
-    aputrianglechannel.h \
-    cpu.h \
-    disk.h \
-    mapper.h \
-    ppu.h \
-    eeprom.h \
-    nes.h \
-    timings.h \
-    cheats.h \
-    input.h
+    mapper/mapper000.h
 
 SOURCES += \
-	mapper/mapper255.cpp \
+    ppu.cpp \
+    mapper.cpp \
+    disk.cpp \
+    cpu.cpp \
+    apu.cpp \
+    apuchannel.cpp \
+    apudmchannel.cpp \
+    apunoisechannel.cpp \
+    apurectanglechannel.cpp \
+    aputrianglechannel.cpp \
+    eeprom.cpp \
+    nes.cpp \
+    cheats.cpp \
+    input.cpp \
+    inputpaddle.cpp \
+    inputzapper.cpp \
+    mapper/mapper255.cpp \
 	mapper/mapper254.cpp \
 	mapper/mapper252.cpp \
 	mapper/mapper251.cpp \
@@ -174,18 +192,4 @@ SOURCES += \
 	mapper/mapper003.cpp \
 	mapper/mapper002.cpp \
 	mapper/mapper001.cpp \
-	mapper/mapper000.cpp \
-    ppu.cpp \
-    mapper.cpp \
-    disk.cpp \
-    cpu.cpp \
-    apu.cpp \
-    apuchannel.cpp \
-    apudmchannel.cpp \
-    apunoisechannel.cpp \
-    apurectanglechannel.cpp \
-    aputrianglechannel.cpp \
-    eeprom.cpp \
-    nes.cpp \
-    cheats.cpp \
-    input.cpp
+    mapper/mapper000.cpp

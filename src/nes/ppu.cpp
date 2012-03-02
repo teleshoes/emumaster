@@ -782,7 +782,15 @@ bool NesPpu::checkSprite0HitHere() const {
 	return true;
 }
 
-static void fillPens() {
+QRgb nesPpuGetPixel(int x, int y)
+{
+	Q_ASSERT(x >= 0 && x < NesPpu::VisibleScreenWidth);
+	Q_ASSERT(y >= 0 && y < NesPpu::VisibleScreenHeight);
+	return nesPpuFrame.pixel(x, y);
+}
+
+static void fillPens()
+{
 	/* This routine builds a palette using a transformation from */
 	/* the YUV (Y, B-Y, R-Y) to the RGB color space */
 

@@ -51,6 +51,8 @@ public:
 	void setBilinearFiltering(bool enabled);
 
 	QRectF dstRect() const;
+
+	QPoint convertCoordHostToEmu(const QPoint &hostPos);
 protected:
 	void paintEvent(QPaintEvent *);
 private slots:

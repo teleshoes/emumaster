@@ -341,10 +341,10 @@ void NesMapper::writeReg(u16 address, u8 data) {
 		// TODO check it
 		nesCpu.dma(514);
 	} else if (address == 0x4016) {
-		nesPadWrite(0, data);
+		nesInputWrite(0, data);
 	} else if (address == 0x4017) {
 		nesApuWrite(0x17, data);
-		nesPadWrite(1, data);
+		nesInputWrite(1, data);
 	} else if (address < 0x4017) {
 		nesApuWrite(address & 0x1F, data);
 	} else {
@@ -356,10 +356,10 @@ u8 NesMapper::readReg(u16 address) {
 	if (address == 0x4014) {
 		return 0x14;
 	} if (address == 0x4016) {
-		u8 data = nesPadRead(0);
+		u8 data = nesInputRead(0);
 		return data | 0x40; // TODO | m_TapeOut
 	} else if (address == 0x4017) {
-		u8 data = nesPadRead(1);
+		u8 data = nesInputRead(1);
 		return data | nesApuRead(0x17);
 	} else if (address < 0x4017) {
 		return nesApuRead(address & 0x1F);

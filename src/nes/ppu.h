@@ -203,6 +203,8 @@ private:
 	void fillScanline(int color, int count);
 };
 
+QRgb nesPpuGetPixel(int x, int y);
+
 inline bool NesPpu::isBackgroundVisible() const
 { return nesPpuRegs[Control1] & BackgroundDisplayCR1Bit; }
 inline bool NesPpu::isSpriteVisible() const

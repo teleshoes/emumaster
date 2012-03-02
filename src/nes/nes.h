@@ -25,7 +25,8 @@ enum SystemType { NES_NTSC, NES_PAL };
 class NesEmu : public Emu
 {
 	Q_OBJECT
-	Q_PROPERTY(NesPpu *ppu READ ppu CONSTANT)
+	Q_PROPERTY(QObject *ppu READ ppu CONSTANT)
+	Q_PROPERTY(QObject *pad READ pad CONSTANT)
 	Q_PROPERTY(QObject *cheats READ cheats CONSTANT)
 public:
 	enum RenderMethod {
@@ -43,14 +44,15 @@ public:
 
 	void resume();
 
-	NesPpu *ppu() const;
+	QObject *ppu() const;
+	QObject *pad() const;
 	QObject *cheats() const;
 	u64 cpuCycles() const;
 
 	QString setDisk(const QString &path);
 
-	RenderMethod renderMethod() const;
 	void setRenderMethod(RenderMethod method);
+	RenderMethod renderMethod() const;
 
 	void clockCpu(u32 cycles);
 	const QImage &frame() const;
@@ -64,8 +66,6 @@ private:
 
 	void emulateFrameTile(bool drawEnabled);
 	void emulateVisibleScanlineTile();
-
-	void updateZapper();
 
 	void setupTvEncodingSystem(const QString &path);
 	bool slCheckTvEncodingSystem() const;

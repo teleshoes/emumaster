@@ -68,6 +68,7 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	m_hostVideo->setParent(this);
 	m_hostVideo->resize(HostVideo::Width, HostVideo::Height);
 	m_hostVideo->installEventFilter(m_hostInput);
+	m_hostInput->touchInputDevice()->setHostVideo(m_hostVideo);
 	QObject::connect(m_hostInput, SIGNAL(quit()), SLOT(close()));
 	QObject::connect(m_hostInput, SIGNAL(pause()), SLOT(pause()));
 	QObject::connect(m_hostInput, SIGNAL(devicesChanged()),
