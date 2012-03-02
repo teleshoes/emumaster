@@ -282,7 +282,7 @@ static void queuedWrite(u16 addr, u8 data)
 static inline void enqueueWrite(u16 addr, u8 data)
 {
 	ApuWrite item;
-	item.time = nesEmu.cpuCycles();
+	item.time = nesEmuCpuCycles();
 	item.addr = addr;
 	item.data = data;
 	writeQueue.append(item);
@@ -301,7 +301,7 @@ static inline bool processWrite(u64 time)
 
 void nesApuBeginFrame()
 {
-	elapsedTime = nesEmu.cpuCycles();
+	elapsedTime = nesEmuCpuCycles();
 }
 
 void nesApuProcessFrame()

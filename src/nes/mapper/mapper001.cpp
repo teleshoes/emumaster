@@ -46,30 +46,30 @@ void Mapper001::reset() {
 		patch = 2;
 	}
 	if (crc == 0xc96c6f04) {	// Venus Senki(J)
-		nesEmu.setRenderMethod(NesEmu::PostAllRender);
+		nesEmuSetRenderMethod(NesEmu::PostAllRender);
 	}
 	if (crc == 0x4d2edf70) {	// Night Rider(J)
-		nesEmu.setRenderMethod(NesEmu::TileRender);
+		nesEmuSetRenderMethod(NesEmu::TileRender);
 	}
 	if (crc == 0xcd2a73f0) {	// Pirates!(U)
-		nesEmu.setRenderMethod(NesEmu::TileRender);
+		nesEmuSetRenderMethod(NesEmu::TileRender);
 		patch = 2;
 	}
 	if (crc == 0xd878ebf5) {	// Ninja Ryukenden(J)
-		nesEmu.setRenderMethod(NesEmu::PostAllRender);
+		nesEmuSetRenderMethod(NesEmu::PostAllRender);
 	}
 	if (crc == 0x466efdc2) {	// Final Fantasy(J)
-		nesEmu.setRenderMethod(NesEmu::TileRender);
+		nesEmuSetRenderMethod(NesEmu::TileRender);
 	}
 	if (crc == 0xc9556b36) {	// Final Fantasy I&II(J)
-		nesEmu.setRenderMethod(NesEmu::TileRender);
+		nesEmuSetRenderMethod(NesEmu::TileRender);
 		wram_patch = 2;
 	}
 	if (crc == 0x717e1169) {	// Cosmic Wars(J)
-		nesEmu.setRenderMethod(NesEmu::PreAllRender);
+		nesEmuSetRenderMethod(NesEmu::PreAllRender);
 	}
 	if (crc == 0xC05D2034) {	// Snake's Revenge(U)
-		nesEmu.setRenderMethod(NesEmu::PreAllRender);
+		nesEmuSetRenderMethod(NesEmu::PreAllRender);
 	}
 
 	if (crc == 0xb8747abf		// Best Play - Pro Yakyuu Special(J)

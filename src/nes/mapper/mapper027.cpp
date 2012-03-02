@@ -35,10 +35,10 @@ void Mapper027::reset() {
 
 	u32 crc = nesDiskCrc;
 	if( crc == 0x47DCBCC4 ) {	// Gradius II(sample)
-		nesEmu.setRenderMethod(NesEmu::PostRender);
+		nesEmuSetRenderMethod(NesEmu::PostRender);
 	}
 	if( crc == 0x468F21FC ) {	// Racer Mini 4 ku(sample)
-		nesEmu.setRenderMethod(NesEmu::PostRender);
+		nesEmuSetRenderMethod(NesEmu::PostRender);
 	}
 }
 

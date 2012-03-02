@@ -23,6 +23,8 @@
 #include <QFile>
 #include <QFileInfo>
 
+NesCheats nesCheats;
+
 static const char *gameGenieString = "APZLGITYEOXUKSVN";
 
 bool GameGenieCode::parse(const QString &s)

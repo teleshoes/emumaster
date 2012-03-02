@@ -36,7 +36,7 @@ void Mapper252::reset() {
 	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 	setVrom8KBank(0);
 
-	nesEmu.setRenderMethod(NesEmu::PostRender);
+	nesEmuSetRenderMethod(NesEmu::PostRender);
 }
 
 void Mapper252::writeHigh(u16 address, u8 data) {

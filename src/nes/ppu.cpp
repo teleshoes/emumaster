@@ -395,11 +395,11 @@ void NesPpu::drawBackground() {
 	qMemSet(bgWritten, 0, sizeof(bgWritten));
 	if (!isBackgroundVisible()) {
 		fillScanline(0, 8+VisibleScreenWidth);
-		if (nesEmu.renderMethod() == NesEmu::TileRender)
-			nesEmu.clockCpu(FetchCycles*4*32);
+		if (nesEmuRenderMethod == NesEmu::TileRender)
+			nesEmuClockCpu(FetchCycles*4*32);
 		return;
 	}
-	if (nesEmu.renderMethod() != NesEmu::TileRender) {
+	if (nesEmuRenderMethod != NesEmu::TileRender) {
 		if (!externalLatchEnabled)
 			drawBackgroundNoTileNoExtLatch();
 		else
@@ -500,7 +500,7 @@ void NesPpu::drawBackgroundTileNoExtLatch() {
 		u16 tileAddress = nameTable[nameTableAddress & 0x03FF] * 0x10;
 		tileAddress += nesPpuTilePageOffset + nesPpuScrollTileYOffset;
 		if (i)
-			nesEmu.clockCpu(FetchCycles*4);
+			nesEmuClockCpu(FetchCycles*4);
 		u8 attribute = nameTable[attributeAddress + (nameTableX >> 2)];
 		attribute >>= (nameTableX & 2) | attributeShift;
 		attribute = (attribute & 3) << 2;
@@ -608,7 +608,7 @@ void NesPpu::drawBackgroundTileExtLatch() {
 	QRgb *currPens = currentPens();
 	for (int i = 0; i < 33; i++) {
 		if (i)
-			nesEmu.clockCpu(FetchCycles*4);
+			nesEmuClockCpu(FetchCycles*4);
 		nesMapper->extensionLatchX(i);
 		u8 plane1, plane2;
 		u8 attribute;

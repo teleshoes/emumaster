@@ -62,11 +62,11 @@ void Mapper004::reset() {
 		crc == 0x26ff3ea2 || // Yume Penguin Monogatari(J)
 		crc == 0x126ea4a0 || // Summer Carnival '92 Recca(J)
 		crc == 0xA67EA466) { // Alien 3(U)
-		nesEmu.setRenderMethod(NesEmu::TileRender);
+		nesEmuSetRenderMethod(NesEmu::TileRender);
 	}
 	if (crc == 0xeffeea40) {	// For Klax(J)
 		irq_type = IrqKlax;
-		nesEmu.setRenderMethod(NesEmu::TileRender);
+		nesEmuSetRenderMethod(NesEmu::TileRender);
 	}
 	if (crc == 0x5a6860f1 || // Shougi Meikan '92(J)
 		crc == 0xae280e20) { // Shougi Meikan '93(J)

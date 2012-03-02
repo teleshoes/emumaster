@@ -31,7 +31,7 @@ void Mapper024::reset() {
 	if (nesVromSize1KB)
 		setVrom8KBank(0);
 
-	nesEmu.setRenderMethod(NesEmu::PostRender);
+	nesEmuSetRenderMethod(NesEmu::PostRender);
 	// TODO nes->apu->SelectExSound( 1);
 }
 

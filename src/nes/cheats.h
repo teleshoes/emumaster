@@ -83,4 +83,6 @@ private:
 	QList<bool> m_enable;
 };
 
+extern NesCheats nesCheats;
+
 #endif // NESCHEATS_H

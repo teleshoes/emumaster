@@ -47,31 +47,22 @@ public:
 	QObject *ppu() const;
 	QObject *pad() const;
 	QObject *cheats() const;
-	u64 cpuCycles() const;
 
 	QString setDisk(const QString &path);
 
-	void setRenderMethod(RenderMethod method);
-	RenderMethod renderMethod() const;
-
-	void clockCpu(u32 cycles);
 	const QImage &frame() const;
 	void emulateFrame(bool drawEnabled);
 	int fillAudioBuffer(char *stream, int streamSize);
 protected:
 	void sl();
-private:
-	void emulateFrameNoTile(bool drawEnabled);
-	void emulateVisibleScanlineNoTile();
-
-	void emulateFrameTile(bool drawEnabled);
-	void emulateVisibleScanlineTile();
-
-	void setupTvEncodingSystem(const QString &path);
-	bool slCheckTvEncodingSystem() const;
 };
+
+extern void nesEmuClockCpu(uint cycles);
+extern u64 nesEmuCpuCycles();
+extern void nesEmuSetRenderMethod(NesEmu::RenderMethod renderMethod);
 
 extern NesEmu nesEmu;
 extern SystemType nesSystemType;
+extern NesEmu::RenderMethod nesEmuRenderMethod;
 
 #endif // NESEMU_H

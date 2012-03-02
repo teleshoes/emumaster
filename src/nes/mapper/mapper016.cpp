@@ -77,7 +77,7 @@ void Mapper016::reset() {
 		eeprom_type = 1;
 	}
 	if (crc == 0x170250de) {	// Rokudenashi Blues(J)
-		nesEmu.setRenderMethod(NesEmu::PreAllRender);
+		nesEmuSetRenderMethod(NesEmu::PreAllRender);
 		eeprom_type = 1;
 	}
 

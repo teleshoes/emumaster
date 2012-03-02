@@ -30,12 +30,12 @@ void Mapper007::reset() {
 		patch = 1;
 	}
 	if( crc == 0x09874777 ) {	// Marble Madness(U)
-		nesEmu.setRenderMethod(NesEmu::TileRender);
+		nesEmuSetRenderMethod(NesEmu::TileRender);
 	}
 
 	if( crc == 0x279710DC		// Battletoads (U)
 	 || crc == 0xCEB65B06 ) {	// Battletoads Double Dragon (U)
-		nesEmu.setRenderMethod(NesEmu::PreAllRender);
+		nesEmuSetRenderMethod(NesEmu::PreAllRender);
 		qMemSet(nesWram, 0, sizeof(nesWram));
 	}
 }

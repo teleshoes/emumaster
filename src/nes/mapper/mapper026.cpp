@@ -33,10 +33,10 @@ void Mapper026::reset() {
 
 	u32 crc = nesDiskCrc;
 	if (crc == 0x30e64d03) {	// Esper Dream 2 - Aratanaru Tatakai(J)
-		nesEmu.setRenderMethod(NesEmu::PostAllRender);
+		nesEmuSetRenderMethod(NesEmu::PostAllRender);
 	}
 	if (crc == 0x836cc1ab) {	// Mouryou Senki Madara(J)
-		nesEmu.setRenderMethod(NesEmu::PostRender);
+		nesEmuSetRenderMethod(NesEmu::PostRender);
 	}
 
 	// TODO nes->apu->SelectExSound( 1);

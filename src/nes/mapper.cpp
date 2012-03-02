@@ -255,7 +255,7 @@ void NesMapper::reset() {
 	qMemSet(nesVram, 0, sizeof(nesVram));
 	qMemSet(nesCram, 0, sizeof(nesCram));
 
-	nesEmu.setRenderMethod(NesEmu::PreRender);
+	nesEmuSetRenderMethod(NesEmu::PreRender);
 	nesPpu.setCharacterLatchEnabled(false);
 	nesPpu.setExternalLatchEnabled(false);
 
