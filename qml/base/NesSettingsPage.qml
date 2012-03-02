@@ -39,7 +39,7 @@ SettingsPage {
 			ListElement { name: QT_TR_NOOP("Paddle") }
 		}
 		titleText: qsTr("Select Extra Input")
-		selectedIndex: emu.pad.extraDevice
 		onSelectedIndexChanged: emu.pad.extraDevice = selectedIndex
+		Component.onCompleted: selectedIndex = emu.pad.extraDevice
 	}
 }

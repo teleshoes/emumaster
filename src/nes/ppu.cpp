@@ -786,7 +786,7 @@ QRgb nesPpuGetPixel(int x, int y)
 {
 	Q_ASSERT(x >= 0 && x < NesPpu::VisibleScreenWidth);
 	Q_ASSERT(y >= 0 && y < NesPpu::VisibleScreenHeight);
-	return nesPpuFrame.pixel(x, y);
+	return nesPpuFrame.pixel(x+8, y);
 }
 
 static void fillPens()

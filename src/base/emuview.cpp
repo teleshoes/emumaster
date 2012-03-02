@@ -240,6 +240,7 @@ void EmuView::showSettingsView()
 	if (m_audioEnable)
 		m_hostAudio->close();
 	m_settingsView->setVisible(true);
+	m_settingsView->setFocus();
 	m_hostVideo->setVisible(false);
 	setSwipeEnabled(true);
 }
@@ -248,6 +249,7 @@ void EmuView::showEmulationView()
 {
 	if (!m_running) {
 		m_hostVideo->setVisible(true);
+		m_hostVideo->setFocus();
 		m_settingsView->setVisible(false);
 		setSwipeEnabled(m_swipeEnabled);
 		if (m_audioEnable)

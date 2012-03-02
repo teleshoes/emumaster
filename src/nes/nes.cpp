@@ -125,18 +125,10 @@ static void emulateFrameNoTile(bool drawEnabled)
 	for (; nesPpuScanline < 240; nesPpu.nextScanline()) {
 		if (!pre)
 			nesEmuClockCpu(all ? scanlineCycles : hDrawCycles);
-		if (drawEnabled) {
+		if (drawEnabled || nesPpu.checkSprite0HitHere())
 			nesPpu.processScanline();
-		} else {
-			if (nesPpuScanline == nesInputZapper.pos().y()) {
-				nesPpu.processScanline();
-			} else {
-				if (nesPpu.checkSprite0HitHere())
-					nesPpu.processScanline();
-				else
-					nesPpu.processDummyScanline();
-			}
-		}
+		else
+			nesPpu.processDummyScanline();
 		if (all) {
 			nesPpu.processScanlineNext();
 			if (pre)
@@ -205,26 +197,14 @@ static void emulateFrameTile(bool drawEnabled)
 	nesPpu.processFrameStart();
 	emulateVisibleScanlineTile();
 
-	if (drawEnabled) {
-		nesPpu.nextScanline();
-		for (; nesPpuScanline < 240; nesPpu.nextScanline()) {
+	for (; nesPpuScanline < 240; nesPpu.nextScanline()) {
+		if (drawEnabled || nesPpu.checkSprite0HitHere()) {
 			nesPpu.processScanline();
-			emulateVisibleScanlineTile();
+		} else {
+			nesEmuClockCpu(NesPpu::FetchCycles*128);
+			nesPpu.processDummyScanline();
 		}
-	} else {
-		for (; nesPpuScanline < 240; nesPpu.nextScanline()) {
-			if (nesPpuScanline == nesInputZapper.pos().y()) {
-				nesPpu.processScanline();
-			} else {
-				if (nesPpu.checkSprite0HitHere()) {
-					nesPpu.processScanline();
-				} else {
-					nesEmuClockCpu(NesPpu::FetchCycles*128);
-					nesPpu.processDummyScanline();
-				}
-			}
-			emulateVisibleScanlineTile();
-		}
+		emulateVisibleScanlineTile();
 	}
 
 	nesMapper->verticalSync();
@@ -338,6 +318,8 @@ void NesEmu::emulateFrame(bool drawEnabled)
 {
 	nesInputSync(input());
 	nesApuBeginFrame();
+	// zapper is rarely used, but once used it forces drawing
+	drawEnabled |= (nesInput.extraDevice() == NesInput::Zapper);
 	if (nesEmuRenderMethod == TileRender)
 		emulateFrameTile(drawEnabled);
 	else

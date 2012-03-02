@@ -55,7 +55,7 @@ u8 NesInputPaddle::read(u16 addr)
 void NesInputPaddle::sync(const EmuInput *hostInput)
 {
 	int x = hostInput->touch.x();
-	int y = hostInput->touch.x();
+	int y = hostInput->touch.y();
 	if (y != -1) {
 		m_pos = qBound(32, x, 223) - 32;
 		m_button = (y < (NesPpu::VisibleScreenHeight/2));

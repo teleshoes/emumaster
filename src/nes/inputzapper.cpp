@@ -56,7 +56,8 @@ void NesInputZapper::sync(const EmuInput *hostInput)
 		y = -1;
 	}
 	m_buttonPressed = !offScreen;
-	m_pos = QPoint(x, y);
+	if (!offScreen)
+		m_pos = QPoint(x, y);
 
 	m_scanlineHit = false;
 }
