@@ -83,7 +83,9 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 		QString diskPath = QString("%1/%2")
 				.arg(pathManager.diskDirPath())
 				.arg(m_diskFileName);
-		m_error = m_emu->init(diskPath);
+		bool ok = m_emu->init(diskPath, &m_error);
+		if (!ok && m_error.isEmpty())
+			m_error = tr("Unknown error!");
 	}
 
 	setupSettingsView();

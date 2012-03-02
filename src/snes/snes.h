@@ -11,7 +11,7 @@ class SnesEmu : public Emu {
     Q_OBJECT
 public:
 	explicit SnesEmu(QObject *parent = 0);
-	QString init(const QString &diskPath);
+	bool init(const QString &diskPath, QString *error);
 	void shutdown();
 
 	void reset();

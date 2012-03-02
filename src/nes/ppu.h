@@ -80,11 +80,11 @@ public:
 	enum ChipType {
 		PPU2C02,	// NTSC NES
 		PPU2C03B,	// Playchoice 10
-		PPU2C04,	// Vs. Unisystem // TODO test
-		PPU2C05_01,	// Vs. Unisystem (Ninja Jajamaru Kun) // TODO test
-		PPU2C05_02,	// Vs. Unisystem (Mighty Bomb Jack) // TODO test
-		PPU2C05_03,	// Vs. Unisystem (Gumshoe) // TODO test
-		PPU2C05_04,	// Vs. Unisystem (Top Gun) // TODO test
+		PPU2C04,	// Vs. Unisystem
+		PPU2C05_01,	// Vs. Unisystem (Ninja Jajamaru Kun)
+		PPU2C05_02,	// Vs. Unisystem (Mighty Bomb Jack)
+		PPU2C05_03,	// Vs. Unisystem (Gumshoe)
+		PPU2C05_04,	// Vs. Unisystem (Top Gun)
 		PPU2C07		// PAL NES
 	};
 	enum Register {

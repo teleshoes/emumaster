@@ -49,7 +49,7 @@ void setDefaultSettings() {
 	soundSampleCount *= 2;
 }
 
-QString SnesEmu::init(const QString &diskPath) {
+bool SnesEmu::init(const QString &diskPath, QString *error) {
 	S9xSetSoundMute(FALSE);
 	setDefaultSettings();
 	S9xSetPlaybackRate();
@@ -67,14 +67,19 @@ QString SnesEmu::init(const QString &diskPath) {
 	GFX.SubZBuffer = (u8 *) malloc(GFX.PPL * 239);
 	GFX.Delta = (GFX.SubScreen - GFX.Screen) >> 1;
 
-	if (!GFX.Screen || !GFX.SubScreen || !GFX.ZBuffer || !Memory.Init() || !S9xInitAPU() || !GFX.SubZBuffer )
-		return tr("SNES emulation init failed!");
+	if (!GFX.Screen || !GFX.SubScreen || !GFX.ZBuffer || !Memory.Init() || !S9xInitAPU() || !GFX.SubZBuffer ) {
+		*error = tr("SNES emulation init failed!");
+		return false;
+	}
 	S9xInitSound();
-	if (!S9xGraphicsInit())
-		return tr("SNES emulation init failed!");
+	if (!S9xGraphicsInit()) {
+		*error = tr("SNES emulation init failed!");
+		return false;
+	}
 	S9xReset();
 	setDefaultSettings();
-	return setDisk(diskPath);
+	*error = setDisk(diskPath);
+	return error->isEmpty();
 }
 
 void SnesEmu::shutdown() {

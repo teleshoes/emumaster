@@ -58,7 +58,7 @@ class PicoEmu : public Emu {
 	Q_OBJECT
 public:
 	PicoEmu();
-	QString init(const QString &diskPath);
+	bool init(const QString &diskPath, QString *error);
 	void shutdown();
 	void reset();
 

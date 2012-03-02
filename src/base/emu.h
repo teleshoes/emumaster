@@ -59,7 +59,7 @@ public:
 	qreal frameRate() const;
 	QRectF videoSrcRect() const;
 
-	virtual QString init(const QString &diskPath) = 0;
+	virtual bool init(const QString &diskPath, QString *error) = 0;
 	virtual void shutdown() = 0;
 	Q_INVOKABLE virtual void reset();
 

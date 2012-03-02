@@ -54,7 +54,7 @@ PsxEmu::PsxEmu(QObject *parent) :
 	Emu("psx", parent) {
 }
 
-QString PsxEmu::init(const QString &diskPath) {
+bool PsxEmu::init(const QString &diskPath, QString *error) {
 	Config.HLE = 0;
 
 	psxMcd1.init(pathManager.userDataDirPath() + "/psx_mcd1.mcr");
@@ -89,10 +89,14 @@ QString PsxEmu::init(const QString &diskPath) {
 		psxGpu = &psxGpuUnai;
 		psxSpu = &psxSpuFran;
 
-	if (!psxMemInit())
-		return "Could not allocate memory!";
-	if (!psxCpu->init())
-		return "Could not initialize CPU!";
+	if (!psxMemInit()) {
+		*error = "Could not allocate memory!";
+		return false;
+	}
+	if (!psxCpu->init()) {
+		*error = "Could not initialize CPU!";
+		return false;
+	}
 
 	// TODO debug as preprocessor
 	if (Config.Debug) {
@@ -100,13 +104,20 @@ QString PsxEmu::init(const QString &diskPath) {
 	}
 
 	cdrIsoInit();
-	if (CDR_init() < 0)
-		return tr("Could not initialize CD-ROM!");
-	if (!psxGpu->init())
-		return tr("Could not initialize GPU!");
-	if (!psxSpu->init())
-		return tr("Could not initialize SPU!");
-	return setDisk(diskPath);
+	if (CDR_init() < 0) {
+		*error = tr("Could not initialize CD-ROM!");
+		return false;
+	}
+	if (!psxGpu->init()) {
+		*error = tr("Could not initialize GPU!");
+		return false;
+	}
+	if (!psxSpu->init()) {
+		*error = tr("Could not initialize SPU!");
+		return false;
+	}
+	*error = setDisk(diskPath);
+	return error->isEmpty();
 }
 
 void PsxEmu::shutdown() {

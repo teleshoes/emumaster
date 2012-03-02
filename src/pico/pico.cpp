@@ -529,9 +529,8 @@ bool PicoEmu::findMcdBios(QString *biosFileName, QString *error)
 	return true;
 }
 
-QString PicoEmu::init(const QString &diskPath)
+bool PicoEmu::init(const QString &diskPath, QString *error)
 {
-	QString error;
 	QString cartPath = diskPath;
 
 	PicoOpt = 0x0f | 0x20 | 0xe00 | 0x1000; // | use_940, cd_pcm, cd_cdda, scale/rot
@@ -560,7 +559,8 @@ QString PicoEmu::init(const QString &diskPath)
 			if (!QFile::exists(fileName)) {
 				fileName = QString("%1/%2.bin").arg(diskPath).arg(name);
 				if (!QFile::exists(fileName)) {
-					return tr("iso/bin not found in the directory");
+					*error = tr("iso/bin not found in the directory");
+					return false;
 				}
 			}
 		}
@@ -569,27 +569,27 @@ QString PicoEmu::init(const QString &diskPath)
 		memset(data, 0, sizeof(mcd_state));
 		Pico.rom = picoRom = (u8 *)data;
 		// CD
-		if (!Insert_CD(fileName, &error))
-			return error;
+		if (!Insert_CD(fileName, error))
+			return false;
 		PicoMCD |= 1;
 		picoMcdOpt |= PicoMcdEnabled;
 
-		if (!findMcdBios(&cartPath, &error))
-			return error;
+		if (!findMcdBios(&cartPath, error))
+			return false;
 
 		if (Pico_mcd->TOC.Last_Track > 1)
 			m_mp3Player = new Mp3Player(this);
 	}
 
-	if (!picoCart.open(cartPath, &error))
-		return error;
+	if (!picoCart.open(cartPath, error))
+		return false;
 
 	PicoReset(1);
 	PicoOpt &= ~0x10000;
 	// pal/ntsc might have changed, reset related stuff
 	int targetFps = Pico.m.pal ? 50 : 60;
 	setFrameRate(targetFps);
-	return QString();
+	return true;
 }
 
 void PicoEmu::shutdown()

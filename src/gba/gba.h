@@ -17,7 +17,7 @@ class GbaEmu : public Emu {
 	Q_OBJECT
 public:
 	GbaEmu();
-	QString init(const QString &diskPath);
+	bool init(const QString &diskPath, QString *error);
 	void shutdown();
 	void reset();
 

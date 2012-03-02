@@ -45,6 +45,8 @@ static u64 ppuCycleCounter;
 static const char *tvSystemConfName = "nes.tvSystem";
 static const char *renderMethodConfName = "nes.renderMethod";
 
+static QVariant forcedRenderMethod;
+
 static void setupTvEncodingSystem(const QString &path)
 {
 	// detect system name by checking file name
@@ -73,21 +75,37 @@ static void setupTvEncodingSystem(const QString &path)
 
 static bool slCheckTvEncodingSystem()
 {
-	// TODO add it in state converter
 	bool ok = false;
 	// check if TV system used in the saved state is the same as current
 	QVariant forcedSystemType = emConf.value(tvSystemConfName);
 	if (!forcedSystemType.isNull()) {
 		QString typeStr = forcedSystemType.toString();
-		bool slSys = (typeStr == "NTSC");
-		bool emuSys = (nesSystemType == NES_NTSC);
-		ok = (slSys == emuSys);
+		SystemType slSys = (typeStr == "PAL") ? NES_PAL : NES_NTSC;
+		ok = (slSys == nesSystemType);
 	}
 	if (!ok) {
 		emsl.error = QString("%1 \"%2\"").arg(EM_MSG_STATE_DIFFERS)
 				.arg(tvSystemConfName);
 	}
 	return ok;
+}
+
+static void setupRenderMethod()
+{
+	nesEmuSetRenderMethod(NesEmu::PreRender);
+	// check for forced tv system
+	forcedRenderMethod = emConf.value(renderMethodConfName);
+	if (!forcedRenderMethod.isNull()) {
+		bool ok;
+		int method = forcedRenderMethod.toInt(&ok);
+		ok = (ok && method >= NesEmu::PostAllRender && method <= NesEmu::TileRender);
+		if (!ok) {
+			qDebug("Invalid render method passed");
+			forcedRenderMethod = QVariant();
+		} else {
+			nesEmuRenderMethod = static_cast<NesEmu::RenderMethod>(method);
+		}
+	}
 }
 
 void nesEmuClockCpu(uint cycles)
@@ -235,18 +253,49 @@ NesEmu::NesEmu() :
 {
 }
 
-QString NesEmu::init(const QString &diskPath)
+bool NesEmu::init(const QString &diskPath, QString *error)
 {
 	qmlRegisterType<GameGenieValidator>("EmuMaster", 1, 0, "GameGenieValidator");
-	QString error = setDisk(diskPath);
-	if (!error.isEmpty())
-		return error;
-	// TODO setup rendering
-	nesEmuSetRenderMethod(PreRender);
+	setupRenderMethod();
+
+	if (!nesDiskLoad(diskPath, error)) {
+		*error = QString("%1 (%2)").arg(EM_MSG_DISK_LOAD_FAILED).arg(*error);
+		return false;
+	}
+
+	setupTvEncodingSystem(diskPath);
+
+	nesMapper = NesMapper::create(nesMapperType);
+	if (!nesMapper) {
+		*error = QString("Mapper %1 is not supported").arg(nesMapperType);
+		return false;
+	}
+
+	setVideoSrcRect(QRect(8, 0, NesPpu::VisibleScreenWidth, NesPpu::VisibleScreenHeight));
+	setupTimings();
+
 	nesCpu.init();
 	nesApuInit();
 	nesPpu.init();
-	return QString();
+	reset();
+	return true;
+}
+
+void NesEmu::setupTimings()
+{
+	if (nesSystemType == NES_NTSC) {
+		setFrameRate(NES_NTSC_FRAMERATE);
+		scanlineCycles = NES_NTSC_SCANLINE_CLOCKS;
+		hDrawCycles = 1024;
+		hBlankCycles = 340;
+		scanlineEndCycles = 4;
+	} else {
+		setFrameRate(NES_PAL_FRAMERATE);
+		scanlineCycles = NES_PAL_SCANLINE_CLOCKS;
+		hDrawCycles = 960;
+		hBlankCycles = 318;
+		scanlineEndCycles = 2;
+	}
 }
 
 void NesEmu::shutdown()
@@ -272,37 +321,6 @@ void NesEmu::resume()
 	nesApuSetOutputEnabled(isAudioEnabled());
 }
 
-QString NesEmu::setDisk(const QString &path)
-{
-	QString loadError;
-	if (!nesDiskLoad(path, &loadError))
-		return QString("%1 (%2)").arg(EM_MSG_DISK_LOAD_FAILED).arg(loadError);
-
-	setupTvEncodingSystem(path);
-
-	nesMapper = NesMapper::create(nesMapperType);
-	if (!nesMapper)
-		return QString("Mapper %1 is not supported").arg(nesMapperType);
-
-	// TODO VS system
-	setVideoSrcRect(QRect(8, 0, NesPpu::VisibleScreenWidth, NesPpu::VisibleScreenHeight));
-	if (nesSystemType == NES_NTSC) {
-		setFrameRate(NES_NTSC_FRAMERATE);
-		scanlineCycles = NES_NTSC_SCANLINE_CLOCKS;
-		hDrawCycles = 1024;
-		hBlankCycles = 340;
-		scanlineEndCycles = 4;
-	} else {
-		setFrameRate(NES_PAL_FRAMERATE);
-		scanlineCycles = NES_PAL_SCANLINE_CLOCKS;
-		hDrawCycles = 960;
-		hBlankCycles = 318;
-		scanlineEndCycles = 2;
-	}
-	reset();
-	return QString();
-}
-
 u64 nesEmuCpuCycles()
 {
 	return cpuCycleCounter + nesCpu.ticks();
@@ -310,8 +328,8 @@ u64 nesEmuCpuCycles()
 
 void nesEmuSetRenderMethod(NesEmu::RenderMethod renderMethod)
 {
-	// TODO setup render method and return if force
-	nesEmuRenderMethod = renderMethod;
+	if (forcedRenderMethod.isNull())
+		nesEmuRenderMethod = renderMethod;
 }
 
 void NesEmu::emulateFrame(bool drawEnabled)

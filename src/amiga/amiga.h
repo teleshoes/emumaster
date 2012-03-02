@@ -26,7 +26,7 @@ class AmigaEmu : public Emu {
     Q_OBJECT
 public:
 	explicit AmigaEmu(QObject *parent = 0);
-	QString init(const QString &diskPath);
+	bool init(const QString &diskPath, QString *error);
 	void shutdown();
 	void reset();
 	void emulateFrame(bool drawEnabled);

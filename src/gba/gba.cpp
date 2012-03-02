@@ -33,7 +33,7 @@ GbaEmu::GbaEmu() :
 	Emu("gba") {
 }
 
-QString GbaEmu::init(const QString &diskPath) {
+bool GbaEmu::init(const QString &diskPath, QString *error) {
 	gpuFrame = QImage(240, 160, QImage::Format_RGB16);
 	setVideoSrcRect(gpuFrame.rect());
 	setFrameRate(60);
@@ -41,11 +41,10 @@ QString GbaEmu::init(const QString &diskPath) {
 	screen_pixels_ptr = (quint16 *)gpuFrame.bits();
 	m_quit = false;
 
-	QString error = loadBios();
-	if (!error.isEmpty())
-		return error;
-
-	return setDisk(diskPath);
+	*error = loadBios();
+	if (error->isEmpty())
+		*error = setDisk(diskPath);
+	return error->isEmpty();
 }
 
 void GbaEmu::shutdown() {

@@ -38,23 +38,22 @@ public:
 	};
 
 	NesEmu();
-	QString init(const QString &diskPath);
+	bool init(const QString &diskPath, QString *error);
 	void shutdown();
 	void reset();
-
 	void resume();
-
-	QObject *ppu() const;
-	QObject *pad() const;
-	QObject *cheats() const;
-
-	QString setDisk(const QString &path);
 
 	const QImage &frame() const;
 	void emulateFrame(bool drawEnabled);
 	int fillAudioBuffer(char *stream, int streamSize);
+
+	QObject *ppu() const;
+	QObject *pad() const;
+	QObject *cheats() const;
 protected:
 	void sl();
+private:
+	void setupTimings();
 };
 
 extern void nesEmuClockCpu(uint cycles);

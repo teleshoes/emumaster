@@ -48,7 +48,7 @@ void AmigaEmu::reset() {
 	amigaCpuSetSpcFlag(SpcFlagBrk);
 }
 
-QString AmigaEmu::init(const QString &diskPath) {
+bool AmigaEmu::init(const QString &diskPath, QString *error) {
 	setFrameRate(50);
 	// TODO ntsc/pal configurable
 	setVideoSrcRect(QRect(0, MINFIRSTLINE_PAL, 320, MAXVPOS_PAL-MINFIRSTLINE_PAL-VBLANK_ENDLINE_PAL));
@@ -56,15 +56,20 @@ QString AmigaEmu::init(const QString &diskPath) {
 
 	amigaMemChipSize = 0x00100000; // TODO configurable chip size
 	amigaMemInit();
-	if (!amigaLoadKickstart(pathManager.diskDirPath()+"/kick13.rom"))
-		return tr("Could not load kickstart");
 
-	if (!amigaDrives[0].insertDisk(diskPath))
-		return tr("Error inserting disk.");
+	if (!amigaLoadKickstart(pathManager.diskDirPath()+"/kick13.rom")) {
+		*error = tr("Could not load kickstart");
+		return false;
+	}
+
+	if (!amigaDrives[0].insertDisk(diskPath)) {
+		*error = EM_MSG_DISK_LOAD_FAILED;
+		return false;
+	}
 
 	amigaThread.start();
 	frameConsSem.acquire();
-	return QString();
+	return true;
 }
 
 void AmigaEmu::shutdown() {
