@@ -19,51 +19,54 @@ import com.nokia.meego 1.1
 import "../base"
 
 AdvancedLaunchPage {
-	Label {
-		text: qsTr("TV Encoding System")
-	}
-	ButtonRow {
-		id: tvSystemChooser
-		anchors.horizontalCenter: parent.horizontalCenter
-		checkedButton: tvSystemAuto
-		spacing: 5
-
-		Button { id: tvSystemAuto; text: qsTr("AUTO") }
-		Button { id: tvSystemNtsc; text: qsTr("NTSC") }
-		Button { id: tvSystemPal;  text: qsTr("PAL")  }
-	}
-
-	ListModel {
-		id: renderMethodModel
-		ListElement { name: QT_TR_NOOP("Auto") }
-		ListElement { name: QT_TR_NOOP("Post All Render") }
-		ListElement { name: QT_TR_NOOP("Pre All Render") }
-		ListElement { name: QT_TR_NOOP("Post Render") }
-		ListElement { name: QT_TR_NOOP("Pre Render") }
-		ListElement { name: QT_TR_NOOP("Tile Render") }
+	SelectionItem {
+		titleText: qsTr("TV Encoding System")
+		subtitleText: tvSystemModel.get(tvSystemDialog.selectedIndex).name
+		onClicked: tvSystemDialog.open()
 	}
 
 	SelectionItem {
 		titleText: qsTr("Render Method")
-		subtitleText: renderMethodModel[renderMethodDialog.selectedIndex]
+		subtitleText: renderMethodModel.get(renderMethodDialog.selectedIndex).name
 		onClicked: renderMethodDialog.open()
 	}
 
-	SelectionDialog {
-		id: renderMethodDialog
-		model: renderMethodModel
-		titleText: qsTr("Select Render Method")
-		selectedIndex: 0
-	}
+	children: [
+		SelectionDialog {
+			id: renderMethodDialog
+			model: ListModel {
+				id: renderMethodModel
+				ListElement { name: QT_TR_NOOP("Auto") }
+				ListElement { name: QT_TR_NOOP("Post All Render") }
+				ListElement { name: QT_TR_NOOP("Pre All Render") }
+				ListElement { name: QT_TR_NOOP("Post Render") }
+				ListElement { name: QT_TR_NOOP("Pre Render") }
+				ListElement { name: QT_TR_NOOP("Tile Render") }
+			}
+			titleText: qsTr("Select Render Method")
+			selectedIndex: 0
+		},
+		SelectionDialog {
+			id: tvSystemDialog
+			model: ListModel {
+				id: tvSystemModel
+				ListElement { name: QT_TR_NOOP("Auto") }
+				ListElement { name: QT_TR_NOOP("NTSC") }
+				ListElement { name: QT_TR_NOOP("PAL") }
+			}
+			titleText: qsTr("Select TV Encoding System")
+			selectedIndex: 0
+		}
+	]
 
 	function confString() {
 		var str = ""
-		if (!tvSystemAuto.checked) {
+		if (tvSystemDialog.selectedIndex > 0) {
 			str += "nes.tvSystem="
-			if (tvSystemNtsc.checked)
-				str += "NTSC"
-			else
+			if (tvSystemDialog.selectedIndex == 2)
 				str += "PAL"
+			else
+				str += "NTSC"
 		}
 		if (renderMethodDialog.selectedIndex > 0) {
 			str += ","
