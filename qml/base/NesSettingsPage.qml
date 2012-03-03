@@ -25,6 +25,14 @@ SettingsPage {
 		}
 	]
 
+	videoContent: [
+		EMSwitchOption {
+			text: qsTr("Disable Sprite Limit")
+			onCheckedChanged: emu.ppu.spriteLimit = !checked
+			Component.onCompleted: checked = !emu.ppu.spriteLimit
+		}
+	]
+
 	columnContent: [
 		SectionSeperator { text: qsTr("ChEaTs") },
 		NesCheats {}

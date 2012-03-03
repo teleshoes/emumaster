@@ -38,6 +38,7 @@ extern int nesPpuScanline;
 class NesPpu : public QObject
 {
 	Q_OBJECT
+	Q_PROPERTY(bool spriteLimit READ spriteLimit WRITE setSpriteLimit NOTIFY spriteLimitChanged)
 public:
 	enum ChipType {
 		PPU2C02,	// NTSC NES
@@ -120,6 +121,11 @@ public:
 	static const int VisibleScreenHeight = 30 * 8;
 
 	static const int FetchCycles = 8;
+
+	void setSpriteLimit(bool on);
+	bool spriteLimit() const;
+signals:
+	void spriteLimitChanged();
 };
 
 static inline bool nesPpuIsBackgroundVisible()

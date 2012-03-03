@@ -18,6 +18,7 @@
 #include "mapper.h"
 #include "nes.h"
 #include "cpu.h"
+#include <configuration.h>
 #include <qmath.h>
 #include <QDataStream>
 
@@ -32,6 +33,8 @@ static const u8 paletteDefaultMem[] =
 	0,	25,	26,	27,
 	0,	29,	30,	31
 };
+
+static const char *spriteLimitConfName = "nes.ppu.spriteLimit";
 
 QImage nesPpuFrame;
 NesPpu nesPpu;
@@ -75,6 +78,7 @@ static void drawBackgroundNoTileNoExtLatch();
 static void drawBackgroundNoTileExtLatch();
 static void drawBackgroundTileNoExtLatch();
 static void drawBackgroundTileExtLatch();
+static bool ppuSpriteLimit;
 
 static void buildPenLUT()
 {
@@ -163,6 +167,8 @@ void nesPpuInit()
 	fillPens();
 	memcpy(paletteMem, paletteDefaultMem, sizeof(paletteMem));
 	updateColorEmphasisAndMask();
+
+	ppuSpriteLimit = emConf.value(spriteLimitConfName, true).toBool();
 }
 
 static void writePalette(u16 address, u8 data)
@@ -750,7 +756,8 @@ static void drawSprites()
 
 		if (++count == 8) {
 			setSpriteMax(true);
-			break;
+			if (ppuSpriteLimit)
+				break;
 		}
 	}
 }
@@ -894,5 +901,20 @@ void nesPpuSl()
 		updateCachedControl0Bits();
 		updateColorEmphasisAndMask();
 		palettePenLutNeedsRebuild = true;
+		ppuSpriteLimit = emConf.value(spriteLimitConfName, true).toBool();
 	}
+}
+
+void NesPpu::setSpriteLimit(bool on)
+{
+	if (ppuSpriteLimit != on) {
+		ppuSpriteLimit = on;
+		emConf.setValue(spriteLimitConfName, ppuSpriteLimit);
+		emit spriteLimitChanged();
+	}
+}
+
+bool NesPpu::spriteLimit() const
+{
+	return ppuSpriteLimit;
 }
