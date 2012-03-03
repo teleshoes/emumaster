@@ -25,14 +25,14 @@ class NesPpu;
 #include <QStringList>
 
 class NesPpu;
+class NesPpuScroll;
 
 extern QImage nesPpuFrame;
 extern NesPpu nesPpu;
+extern NesPpuScroll nesPpuScroll;
 extern u16 nesPpuTilePageOffset;
-extern u8 nesPpuScrollTileYOffset;
-extern u8 nesPpuRegs[4];
+extern u8 nesPpuRegs[8];
 extern int nesPpuScanline;
-extern int nesPpuScanlinesPerFrame;
 
 class NesPpuSprite {
 public:
@@ -153,12 +153,9 @@ public:
 	};
 	Q_DECLARE_FLAGS(StatusReg, StatusRegBit)
 
-	static const int ScanlinesPerFrameNTSC = 262;
-	static const int ScanlinesPerFramePAL = 312;
-
-	static const int NameTableOffset = 0x2000;
-	static const int AttributeTableOffset = 0x03C0;
-	static const int PalettesAddress = 0x3F00;
+	static const uint NameTableOffset = 0x2000;
+	static const uint AttributeTableOffset = 0x03C0;
+	static const uint PalettesAddress = 0x3F00;
 
 	static const int VisibleScreenWidth = 32 * 8;
 	static const int VisibleScreenHeight = 30 * 8;
@@ -167,7 +164,7 @@ public:
 
 	void init();
 
-	void writeReg(u16 address, u8 data);
+	void writeReg(u16 addr, u8 data);
 	u8 readReg(u16 address);
 
 	void setChipType(ChipType newType);
@@ -203,13 +200,67 @@ private:
 	void fillScanline(int color, int count);
 };
 
-QRgb nesPpuGetPixel(int x, int y);
-
 inline bool NesPpu::isBackgroundVisible() const
 { return nesPpuRegs[Control1] & BackgroundDisplayCR1Bit; }
 inline bool NesPpu::isSpriteVisible() const
 { return nesPpuRegs[Control1] & SpriteDisplayCR1Bit; }
 inline bool NesPpu::isDisplayOn() const
 { return isBackgroundVisible() || isSpriteVisible(); }
+
+class NesPpuScroll
+{
+public:
+	enum {
+		X_TILE    = 0x001F,
+		Y_TILE    = 0x03E0,
+		Y_FINE    = 0x7000,
+		LOW       = 0x00FF,
+		HIGH      = 0xFF00,
+		NAME      = 0x0C00,
+		NAME_LOW  = 0x0400,
+		NAME_HIGH = 0x0800
+	};
+
+	void clockX();
+	void resetX();
+	void clockY();
+	uint yFine();
+
+	uint address;
+	uint toggle;
+	uint latch;
+	uint xFine;
+};
+
+inline void NesPpuScroll::clockX()
+{
+	if ((address & X_TILE) != X_TILE)
+		address++;
+	else
+		address ^= (X_TILE|NAME_LOW);
+}
+
+inline void NesPpuScroll::resetX()
+{
+	address = (address & ((X_TILE|NAME_LOW) ^ 0x7FFF)) | (latch & (X_TILE|NAME_LOW));
+}
+
+inline void NesPpuScroll::clockY()
+{
+	if ((address & Y_FINE) != Y_FINE) {
+		address += 1 << 12;
+	} else switch (address & Y_TILE) {
+		default:         address = (address & (Y_FINE ^ 0x7FFF)) + (1 << 5); break;
+		case (29 << 5): address ^= NAME_HIGH;
+		case (31 << 5): address &= (Y_FINE|Y_TILE) ^ 0x7FFF; break;
+	}
+}
+
+inline uint NesPpuScroll::yFine()
+{
+	return address >> 12;
+}
+
+QRgb nesPpuGetPixel(int x, int y);
 
 #endif // NESPPU_H

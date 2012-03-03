@@ -22,7 +22,7 @@
 void Mapper004::reset() {
 	NesMapper::reset();
 
-	qMemSet(reg, 0, sizeof(reg));
+	memset(reg, 0, sizeof(reg));
 	prg0 = 0;
 	prg1 = 1;
 	updateCpuBanks();

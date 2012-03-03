@@ -26,7 +26,7 @@ void Mapper019::reset() {
 
 	reg[0] = reg[1] = reg[2] = 0;
 
-	qMemSet(exram, 0, sizeof(exram));
+	memset(exram, 0, sizeof(exram));
 
 	irq_enable = 0;
 	irq_counter = 0;

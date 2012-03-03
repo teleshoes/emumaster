@@ -36,7 +36,7 @@ void Mapper007::reset() {
 	if( crc == 0x279710DC		// Battletoads (U)
 	 || crc == 0xCEB65B06 ) {	// Battletoads Double Dragon (U)
 		nesEmuSetRenderMethod(NesEmu::PreAllRender);
-		qMemSet(nesWram, 0, sizeof(nesWram));
+		memset(nesWram, 0, sizeof(nesWram));
 	}
 }
 

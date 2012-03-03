@@ -19,7 +19,7 @@
 
 void Mapper046::reset() {
 	NesMapper::reset();
-	qMemSet(reg, 0, 4);
+	memset(reg, 0, 4);
 	updateBanks();
 	setMirroring(VerticalMirroring);
 }

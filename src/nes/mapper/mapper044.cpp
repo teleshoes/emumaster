@@ -29,7 +29,7 @@ void Mapper044::reset() {
 		patch = 1;
 	}
 
-	qMemSet(reg, 0, sizeof(reg));
+	memset(reg, 0, sizeof(reg));
 
 	bank = 0;
 	prg0 = 0;

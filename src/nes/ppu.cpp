@@ -35,19 +35,14 @@ static const u8 paletteDefaultMem[] =
 
 QImage nesPpuFrame;
 NesPpu nesPpu;
+NesPpuScroll nesPpuScroll;
 
-static NesPpu::ChipType ppuType;
-
-u8 nesPpuRegs[4]; // registers at 0x2000-0x2003
-static bool regToggle;
+u8 nesPpuRegs[8]; // registers at 0x2000-0x2007
 static u8 dataLatch;
-static u16 incrementValue;
-static uint spriteSize;
 static u8 bufferedData;
 static u8 securityValue;
 
 int nesPpuScanline;
-int nesPpuScanlinesPerFrame;
 static QRgb *scanlineData;
 
 static bool characterLatchEnabled = false;
@@ -55,13 +50,11 @@ static bool externalLatchEnabled = false;
 
 bool vBlankOut;
 
-static u16 nesVramAddress;
-static u16 refreshLatch;
-static u8 scrollTileXOffset;
-u8 nesPpuScrollTileYOffset;
 u16 nesPpuTilePageOffset;
 static u16 spritePageOffset;
-static u16 loopyShift;
+static u16 scrollAddressIncrement;
+static uint spriteSize;
+
 static u8 bgWritten[33];
 static u8 bit2Rev[256];
 
@@ -77,12 +70,14 @@ static bool palettePenLutNeedsRebuild;
 
 static void fillPens();
 
-static void buildPenLUT() {
+static void buildPenLUT()
+{
 	for (int i = 0; i < 32; i++)
 		palettePenLut[i] = palettePens[(paletteMem[i] & paletteMask) + paletteEmphasis];
 }
 
-static void updateColorEmphasisAndMask() {
+static void updateColorEmphasisAndMask()
+{
 	u32 newEmphasis = u32(nesPpuRegs[NesPpu::Control1] & NesPpu::BackgroundColorCR1Bit);
 	if (newEmphasis != 0x20 && newEmphasis != 0x40 && newEmphasis != 0x80)
 		newEmphasis = 0x00;
@@ -95,14 +90,27 @@ static void updateColorEmphasisAndMask() {
 	}
 }
 
+static inline void updateCachedControl0Bits()
+{
+	/* the char ram bank points either 0x0000 or 0x1000 (page 0 or page 4) */
+	u8 data = nesPpuRegs[NesPpu::Control0];
+	nesPpuTilePageOffset = (data & NesPpu::BackgroundTableCR0Bit) << 8;
+	spritePageOffset = (data & NesPpu::SpriteTableCR0Bit) << 9;
+	scrollAddressIncrement = ((data & NesPpu::IncrementCR0Bit) ? 32 : 1);
+	spriteSize = ((data & NesPpu::SpriteSizeCR0Bit) ? 16 : 8);
+}
+
 void NesPpu::init()
 {
 	nesPpuFrame = QImage(8+VisibleScreenWidth+8, VisibleScreenHeight, QImage::Format_RGB32);
 
-	if (nesSystemType == NES_PAL)
-		setChipType(PPU2C07);
-	else
-		setChipType(PPU2C02);
+	memset(nesPpuRegs, 0, sizeof(nesPpuRegs));
+	memset(spriteMem, 0, sizeof(spriteMem));
+	updateCachedControl0Bits();
+
+	securityValue = 0;
+	dataLatch = 0;
+	bufferedData = 0;
 
 	nesPpuScanline = 0;
 	scanlineData = 0;
@@ -112,13 +120,10 @@ void NesPpu::init()
 
 	vBlankOut = false;
 
-	nesVramAddress = 0;
-	refreshLatch = 0;
-	scrollTileXOffset = 0;
-	nesPpuScrollTileYOffset = 0;
-	nesPpuTilePageOffset = 0;
-	spritePageOffset = 0;
-	loopyShift = 0;
+	nesPpuScroll.address = 0;
+	nesPpuScroll.latch = 0;
+	nesPpuScroll.toggle = 0;
+	nesPpuScroll.xFine = 0;
 
 	for (int i = 0; i < 256; i++) {
 		u8 m = 0x80;
@@ -131,22 +136,18 @@ void NesPpu::init()
 		bit2Rev[i] = c;
 	}
 
-	qMemSet(spriteMem, 0, sizeof(spriteMem));
-
-	qMemSet(nesPpuRegs, 0, sizeof(nesPpuRegs));
-	regToggle = false;
-	dataLatch = 0;
-	incrementValue = 1;
-	spriteSize = 8;
-	bufferedData = 0;
-	securityValue = 0x00;
+	if (nesSystemType == NES_PAL)
+		setChipType(PPU2C07);
+	else
+		setChipType(PPU2C02);
 
 	fillPens();
-	qMemCopy(paletteMem, paletteDefaultMem, sizeof(paletteMem));
+	memcpy(paletteMem, paletteDefaultMem, sizeof(paletteMem));
 	updateColorEmphasisAndMask();
 }
 
-static void writePalette(u16 address, u8 data) {
+static void writePalette(u16 address, u8 data)
+{
 	Q_ASSERT(address < 32);
 	data &= 0x3F;
 	if (!(address & 0x03)) {
@@ -165,12 +166,14 @@ static void writePalette(u16 address, u8 data) {
 	}
 }
 
-static u8 readPalette(u16 address) {
+static u8 readPalette(u16 address)
+{
 	Q_ASSERT(address < 32);
 	return paletteMem[address] & paletteMask;
 }
 
-static QRgb *currentPens() {
+static QRgb *currentPens()
+{
 	if (palettePenLutNeedsRebuild) {
 		buildPenLUT();
 		palettePenLutNeedsRebuild = false;
@@ -178,7 +181,8 @@ static QRgb *currentPens() {
 	return palettePenLut;
 }
 
-static void updateVBlankOut() {
+static void updateVBlankOut()
+{
 	bool vBlankEnabled = (nesPpuRegs[NesPpu::Control0] & NesPpu::VBlankEnableCR0Bit);
 	bool vBlankState = (nesPpuRegs[NesPpu::Status] & NesPpu::VBlankSRBit);
 	bool newVBlank = (vBlankEnabled && vBlankState);
@@ -188,69 +192,65 @@ static void updateVBlankOut() {
 	}
 }
 
-void NesPpu::writeReg(u16 address, u8 data) {
-	Q_ASSERT(address < 8);
-	if (securityValue && !(address & 6))
-		address ^= 1;
-	switch (static_cast<Register>(address)) {
+void NesPpu::writeReg(u16 addr, u8 data)
+{
+	Q_ASSERT(addr < 8);
+	if (securityValue && !(addr & 6))
+		addr ^= 1;
+	nesPpuRegs[addr] = data;
+	switch (static_cast<Register>(addr)) {
 	case Control0:
-		nesPpuRegs[Control0] = data;
 		updateVBlankOut();
 		/* update the name table number on our refresh latches */
-		refreshLatch &= ~(3 << 10);
-		refreshLatch |= (data & 3) << 10;
-		/* the char ram bank points either 0x0000 or 0x1000 (page 0 or page 4) */
-		nesPpuTilePageOffset = (data & BackgroundTableCR0Bit) << 8;
-		spritePageOffset = (data & SpriteTableCR0Bit) << 9;
-		incrementValue = ((data & IncrementCR0Bit) ? 32 : 1);
-		spriteSize = ((nesPpuRegs[Control0] & SpriteSizeCR0Bit) ? 16 : 8);
+		nesPpuScroll.latch &= ~(3 << 10);
+		nesPpuScroll.latch |= (data & 3) << 10;
+		updateCachedControl0Bits();
 		break;
 	case Control1:
-		nesPpuRegs[Control1] = data;
 		updateColorEmphasisAndMask();
 		break;
 	case SpriteRAMAddress:
-		nesPpuRegs[SpriteRAMAddress] = data;
 		break;
 	case SpriteRAMIO:
 		/* if the PPU is currently rendering the screen,
 		 * 0xff is written instead of the desired data. */
-		if (nesPpuScanline < NesPpu::VisibleScreenHeight)
+		if (nesPpuScanline < NesPpu::VisibleScreenHeight && isSpriteVisible()) {
 			data = 0xFF;
+		} else {
+			if ((nesPpuRegs[SpriteRAMAddress] & 0x03) == 0x02)
+				data &= 0xE3;
+		}
 		spriteMem[nesPpuRegs[SpriteRAMAddress]++] = data;
 		break;
 	case Scroll:
-		if (regToggle) {
-			refreshLatch &= ~((0xF8 << 2) | (7 << 12));
-			refreshLatch |= (data & 0xF8) << 2;
-			refreshLatch |= (data & 7) << 12;
+		if (nesPpuScroll.toggle ^= 1) {
+			nesPpuScroll.latch &= ~0x1F;
+			nesPpuScroll.latch |= (data >> 3) & 0x1F;
+			nesPpuScroll.xFine = data & 7;
 		} else {
-			refreshLatch &= ~0x1F;
-			refreshLatch |= (data >> 3) & 0x1F;
-			scrollTileXOffset = data & 7;
-			// TODO check if it works with loopy_shift = ppu->scrollTileXOffset if yes remove
+			nesPpuScroll.latch &= ~((0xF8 << 2) | (7 << 12));
+			nesPpuScroll.latch |= (data & 0xF8) << 2;
+			nesPpuScroll.latch |= (data & 7) << 12;
 		}
-		regToggle = !regToggle;
 		break;
 	case VRAMAddress:
-		if (regToggle) {
-			refreshLatch &= 0xFF00;
-			refreshLatch |= data;
-			nesVramAddress = refreshLatch;
-			nesMapper->addressBusLatch(nesVramAddress);
+		if (nesPpuScroll.toggle ^= 1) {
+			nesPpuScroll.latch &= 0x00FF;
+			nesPpuScroll.latch |= (data & 0x3F) << 8;
 		} else {
-			refreshLatch &= 0x00FF;
-			refreshLatch |= (data & 0x3F) << 8;
+			nesPpuScroll.latch &= 0x7F00;
+			nesPpuScroll.latch |= data;
+			nesPpuScroll.address = nesPpuScroll.latch;
+			nesMapper->addressBusLatch(nesPpuScroll.address);
 		}
-		regToggle = !regToggle;
 		break;
 	case VRAMIO: {
-		u16 vramAddress = nesVramAddress & 0x3FFF;
+		uint vramAddress = nesPpuScroll.address & 0x3FFF;
+		nesPpuScroll.address = (nesPpuScroll.address+scrollAddressIncrement) & 0x7FFF;
 		if (vramAddress >= NesPpu::PalettesAddress)
 			writePalette(vramAddress & 0x1F, data);
 		else if (nesMapper->ppuBank1KType(vramAddress >> 10) != VromBank)
 			nesMapper->ppuWrite(vramAddress, data);
-		nesVramAddress += incrementValue;
 		break;
 	}
 	default:
@@ -259,7 +259,8 @@ void NesPpu::writeReg(u16 address, u8 data) {
 	dataLatch = data;
 }
 
-u8 NesPpu::readReg(u16 address) {
+u8 NesPpu::readReg(u16 address)
+{
 	Q_ASSERT(address < 8);
 	switch (static_cast<Register>(address)) {
 	case Status:
@@ -269,23 +270,23 @@ u8 NesPpu::readReg(u16 address) {
 			dataLatch = nesPpuRegs[Status] & (VBlankSRBit | Sprite0HitSRBit);
 			dataLatch |= securityValue;
 		} else {
-			dataLatch = nesPpuRegs[Status];// TODO | (dataLatch & 0x1F);
+			dataLatch = nesPpuRegs[Status] | (dataLatch & 0x1F);
 		}
 		/* reset hi/lo scroll toggle */
-		regToggle = false;
+		nesPpuScroll.toggle = 0;
 		/* if the vblank bit is set, clear all status bits but the 2 sprite flags */
 		if (dataLatch & VBlankSRBit) {
-			nesPpuRegs[Status] &= (Sprite0HitSRBit | SpriteMaxSRBit); // TODO [virtuanes ~VBlankSRBit]
+			nesPpuRegs[Status] &= ~VBlankSRBit;
 			updateVBlankOut();
 		}
 		break;
 	case SpriteRAMIO:
-		dataLatch = spriteMem[nesPpuRegs[SpriteRAMAddress]++];
+		dataLatch = spriteMem[nesPpuRegs[SpriteRAMAddress]];
 		break;
 	case VRAMIO: {
-		u16 vramAddress = nesVramAddress & 0x3FFF;
-		nesVramAddress += incrementValue;
-		if (vramAddress >= NesPpu::PalettesAddress)
+		u16 vramAddress = nesPpuScroll.address & 0x3FFF;
+		nesPpuScroll.address = (nesPpuScroll.address+scrollAddressIncrement) & 0x7FFF;
+		if (vramAddress >= PalettesAddress)
 			return readPalette(vramAddress & 0x1F);
 		else
 			dataLatch = bufferedData;
@@ -298,7 +299,8 @@ u8 NesPpu::readReg(u16 address) {
 	return dataLatch;
 }
 
-void NesPpu::setVBlank(bool on) {
+void NesPpu::setVBlank(bool on)
+{
 	if (on)
 		nesPpuRegs[Status] |= VBlankSRBit;
 	else
@@ -306,21 +308,17 @@ void NesPpu::setVBlank(bool on) {
 	updateVBlankOut();
 }
 
-static inline void setSpriteMax(bool on) {
+static inline void setSpriteMax(bool on)
+{
 	if (on)
 		nesPpuRegs[NesPpu::Status] |= NesPpu::SpriteMaxSRBit;
 	else
 		nesPpuRegs[NesPpu::Status] &= ~NesPpu::SpriteMaxSRBit;
 }
 
-void NesPpu::setChipType(ChipType newType) {
-	ppuType = newType;
-	if (ppuType == PPU2C07)
-		nesPpuScanlinesPerFrame = ScanlinesPerFramePAL;
-	else
-		nesPpuScanlinesPerFrame = ScanlinesPerFrameNTSC;
-
-	switch (ppuType) {
+void NesPpu::setChipType(ChipType type)
+{
+	switch (type) {
 	case NesPpu::PPU2C05_01:	securityValue = 0x1B; break;
 	case NesPpu::PPU2C05_02:	securityValue = 0x3D; break;
 	case NesPpu::PPU2C05_03:	securityValue = 0x1C; break;
@@ -330,69 +328,65 @@ void NesPpu::setChipType(ChipType newType) {
 }
 
 
-void NesPpu::nextScanline() {
+void NesPpu::nextScanline()
+{
 	nesPpuScanline++;
 	scanlineData += nesPpuFrame.bytesPerLine()/sizeof(QRgb);
 }
 
-void NesPpu::dma(u8 page) {
+void NesPpu::dma(u8 page)
+{
 	u16 address = page << 8;
 	for (int i = 0; i < 256; i++)
 		writeReg(SpriteRAMIO, nesMapper->read(address + i));
 }
 
 void NesPpu::setCharacterLatchEnabled(bool on)
-{ characterLatchEnabled = on; }
-void NesPpu::setExternalLatchEnabled(bool on)
-{ externalLatchEnabled = on; }
+{
+	characterLatchEnabled = on;
+}
 
-void NesPpu::processFrameStart() {
+void NesPpu::setExternalLatchEnabled(bool on)
+{
+	externalLatchEnabled = on;
+}
+
+void NesPpu::processFrameStart()
+{
 	nesPpuScanline = 0;
 	scanlineData = (QRgb *)nesPpuFrame.bits();
+	if (isDisplayOn())
+		nesPpuScroll.address = nesPpuScroll.latch;
+}
+
+static inline u16 fetchNameAddress()
+{
+	return NesPpu::NameTableOffset | (nesPpuScroll.address & 0x0FFF);
+}
+
+void NesPpu::processScanlineStart()
+{
 	if (isDisplayOn()) {
-		nesVramAddress = refreshLatch;
-		loopyShift = scrollTileXOffset;
-		nesPpuScrollTileYOffset = (nesVramAddress & 0x7000) >> 12;
+		nesPpuScroll.resetX();
+		nesMapper->addressBusLatch(fetchNameAddress());
 	}
 }
 
-void NesPpu::processScanlineStart() {
-	if (isDisplayOn()) {
-		nesVramAddress = (nesVramAddress & 0xFBE0) | (refreshLatch & 0x041F);
-		loopyShift = scrollTileXOffset;
-		nesPpuScrollTileYOffset = (nesVramAddress & 0x7000) >> 12;
-		nesMapper->addressBusLatch(NameTableOffset | (nesVramAddress & 0x0FFF));
-	}
+void NesPpu::processScanlineNext()
+{
+	if (isDisplayOn())
+		nesPpuScroll.clockY();
 }
 
-void NesPpu::processScanlineNext() {
-	if (isDisplayOn()) {
-		if ((nesVramAddress & 0x7000) == 0x7000) {
-			nesVramAddress &= 0x8FFF;
-			if ((nesVramAddress & 0x03E0) == 0x03A0) {
-				nesVramAddress ^= 0x0800;
-				nesVramAddress &= 0xFC1F;
-			} else {
-				if ((nesVramAddress & 0x03E0) == 0x03E0) {
-					nesVramAddress &= 0xFC1F;
-				} else {
-					nesVramAddress += 0x0020;
-				}
-			}
-		} else {
-			nesVramAddress += 0x1000;
-		}
-		nesPpuScrollTileYOffset = (nesVramAddress & 0x7000) >> 12;
-	}
-}
-
-void NesPpu::processScanline() {
+void NesPpu::processScanline()
+{
 	drawBackground();
 	drawSprites();
 }
 
-void NesPpu::drawBackground() {
-	qMemSet(bgWritten, 0, sizeof(bgWritten));
+void NesPpu::drawBackground()
+{
+	memset(bgWritten, 0, sizeof(bgWritten));
 	if (!isBackgroundVisible()) {
 		fillScanline(0, 8+VisibleScreenWidth);
 		if (nesEmuRenderMethod == NesEmu::TileRender)
@@ -415,10 +409,11 @@ void NesPpu::drawBackground() {
 		fillScanline(0, 16);
 }
 
-void NesPpu::drawBackgroundNoTileNoExtLatch() {
-	QRgb *dst = scanlineData + (8 - loopyShift);
+void NesPpu::drawBackgroundNoTileNoExtLatch()
+{
+	QRgb *dst = scanlineData + (8 - nesPpuScroll.xFine);
 
-	u16 nameTableAddress = NameTableOffset | (nesVramAddress & 0x0FFF);
+	u16 nameTableAddress = fetchNameAddress();
 	u16 attributeAddress = AttributeTableOffset | ((nameTableAddress&0x0380)>>4);
 	u8 nameTableX = nameTableAddress & 0x001F;
 	u8 attributeShift = (nameTableAddress & 0x0040) >> 4;
@@ -433,14 +428,12 @@ void NesPpu::drawBackgroundNoTileNoExtLatch() {
 	QRgb *currPens = currentPens();
 	for (int i = 0; i < 33; i++) {
 		u16 tileAddress = nameTable[nameTableAddress & 0x03FF] * 0x10;
-		tileAddress += nesPpuTilePageOffset + nesPpuScrollTileYOffset;
+		tileAddress |= nesPpuTilePageOffset | nesPpuScroll.yFine();
 		u8 attribute = nameTable[attributeAddress + (nameTableX >> 2)];
 		attribute >>= (nameTableX & 2) | attributeShift;
 		attribute = (attribute & 3) << 2;
 
 		if (cacheTile == tileAddress && cacheAttribute == attribute) {
-			// FIXME
-//			qMemCopy(dst, dst-8, 8*sizeof(QRgb));
 			memcpy(dst, dst-8, 8*sizeof(QRgb));
 			*bgWr = *(bgWr - 1);
 		} else {
@@ -480,10 +473,11 @@ void NesPpu::drawBackgroundNoTileNoExtLatch() {
 	}
 }
 
-void NesPpu::drawBackgroundTileNoExtLatch() {
-	QRgb *dst = scanlineData + (8 - loopyShift);
+void NesPpu::drawBackgroundTileNoExtLatch()
+{
+	QRgb *dst = scanlineData + (8 - nesPpuScroll.xFine);
 
-	u16 nameTableAddress = NameTableOffset | (nesVramAddress & 0x0FFF);
+	u16 nameTableAddress = fetchNameAddress();
 	u16 attributeAddress = AttributeTableOffset | ((nameTableAddress&0x0380)>>4);
 	u8 nameTableX = nameTableAddress & 0x001F;
 	u8 attributeShift = (nameTableAddress & 0x0040) >> 4;
@@ -498,7 +492,7 @@ void NesPpu::drawBackgroundTileNoExtLatch() {
 	QRgb *currPens = currentPens();
 	for (int i = 0; i < 33; i++) {
 		u16 tileAddress = nameTable[nameTableAddress & 0x03FF] * 0x10;
-		tileAddress += nesPpuTilePageOffset + nesPpuScrollTileYOffset;
+		tileAddress += nesPpuTilePageOffset + nesPpuScroll.yFine();
 		if (i)
 			nesEmuClockCpu(FetchCycles*4);
 		u8 attribute = nameTable[attributeAddress + (nameTableX >> 2)];
@@ -506,7 +500,7 @@ void NesPpu::drawBackgroundTileNoExtLatch() {
 		attribute = (attribute & 3) << 2;
 
 		if (cacheTile == tileAddress && cacheAttribute == attribute) {
-			qMemCopy(dst, dst-8, 8*sizeof(QRgb));
+			memcpy(dst, dst-8, 8*sizeof(QRgb));
 			*bgWr = *(bgWr - 1);
 		} else {
 			cacheTile = tileAddress;
@@ -545,10 +539,11 @@ void NesPpu::drawBackgroundTileNoExtLatch() {
 	}
 }
 
-void NesPpu::drawBackgroundNoTileExtLatch() {
-	QRgb *dst = scanlineData + (8 - loopyShift);
+void NesPpu::drawBackgroundNoTileExtLatch()
+{
+	QRgb *dst = scanlineData + (8 - nesPpuScroll.xFine);
 
-	u16 nameTableAddress = NameTableOffset | (nesVramAddress & 0x0FFF);
+	u16 nameTableAddress = fetchNameAddress();
 	u8 nameTableX = nameTableAddress & 0x001F;
 
 	u32 cacheTile = 0xFFFF0000;
@@ -564,7 +559,7 @@ void NesPpu::drawBackgroundNoTileExtLatch() {
 		attribute &= 0x0C;
 		u32 tile = (plane1 << 8) | plane2;
 		if (cacheTile == tile && cacheAttribute == attribute) {
-			qMemCopy(dst, dst-8, 8*sizeof(QRgb));
+			memcpy(dst, dst-8, 8*sizeof(QRgb));
 			*bgWr = *(bgWr - 1);
 		} else {
 			cacheTile = tile;
@@ -595,10 +590,11 @@ void NesPpu::drawBackgroundNoTileExtLatch() {
 	}
 }
 
-void NesPpu::drawBackgroundTileExtLatch() {
-	QRgb *dst = scanlineData + (8 - loopyShift);
+void NesPpu::drawBackgroundTileExtLatch()
+{
+	QRgb *dst = scanlineData + (8 - nesPpuScroll.xFine);
 
-	u16 nameTableAddress = NameTableOffset | (nesVramAddress & 0x0FFF);
+	u16 nameTableAddress = fetchNameAddress();
 	u8 nameTableX = nameTableAddress & 0x001F;
 
 	u32 cacheTile = 0xFFFF0000;
@@ -616,7 +612,7 @@ void NesPpu::drawBackgroundTileExtLatch() {
 		attribute &= 0x0C;
 		u32 tile = (plane1 << 8) | plane2;
 		if (cacheTile == tile && cacheAttribute == attribute) {
-			qMemCopy(dst, dst-8, 8*sizeof(QRgb));
+			memcpy(dst, dst-8, 8*sizeof(QRgb));
 			*bgWr = *(bgWr - 1);
 		} else {
 			cacheTile = tile;
@@ -648,15 +644,18 @@ void NesPpu::drawBackgroundTileExtLatch() {
 }
 
 static inline bool sprite0HitOccurred()
-{ return nesPpuRegs[NesPpu::Status] & NesPpu::Sprite0HitSRBit; }
+{
+	return nesPpuRegs[NesPpu::Status] & NesPpu::Sprite0HitSRBit;
+}
 
-void NesPpu::drawSprites() {
+void NesPpu::drawSprites()
+{
 	setSpriteMax(false);
 	if (nesPpuScanline >= VisibleScreenHeight || !isSpriteVisible())
 		return;
 
 	u8 spWritten[33];
-	qMemSet(spWritten, 0, sizeof(spWritten));
+	memset(spWritten, 0, sizeof(spWritten));
 	if (!(nesPpuRegs[Control1] & SpriteClipDisableCR1Bit))
 		spWritten[0] = 0xFF;
 
@@ -700,8 +699,8 @@ void NesPpu::drawSprites() {
 		u8 pixelData = plane1 | plane2;
 		/* set the "sprite 0 hit" flag if appropriate */
 		if (!spriteIndex && !sprite0HitOccurred()) {
-			int backgroundPos = ((sprite->x()&0xF8)+((loopyShift+(sprite->x()&0x07))&8))>>3;
-			int backgroundShift = 8-((loopyShift+sprite->x())&7);
+			int backgroundPos = ((sprite->x()&0xF8)+((nesPpuScroll.xFine+(sprite->x()&0x07))&8))>>3;
+			int backgroundShift = 8-((nesPpuScroll.xFine+sprite->x())&7);
 			u8 backgroundMask = ((bgWritten[backgroundPos+0]<<8)|bgWritten[backgroundPos+1]) >> backgroundShift;
 			if (pixelData & backgroundMask)
 				nesPpuRegs[Status] |= Sprite0HitSRBit;
@@ -717,8 +716,8 @@ void NesPpu::drawSprites() {
 
 		if (sprite->isBehindBackground()) {
 			/* BG > SP priority */
-			int backgroundPos = ((sprite->x()&0xF8)+((loopyShift+(sprite->x()&0x07))&8))>>3;
-			int backgroundShift = 8-((loopyShift+sprite->x())&7);
+			int backgroundPos = ((sprite->x()&0xF8)+((nesPpuScroll.xFine+(sprite->x()&0x07))&8))>>3;
+			int backgroundShift = 8-((nesPpuScroll.xFine+sprite->x())&7);
 			u8 backgroundMask = ((bgWritten[backgroundPos+0]<<8)|bgWritten[backgroundPos+1]) >> backgroundShift;
 			pixelData &= ~backgroundMask;
 		}
@@ -743,13 +742,15 @@ void NesPpu::drawSprites() {
 	}
 }
 
-void NesPpu::fillScanline(int color, int count) {
+void NesPpu::fillScanline(int color, int count)
+{
 	QRgb pen = currentPens()[color];
 	for (int i = 0; i < count; i++)
 		scanlineData[i] = pen;
 }
 
-void NesPpu::processDummyScanline() {
+void NesPpu::processDummyScanline()
+{
 	if (nesPpuScanline >= VisibleScreenHeight || !isSpriteVisible())
 		return;
 	setSpriteMax(false);
@@ -768,7 +769,8 @@ void NesPpu::processDummyScanline() {
 	}
 }
 
-bool NesPpu::checkSprite0HitHere() const {
+bool NesPpu::checkSprite0HitHere() const
+{
 	if (sprite0HitOccurred())
 		return false;
 	if (!isBackgroundVisible() || !isSpriteVisible())
@@ -862,31 +864,29 @@ static void fillPens()
 	}
 }
 
-void NesPpu::sl() {
+void NesPpu::sl()
+{
 	emsl.begin("ppu");
-	emsl.var("scanlinesPerFrame", nesPpuScanlinesPerFrame);
-	emsl.var("vramAddress", nesVramAddress);
-	emsl.var("refreshLatch", refreshLatch);
-	emsl.var("scrollTileXOffset", scrollTileXOffset);
-	emsl.var("scrollTileYOffset", nesPpuScrollTileYOffset);
-	emsl.var("tilePageOffset", nesPpuTilePageOffset);
-	emsl.var("spritePageOffset", spritePageOffset);
-	emsl.var("loopyShift", loopyShift);
+	emsl.var("scroll.address", nesPpuScroll.address);
+	emsl.var("scroll.latch", nesPpuScroll.latch);
+	emsl.var("scroll.toggle", nesPpuScroll.toggle);
+	emsl.var("scroll.xFine", nesPpuScroll.xFine);
+	emsl.var("scrollAddressIncrement", scrollAddressIncrement);
+
 	emsl.var("vBlankOut", vBlankOut);
-	emsl.array("spriteMem", spriteMem, sizeof(spriteMem));
 
 	emsl.array("regs", nesPpuRegs, sizeof(nesPpuRegs));
-	emsl.var("regToggle", regToggle);
 	emsl.var("dataLatch", dataLatch);
-	emsl.var("incrementValue", incrementValue);
 	emsl.var("bufferedData", bufferedData);
 	emsl.var("securityValue", securityValue);
 
+	emsl.array("spriteMem", spriteMem, sizeof(spriteMem));
 	emsl.array("paletteMem", paletteMem, sizeof(paletteMem));
-	emsl.var("paletteMask", paletteMask);
-	emsl.var("paletteEmphasis", paletteEmphasis);
 	emsl.end();
 
-	if (!emsl.save)
+	if (!emsl.save) {
+		updateCachedControl0Bits();
+		updateColorEmphasisAndMask();
 		palettePenLutNeedsRebuild = true;
+	}
 }

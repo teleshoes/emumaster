@@ -26,8 +26,8 @@ void Mapper251::reset() {
 	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 	setMirroring(VerticalMirroring);
 
-	qMemSet(reg, 0, sizeof(reg));
-	qMemSet(breg, 0, sizeof(breg));
+	memset(reg, 0, sizeof(reg));
+	memset(breg, 0, sizeof(breg));
 }
 
 void Mapper251::writeLow(u16 address, u8 data) {

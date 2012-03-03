@@ -227,16 +227,16 @@ NesMapper *NesMapper::create(u8 type) {
 }
 
 void NesMapper::reset() {
-	qMemSet(nesRam, 0, sizeof(nesRam));
+	memset(nesRam, 0, sizeof(nesRam));
 	if (nesDiskCrc == 0x29401686) // Minna no Taabou no Nakayoshi Dai Sakusen(J)
-		qMemSet(nesRam, 0xFF, sizeof(nesRam));
+		memset(nesRam, 0xFF, sizeof(nesRam));
 
 	if (!nesDiskHasBatteryBackedRam() && nesMapperType != 20)
-		qMemSet(nesWram, 0xFF, sizeof(nesWram));
+		memset(nesWram, 0xFF, sizeof(nesWram));
 
-	qMemCopy(nesWram + 0x1000, nesTrainer, 512);
+	memcpy(nesWram + 0x1000, nesTrainer, 512);
 
-	qMemSet(nesCpuBanks, 0, sizeof(nesCpuBanks));
+	memset(nesCpuBanks, 0, sizeof(nesCpuBanks));
 	nesCpuBanks[0] = nesRam;
 	nesCpuBanks[1] = nesXram;
 	nesCpuBanks[2] = nesXram;
@@ -249,11 +249,11 @@ void NesMapper::reset() {
 
 	processGameGenieCodes();
 
-	qMemSet(nesPpuBanks, 0, sizeof(nesPpuBanks));
+	memset(nesPpuBanks, 0, sizeof(nesPpuBanks));
 	for (int i = 0; i < 16; i++)
 		nesPpuBanksType[i] = VramBank;
-	qMemSet(nesVram, 0, sizeof(nesVram));
-	qMemSet(nesCram, 0, sizeof(nesCram));
+	memset(nesVram, 0, sizeof(nesVram));
+	memset(nesCram, 0, sizeof(nesCram));
 
 	nesEmuSetRenderMethod(NesEmu::PreRender);
 	nesPpu.setCharacterLatchEnabled(false);
@@ -354,7 +354,7 @@ void NesMapper::writeReg(u16 address, u8 data) {
 
 u8 NesMapper::readReg(u16 address) {
 	if (address == 0x4014) {
-		return 0x14;
+		return 0x40;
 	} if (address == 0x4016) {
 		u8 data = nesInputRead(0);
 		return data | 0x40; // TODO | m_TapeOut

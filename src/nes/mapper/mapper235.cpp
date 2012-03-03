@@ -21,7 +21,7 @@
 void Mapper235::reset() {
 	NesMapper::reset();
 
-	qMemSet(nesWram+0x2000, 0x2000, 0xFF);
+	memset(nesWram+0x2000, 0x2000, 0xFF);
 	setRom32KBank(0);
 }
 

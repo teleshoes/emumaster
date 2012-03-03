@@ -38,6 +38,7 @@ static u32 scanlineCycles;
 static u32 scanlineEndCycles;
 static u32 hDrawCycles;
 static u32 hBlankCycles;
+static int totalScanlines;
 
 static u64 cpuCycleCounter;
 static u64 ppuCycleCounter;
@@ -177,7 +178,6 @@ static void emulateFrameNoTile(bool drawEnabled)
 	updateZapper();
 
 	nesPpu.nextScanline();
-	int totalScanlines = nesPpuScanlinesPerFrame;
 	for (; nesPpuScanline <= totalScanlines-1; nesPpu.nextScanline()) {
 		if (nesPpuScanline == 241)
 			nesPpu.setVBlank(true);
@@ -232,7 +232,6 @@ static void emulateFrameTile(bool drawEnabled)
 	updateZapper();
 
 	nesPpu.nextScanline();
-	int totalScanlines = nesPpuScanlinesPerFrame;
 	for (; nesPpuScanline <= totalScanlines-1; nesPpu.nextScanline()) {
 		if (nesPpuScanline == 241)
 			nesPpu.setVBlank(true);
@@ -282,14 +281,16 @@ bool NesEmu::init(const QString &diskPath, QString *error)
 }
 
 void NesEmu::setupTimings()
-{
+{	
 	if (nesSystemType == NES_NTSC) {
+		totalScanlines = 262;
 		setFrameRate(NES_NTSC_FRAMERATE);
 		scanlineCycles = NES_NTSC_SCANLINE_CLOCKS;
 		hDrawCycles = 1024;
 		hBlankCycles = 340;
 		scanlineEndCycles = 4;
 	} else {
+		totalScanlines = 312;
 		setFrameRate(NES_PAL_FRAMERATE);
 		scanlineCycles = NES_PAL_SCANLINE_CLOCKS;
 		hDrawCycles = 960;
