@@ -128,39 +128,39 @@ static void emulateFrameNoTile(bool drawEnabled)
 	bool pre = (nesEmuRenderMethod & 1);
 
 	nesEmuClockCpu(all ? scanlineCycles : hDrawCycles);
-	nesPpu.processFrameStart();
-	nesPpu.processScanlineNext();
+	nesPpuProcessFrameStart();
+	nesPpuProcessScanlineNext();
 	nesMapper->horizontalSync();
 	if (all) {
-		nesPpu.processScanlineStart();
+		nesPpuProcessScanlineStart();
 	} else {
 		nesEmuClockCpu(NesPpu::FetchCycles*32);
-		nesPpu.processScanlineStart();
+		nesPpuProcessScanlineStart();
 		nesEmuClockCpu(NesPpu::FetchCycles*10 + scanlineEndCycles);
 	}
 	updateZapper();
 
-	nesPpu.nextScanline();
-	for (; nesPpuScanline < 240; nesPpu.nextScanline()) {
+	nesPpuNextScanline();
+	for (; nesPpuScanline < 240; nesPpuNextScanline()) {
 		if (!pre)
 			nesEmuClockCpu(all ? scanlineCycles : hDrawCycles);
-		if (drawEnabled || nesPpu.checkSprite0HitHere())
-			nesPpu.processScanline();
+		if (drawEnabled || nesPpuCheckSprite0HitHere())
+			nesPpuProcessScanline();
 		else
-			nesPpu.processDummyScanline();
+			nesPpuProcessDummyScanline();
 		if (all) {
-			nesPpu.processScanlineNext();
+			nesPpuProcessScanlineNext();
 			if (pre)
 				nesEmuClockCpu(scanlineCycles);
 			nesMapper->horizontalSync();
-			nesPpu.processScanlineStart();
+			nesPpuProcessScanlineStart();
 		} else {
 			if (pre)
 				nesEmuClockCpu(hDrawCycles);
-			nesPpu.processScanlineNext();
+			nesPpuProcessScanlineNext();
 			nesMapper->horizontalSync();
 			nesEmuClockCpu(NesPpu::FetchCycles*32);
-			nesPpu.processScanlineStart();
+			nesPpuProcessScanlineStart();
 			nesEmuClockCpu(NesPpu::FetchCycles*10 + scanlineEndCycles);
 		}
 		updateZapper();
@@ -177,12 +177,12 @@ static void emulateFrameNoTile(bool drawEnabled)
 	}
 	updateZapper();
 
-	nesPpu.nextScanline();
-	for (; nesPpuScanline <= totalScanlines-1; nesPpu.nextScanline()) {
+	nesPpuNextScanline();
+	for (; nesPpuScanline <= totalScanlines-1; nesPpuNextScanline()) {
 		if (nesPpuScanline == 241)
-			nesPpu.setVBlank(true);
+			nesPpuSetVBlank(true);
 		else if (nesPpuScanline == totalScanlines-1)
-			nesPpu.setVBlank(false);
+			nesPpuSetVBlank(false);
 
 		if (all) {
 			nesEmuClockCpu(scanlineCycles);
@@ -200,11 +200,11 @@ static void emulateFrameNoTile(bool drawEnabled)
 
 static inline void emulateVisibleScanlineTile()
 {
-	nesPpu.processScanlineNext();
+	nesPpuProcessScanlineNext();
 	nesEmuClockCpu(NesPpu::FetchCycles*10);
 	nesMapper->horizontalSync();
 	nesEmuClockCpu(NesPpu::FetchCycles*22);
-	nesPpu.processScanlineStart();
+	nesPpuProcessScanlineStart();
 	nesEmuClockCpu(NesPpu::FetchCycles*10 + scanlineEndCycles);
 	updateZapper();
 }
@@ -212,15 +212,15 @@ static inline void emulateVisibleScanlineTile()
 static void emulateFrameTile(bool drawEnabled)
 {
 	nesEmuClockCpu(NesPpu::FetchCycles*128);
-	nesPpu.processFrameStart();
+	nesPpuProcessFrameStart();
 	emulateVisibleScanlineTile();
 
-	for (; nesPpuScanline < 240; nesPpu.nextScanline()) {
-		if (drawEnabled || nesPpu.checkSprite0HitHere()) {
-			nesPpu.processScanline();
+	for (; nesPpuScanline < 240; nesPpuNextScanline()) {
+		if (drawEnabled || nesPpuCheckSprite0HitHere()) {
+			nesPpuProcessScanline();
 		} else {
 			nesEmuClockCpu(NesPpu::FetchCycles*128);
-			nesPpu.processDummyScanline();
+			nesPpuProcessDummyScanline();
 		}
 		emulateVisibleScanlineTile();
 	}
@@ -231,12 +231,12 @@ static void emulateFrameTile(bool drawEnabled)
 	nesEmuClockCpu(hBlankCycles);
 	updateZapper();
 
-	nesPpu.nextScanline();
-	for (; nesPpuScanline <= totalScanlines-1; nesPpu.nextScanline()) {
+	nesPpuNextScanline();
+	for (; nesPpuScanline <= totalScanlines-1; nesPpuNextScanline()) {
 		if (nesPpuScanline == 241)
-			nesPpu.setVBlank(true);
+			nesPpuSetVBlank(true);
 		else if (nesPpuScanline == totalScanlines-1)
-			nesPpu.setVBlank(false);
+			nesPpuSetVBlank(false);
 
 		nesEmuClockCpu(hDrawCycles);
 		nesMapper->horizontalSync();
@@ -275,7 +275,7 @@ bool NesEmu::init(const QString &diskPath, QString *error)
 
 	nesCpu.init();
 	nesApuInit();
-	nesPpu.init();
+	nesPpuInit();
 	reset();
 	return true;
 }
@@ -377,7 +377,7 @@ void NesEmu::sl()
 		return;
 	nesMapper->sl();
 	nesCpu.sl();
-	nesPpu.sl();
+	nesPpuSl();
 	nesApuSl();
 	nesInput.sl();
 	nesCheats.sl();

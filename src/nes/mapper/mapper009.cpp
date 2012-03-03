@@ -27,7 +27,7 @@ void Mapper009::reset() {
 	latch_a = 0xFE;
 	latch_b = 0xFE;
 
-	nesPpu.setCharacterLatchEnabled(true);
+	nesPpuSetCharacterLatchEnabled(true);
 
 	setVrom4KBank(0, 4);
 	setVrom4KBank(4, 0);

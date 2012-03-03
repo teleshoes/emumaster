@@ -138,7 +138,7 @@ public:
 	NesPpuBankType ppuBank1KType(uint bank) const;
 	u8 *ppuBank1KData(uint bank) const;
 protected:
-	void extSl();
+	virtual void extSl();
 private:
 	void writeReg(u16 address, u8 data);
 	u8 readReg(u16 address);

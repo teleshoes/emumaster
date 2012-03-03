@@ -256,8 +256,8 @@ void NesMapper::reset() {
 	memset(nesCram, 0, sizeof(nesCram));
 
 	nesEmuSetRenderMethod(NesEmu::PreRender);
-	nesPpu.setCharacterLatchEnabled(false);
-	nesPpu.setExternalLatchEnabled(false);
+	nesPpuSetCharacterLatchEnabled(false);
+	nesPpuSetExternalLatchEnabled(false);
 
 	setMirroring(nesDefaultMirroring);
 	setVrom8KBank(0);
@@ -270,7 +270,7 @@ void NesMapper::write(u16 address, u8 data) {
 		break;
 	case 1: // 0x2000-0x3FFF
 		// TODO nsf
-		nesPpu.writeReg(address & 7, data);
+		nesPpuWrite(address & 7, data);
 		break;
 	case 2: // 0x4000-0x5FFF
 		if (address < 0x4100)
@@ -298,7 +298,7 @@ u8 NesMapper::read(u16 address) {
 		data = nesRam[address & 0x07FF];
 		break;
 	case 1:	// 0x2000-0x3FFF
-		data = nesPpu.readReg(address & 7);
+		data = nesPpuRead(address & 7);
 		break;
 	case 2:	// 0x4000-0x5FFF
 		if (address < 0x4100)
@@ -337,7 +337,7 @@ void NesMapper::writeHigh(u16 address, u8 data) {
 
 void NesMapper::writeReg(u16 address, u8 data) {
 	if (address == 0x4014) {
-		nesPpu.dma(data);
+		nesPpuDma(data);
 		// TODO check it
 		nesCpu.dma(514);
 	} else if (address == 0x4016) {

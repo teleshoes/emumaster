@@ -102,7 +102,7 @@ void Mapper005::reset() {
 		chr_type = 1;
 	}
 
-	nesPpu.setExternalLatchEnabled(true);
+	nesPpuSetExternalLatchEnabled(true);
 // TODO ex sound	nes->apu->SelectExSound( 8);
 
 	setVrom8KBank(0);
@@ -414,7 +414,7 @@ void Mapper005::horizontalSync() {
 			irq_status |= 0x80;
 		}
 	}
-	if (nesPpu.isDisplayOn() && nesPpuScanline < NesPpu::VisibleScreenHeight) {
+	if (nesPpuIsDisplayOn() && nesPpuScanline < NesPpu::VisibleScreenHeight) {
 		irq_scanline++;
 		irq_status |= 0x40;
 		irq_clear = 0;
@@ -445,7 +445,7 @@ void Mapper005::horizontalSync() {
 	if (nesPpuScanline == 0) {
 		split_yofs = split_scroll&0x07;
 		split_addr = ((split_scroll&0xF8)<<2);
-	} else if (nesPpu.isDisplayOn()) {
+	} else if (nesPpuIsDisplayOn()) {
 		if (split_yofs == 7) {
 			split_yofs = 0;
 			if ((split_addr & 0x03E0) == 0x03A0) {

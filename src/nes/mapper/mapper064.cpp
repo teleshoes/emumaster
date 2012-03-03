@@ -177,7 +177,7 @@ void Mapper064::horizontalSync() {
 
 	irq_reset = 0;
 
-	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
+	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
 		if (irq_counter >= 0) {
 			irq_counter--;
 			if (irq_counter < 0) {

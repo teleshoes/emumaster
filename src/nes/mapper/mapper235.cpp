@@ -18,14 +18,16 @@
 #include "ppu.h"
 #include "disk.h"
 
-void Mapper235::reset() {
+void Mapper235::reset()
+{
 	NesMapper::reset();
 
-	memset(nesWram+0x2000, 0x2000, 0xFF);
+	memset(nesWram+0x2000, 0xFF, 0x2000);
 	setRom32KBank(0);
 }
 
-void Mapper235::writeHigh(u16 address, u8 data) {
+void Mapper235::writeHigh(u16 address, u8 data)
+{
 	Q_UNUSED(data)
 
 	u8 prg = ((address&0x0300)>>3) | (address&0x001F);

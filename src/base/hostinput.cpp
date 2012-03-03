@@ -195,7 +195,7 @@ void HostInput::paint(QPainter *painter)
 void HostInput::sync()
 {
 	EmuInput *emuInput = m_emu->input();
-	memset(emuInput, 0, sizeof(EmuInput));
+	memset32(emuInput, 0, sizeof(EmuInput)/4);
 	for (int i = 0; i < m_devices.size(); i++)
 		m_devices.at(i)->sync(emuInput);
 }

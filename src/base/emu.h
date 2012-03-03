@@ -174,4 +174,20 @@ inline void EMSL::var(const QString &name, T &t)
 	}
 }
 
+// TODO optimize
+static inline void memset8(void *p, u8 b, int n)
+{ memset(p, b, n); }
+static inline void memcpy8(void *dst, void *src, int n)
+{ memcpy(dst, src, n); }
+
+static inline void memset32(void *p, u32 d, int n)
+{
+	u32 *p32 = (u32 *)p;
+	for (; n > 0; p32++, n--)
+		*p32 = d;
+}
+
+static inline void memcpy32(void *dst, void *src, int n)
+{ memcpy(dst, src, n*4); }
+
 #endif // EMU_H

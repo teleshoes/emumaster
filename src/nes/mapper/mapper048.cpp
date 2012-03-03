@@ -83,7 +83,7 @@ void Mapper048::writeHigh(u16 address, u8 data) {
 }
 
 void Mapper048::horizontalSync() {
-	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
+	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
 		if (irq_enable) {
 			if (irq_counter == 0xFF)
 				setIrqSignalOut(true); // TODO need to be cleared somewhere (trigger in virtuanes)

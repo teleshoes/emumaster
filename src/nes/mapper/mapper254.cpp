@@ -123,7 +123,7 @@ void Mapper254::writeHigh(u16 address, u8 data) {
 }
 
 void Mapper254::horizontalSync() {
-	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpu.isDisplayOn()) {
+	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
 		if (irq_enable && !irq_request) {
 			if (nesPpuScanline == 0) {
 				if (irq_counter)

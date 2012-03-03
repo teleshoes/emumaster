@@ -18,6 +18,8 @@
 #define NESPPU_H
 
 class NesPpu;
+#include "ppusprite.h"
+#include "ppuscroll.h"
 #include <emu.h>
 #include <QImage>
 #include <QVector>
@@ -25,7 +27,6 @@ class NesPpu;
 #include <QStringList>
 
 class NesPpu;
-class NesPpuScroll;
 
 extern QImage nesPpuFrame;
 extern NesPpu nesPpu;
@@ -33,45 +34,6 @@ extern NesPpuScroll nesPpuScroll;
 extern u16 nesPpuTilePageOffset;
 extern u8 nesPpuRegs[8];
 extern int nesPpuScanline;
-
-class NesPpuSprite {
-public:
-	enum AttributeBit {
-		FlipVertically		= 0x80,
-		FlipHorizontally	= 0x40,
-		BehindBackground	= 0x20,
-		HighPaletteBitsMask	= 0x03
-	};
-	int x() const;
-	int y() const;
-	u8 tileIndex() const;
-	u8 paletteHighBits() const;
-	bool flipHorizontally() const;
-	bool flipVertically() const;
-	bool isBehindBackground() const;
-private:
-	u8 m_y;
-	u8 m_tileIndex;
-	u8 m_attributes;
-	u8 m_x;
-
-	friend class Nes2C0XPpu;
-} Q_PACKED;
-
-inline int NesPpuSprite::x() const
-{ return m_x; }
-inline int NesPpuSprite::y() const
-{ return m_y + 1; }
-inline u8 NesPpuSprite::tileIndex() const
-{ return m_tileIndex; }
-inline u8 NesPpuSprite::paletteHighBits() const
-{ return (m_attributes & HighPaletteBitsMask) << 2; }
-inline bool NesPpuSprite::flipHorizontally() const
-{ return m_attributes & FlipHorizontally; }
-inline bool NesPpuSprite::flipVertically() const
-{ return m_attributes & FlipVertically; }
-inline bool NesPpuSprite::isBehindBackground() const
-{ return m_attributes & BehindBackground; }
 
 class NesPpu : public QObject
 {
@@ -115,7 +77,6 @@ public:
 		 * name tables at $2000 (0), $2400 (1), $2800 (2) and $2C00 (3). */
 		NameTableAddressMaskCR0Bit = 3
 	};
-	Q_DECLARE_FLAGS(ControlReg0, ControlReg0Bit)
 
 	enum ControlReg1Bit {
 		/* Indicates background colour in monochrome
@@ -137,7 +98,6 @@ public:
 		 * monochrome mode (1) */
 		MonochromeModeCR1Bit = 0x01
 	};
-	Q_DECLARE_FLAGS(ControlReg1, ControlReg1Bit)
 
 	enum StatusRegBit {
 		//	Indicates whether V-Blank is occurring.
@@ -151,7 +111,6 @@ public:
 		//	If set, indicates that writes to VRAM should be ignored.
 		DisableVRAMWriteSRBit = 0x10
 	};
-	Q_DECLARE_FLAGS(StatusReg, StatusRegBit)
 
 	static const uint NameTableOffset = 0x2000;
 	static const uint AttributeTableOffset = 0x03C0;
@@ -161,106 +120,35 @@ public:
 	static const int VisibleScreenHeight = 30 * 8;
 
 	static const int FetchCycles = 8;
-
-	void init();
-
-	void writeReg(u16 addr, u8 data);
-	u8 readReg(u16 address);
-
-	void setChipType(ChipType newType);
-
-	bool isBackgroundVisible() const;
-	bool isSpriteVisible() const;
-	bool isDisplayOn() const;
-
-	void nextScanline();
-
-	void setCharacterLatchEnabled(bool on);
-	void setExternalLatchEnabled(bool on);
-
-	void setVBlank(bool on);
-	void dma(u8 page);
-
-	void processFrameStart();
-	void processScanlineStart();
-	void processScanlineNext();
-	void processScanline();
-	void processDummyScanline();
-	bool checkSprite0HitHere() const;
-
-	void sl();
-private:
-	void drawBackground();
-	void drawBackgroundNoTileNoExtLatch();
-	void drawBackgroundTileNoExtLatch();
-	void drawBackgroundNoTileExtLatch();
-	void drawBackgroundTileExtLatch();
-
-	void drawSprites();
-	void fillScanline(int color, int count);
 };
 
-inline bool NesPpu::isBackgroundVisible() const
-{ return nesPpuRegs[Control1] & BackgroundDisplayCR1Bit; }
-inline bool NesPpu::isSpriteVisible() const
-{ return nesPpuRegs[Control1] & SpriteDisplayCR1Bit; }
-inline bool NesPpu::isDisplayOn() const
-{ return isBackgroundVisible() || isSpriteVisible(); }
+static inline bool nesPpuIsBackgroundVisible()
+{ return nesPpuRegs[NesPpu::Control1] & NesPpu::BackgroundDisplayCR1Bit; }
+static inline bool nesPpuIsSpriteVisible()
+{ return nesPpuRegs[NesPpu::Control1] & NesPpu::SpriteDisplayCR1Bit; }
+static inline bool nesPpuIsDisplayOn()
+{ return nesPpuIsBackgroundVisible() || nesPpuIsSpriteVisible(); }
 
-class NesPpuScroll
-{
-public:
-	enum {
-		X_TILE    = 0x001F,
-		Y_TILE    = 0x03E0,
-		Y_FINE    = 0x7000,
-		LOW       = 0x00FF,
-		HIGH      = 0xFF00,
-		NAME      = 0x0C00,
-		NAME_LOW  = 0x0400,
-		NAME_HIGH = 0x0800
-	};
+extern void nesPpuInit();
+extern void nesPpuWrite(u16 addr, u8 data);
+extern   u8 nesPpuRead(u16 addr);
+extern void nesPpuDma(u8 page);
+extern void nesPpuSetVBlank(bool on);
 
-	void clockX();
-	void resetX();
-	void clockY();
-	uint yFine();
+extern void nesPpuSetCharacterLatchEnabled(bool on);
+extern void nesPpuSetExternalLatchEnabled(bool on);
 
-	uint address;
-	uint toggle;
-	uint latch;
-	uint xFine;
-};
+extern void nesPpuNextScanline();
+extern void nesPpuProcessFrameStart();
+extern void nesPpuProcessScanlineStart();
+extern void nesPpuProcessScanlineNext();
+extern void nesPpuProcessScanline();
+extern void nesPpuProcessDummyScanline();
 
-inline void NesPpuScroll::clockX()
-{
-	if ((address & X_TILE) != X_TILE)
-		address++;
-	else
-		address ^= (X_TILE|NAME_LOW);
-}
+extern bool nesPpuCheckSprite0HitHere();
 
-inline void NesPpuScroll::resetX()
-{
-	address = (address & ((X_TILE|NAME_LOW) ^ 0x7FFF)) | (latch & (X_TILE|NAME_LOW));
-}
+extern QRgb nesPpuGetPixel(int x, int y);
 
-inline void NesPpuScroll::clockY()
-{
-	if ((address & Y_FINE) != Y_FINE) {
-		address += 1 << 12;
-	} else switch (address & Y_TILE) {
-		default:         address = (address & (Y_FINE ^ 0x7FFF)) + (1 << 5); break;
-		case (29 << 5): address ^= NAME_HIGH;
-		case (31 << 5): address &= (Y_FINE|Y_TILE) ^ 0x7FFF; break;
-	}
-}
-
-inline uint NesPpuScroll::yFine()
-{
-	return address >> 12;
-}
-
-QRgb nesPpuGetPixel(int x, int y);
+extern void nesPpuSl();
 
 #endif // NESPPU_H
