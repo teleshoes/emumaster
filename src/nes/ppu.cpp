@@ -814,7 +814,7 @@ static void fillPens()
 	/* The 16 colors circle around the YUV color space,      */
 
 	int entry = 0;
-	qreal tint = 0.22f;	/* adjust to taste */ // TODO as an option
+	qreal tint = 0.28f;	/* adjust to taste */
 	qreal hue = 287.0f;
 
 	qreal Kr = 0.2989f;
