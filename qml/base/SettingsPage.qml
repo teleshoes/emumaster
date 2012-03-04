@@ -207,6 +207,11 @@ Page {
 				SettingsSwitchItem { text: qsTr("Show FPS"); paramName: "fpsVisible" }
 				SettingsSwitchItem { text: qsTr("Keep Aspect Ratio"); paramName: "keepAspectRatio" }
 				SettingsSwitchItem { text: qsTr("Bilinear Filtering"); paramName: "bilinearFiltering" }
+				SelectionItem {
+					titleText: qsTr("Video Filter")
+					subtitleText: emuView.videoFilter
+					onClicked: videoFilterSelector.open()
+				}
 			}
 
 			Column {
@@ -261,5 +266,16 @@ Page {
 		model: inputDeviceFunctionModel
 		titleText: qsTr("Select Configuration")
 		onAccepted: inputDevice.emuFunction = selectedIndex
+	}
+
+	StringListProxy {
+		id: videoFilterModel
+		stringListModel: emuView.availableVideoFilters
+	}
+	SelectionDialog {
+		id: videoFilterSelector
+		model: videoFilterModel
+		titleText: qsTr("Select Video Filter")
+		onAccepted: emuView.videoFilter = videoFilterModel.get(selectedIndex)
 	}
 }

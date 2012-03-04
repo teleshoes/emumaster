@@ -73,6 +73,8 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	QObject::connect(m_hostInput, SIGNAL(pause()), SLOT(pause()));
 	QObject::connect(m_hostInput, SIGNAL(devicesChanged()),
 					 SIGNAL(inputDevicesChanged()));
+	QObject::connect(m_hostVideo, SIGNAL(shaderChanged()),
+					 SLOT(hostVideoShaderChanged()));
 
 	m_stateListModel = new StateListModel(m_emu, m_diskFileName);
 
@@ -502,6 +504,7 @@ void EmuView::loadSettings()
 	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible").toBool());
 	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio").toBool());
 	m_hostVideo->setBilinearFiltering(loadOptionFromSettings(s, "bilinearFiltering").toBool());
+	m_hostVideo->setShader(loadOptionFromSettings(s, "videoFilter").toString());
 	setAudioEnabled(loadOptionFromSettings(s, "audioEnable").toBool());
 	m_runInBackground = loadOptionFromSettings(s, "runInBackground").toBool();
 
@@ -524,11 +527,6 @@ QVariant EmuView::loadOptionFromSettings(QSettings &s, const QString &name) cons
 	return option;
 }
 
-bool EmuView::isFpsVisible() const
-{
-	return m_hostVideo->isFpsVisible();
-}
-
 void EmuView::setFpsVisible(bool on)
 {
 	if (m_hostVideo->isFpsVisible() != on) {
@@ -538,9 +536,9 @@ void EmuView::setFpsVisible(bool on)
 	}
 }
 
-int EmuView::frameSkip() const
+bool EmuView::isFpsVisible() const
 {
-	return m_thread->frameSkip();
+	return m_hostVideo->isFpsVisible();
 }
 
 void EmuView::setFrameSkip(int n)
@@ -552,9 +550,9 @@ void EmuView::setFrameSkip(int n)
 	}
 }
 
-bool EmuView::isAudioEnabled() const
+int EmuView::frameSkip() const
 {
-	return m_audioEnable;
+	return m_thread->frameSkip();
 }
 
 void EmuView::setAudioEnabled(bool on)
@@ -567,9 +565,9 @@ void EmuView::setAudioEnabled(bool on)
 	}
 }
 
-qreal EmuView::padOpacity() const
+bool EmuView::isAudioEnabled() const
 {
-	return m_hostInput->padOpacity();
+	return m_audioEnable;
 }
 
 void EmuView::setPadOpacity(qreal opacity)
@@ -581,9 +579,9 @@ void EmuView::setPadOpacity(qreal opacity)
 	}
 }
 
-bool EmuView::keepAspectRatio() const
+qreal EmuView::padOpacity() const
 {
-	return m_hostVideo->keepApsectRatio();
+	return m_hostInput->padOpacity();
 }
 
 void EmuView::setKeepAspectRatio(bool on)
@@ -595,9 +593,9 @@ void EmuView::setKeepAspectRatio(bool on)
 	}
 }
 
-bool EmuView::bilinearFiltering() const
+bool EmuView::keepAspectRatio() const
 {
-	return m_hostVideo->bilinearFiltering();
+	return m_hostVideo->keepApsectRatio();
 }
 
 void EmuView::setLRButtonsVisible(bool on)
@@ -617,6 +615,11 @@ bool EmuView::areLRButtonsVisible() const
 	return m_lrButtonsVisible;
 }
 
+bool EmuView::bilinearFiltering() const
+{
+	return m_hostVideo->bilinearFiltering();
+}
+
 void EmuView::setBilinearFiltering(bool enabled)
 {
 	if (m_hostVideo->bilinearFiltering() != enabled) {
@@ -624,4 +627,25 @@ void EmuView::setBilinearFiltering(bool enabled)
 		emConf.setValue("bilinearFiltering", enabled);
 		emit bilinearFilteringChanged();
 	}
+}
+
+void EmuView::setVideoFilter(const QString &name)
+{
+	m_hostVideo->setShader(name);
+}
+
+QString EmuView::videoFilter() const
+{
+	return m_hostVideo->shader();
+}
+
+QStringList EmuView::availableVideoFilters() const
+{
+	return m_hostVideo->shaderList();
+}
+
+void EmuView::hostVideoShaderChanged()
+{
+	emConf.setValue("videoFilter", m_hostVideo->shader());
+	emit videoFilterChanged();
 }

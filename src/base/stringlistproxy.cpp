@@ -30,3 +30,10 @@ int StringListProxy::count() const
 {
 	return rowCount();
 }
+
+QString StringListProxy::get(int index) const
+{
+	if (index < 0 || index >= count())
+		return QString();
+	return stringList().at(index);
+}

@@ -22,6 +22,7 @@ class HostInput;
 #include "base_global.h"
 #include <QGLWidget>
 #include <QTime>
+#include <QGLShaderProgram>
 
 class BASE_EXPORT HostVideo : public QGLWidget
 {
@@ -53,12 +54,24 @@ public:
 	QRectF dstRect() const;
 
 	QPoint convertCoordHostToEmu(const QPoint &hostPos);
+
+	void setShader(const QString &shaderName);
+	QString shader() const;
+	QStringList shaderList() const;
+signals:
+	void shaderChanged();
 protected:
 	void paintEvent(QPaintEvent *);
+	void paintGL();
 private slots:
 	void updateRects();
 private:
+	void paintEmuFrame();
 	void paintFps(QPainter *painter);
+	QString shaderDir() const;
+	void setupProgramList();
+	bool loadShaderProgram();
+	bool configureShaderProgram(const char *vsh, const char *fsh);
 
 	HostInput *m_hostInput;
 	Emu *m_emu;
@@ -74,6 +87,19 @@ private:
 
 	bool m_keepAspectRatio;
 	bool m_bilinearFiltering;
+
+	QGLShaderProgram *m_program;
+	int m_u_pvmMatrixLocation;
+	int m_u_displaySizeLocation;
+	int m_a_vertexLocation;
+	int m_a_texCoordLocation;
+	int m_s_textureLocation;
+	GLfloat m_vertexArray[8];
+	GLfloat m_texCoordArray[8];
+
+	int m_programIndex;
+	bool m_programDirty;
+	QStringList m_programList;
 };
 
 inline QRectF HostVideo::dstRect() const

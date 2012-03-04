@@ -42,6 +42,8 @@ class BASE_EXPORT EmuView : public QWidget
 	Q_PROPERTY(bool lrButtonsVisible READ areLRButtonsVisible WRITE setLRButtonsVisible NOTIFY lrButtonsVisibleChanged)
 	Q_PROPERTY(QString error READ error CONSTANT)
 	Q_PROPERTY(QList<QObject *> inputDevices READ inputDevices NOTIFY inputDevicesChanged)
+	Q_PROPERTY(QString videoFilter READ videoFilter WRITE setVideoFilter NOTIFY videoFilterChanged)
+	Q_PROPERTY(QStringList availableVideoFilters READ availableVideoFilters CONSTANT)
 public:
 	explicit EmuView(Emu *emu, const QString &diskFileName);
 	~EmuView();
@@ -70,6 +72,10 @@ public:
 	QList<QObject *> inputDevices() const;
 
 	QString error() const;
+
+	void setVideoFilter(const QString &name);
+	QString videoFilter() const;
+	QStringList availableVideoFilters() const;
 public slots:
 	bool close();
 
@@ -86,6 +92,7 @@ signals:
 	void lrButtonsVisibleChanged();
 	void faultOccured(QString faultMessage);
 	void inputDevicesChanged();
+	void videoFilterChanged();
 protected:
 	void paintEvent(QPaintEvent *);
 	void closeEvent(QCloseEvent *e);
@@ -99,6 +106,7 @@ private slots:
 	void onSlFailed();
 	void onSafetyEvent();
 	void onStateLoaded();
+	void hostVideoShaderChanged();
 private:
 	bool loadConfiguration();
 	void loadSettings();

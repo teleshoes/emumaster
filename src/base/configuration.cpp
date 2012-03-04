@@ -86,6 +86,7 @@ void Configuration::constructDefaults()
 	m_defaultData.insert("swipeEnable", false);
 	m_defaultData.insert("touchAreaSize", 240);
 	m_defaultData.insert("touchAreaDiagonalSize", 240/4);
+	m_defaultData.insert("videoFilter", "none");
 }
 
 /*!

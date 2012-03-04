@@ -28,6 +28,7 @@ public:
 	explicit StringListProxy(QObject *parent = 0);
 	void setStringList(const QStringList &strings);
 	int count() const;
+	Q_INVOKABLE QString get(int index) const;
 signals:
 	void stringListChanged();
 };

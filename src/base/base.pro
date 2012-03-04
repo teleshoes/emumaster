@@ -94,6 +94,15 @@ unix {
     buttons.files = \
         ../../data/buttons.png
 
+    shaders.path = /opt/emumaster/data/shader
+    shaders.files = \
+        ../../data/shader/hq2x.vsh \
+        ../../data/shader/hq2x.fsh \
+        ../../data/shader/2xSal.vsh \
+        ../../data/shader/2xSal.fsh \
+        ../../data/shader/grayScale.vsh \
+        ../../data/shader/grayScale.fsh \
+
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = \
         ../../qml/img/input-accel.png \
@@ -101,7 +110,7 @@ unix {
         ../../qml/img/input-sixaxis.png \
         ../../qml/img/input-touch.png
 
-    INSTALLS += qml qmlimg buttons
+    INSTALLS += qml qmlimg buttons shaders
 }
 
 contains(MEEGO_EDITION, harmattan) {
