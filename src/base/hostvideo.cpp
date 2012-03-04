@@ -94,7 +94,6 @@ HostVideo::HostVideo(HostInput *hostInput,
 	m_fpsCounterTime.start();
 
 	m_keepAspectRatio = emConf.defaultValue("keepAspectRatio").toBool();
-	m_bilinearFiltering = emConf.defaultValue("bilinearFiltering").toBool();
 
 	setupProgramList();
 
@@ -243,12 +242,6 @@ void HostVideo::setKeepAspectRatio(bool on)
 	m_keepAspectRatio = on;
 	if (m_srcRect.width() != 0.0f)
 		updateRects();
-}
-
-/*! Enables/disables bilinear filtering. */
-void HostVideo::setBilinearFiltering(bool enabled)
-{
-	m_bilinearFiltering = enabled;
 }
 
 /*!

@@ -48,9 +48,6 @@ public:
 	bool keepApsectRatio() const;
 	void setKeepAspectRatio(bool on);
 
-	bool bilinearFiltering() const;
-	void setBilinearFiltering(bool enabled);
-
 	QRectF dstRect() const;
 
 	QPoint convertCoordHostToEmu(const QPoint &hostPos);
@@ -86,7 +83,6 @@ private:
 	QTime m_fpsCounterTime;
 
 	bool m_keepAspectRatio;
-	bool m_bilinearFiltering;
 
 	QGLShaderProgram *m_program;
 	int m_u_pvmMatrixLocation;
@@ -108,7 +104,5 @@ inline bool HostVideo::isFpsVisible() const
 { return m_fpsVisible; }
 inline bool HostVideo::keepApsectRatio() const
 { return m_keepAspectRatio; }
-inline bool HostVideo::bilinearFiltering() const
-{ return m_bilinearFiltering; }
 
 #endif // HOSTVIDEO_H

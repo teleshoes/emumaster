@@ -206,7 +206,6 @@ Page {
 				}
 				SettingsSwitchItem { text: qsTr("Show FPS"); paramName: "fpsVisible" }
 				SettingsSwitchItem { text: qsTr("Keep Aspect Ratio"); paramName: "keepAspectRatio" }
-				SettingsSwitchItem { text: qsTr("Bilinear Filtering"); paramName: "bilinearFiltering" }
 				SelectionItem {
 					titleText: qsTr("Video Filter")
 					subtitleText: emuView.videoFilter

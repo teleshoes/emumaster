@@ -76,7 +76,6 @@ Page {
 		}
 		GlobalSettingsSwitchItem { text: qsTr("Show FPS"); optionName: "fpsVisible" }
 		GlobalSettingsSwitchItem { text: qsTr("Keep Aspect Ratio"); optionName: "keepAspectRatio" }
-		GlobalSettingsSwitchItem { text: qsTr("Bilinear Filtering"); optionName: "bilinearFiltering" }
 
 		SectionSeperator { text: qsTr("MISC") }
 

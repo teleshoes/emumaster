@@ -503,7 +503,6 @@ void EmuView::loadSettings()
 	m_thread->setFrameSkip(loadOptionFromSettings(s, "frameSkip").toInt());
 	m_hostVideo->setFpsVisible(loadOptionFromSettings(s, "fpsVisible").toBool());
 	m_hostVideo->setKeepAspectRatio(loadOptionFromSettings(s, "keepAspectRatio").toBool());
-	m_hostVideo->setBilinearFiltering(loadOptionFromSettings(s, "bilinearFiltering").toBool());
 	m_hostVideo->setShader(loadOptionFromSettings(s, "videoFilter").toString());
 	setAudioEnabled(loadOptionFromSettings(s, "audioEnable").toBool());
 	m_runInBackground = loadOptionFromSettings(s, "runInBackground").toBool();
@@ -613,20 +612,6 @@ void EmuView::setLRButtonsVisible(bool on)
 bool EmuView::areLRButtonsVisible() const
 {
 	return m_lrButtonsVisible;
-}
-
-bool EmuView::bilinearFiltering() const
-{
-	return m_hostVideo->bilinearFiltering();
-}
-
-void EmuView::setBilinearFiltering(bool enabled)
-{
-	if (m_hostVideo->bilinearFiltering() != enabled) {
-		m_hostVideo->setBilinearFiltering(enabled);
-		emConf.setValue("bilinearFiltering", enabled);
-		emit bilinearFilteringChanged();
-	}
 }
 
 void EmuView::setVideoFilter(const QString &name)

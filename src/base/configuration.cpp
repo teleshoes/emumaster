@@ -73,7 +73,6 @@ void Configuration::constructDefaults()
 	m_defaultData.insert("audioEnable", true);
 	m_defaultData.insert("autoSaveLoadEnable", true);
 	m_defaultData.insert("buttonsVisible", true);
-	m_defaultData.insert("bilinearFiltering", true);
 	m_defaultData.insert("frameSkip", 0);
 	m_defaultData.insert("fpsVisible", false);
 	m_defaultData.insert("gridColor", QColor(Qt::white));
