@@ -102,6 +102,8 @@ unix {
         ../../data/shader/2xSal.fsh \
         ../../data/shader/grayScale.vsh \
         ../../data/shader/grayScale.fsh \
+        ../../data/shader/sharpen.vsh \
+        ../../data/shader/sharpen.fsh \
 
 	qmlimg.path = /opt/emumaster/qml/img
 	qmlimg.files = \
