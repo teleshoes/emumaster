@@ -98,8 +98,15 @@ static inline u8 hostToEmu(int buttons)
 
 void nesInputSync(const EmuInput *hostInput)
 {
-	for (int i = 0; i < 2; i++)
-		pad[i] = hostToEmu(hostInput->pad[i].buttons());
+	for (int i = 0; i < 2; i++) {
+		int lastPad = pad[i];
+		int hostButtons = hostInput->pad[i].buttons();
+		pad[i] = hostToEmu(hostButtons);
+		if (hostButtons & EmuPad::Button_X)
+			pad[i] = (pad[i] & ~1) | ((lastPad&1)^1);
+		if (hostButtons & EmuPad::Button_Y)
+			pad[i] = (pad[i] & ~2) | ((lastPad&2)^2);
+	}
 	extra->sync(hostInput);
 }
 
