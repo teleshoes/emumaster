@@ -34,7 +34,7 @@ void NesInputPaddle::write(u16 addr, u8 data)
 		m_regs[0] = 0x00;
 		if (m_button)
 			m_regs[0] |= 0x02;
-		u8 px = 0xFF - (u8)(0x52+172*m_pos/192);
+		u8 px = 0xFF - (u8)(0x60+m_pos);
 		m_regs[1] = 0x00;
 		for (int i = 0; i < 8; i++)
 			m_regs[1] |= (px&(1<<i)) ? (0x80>>i) : 0;

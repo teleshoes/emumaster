@@ -278,10 +278,8 @@ void HostVideo::setupProgramList()
 {
 	m_programList.append("none");
 	QStringList list = QDir(shaderDir()).entryList(QStringList() << "*.vsh");
-	foreach (QString s, list) {
+	foreach (QString s, list)
 		m_programList.append(s.left(s.size()-4));
-		qDebug("%s", qPrintable(s));
-	}
 }
 
 QString HostVideo::shader() const

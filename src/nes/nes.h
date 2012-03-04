@@ -28,6 +28,7 @@ class NesEmu : public Emu
 	Q_PROPERTY(QObject *ppu READ ppu CONSTANT)
 	Q_PROPERTY(QObject *pad READ pad CONSTANT)
 	Q_PROPERTY(QObject *cheats READ cheats CONSTANT)
+	Q_PROPERTY(QString diskInfo READ diskInfo CONSTANT)
 public:
 	enum RenderMethod {
 		PostAllRender,
@@ -50,6 +51,7 @@ public:
 	QObject *ppu() const;
 	QObject *pad() const;
 	QObject *cheats() const;
+	QString diskInfo() const;
 protected:
 	void sl();
 private:

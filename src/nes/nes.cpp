@@ -371,6 +371,13 @@ QObject *NesEmu::cheats() const
 	return &nesCheats;
 }
 
+QString NesEmu::diskInfo() const
+{
+	return QString("CRC: %1, Mapper %2 (%3), PROM %4KB, VROM %5KB").arg(nesDiskCrc, 8, 16)
+			.arg(nesMapperType).arg(nesMapper->name()).arg(nesRomSize16KB*16)
+			.arg(nesVromSize1KB);
+}
+
 void NesEmu::sl()
 {
 	if (!slCheckTvEncodingSystem())

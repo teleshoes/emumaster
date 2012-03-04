@@ -33,6 +33,10 @@ SettingsPage {
 		}
 	]
 
+	miscContent: [
+		Label { width: parent.width; text: qsTr("Disk Info: ") + emu.diskInfo }
+	]
+
 	columnContent: [
 		SectionSeperator { text: qsTr("ChEaTs") },
 		NesCheats {}
