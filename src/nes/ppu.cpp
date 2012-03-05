@@ -350,8 +350,9 @@ void nesPpuNextScanline()
 void nesPpuDma(u8 page)
 {
 	u16 address = page << 8;
-	for (int i = 0; i < 256; i++)
-		nesPpuWrite(NesPpu::SpriteRAMIO, nesMapper->read(address + i));
+	u8 *p = spriteMem;
+	for (int i = 0; i < 256; i++, p++)
+		 *p = nesMapper->read(address + i);
 }
 
 void nesPpuSetCharacterLatchEnabled(bool on)
@@ -519,7 +520,7 @@ static void drawBackgroundTileNoExtLatch()
 		attribute = (attribute & 3) << 2;
 
 		if (cacheTile == tileAddress && cacheAttribute == attribute) {
-			memcpy(dst, dst-8, 8*sizeof(QRgb));
+			memcpy32(dst, dst-8, 8*sizeof(QRgb)/4);
 			*bgWr = *(bgWr - 1);
 		} else {
 			cacheTile = tileAddress;
@@ -578,7 +579,7 @@ static void drawBackgroundNoTileExtLatch()
 		attribute &= 0x0C;
 		u32 tile = (plane1 << 8) | plane2;
 		if (cacheTile == tile && cacheAttribute == attribute) {
-			memcpy(dst, dst-8, 8*sizeof(QRgb));
+			memcpy32(dst, dst-8, 8*sizeof(QRgb)/4);
 			*bgWr = *(bgWr - 1);
 		} else {
 			cacheTile = tile;

@@ -20,12 +20,14 @@
 #include <emu.h>
 #include <QDataStream>
 
-void Mapper001::reset() {
+void Mapper001::reset()
+{
 	NesMapper::reset();
 
 	reg[0] = 0x0C; // D3=1,D2=1
 	reg[1] = reg[2] = reg[3] = 0;
 	shift = regbuf = 0;
+	last_addr = 0;
 
 	patch = 0;
 	wram_patch = 0;
@@ -86,7 +88,8 @@ void Mapper001::reset() {
 	}
 }
 
-void Mapper001::writeHigh(u16 address, u8 data) {
+void Mapper001::writeHigh(u16 address, u8 data)
+{
 	if (wram_patch == 1 && address == 0xBFFF) {
 		wram_count++;
 		wram_bank += data & 0x01;
@@ -207,7 +210,8 @@ void Mapper001::writeHigh(u16 address, u8 data) {
 	}
 }
 
-NesMirroring Mapper001::mirroringFromRegs() const {
+NesMirroring Mapper001::mirroringFromRegs() const
+{
 	switch (reg[0] & 3) {
 	case 0: return SingleLow; break;
 	case 1: return SingleHigh; break;
@@ -217,10 +221,12 @@ NesMirroring Mapper001::mirroringFromRegs() const {
 	}
 }
 
-void Mapper001::extSl() {
+void Mapper001::extSl()
+{
 	emsl.var("shift", shift);
 	emsl.var("regbuf", regbuf);
 	emsl.var("wram_bank", wram_bank);
 	emsl.var("wram_count", wram_count);
 	emsl.var("last_addr", last_addr);
+	emsl.array("reg", reg, sizeof(reg));
 }
