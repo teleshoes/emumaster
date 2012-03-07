@@ -31,7 +31,7 @@ public:
 private:
 	u8 irq_enable;
 	u8 irq_toggle;
-	u32 irq_counter;
+	s32 irq_counter;
 };
 
 #endif // MAPPER067_H

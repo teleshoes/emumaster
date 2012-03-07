@@ -27,6 +27,7 @@ void X24C01::reset(u8 *eedata)
 	m_sda = true;
 	m_sclOld = false;
 	m_sdaOld = false;
+	m_bitCounter = 0;
 
 	m_eedata = eedata;
 }
@@ -152,6 +153,7 @@ void X24C02::reset(u8 *eedata)
 	m_sda = true;
 	m_sclOld = false;
 	m_sdaOld = false;
+	m_bitCounter = 0;
 
 	m_eedata = eedata;
 }
@@ -181,6 +183,7 @@ void X24C02::write(bool scl_in, bool sda_in)
 				m_data &= ~(1<<(7-m_bitCounter));
 				m_data |= (sda_in?1:0)<<(7-m_bitCounter);
 			}
+			m_bitCounter++;
 			break;
 		case Address:
 			if (m_bitCounter < 8) {

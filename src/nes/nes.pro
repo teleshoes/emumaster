@@ -98,7 +98,9 @@ HEADERS += \
 	mapper/mapper001.h \
     mapper/mapper000.h \
     ppusprite.h \
-    ppuscroll.h
+    ppuscroll.h \
+    mapper/mapper079.h \
+    mapper/mapper185.h
 
 SOURCES += \
     ppu.cpp \
@@ -194,4 +196,6 @@ SOURCES += \
 	mapper/mapper003.cpp \
 	mapper/mapper002.cpp \
 	mapper/mapper001.cpp \
-    mapper/mapper000.cpp
+    mapper/mapper000.cpp \
+    mapper/mapper079.cpp \
+    mapper/mapper185.cpp

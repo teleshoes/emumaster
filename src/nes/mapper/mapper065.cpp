@@ -19,7 +19,8 @@
 #include "ppu.h"
 #include <QDataStream>
 
-void Mapper065::reset() {
+void Mapper065::reset()
+{
 	NesMapper::reset();
 
 	patch = 0;
@@ -35,17 +36,19 @@ void Mapper065::reset() {
 
 	irq_enable = 0;
 	irq_counter = 0;
+	irq_latch = 0;
 }
 
-void Mapper065::writeHigh(u16 address, u8 data) {
-	switch (address) {
+void Mapper065::writeHigh(u16 addr, u8 data)
+{
+	switch (addr) {
 	case 0x8000:
 		setRom8KBank(4, data);
 		break;
 
 	case 0x9000:
 		if (!patch)
-			setMirroring(static_cast<NesMirroring>((data & 0x40) >> 6));
+			setMirroring(static_cast<NesMirroring>(((data & 0x40)^0x40) >> 6));
 		break;
 
 	case 0x9001:
@@ -66,7 +69,7 @@ void Mapper065::writeHigh(u16 address, u8 data) {
 		break;
 	case 0x9005:
 		if (patch) {
-			irq_counter = data<<1;
+			irq_counter = (u8)(data<<1);
 			irq_enable = data;
 			setIrqSignalOut(false);
 		} else {
@@ -90,7 +93,7 @@ void Mapper065::writeHigh(u16 address, u8 data) {
 	case 0xB005:
 	case 0xB006:
 	case 0xB007:
-		setVrom1KBank(address & 0x0007, data);
+		setVrom1KBank(addr & 0x0007, data);
 		break;
 
 	case 0xA000:

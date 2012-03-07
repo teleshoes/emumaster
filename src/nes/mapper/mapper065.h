@@ -19,12 +19,12 @@
 
 #include "../mapper.h"
 
-class Mapper065 : public NesMapper {
-
+class Mapper065 : public NesMapper
+{
 public:
 	void reset();
 
-	void writeHigh(u16 address, u8 data);
+	void writeHigh(u16 addr, u8 data);
 	void clock(uint cycles);
 
 	void horizontalSync();
@@ -33,8 +33,8 @@ public:
 private:
 	u8 patch;
 	u8 irq_enable;
-	u32 irq_counter;
-	u32 irq_latch;
+	s32 irq_counter;
+	s32 irq_latch;
 };
 
 #endif // MAPPER065_H

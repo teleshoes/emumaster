@@ -77,6 +77,8 @@
 #include "mapper/mapper069.h"
 #include "mapper/mapper070.h"
 #include "mapper/mapper071.h"
+#include "mapper/mapper079.h"
+#include "mapper/mapper185.h"
 #include "mapper/mapper200.h"
 #include "mapper/mapper201.h"
 #include "mapper/mapper202.h"
@@ -140,7 +142,8 @@ static QList<GameGenieCode> nesGameGenieList;
 		mapper->m_name = name; \
 		break
 
-NesMapper *NesMapper::create(u8 type) {
+NesMapper *NesMapper::create(u8 type)
+{
 	NesMapper *mapper = 0;
 	switch (type) {
 	case   0: NES_MAPPER_CREATE_CASE(000, "-");
@@ -196,6 +199,8 @@ NesMapper *NesMapper::create(u8 type) {
 	case  69: NES_MAPPER_CREATE_CASE(069, "SunSoft FME-7");
 	case  70: NES_MAPPER_CREATE_CASE(070, "Bandai 74161");
 	case  71: NES_MAPPER_CREATE_CASE(071, "Camerica");
+	case  79: NES_MAPPER_CREATE_CASE(079, "Nina-3");
+	case 185: NES_MAPPER_CREATE_CASE(185, "-");
 	case 200: NES_MAPPER_CREATE_CASE(200, "1200-in-1");
 	case 201: NES_MAPPER_CREATE_CASE(201, "21-in-1");
 	case 202: NES_MAPPER_CREATE_CASE(202, "150-in-1");
@@ -226,7 +231,8 @@ NesMapper *NesMapper::create(u8 type) {
 	return mapper;
 }
 
-void NesMapper::reset() {
+void NesMapper::reset()
+{
 	memset(nesRam, 0, sizeof(nesRam));
 	if (nesDiskCrc == 0x29401686) // Minna no Taabou no Nakayoshi Dai Sakusen(J)
 		memset(nesRam, 0xFF, sizeof(nesRam));
@@ -234,6 +240,8 @@ void NesMapper::reset() {
 	if (!nesDiskHasBatteryBackedRam() && nesMapperType != 20)
 		memset(nesWram, 0xFF, sizeof(nesWram));
 
+	// TODO hasTrainer
+	// TODO load SRAM
 	memcpy(nesWram + 0x1000, nesTrainer, 512);
 
 	memset(nesCpuBanks, 0, sizeof(nesCpuBanks));
@@ -263,157 +271,172 @@ void NesMapper::reset() {
 	setVrom8KBank(0);
 }
 
-void NesMapper::write(u16 address, u8 data) {
-	switch (address >> 13) {
+void NesMapper::write(u16 addr, u8 data)
+{
+	switch (addr >> 13) {
 	case 0: // 0x0000-0x1FFF
-		nesRam[address & 0x07FF] = data;
+		nesRam[addr & 0x07FF] = data;
 		break;
 	case 1: // 0x2000-0x3FFF
 		// TODO nsf
-		nesPpuWrite(address & 7, data);
+		nesPpuWrite(addr & 7, data);
 		break;
 	case 2: // 0x4000-0x5FFF
-		if (address < 0x4100)
-			writeReg(address, data);
+		if (addr < 0x4100)
+			writeReg(addr, data);
 		else
-			writeLow(address, data);
+			writeLow(addr, data);
 		break;
 	case 3: // 0x6000-0x7FFF
-		writeLow(address, data);
+		writeLow(addr, data);
 		break;
 	case 4: // 0x8000-0x9FFF
 	case 5:	// 0xA000-0xBFFF
 	case 6:	// 0xC000-0xDFFF
 	case 7:	// 0xE000-0xFFFF
-		writeHigh(address, data);
+		writeHigh(addr, data);
 		processGameGenieCodes();
 		break;
 	}
 }
 
-u8 NesMapper::read(u16 address) {
+u8 NesMapper::read(u16 addr)
+{
 	u8 data;
-	switch (address >> 13) {
+	switch (addr >> 13) {
 	case 0:	// 0x0000-0x1FFF
-		data = nesRam[address & 0x07FF];
+		data = nesRam[addr & 0x07FF];
 		break;
 	case 1:	// 0x2000-0x3FFF
-		data = nesPpuRead(address & 7);
+		data = nesPpuRead(addr & 7);
 		break;
 	case 2:	// 0x4000-0x5FFF
-		if (address < 0x4100)
-			data = readReg(address);
+		if (addr < 0x4100)
+			data = readReg(addr);
 		else
-			data = readLow(address);
+			data = readLow(addr);
 		break;
 	case 3:	// 0x6000-0x7FFF
-		data = readLow(address);
+		data = readLow(addr);
 		break;
 	case 4:	// 0x8000-0x9FFF
 	case 5:	// 0xA000-0xBFFF
 	case 6:	// 0xC000-0xDFFF
 	case 7:	// 0xE000-0xFFFF
-		data = readDirect(address);
+		data = readDirect(addr);
 		break;
 	}
 	return data;
 }
 
-void NesMapper::writeLow(u16 address, u8 data) {
-	if (address >= 0x6000) // < 0x8000
-		writeDirect(address, data);
+void NesMapper::writeLow(u16 addr, u8 data)
+{
+	if (addr >= 0x6000) // < 0x8000
+		writeDirect(addr, data);
 }
 
-u8 NesMapper::readLow(u16 address) {
-	if (address >= 0x6000) // < 0x8000
-		return readDirect(address);
-	return address >> 8;
+u8 NesMapper::readLow(u16 addr)
+{
+	if (addr >= 0x6000) // < 0x8000
+		return readDirect(addr);
+	return addr >> 8;
 }
 
-void NesMapper::writeHigh(u16 address, u8 data) {
-	Q_UNUSED(address)
+void NesMapper::writeHigh(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
 	Q_UNUSED(data)
 }
 
-void NesMapper::writeReg(u16 address, u8 data) {
-	if (address == 0x4014) {
+void NesMapper::writeReg(u16 addr, u8 data)
+{
+	if (addr == 0x4014) {
 		nesPpuDma(data);
 		// TODO check it
 		nesCpu.dma(514);
-	} else if (address == 0x4016) {
+	} else if (addr == 0x4016) {
 		nesInputWrite(0, data);
-	} else if (address == 0x4017) {
+	} else if (addr == 0x4017) {
 		nesApuWrite(0x17, data);
 		nesInputWrite(1, data);
-	} else if (address < 0x4017) {
-		nesApuWrite(address & 0x1F, data);
+	} else if (addr < 0x4017) {
+		nesApuWrite(addr & 0x1F, data);
 	} else {
-		writeEx(address, data);
+		writeEx(addr, data);
 	}
 }
 
-u8 NesMapper::readReg(u16 address) {
-	if (address == 0x4014) {
+u8 NesMapper::readReg(u16 addr)
+{
+	if (addr == 0x4014) {
 		return 0x40;
-	} if (address == 0x4016) {
+	} if (addr == 0x4016) {
 		u8 data = nesInputRead(0);
 		return data | 0x40; // TODO | m_TapeOut
-	} else if (address == 0x4017) {
+	} else if (addr == 0x4017) {
 		u8 data = nesInputRead(1);
 		return data | nesApuRead(0x17);
-	} else if (address < 0x4017) {
-		return nesApuRead(address & 0x1F);
+	} else if (addr < 0x4017) {
+		return nesApuRead(addr & 0x1F);
 	} else {
-		return readEx(address);
+		return readEx(addr);
 	}
 }
 
-void NesMapper::writeEx(u16 address, u8 data) {
-	Q_UNUSED(address)
+void NesMapper::writeEx(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
 	Q_UNUSED(data)
 }
 
-u8 NesMapper::readEx(u16 address) {
-	Q_UNUSED(address)
+u8 NesMapper::readEx(u16 addr)
+{
+	Q_UNUSED(addr)
 	return 0x00;
 }
 
 void NesMapper::clock(u32 cycles)
-{ Q_UNUSED(cycles) }
+{
+	Q_UNUSED(cycles)
+}
 
-void NesMapper::setIrqSignalOut(bool on) {
+void NesMapper::setIrqSignalOut(bool on)
+{
 	if (on != m_irqOut) {
 		m_irqOut = on;
 		nesCpu.mapper_irq_i(on);
 	}
 }
 
-void NesMapper::setCheats(const QList<GameGenieCode> &codes) {
+void NesMapper::setCheats(const QList<GameGenieCode> &codes)
+{
 	for (int i = 0; i < nesGameGenieList.size(); i++) {
 		const GameGenieCode &code = nesGameGenieList.at(i);
-		u16 address = code.address() | 0x8000;
-		if (readDirect(address) == code.replaceData())
-			writeDirect(address, code.expectedData());
+		u16 addr = code.address() | 0x8000;
+		if (readDirect(addr) == code.replaceData())
+			writeDirect(addr, code.expectedData());
 	}
 	nesGameGenieList = codes;
 	processGameGenieCodes();
 }
 
-void NesMapper::processGameGenieCodes() {
+void NesMapper::processGameGenieCodes()
+{
 	for (int i = 0; i < nesGameGenieList.size(); i++) {
 		GameGenieCode &code = nesGameGenieList[i];
-		uint address = code.address() | 0x8000;
+		uint addr = code.address() | 0x8000;
 		if (code.isEightCharWide()) {
-			if (readDirect(address) == code.expectedData())
-				writeDirect(address, code.replaceData());
+			if (readDirect(addr) == code.expectedData())
+				writeDirect(addr, code.replaceData());
 		} else {
-			code.setExpectedData(readDirect(address));
-			writeDirect(address, code.replaceData());
+			code.setExpectedData(readDirect(addr));
+			writeDirect(addr, code.replaceData());
 		}
 	}
 }
 
-void NesMapper::setMirroring(NesMirroring mirroring) {
+void NesMapper::setMirroring(NesMirroring mirroring)
+{
 	if (mirroring == VerticalMirroring)
 		setMirroring(0, 1, 0, 1);
 	else if (mirroring == HorizontalMirroring)
@@ -426,7 +449,8 @@ void NesMapper::setMirroring(NesMirroring mirroring) {
 		setMirroring(0, 1, 2, 3);
 }
 
-void NesMapper::setMirroring(uint bank0, uint bank1, uint bank2, uint bank3) {
+void NesMapper::setMirroring(uint bank0, uint bank1, uint bank2, uint bank3)
+{
 	nesPpuBanks[8] = nesPpuBanks[12] = nesVram + bank0*0x400;
 	nesPpuBanks[9] = nesPpuBanks[13] = nesVram + bank1*0x400;
 	nesPpuBanks[10] = nesPpuBanks[14] = nesVram + bank2*0x400;
@@ -434,28 +458,38 @@ void NesMapper::setMirroring(uint bank0, uint bank1, uint bank2, uint bank3) {
 }
 
 void NesMapper::horizontalSync()
-{ }
+{
+}
 
 void NesMapper::verticalSync()
-{ }
+{
+}
 
-void NesMapper::addressBusLatch(u16 address)
-{ Q_UNUSED(address) }
+void NesMapper::addressBusLatch(u16 addr)
+{
+	Q_UNUSED(addr)
+}
 
-void NesMapper::characterLatch(u16 address)
-{ Q_UNUSED(address) }
+void NesMapper::characterLatch(u16 addr)
+{
+	Q_UNUSED(addr)
+}
 
 void NesMapper::extensionLatchX(uint x)
-{ Q_UNUSED(x) }
+{
+	Q_UNUSED(x)
+}
 
-void NesMapper::extensionLatch(u16 address, u8 *plane1, u8 *plane2, u8 *attribute) {
-	Q_UNUSED(address)
+void NesMapper::extensionLatch(u16 addr, u8 *plane1, u8 *plane2, u8 *attribute)
+{
+	Q_UNUSED(addr)
 	Q_UNUSED(plane1)
 	Q_UNUSED(plane2)
 	Q_UNUSED(attribute)
 }
 
-void NesMapper::extSl() {
+void NesMapper::extSl()
+{
 }
 
 void NesMapper::sl() {

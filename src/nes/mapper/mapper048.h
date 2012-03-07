@@ -32,6 +32,7 @@ private:
 	u8 reg;
 	u8 irq_enable;
 	u8 irq_counter;
+	u8 irq_latch;
 };
 
 #endif // MAPPER048_H

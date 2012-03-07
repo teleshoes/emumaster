@@ -22,6 +22,8 @@
 void Mapper023::reset() {
 	NesMapper::reset();
 
+	addrmask = 0xFFFF;
+
 	for (int i = 0; i < 8; i++)
 		reg[i] = i;
 	reg[8] = 0;

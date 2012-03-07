@@ -28,6 +28,7 @@ void Mapper048::reset() {
 	reg = 0;
 	irq_enable = 0;
 	irq_counter = 0;
+	irq_latch = 0;
 }
 
 void Mapper048::writeHigh(u16 address, u8 data) {
@@ -61,18 +62,19 @@ void Mapper048::writeHigh(u16 address, u8 data) {
 		break;
 
 	case 0xC000:
-		irq_counter = data;
-		irq_enable = 0;
+		irq_latch = data;
 		break;
 
 	case 0xC001:
-		irq_counter = data;
-		irq_enable = 1;
+		irq_counter = irq_latch;
 		break;
 
 	case 0xC002:
+		irq_enable = 1;
 		break;
 	case 0xC003:
+		irq_enable = 0;
+		setIrqSignalOut(false);
 		break;
 
 	case 0xE000:
@@ -86,7 +88,7 @@ void Mapper048::horizontalSync() {
 	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
 		if (irq_enable) {
 			if (irq_counter == 0xFF)
-				setIrqSignalOut(true); // TODO need to be cleared somewhere (trigger in virtuanes)
+				setIrqSignalOut(true);
 			irq_counter++;
 		}
 	}

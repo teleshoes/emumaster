@@ -30,10 +30,6 @@ void Mapper033::reset() {
 	reg[5] = 7;
 	reg[6] = 1;
 
-	irq_enable = 0;
-	irq_counter = 0;
-	irq_latch = 0;
-
 	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 	if (nesVromSize8KB)
 		updateBanks();
@@ -108,20 +104,6 @@ void Mapper033::writeHigh(u16 address, u8 data) {
 		updateBanks();
 		break;
 
-	case 0xC000:
-		irq_latch = data;
-		irq_counter = irq_latch;
-		break;
-	case 0xC001:
-		irq_counter = irq_latch;
-		break;
-	case 0xC002:
-		irq_enable = 1;
-		break;
-	case 0xC003:
-		irq_enable = 0;
-		break;
-
 	case 0xE001:
 	case 0xE002:
 	case 0xE003:
@@ -145,21 +127,6 @@ void Mapper033::updateBanks() {
 	setVrom1KBank(7, reg[5]);
 }
 
-void Mapper033::horizontalSync() {
-	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
-		if (irq_enable) {
-			if (++irq_counter == 0) {
-				irq_enable  = 0;
-				irq_counter = 0;
-				setIrqSignalOut(true);
-			}
-		}
-	}
-}
-
 void Mapper033::extSl() {
 	emsl.array("reg", reg, sizeof(reg));
-	emsl.var("irq_enable", irq_enable);
-	emsl.var("irq_counter", irq_counter);
-	emsl.var("irq_latch", irq_latch);
 }

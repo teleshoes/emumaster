@@ -42,7 +42,7 @@ void Mapper041::writeHigh(u16 address, u8 data) {
 	Q_UNUSED(data)
 	if (reg[0]) {
 		reg[1] &= 0x0C;
-		reg[1] &= address & 0x03;
+		reg[1] |= address & 0x03;
 		setVrom8KBank(reg[1]);
 	}
 }

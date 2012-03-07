@@ -215,6 +215,7 @@ static void emulateFrameTile(bool drawEnabled)
 	nesPpuProcessFrameStart();
 	emulateVisibleScanlineTile();
 
+	nesPpuNextScanline();
 	for (; nesPpuScanline < 240; nesPpuNextScanline()) {
 		if (drawEnabled || nesPpuCheckSprite0HitHere()) {
 			nesPpuProcessScanline();

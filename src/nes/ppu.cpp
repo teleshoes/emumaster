@@ -133,7 +133,7 @@ void nesPpuInit()
 
 	securityValue = 0;
 	dataLatch = 0;
-	bufferedData = 0;
+	bufferedData = 0xFF;
 
 	nesPpuScanline = 0;
 	scanlineData = 0;
@@ -442,15 +442,13 @@ static void drawBackgroundNoTileNoExtLatch()
 	u32 cacheTile = 0xFFFF0000;
 	u8 cacheAttribute = 0xFF;
 
-	attributeAddress &= 0x3FF;
-
 	u8 *bgWr = bgWritten;
 	QRgb *currPens = currentPens();
 	for (int i = 0; i < 33; i++) {
 		u16 tileAddress = nameTable[nameTableAddress & 0x03FF] * 0x10;
 		tileAddress |= nesPpuTilePageOffset | nesPpuScroll.yFine();
 		u8 attribute = nameTable[attributeAddress + (nameTableX >> 2)];
-		attribute >>= (nameTableX & 2) | attributeShift;
+		attribute >>= (nameTableX & 2) + attributeShift;
 		attribute = (attribute & 3) << 2;
 
 		if (cacheTile == tileAddress && cacheAttribute == attribute) {
@@ -506,8 +504,6 @@ static void drawBackgroundTileNoExtLatch()
 	u32 cacheTile = 0xFFFF0000;
 	u8 cacheAttribute = 0xFF;
 
-	attributeAddress &= 0x3FF;
-
 	u8 *bgWr = bgWritten;
 	QRgb *currPens = currentPens();
 	for (int i = 0; i < 33; i++) {
@@ -516,7 +512,7 @@ static void drawBackgroundTileNoExtLatch()
 		if (i)
 			nesEmuClockCpu(NesPpu::FetchCycles*4);
 		u8 attribute = nameTable[attributeAddress + (nameTableX >> 2)];
-		attribute >>= (nameTableX & 2) | attributeShift;
+		attribute >>= (nameTableX & 2) + attributeShift;
 		attribute = (attribute & 3) << 2;
 
 		if (cacheTile == tileAddress && cacheAttribute == attribute) {

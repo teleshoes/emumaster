@@ -32,7 +32,7 @@ private:
 	u8 patch;
 	u8 reg;
 	u8 irq_enable;
-	u32 irq_counter;
+	s32 irq_counter;
 };
 
 #endif // MAPPER069_H

@@ -138,7 +138,7 @@ void Mapper001::writeHigh(u16 address, u8 data)
 			} else {
 				// for Romancia
 				if (reg[0] & 0x10)
-					setCram4KBank(0, reg[address]);
+					setCram4KBank((address&2)<<1, reg[address]);
 			}
 			break;
 		case 3:
