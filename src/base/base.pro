@@ -1,6 +1,6 @@
 TEMPLATE = lib
 DESTDIR = ../../lib
-INCLUDEPATH += ../../include
+INCLUDEPATH += ..
 QT += declarative opengl network
 LIBS += -L../../lib -lpulse -lsixaxisclient
 CONFIG += mobility

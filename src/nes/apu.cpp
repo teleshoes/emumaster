@@ -22,7 +22,7 @@
 #include "apudmchannel.h"
 #include "nes.h"
 #include "cpubase.h"
-#include <audioringbuffer.h>
+#include <base/audioringbuffer.h>
 #include <QDataStream>
 
 class ApuWrite

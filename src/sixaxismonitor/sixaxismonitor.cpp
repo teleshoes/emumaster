@@ -17,7 +17,7 @@
 #include "sixaxismonitor.h"
 #include "sixaxisserver.h"
 #include "sixaxisdevice.h"
-#include <pathmanager.h>
+#include <base/pathmanager.h>
 #include <QTimer>
 #include <QtDeclarative>
 #include <QApplication>

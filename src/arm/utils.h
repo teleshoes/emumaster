@@ -42,7 +42,7 @@
 #ifndef ARM_UTILS_H
 #define ARM_UTILS_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 namespace Arm {
 

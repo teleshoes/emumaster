@@ -25,6 +25,7 @@ HEADERS += \
     cpuint.h \
     sync.h \
     sync_p.h \
+    debug.h \
     cpurec.h \
     cpurec_p.h \
     cpurec_transfer.h \
@@ -117,8 +118,7 @@ HEADERS += \
     mapper/mapper003.h \
     mapper/mapper002.h \
     mapper/mapper001.h \
-    mapper/mapper000.h \
-    debug.h
+    mapper/mapper000.h
 
 SOURCES += \
     ppu.cpp \
@@ -140,6 +140,9 @@ SOURCES += \
     cpuint.cpp \
     cpurec.cpp \
     sync.cpp \
+    debug.cpp \
+    \
+    ppu_neon.S \
     \
     mapper/mapper255.cpp \
     mapper/mapper254.cpp \
@@ -220,5 +223,4 @@ SOURCES += \
     mapper/mapper003.cpp \
     mapper/mapper002.cpp \
     mapper/mapper001.cpp \
-    mapper/mapper000.cpp \
-    debug.cpp
+    mapper/mapper000.cpp

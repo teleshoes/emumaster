@@ -17,7 +17,7 @@
 #ifndef NESINPUT_H
 #define NESINPUT_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 class NesInput : public QObject
 {

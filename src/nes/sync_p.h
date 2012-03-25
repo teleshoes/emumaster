@@ -3,8 +3,8 @@
 
 #include "sync.h"
 #include "cpubase.h"
-#include <memutils.h>
-#include <macroassembler.h>
+#include <base/memutils.h>
+#include <arm/macroassembler.h>
 #include <QThread>
 
 using namespace Arm;

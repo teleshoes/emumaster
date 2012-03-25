@@ -20,7 +20,7 @@
 class NesPpu;
 #include "ppusprite.h"
 #include "ppuscroll.h"
-#include <emu.h>
+#include <base/emu.h>
 #include <QImage>
 #include <QVector>
 #include <QRgb>

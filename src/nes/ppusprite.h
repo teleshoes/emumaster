@@ -17,7 +17,7 @@
 #ifndef NESPPUSPRITE_H
 #define NESPPUSPRITE_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 class NesPpuSprite {
 public:

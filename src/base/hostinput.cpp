@@ -22,7 +22,7 @@
 #include "keybinputdevice.h"
 #include "sixaxisinputdevice.h"
 #include "memutils.h"
-#include <sixaxis.h>
+#include <sixaxisclient/sixaxis.h>
 #include <QKeyEvent>
 #include <QTouchEvent>
 

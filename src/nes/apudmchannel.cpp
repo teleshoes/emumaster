@@ -1,7 +1,7 @@
 #include "apudmchannel.h"
 #include "apu.h"
 #include "mapper.h"
-#include <emu.h>
+#include <base/emu.h>
 #include <QDataStream>
 
 void NesApuDMChannel::reset()

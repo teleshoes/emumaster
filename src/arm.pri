@@ -1,5 +1,3 @@
-INCLUDEPATH += ../arm
-
 HEADERS += \
     ../arm/assem_addrmod.h \
     ../arm/assem_all.h \

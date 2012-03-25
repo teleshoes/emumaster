@@ -1,6 +1,6 @@
 TEMPLATE = lib
 DESTDIR = ../../lib
-INCLUDEPATH += ../../include
+INCLUDEPATH += ..
 QT += network
 
 unix {

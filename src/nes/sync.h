@@ -1,7 +1,7 @@
 #ifndef NESSYNC_H
 #define NESSYNC_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 static const int NesDmaCycles = 513;
 

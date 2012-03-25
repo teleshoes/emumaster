@@ -17,7 +17,7 @@
 #ifndef NESCHEATS_H
 #define NESCHEATS_H
 
-#include <emu.h>
+#include <base/emu.h>
 #include <QAbstractListModel>
 #include <QStringList>
 #include <QValidator>

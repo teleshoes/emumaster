@@ -25,8 +25,8 @@
 #include "inputzapper.h"
 #include "mapper.h"
 #include "cheats.h"
-#include <emuview.h>
-#include <configuration.h>
+#include <base/emuview.h>
+#include <base/configuration.h>
 #include <QSettings>
 #include <QApplication>
 #include <qdeclarative.h>

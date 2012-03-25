@@ -3,7 +3,7 @@
 
 #include "cpurec.h"
 #include "mapper.h"
-#include <macroassembler.h>
+#include <arm/macroassembler.h>
 
 class NesMapper;
 

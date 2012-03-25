@@ -17,7 +17,7 @@
 #ifndef NESAPUCHANNEL_H
 #define NESAPUCHANNEL_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 static inline int IntToFixed(int val)
 { return val << 16; }

@@ -3,7 +3,7 @@
 #include "ppu.h"
 #include "apu.h"
 #include "cheats.h"
-#include "memutils.h"
+#include <base/memutils.h>
 
 #include "cpurec_addressing.h"
 #include "cpurec_flags.h"
@@ -286,7 +286,8 @@ inline void NesCpuTranslator::mTo16Bit(Register reg)
  */
 inline void NesCpuTranslator::mCallCFunction(int funcOffset)
 {
-#if defined(CAN_USE_ARMV7_INSTRUCTIONS)
+	// TODO why it is not working ????
+#if 0//defined(CAN_USE_ARMV7_INSTRUCTIONS)
 	__ mov(ip, Operand(*(u32 *)((u8 *)&cpuRecData + funcOffset)));
 	__ blx(ip);
 #else

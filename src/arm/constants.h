@@ -30,7 +30,7 @@
 #ifndef ARM_CONSTANTS_H
 #define ARM_CONSTANTS_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 // ARM EABI is required.
 #if defined(__arm__) && !defined(__ARM_EABI__)
@@ -79,6 +79,10 @@
 // Using bx does not yield better code, so use it only when required
 #if defined(USE_THUMB_INTERWORK)
 #define USE_BX 1
+#endif
+
+#if defined(__ARM_NEON__)
+#define CAN_USE_NEON_INSTRUCTIONS 1
 #endif
 
 #define Q_ASSERT_EQ(a,b) Q_ASSERT((a) == (b))

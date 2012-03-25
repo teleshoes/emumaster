@@ -17,7 +17,7 @@
 #ifndef NESPPUSCROLL_H
 #define NESPPUSCROLL_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 class NesPpuScroll
 {

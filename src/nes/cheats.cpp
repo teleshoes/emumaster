@@ -19,7 +19,7 @@
 #include "mapper.h"
 #include "disk.h"
 #include "cheats.h"
-#include <pathmanager.h>
+#include <base/pathmanager.h>
 #include <QFile>
 #include <QFileInfo>
 

@@ -1,6 +1,6 @@
 DESTDIR = ../../bin
 LIBS += -L../../lib -lbase
-INCLUDEPATH += ../../include
+INCLUDEPATH += ..
 QT += opengl declarative
 
 #contains(CONFIG,release) {

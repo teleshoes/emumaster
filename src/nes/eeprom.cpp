@@ -15,7 +15,7 @@
  */
 
 #include "eeprom.h"
-#include <emu.h>
+#include <base/emu.h>
 #include <QDataStream>
 
 void X24C01::reset(u8 *eedata)

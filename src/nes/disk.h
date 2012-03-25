@@ -17,7 +17,7 @@
 #ifndef NESDISK_H
 #define NESDISK_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 extern bool nesDiskLoad(const QString &fileName, QString *error);
 extern void nesDiskShutdown();

@@ -17,7 +17,7 @@
 #ifndef NESEMU_H
 #define NESEMU_H
 
-#include <emu.h>
+#include <base/emu.h>
 class NesPpu;
 
 enum SystemType { NES_NTSC, NES_PAL };

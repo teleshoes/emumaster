@@ -2,7 +2,7 @@
 #define CPUBASE_H
 
 #include "sync.h"
-#include <emu.h>
+#include <base/emu.h>
 
 class NesCpuBaseRegisters
 {

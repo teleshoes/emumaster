@@ -19,7 +19,8 @@
 #include "nes.h"
 #include "cpubase.h"
 #include "sync_p.h"
-#include <configuration.h>
+#include <arm/constants.h>
+#include <base/configuration.h>
 #include <qmath.h>
 
 // default content of paletter memory
@@ -72,6 +73,10 @@ static bool palettePenLutNeedsRebuild;
 static bool ppuSpriteLimit;
 
 static void fillPens();
+
+#if defined(CAN_USE_NEON_INSTRUCTIONS)
+extern "C" void ppuTileBlitNeon(QRgb *bgDst, QRgb *pens, int c1, int c2);
+#endif
 
 /*!
 	Builds a lookup table for current palette mask and emphasis. It is used
@@ -591,7 +596,9 @@ void nesPpuDrawBackgroundTile(int i)
 	QRgb *pens = bgCurrPens + attribute;
 	int c1 = ((plane1>>1)&0x55) | (plane2&0xaa);
 	int c2 = (plane1&0x55) | ((plane2<<1)&0xaa);
-
+#if defined(CAN_USE_NEON_INSTRUCTIONS)
+	ppuTileBlitNeon(bgDst, pens, c1, c2);
+#else
 	bgDst[0] = pens[(c1>>6)&3];
 	bgDst[4] = pens[(c1>>2)&3];
 	bgDst[1] = pens[(c2>>6)&3];
@@ -600,13 +607,14 @@ void nesPpuDrawBackgroundTile(int i)
 	bgDst[6] = pens[(c1>>0)&3];
 	bgDst[3] = pens[(c2>>4)&3];
 	bgDst[7] = pens[(c2>>0)&3];
+#endif
+
+	bgDst += 8;
+	bgWr++;
 
 	// character latch (for MMC2/MMC4)
 	if (nesMapper->hasCharacterLatch())
 		nesMapper->characterLatch(bgTileAddress);
-
-	bgDst += 8;
-	bgWr++;
 
 	if (++bgNameTableX == 32) {
 		bgNameTableX = 0;

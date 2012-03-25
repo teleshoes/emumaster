@@ -15,7 +15,7 @@
  */
 
 #include "aputrianglechannel.h"
-#include <emu.h>
+#include <base/emu.h>
 #include <QDataStream>
 
 void NesApuTriangleChannel::reset()

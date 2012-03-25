@@ -16,7 +16,7 @@
 #ifndef MEMUTILS_H
 #define MEMUTILS_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 // TODO optimize
 // TODO aligned version
