@@ -15,7 +15,9 @@
  */
 
 #include "nes.h"
-#include "cpu.h"
+#include "sync.h"
+#include "cpuint.h"
+#include "cpurec.h"
 #include "ppu.h"
 #include "apu.h"
 #include "disk.h"
@@ -23,7 +25,6 @@
 #include "inputzapper.h"
 #include "mapper.h"
 #include "cheats.h"
-#include "timings.h"
 #include <emuview.h>
 #include <configuration.h>
 #include <QSettings>
@@ -34,17 +35,10 @@ NesEmu nesEmu;
 SystemType nesSystemType;
 NesEmu::RenderMethod nesEmuRenderMethod;
 
-static u32 scanlineCycles;
-static u32 scanlineEndCycles;
-static u32 hDrawCycles;
-static u32 hBlankCycles;
-static int totalScanlines;
-
-static u64 cpuCycleCounter;
-static u64 ppuCycleCounter;
-
 static const char *tvSystemConfName = "nes.tvSystem";
 static const char *renderMethodConfName = "nes.renderMethod";
+static const char *extraInputConfName = "nes.extraInput";
+static const char *cpuTypeConfName = "nes.cpuType";
 
 static QVariant forcedRenderMethod;
 
@@ -109,142 +103,34 @@ static void setupRenderMethod()
 	}
 }
 
-void nesEmuClockCpu(uint cycles)
+static void setupExtraInputDevice()
 {
-	ppuCycleCounter += cycles;
-	int realCycles = (ppuCycleCounter/12) - cpuCycleCounter;
-	if (realCycles > 0)
-		cpuCycleCounter += nesCpu.clock(realCycles);
-}
-
-static inline void updateZapper()
-{
-	nesInputZapper.setScanlineHit(nesPpuScanline == nesInputZapper.pos().y());
-}
-
-static void emulateFrameNoTile(bool drawEnabled)
-{
-	bool all = (nesEmuRenderMethod < NesEmu::PostRender);
-	bool pre = (nesEmuRenderMethod & 1);
-
-	nesEmuClockCpu(all ? scanlineCycles : hDrawCycles);
-	nesPpuProcessFrameStart();
-	nesPpuProcessScanlineNext();
-	nesMapper->horizontalSync();
-	if (all) {
-		nesPpuProcessScanlineStart();
-	} else {
-		nesEmuClockCpu(NesPpu::FetchCycles*32);
-		nesPpuProcessScanlineStart();
-		nesEmuClockCpu(NesPpu::FetchCycles*10 + scanlineEndCycles);
-	}
-	updateZapper();
-
-	nesPpuNextScanline();
-	for (; nesPpuScanline < 240; nesPpuNextScanline()) {
-		if (!pre)
-			nesEmuClockCpu(all ? scanlineCycles : hDrawCycles);
-		if (drawEnabled || nesPpuCheckSprite0HitHere())
-			nesPpuProcessScanline();
-		else
-			nesPpuProcessDummyScanline();
-		if (all) {
-			nesPpuProcessScanlineNext();
-			if (pre)
-				nesEmuClockCpu(scanlineCycles);
-			nesMapper->horizontalSync();
-			nesPpuProcessScanlineStart();
+	// check for forced extra input device
+	QVariant extraInput = emConf.value(extraInputConfName);
+	if (!extraInput.isNull()) {
+		bool ok;
+		int device = extraInput.toInt(&ok);
+		ok = (ok && device >= NesInput::Zapper && device <= NesInput::Paddle);
+		if (!ok) {
+			qDebug("Invalid extra input device passed");
 		} else {
-			if (pre)
-				nesEmuClockCpu(hDrawCycles);
-			nesPpuProcessScanlineNext();
-			nesMapper->horizontalSync();
-			nesEmuClockCpu(NesPpu::FetchCycles*32);
-			nesPpuProcessScanlineStart();
-			nesEmuClockCpu(NesPpu::FetchCycles*10 + scanlineEndCycles);
+			nesInput.setExtraDevice(static_cast<NesInput::ExtraDevice>(device));
 		}
-		updateZapper();
-	}
-
-	nesMapper->verticalSync();
-	if (all) {
-		nesEmuClockCpu(scanlineCycles);
-		nesMapper->horizontalSync();
-	} else {
-		nesEmuClockCpu(hDrawCycles);
-		nesMapper->horizontalSync();
-		nesEmuClockCpu(hBlankCycles);
-	}
-	updateZapper();
-
-	nesPpuNextScanline();
-	for (; nesPpuScanline <= totalScanlines-1; nesPpuNextScanline()) {
-		if (nesPpuScanline == 241)
-			nesPpuSetVBlank(true);
-		else if (nesPpuScanline == totalScanlines-1)
-			nesPpuSetVBlank(false);
-
-		if (all) {
-			nesEmuClockCpu(scanlineCycles);
-			nesMapper->horizontalSync();
-		} else {
-			nesEmuClockCpu(hDrawCycles);
-			nesMapper->horizontalSync();
-			nesEmuClockCpu(hBlankCycles);
-		}
-
-		if (nesPpuScanline != totalScanlines-1)
-			updateZapper();
 	}
 }
 
-static inline void emulateVisibleScanlineTile()
+static void setupCpu()
 {
-	nesPpuProcessScanlineNext();
-	nesEmuClockCpu(NesPpu::FetchCycles*10);
-	nesMapper->horizontalSync();
-	nesEmuClockCpu(NesPpu::FetchCycles*22);
-	nesPpuProcessScanlineStart();
-	nesEmuClockCpu(NesPpu::FetchCycles*10 + scanlineEndCycles);
-	updateZapper();
-}
-
-static void emulateFrameTile(bool drawEnabled)
-{
-	nesEmuClockCpu(NesPpu::FetchCycles*128);
-	nesPpuProcessFrameStart();
-	emulateVisibleScanlineTile();
-
-	nesPpuNextScanline();
-	for (; nesPpuScanline < 240; nesPpuNextScanline()) {
-		if (drawEnabled || nesPpuCheckSprite0HitHere()) {
-			nesPpuProcessScanline();
+	nesCpu = &nesCpuRecompiler;
+	QVariant cpuType = emConf.value(cpuTypeConfName);
+	if (!cpuType.isNull()) {
+		QString cpuString = cpuType.toString();
+		if (cpuString == "recompiler") {
+		} else if (cpuString == "interpreter") {
+			nesCpu = &nesCpuInterpreter;
 		} else {
-			nesEmuClockCpu(NesPpu::FetchCycles*128);
-			nesPpuProcessDummyScanline();
+			qDebug("Invalid CPU type passed");
 		}
-		emulateVisibleScanlineTile();
-	}
-
-	nesMapper->verticalSync();
-	nesEmuClockCpu(hDrawCycles);
-	nesMapper->horizontalSync();
-	nesEmuClockCpu(hBlankCycles);
-	updateZapper();
-
-	nesPpuNextScanline();
-	for (; nesPpuScanline <= totalScanlines-1; nesPpuNextScanline()) {
-		if (nesPpuScanline == 241)
-			nesPpuSetVBlank(true);
-		else if (nesPpuScanline == totalScanlines-1)
-			nesPpuSetVBlank(false);
-
-		nesEmuClockCpu(hDrawCycles);
-		nesMapper->horizontalSync();
-		nesEmuClockCpu(hBlankCycles);
-
-		if (nesPpuScanline != totalScanlines-1)
-			updateZapper();
 	}
 }
 
@@ -265,67 +151,56 @@ bool NesEmu::init(const QString &diskPath, QString *error)
 
 	setupTvEncodingSystem(diskPath);
 
+	// set cpu to interpreter here to not handle bank switching by
+	// the recompiler as it is not initialized yet
+	nesCpu = &nesCpuInterpreter;
 	nesMapper = NesMapper::create(nesMapperType);
 	if (!nesMapper) {
 		*error = QString("Mapper %1 is not supported").arg(nesMapperType);
 		return false;
 	}
+	// reset mapper to fill it with functions and data needed for further
+	// processing
+	nesMapper->reset();
 
 	setVideoSrcRect(QRect(8, 0, NesPpu::VisibleScreenWidth, NesPpu::VisibleScreenHeight));
-	setupTimings();
+	setFrameRate(systemFrameRate());
+	setupExtraInputDevice();
 
-	nesCpu.init();
+	setupCpu();
+	if (!nesCpu->init(error))
+		return false;
 	nesApuInit();
 	nesPpuInit();
+	if (!nesSyncInit(error))
+		return false;
 	reset();
 	return true;
 }
 
-void NesEmu::setupTimings()
-{	
-	if (nesSystemType == NES_NTSC) {
-		totalScanlines = 262;
-		setFrameRate(NES_NTSC_FRAMERATE);
-		scanlineCycles = NES_NTSC_SCANLINE_CLOCKS;
-		hDrawCycles = 1024;
-		hBlankCycles = 340;
-		scanlineEndCycles = 4;
-	} else {
-		totalScanlines = 312;
-		setFrameRate(NES_PAL_FRAMERATE);
-		scanlineCycles = NES_PAL_SCANLINE_CLOCKS;
-		hDrawCycles = 960;
-		hBlankCycles = 318;
-		scanlineEndCycles = 2;
-	}
-}
-
 void NesEmu::shutdown()
 {
+	// sync shutdown must be first, because it needs to pass through
+	// the semaphores and quit from cpu loop
+	nesSyncShutdown();
+	nesCpu->shutdown();
 	delete nesMapper;
-	delete nesVrom;
-	delete nesRom;
+	nesDiskShutdown();
 	nesPpuFrame = QImage();
 }
 
 void NesEmu::reset()
 {
-	cpuCycleCounter = 0;
-	ppuCycleCounter = 0;
 	nesMapper->reset();
-	nesCpu.reset();
+	nesCpu->reset();
 	nesApuReset();
 	nesInputReset();
+	nesSyncReset();
 }
 
 void NesEmu::resume()
 {
 	nesApuSetOutputEnabled(isAudioEnabled());
-}
-
-u64 nesEmuCpuCycles()
-{
-	return cpuCycleCounter + nesCpu.ticks();
 }
 
 void nesEmuSetRenderMethod(NesEmu::RenderMethod renderMethod)
@@ -336,15 +211,7 @@ void nesEmuSetRenderMethod(NesEmu::RenderMethod renderMethod)
 
 void NesEmu::emulateFrame(bool drawEnabled)
 {
-	nesInputSync(input());
-	nesApuBeginFrame();
-	// zapper is rarely used, but once used it forces drawing
-	drawEnabled |= (nesInput.extraDevice() == NesInput::Zapper);
-	if (nesEmuRenderMethod == TileRender)
-		emulateFrameTile(drawEnabled);
-	else
-		emulateFrameNoTile(drawEnabled);
-	nesApuProcessFrame();
+	nesSyncFrame(drawEnabled);
 }
 
 const QImage &NesEmu::frame() const
@@ -362,11 +229,6 @@ QObject *NesEmu::ppu() const
 	return &nesPpu;
 }
 
-QObject *NesEmu::pad() const
-{
-	return &nesInput;
-}
-
 QObject *NesEmu::cheats() const
 {
 	return &nesCheats;
@@ -379,21 +241,37 @@ QString NesEmu::diskInfo() const
 			.arg(nesVromSize1KB);
 }
 
+qreal NesEmu::systemFrameRate() const
+{
+	return (nesSystemType == NES_NTSC) ? 60.0f : 50.0f;
+}
+
+qreal NesEmu::baseClock() const
+{
+	return (nesSystemType == NES_NTSC) ? 21477272.0f : 26601712.0f;
+}
+
+int NesEmu::clockDividerForCpu() const
+{
+	return (nesSystemType == NES_NTSC) ? 12 : 16;
+}
+
+int NesEmu::clockDividerForPpu() const
+{
+	return (nesSystemType == NES_NTSC) ? 4 : 5;
+}
+
 void NesEmu::sl()
 {
 	if (!slCheckTvEncodingSystem())
 		return;
 	nesMapper->sl();
-	nesCpu.sl();
+	nesCpu->sl();
 	nesPpuSl();
 	nesApuSl();
 	nesInput.sl();
+	nesSyncSl();
 	nesCheats.sl();
-
-	emsl.begin("machine");
-	emsl.var("cpuCycleCounter", cpuCycleCounter);
-	emsl.var("ppuCycleCounter", ppuCycleCounter);
-	emsl.end();
 }
 
 int main(int argc, char *argv[])

@@ -14,22 +14,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef NESTIMINGS_H
-#define NESTIMINGS_H
+#ifndef NESCPUINT_H
+#define NESCPUINT_H
 
-#define NES_BASE_NTSC_CLK			21477270.0
-#define NES_BASE_PAL_CLK			26601714.0
+#include "mapper.h"
+#include "cpubase.h"
 
-#define NES_CPU_NTSC_CLK			NES_BASE_NTSC_CLK/12.0
-#define NES_CPU_PAL_CLK				NES_BASE_PAL_CLK/15.0
+class NesCpuInterpreter : public NesCpuBase
+{
+public:
+	void reset();
+	void run(NesSync *nesSync);
 
-#define NES_NTSC_FRAMERATE			60.0
-#define NES_PAL_FRAMERATE			50.0
+	s32 ticks() const;
+	void setSignal(InterruptSignal sig, bool on);
+	void dma();
+private:
+	void executeOne();
+	bool handleEvent(Event ev);
 
-#define NES_NTSC_SCANLINE_CLOCKS	1364
-#define NES_PAL_SCANLINE_CLOCKS		1278
+	void saveToBase();
+	void loadFromBase();
+};
 
-#define NES_NTSC_SCANLINE_COUNT		262
-#define NES_PAL_SCANLINE_COUNT		312
+extern NesCpuInterpreter nesCpuInterpreter;
 
-#endif // NESTIMINGS_H
+#endif // NESCPUINT_H

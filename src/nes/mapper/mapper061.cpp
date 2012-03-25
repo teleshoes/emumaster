@@ -16,24 +16,28 @@
 
 #include "mapper061.h"
 
-void Mapper061::reset() {
-	NesMapper::reset();
-	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
-}
-
-void Mapper061::writeHigh(u16 address, u8 data) {
+static void writeHigh(u16 addr, u8 data)
+{
 	Q_UNUSED(data)
-	switch (address & 0x30) {
+	switch (addr & 0x30) {
 	case 0x00:
 	case 0x30:
-		setRom32KBank(address & 0x0F);
+		nesSetRom32KBank(addr & 0x0F);
 		break;
 	case 0x10:
 	case 0x20:
-		uint bank = ((address&0x0F)<<1) | ((address&0x20)>>4);
-		setRom16KBank(4, bank);
-		setRom16KBank(6, bank);
+		uint bank = ((addr&0x0F)<<1) | ((addr&0x20)>>4);
+		nesSetRom16KBank(4, bank);
+		nesSetRom16KBank(6, bank);
 		break;
 	}
-	setMirroring(static_cast<NesMirroring>((address & 0x80) >> 7));
+	nesSetMirroring(static_cast<NesMirroring>((addr & 0x80) >> 7));
+}
+
+void Mapper061::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 }

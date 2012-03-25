@@ -16,49 +16,41 @@
 
 #include "mapper048.h"
 #include "ppu.h"
-#include <QDataStream>
 
-void Mapper048::reset() {
-	NesMapper::reset();
+static u8 reg;
+static u8 irq_enable;
+static u8 irq_counter;
+static u8 irq_latch;
 
-	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
-	if (nesVromSize1KB)
-		setVrom8KBank(0);
-
-	reg = 0;
-	irq_enable = 0;
-	irq_counter = 0;
-	irq_latch = 0;
-}
-
-void Mapper048::writeHigh(u16 address, u8 data) {
-	switch (address) {
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr) {
 	case 0x8000:
 		if (!reg)
-			setMirroring(static_cast<NesMirroring>((data & 0x40) >> 6));
-		setRom8KBank(4, data);
+			nesSetMirroring(static_cast<NesMirroring>((data & 0x40) >> 6));
+		nesSetRom8KBank(4, data);
 		break;
 	case 0x8001:
-		setRom8KBank(5, data);
+		nesSetRom8KBank(5, data);
 		break;
 
 	case 0x8002:
-		setVrom2KBank(0, data);
+		nesSetVrom2KBank(0, data);
 		break;
 	case 0x8003:
-		setVrom2KBank(2, data);
+		nesSetVrom2KBank(2, data);
 		break;
 	case 0xA000:
-		setVrom1KBank(4, data);
+		nesSetVrom1KBank(4, data);
 		break;
 	case 0xA001:
-		setVrom1KBank(5, data);
+		nesSetVrom1KBank(5, data);
 		break;
 	case 0xA002:
-		setVrom1KBank(6, data);
+		nesSetVrom1KBank(6, data);
 		break;
 	case 0xA003:
-		setVrom1KBank(7, data);
+		nesSetVrom1KBank(7, data);
 		break;
 
 	case 0xC000:
@@ -74,27 +66,45 @@ void Mapper048::writeHigh(u16 address, u8 data) {
 		break;
 	case 0xC003:
 		irq_enable = 0;
-		setIrqSignalOut(false);
+		nesMapperSetIrqSignalOut(false);
 		break;
 
 	case 0xE000:
-		setMirroring(static_cast<NesMirroring>((data & 0x40) >> 6));
+		nesSetMirroring(static_cast<NesMirroring>((data & 0x40) >> 6));
 		reg = 1;
 		break;
 	}
 }
 
-void Mapper048::horizontalSync() {
+static void horizontalSync()
+{
 	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
 		if (irq_enable) {
 			if (irq_counter == 0xFF)
-				setIrqSignalOut(true);
+				nesMapperSetIrqSignalOut(true);
 			irq_counter++;
 		}
 	}
 }
 
-void Mapper048::extSl() {
+void Mapper048::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+	horizontalSync = ::horizontalSync;
+
+	nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	if (nesVromSize1KB)
+		nesSetVrom8KBank(0);
+
+	reg = 0;
+	irq_enable = 0;
+	irq_counter = 0;
+	irq_latch = 0;
+}
+
+void Mapper048::extSl()
+{
 	emsl.var("reg", reg);
 	emsl.var("irq_enable", irq_enable);
 	emsl.var("irq_counter", irq_counter);

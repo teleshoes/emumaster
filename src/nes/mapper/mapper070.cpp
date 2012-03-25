@@ -16,10 +16,31 @@
 
 #include "mapper070.h"
 #include "disk.h"
-#include "ppu.h"
 
-void Mapper070::reset() {
+static u8 patch;
+
+static void writeHigh(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
+	nesSetRom16KBank(4, (data >> 4) & 7);
+	nesSetVrom8KBank(data & 0x0F);
+	if (patch) {
+		if (data & 0x80)
+			nesSetMirroring(HorizontalMirroring);
+		else
+			nesSetMirroring(VerticalMirroring);
+	} else {
+		if (data & 0x80)
+			nesSetMirroring(SingleHigh);
+		else
+			nesSetMirroring(SingleLow);
+	}
+}
+
+void Mapper070::reset()
+{
 	NesMapper::reset();
+	writeHigh = ::writeHigh;
 
 	patch = 0;
 
@@ -34,23 +55,6 @@ void Mapper070::reset() {
 	if (crc == 0x0cd00488) {	// Space Shadow(J)
 		patch = 1;
 	}
-	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
-	setVrom8KBank(0);
-}
-
-void Mapper070::writeHigh(u16 address, u8 data) {
-	Q_UNUSED(address)
-	setRom16KBank(4, (data >> 4) & 7);
-	setVrom8KBank(data & 0x0F);
-	if (patch) {
-		if (data & 0x80)
-			setMirroring(HorizontalMirroring);
-		else
-			setMirroring(VerticalMirroring);
-	} else {
-		if (data & 0x80)
-			setMirroring(SingleHigh);
-		else
-			setMirroring(SingleLow);
-	}
+	nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	nesSetVrom8KBank(0);
 }

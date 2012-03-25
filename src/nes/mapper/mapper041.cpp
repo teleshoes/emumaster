@@ -15,38 +15,45 @@
  */
 
 #include "mapper041.h"
-#include <QDataStream>
 
-void Mapper041::reset() {
-	NesMapper::reset();
+static u8 reg[2];
 
-	reg[0] = reg[1] = 0;
-	setRom32KBank(0);
-	if (nesVromSize1KB)
-		setVrom8KBank(0);
-}
-
-void Mapper041::writeLow(u16 address, u8 data) {
+static void writeLow(u16 addr, u8 data)
+{
 	Q_UNUSED(data)
-	if (address >= 0x6000 && address < 0x6800) {
-		setRom32KBank(address & 0x07);
-		reg[0] = address & 0x04;
+	if (addr >= 0x6000 && addr < 0x6800) {
+		nesSetRom32KBank(addr & 0x07);
+		reg[0] = addr & 0x04;
 		reg[1] &= 0x03;
-		reg[1] |= (address>>1) & 0x0C;
-		setVrom8KBank(reg[1]);
-		setMirroring(static_cast<NesMirroring>((data & 0x20) >> 5));
+		reg[1] |= (addr>>1) & 0x0C;
+		nesSetVrom8KBank(reg[1]);
+		nesSetMirroring(static_cast<NesMirroring>((data & 0x20) >> 5));
 	}
 }
 
-void Mapper041::writeHigh(u16 address, u8 data) {
+static void writeHigh(u16 addr, u8 data)
+{
 	Q_UNUSED(data)
 	if (reg[0]) {
 		reg[1] &= 0x0C;
-		reg[1] |= address & 0x03;
-		setVrom8KBank(reg[1]);
+		reg[1] |= addr & 0x03;
+		nesSetVrom8KBank(reg[1]);
 	}
 }
 
-void Mapper041::extSl() {
+void Mapper041::reset()
+{
+	NesMapper::reset();
+	writeLow = ::writeLow;
+	writeHigh = ::writeHigh;
+
+	reg[0] = reg[1] = 0;
+	nesSetRom32KBank(0);
+	if (nesVromSize1KB)
+		nesSetVrom8KBank(0);
+}
+
+void Mapper041::extSl()
+{
 	emsl.array("reg", reg, sizeof(reg));
 }

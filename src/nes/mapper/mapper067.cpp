@@ -16,40 +16,25 @@
 
 #include "mapper067.h"
 #include "disk.h"
-#include "ppu.h"
-#include <QDataStream>
 
-void Mapper067::reset() {
-	NesMapper::reset();
+static u8 irq_enable;
+static u8 irq_toggle;
+static s32 irq_counter;
 
-	irq_enable = 0;
-	irq_toggle = 0;
-	irq_counter = 0;
-
-	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
-
-	setVrom4KBank(0, 0);
-	setVrom4KBank(4, nesVromSize4KB-1);
-
-	u32 crc = nesDiskCrc;
-
-	if (crc == 0x7f2a04bf) // For Fantasy Zone 2(J)
-		nesEmuSetRenderMethod(NesEmu::PreAllRender);
-}
-
-void Mapper067::writeHigh(u16 address, u8 data) {
-	switch (address & 0xF800) {
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr & 0xF800) {
 	case 0x8800:
-		setVrom2KBank(0, data);
+		nesSetVrom2KBank(0, data);
 		break;
 	case 0x9800:
-		setVrom2KBank(2, data);
+		nesSetVrom2KBank(2, data);
 		break;
 	case 0xA800:
-		setVrom2KBank(4, data);
+		nesSetVrom2KBank(4, data);
 		break;
 	case 0xB800:
-		setVrom2KBank(6, data);
+		nesSetVrom2KBank(6, data);
 		break;
 
 	case 0xC800:
@@ -59,35 +44,58 @@ void Mapper067::writeHigh(u16 address, u8 data) {
 			irq_counter = (irq_counter&0xFF00) | data;
 		}
 		irq_toggle ^= 1;
-		setIrqSignalOut(false);
+		nesMapperSetIrqSignalOut(false);
 		break;
 	case 0xD800:
 		irq_enable = data & 0x10;
 		irq_toggle = 0;
-		setIrqSignalOut(false);
+		nesMapperSetIrqSignalOut(false);
 		break;
 
 	case 0xE800:
-		setMirroring(static_cast<NesMirroring>(data & 0x03));
+		nesSetMirroring(static_cast<NesMirroring>(data & 0x03));
 		break;
 
 	case 0xF800:
-		setRom16KBank(4, data);
+		nesSetRom16KBank(4, data);
 		break;
 	}
 }
 
-void Mapper067::clock(uint cycles) {
+static void clock(int cycles)
+{
 	if (irq_enable) {
 		if ((irq_counter -= cycles) <= 0) {
 			irq_enable = 0;
 			irq_counter = 0xFFFF;
-			setIrqSignalOut(true);
+			nesMapperSetIrqSignalOut(true);
 		}
 	}
 }
 
-void Mapper067::extSl() {
+void Mapper067::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+	clock = ::clock;
+
+	irq_enable = 0;
+	irq_toggle = 0;
+	irq_counter = 0;
+
+	nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+
+	nesSetVrom4KBank(0, 0);
+	nesSetVrom4KBank(4, nesVromSize4KB-1);
+
+	u32 crc = nesDiskCrc;
+
+	if (crc == 0x7f2a04bf) // For Fantasy Zone 2(J)
+		nesEmuSetRenderMethod(NesEmu::PreAllRender);
+}
+
+void Mapper067::extSl()
+{
 	emsl.var("irq_enable", irq_enable);
 	emsl.var("irq_counter", irq_counter);
 	emsl.var("irq_toggle", irq_toggle);

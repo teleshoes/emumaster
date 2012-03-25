@@ -15,13 +15,13 @@
  */
 
 #include "apu.h"
+#include "ppu.h"
 #include "apurectanglechannel.h"
 #include "aputrianglechannel.h"
 #include "apunoisechannel.h"
 #include "apudmchannel.h"
 #include "nes.h"
-#include "cpu.h"
-#include "timings.h"
+#include "cpubase.h"
 #include <audioringbuffer.h>
 #include <QDataStream>
 
@@ -66,18 +66,13 @@ static inline void enqueueWrite(u16 addr, u8 data);
 
 void nesApuInit()
 {
-	qreal cpuClock;
-	qreal frameCycles;
-	if (nesSystemType == NES_PAL) {
-		cpuClock = NES_CPU_PAL_CLK;
-		frameCycles = NES_PAL_SCANLINE_CLOCKS * NES_PAL_SCANLINE_COUNT;
-		cyclesPerSample = (frameCycles*NES_PAL_FRAMERATE/12.0f) / SAMPLE_RATE;
-	} else {
-		cpuClock = NES_CPU_NTSC_CLK;
-		frameCycles = NES_NTSC_SCANLINE_CLOCKS * NES_NTSC_SCANLINE_COUNT;
-		cyclesPerSample = (frameCycles*NES_NTSC_FRAMERATE/12.0f) / SAMPLE_RATE;
-	}
-	cycleRate = cpuClock*65536.0f/SAMPLE_RATE;
+	qreal cpuClock = nesEmu.baseClock() / static_cast<qreal>(nesEmu.clockDividerForCpu());
+	qreal ppuFrameCycles = NesPpu::ScanlineCycles * nesPpu.scanlineCount();
+	qreal baseFrameCycles = ppuFrameCycles * static_cast<qreal>(nesEmu.clockDividerForPpu());
+	qreal cpuCyclesPerSec = baseFrameCycles * nesEmu.systemFrameRate() /
+			static_cast<qreal>(nesEmu.clockDividerForCpu());
+	cyclesPerSample = cpuCyclesPerSec / SAMPLE_RATE;
+	cycleRate = cpuClock * 65536.0f / SAMPLE_RATE;
 	outputEnabled = true;
 }
 
@@ -117,7 +112,7 @@ static void updateIrqSignal()
 	bool on = (frameIrq || dmch.irq());
 	if (on != irqSignal) {
 		irqSignal = on;
-		nesCpu.apu_irq_i(on);
+		nesCpu->setSignal(NesCpuBase::ApuIrqSignal, on);
 	}
 }
 
@@ -282,7 +277,7 @@ static void queuedWrite(u16 addr, u8 data)
 static inline void enqueueWrite(u16 addr, u8 data)
 {
 	ApuWrite item;
-	item.time = nesEmuCpuCycles();
+	item.time = nesSyncCpuCycles();
 	item.addr = addr;
 	item.data = data;
 	writeQueue.append(item);
@@ -301,16 +296,12 @@ static inline bool processWrite(u64 time)
 
 void nesApuBeginFrame()
 {
-	elapsedTime = nesEmuCpuCycles();
+	elapsedTime = nesSyncCpuCycles();
 }
 
 void nesApuProcessFrame()
 {
-	int n;
-	if (nesSystemType == NES_PAL)
-		n = SAMPLE_RATE / NES_PAL_FRAMERATE;
-	else
-		n = SAMPLE_RATE / NES_NTSC_FRAMERATE;
+	int n = SAMPLE_RATE / nesEmu.frameRate();
 
 	for (int i = 0; i < n; i++) {
 		bool pending;

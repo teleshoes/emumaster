@@ -78,11 +78,15 @@ public:
 signals:
 	void modified();
 private:
+	void setCurrent(const QList<GameGenieCode> &codes);
+
 	QStringList m_codes;
 	QStringList m_descriptions;
 	QList<bool> m_enable;
 };
 
 extern NesCheats nesCheats;
+
+extern void nesCheatsProcess();
 
 #endif // NESCHEATS_H

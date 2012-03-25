@@ -16,23 +16,24 @@
 
 #include "mapper062.h"
 
+static void writeHigh(u16 addr, u8 data)
+{
+	nesSetVrom8KBank(((addr&0x1F)<<2)|(data&0x03));
+
+	if (addr&0x20) {
+		nesSetRom16KBank(0x8000>>13,(addr&0x40)|((addr>>8)&0x3F));
+		nesSetRom16KBank(0xc000>>13,(addr&0x40)|((addr>>8)&0x3F));
+	} else {
+		nesSetRom32KBank(((addr&0x40)|((addr>>8)&0x3F))>>1);
+	}
+	nesSetMirroring(static_cast<NesMirroring>((addr&0x80)>>7));
+}
+
 void Mapper062::reset()
 {
 	NesMapper::reset();
+	writeHigh = ::writeHigh;
 
-	setRom32KBank(0);
-	setVrom8KBank(0);
-}
-
-void Mapper062::writeHigh(u16 addr, u8 data)
-{
-	setVrom8KBank(((addr&0x1F)<<2)|(data&0x03));
-
-	if(addr&0x20) {
-		setRom16KBank(0x8000>>13,(addr&0x40)|((addr>>8)&0x3F));
-		setRom16KBank(0xc000>>13,(addr&0x40)|((addr>>8)&0x3F));
-	}
-	else
-		setRom32KBank(((addr&0x40)|((addr>>8)&0x3F))>>1);
-	setMirroring(static_cast<NesMirroring>(((addr&0x80)>>7)^1));
+	nesSetRom32KBank(0);
+	nesSetVrom8KBank(0);
 }

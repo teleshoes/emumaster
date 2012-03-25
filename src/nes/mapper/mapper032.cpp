@@ -16,17 +16,60 @@
 
 #include "mapper032.h"
 #include "disk.h"
-#include <QDataStream>
 
-void Mapper032::reset() {
+static u8 patch;
+static u8 reg;
+
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr & 0xF000) {
+	case 0x8000:
+		if (reg & 0x02)
+			nesSetRom8KBank(6, data);
+		else
+			nesSetRom8KBank(4, data);
+		break;
+	case 0x9000:
+		reg = data;
+		nesSetMirroring(static_cast<NesMirroring>(data & 0x01));
+		break;
+	case 0xA000:
+		nesSetRom8KBank(5, data);
+		break;
+	}
+	switch (addr & 0xF007) {
+	case 0xB000:
+	case 0xB001:
+	case 0xB002:
+	case 0xB003:
+	case 0xB004:
+	case 0xB005:
+		nesSetVrom1KBank(addr & 0x0007, data);
+		break;
+	case 0xB006:
+		nesSetVrom1KBank(6, data);
+		if (patch && (data & 0x40))
+			nesSetMirroring(0, 0, 0, 1);
+		break;
+	case 0xB007:
+		nesSetVrom1KBank(7, data);
+		if (patch && (data & 0x40))
+			nesSetMirroring(SingleLow);
+		break;
+	}
+}
+
+void Mapper032::reset()
+{
 	NesMapper::reset();
+	writeHigh = ::writeHigh;
 
 	patch = 0;
 	reg = 0;
 
-	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 	if (nesVromSize1KB)
-		setVrom8KBank(0);
+		nesSetVrom8KBank(0);
 
 	u32 crc = nesDiskCrc;
 	// For Major League(J)
@@ -35,48 +78,11 @@ void Mapper032::reset() {
 	}
 	// For Ai Sensei no Oshiete - Watashi no Hoshi(J)
 	if (crc == 0xfd3fc292) {
-		setRom8KBanks(30, 31, 30, 31);
+		nesSetRom8KBanks(30, 31, 30, 31);
 	}
 }
 
-void Mapper032::writeHigh(u16 address, u8 data) {
-	switch (address & 0xF000) {
-	case 0x8000:
-		if (reg & 0x02)
-			setRom8KBank(6, data);
-		else
-			setRom8KBank(4, data);
-		break;
-	case 0x9000:
-		reg = data;
-		setMirroring(static_cast<NesMirroring>(data & 0x01));
-		break;
-	case 0xA000:
-		setRom8KBank(1, data);
-		break;
-	}
-	switch (address & 0xF007) {
-	case 0xB000:
-	case 0xB001:
-	case 0xB002:
-	case 0xB003:
-	case 0xB004:
-	case 0xB005:
-		setVrom1KBank(address & 0x0007, data);
-		break;
-	case 0xB006:
-		setVrom1KBank(6, data);
-		if (patch && (data & 0x40))
-			setMirroring(0, 0, 0, 1);
-		break;
-	case 0xB007:
-		setVrom1KBank(7, data);
-		if (patch && (data & 0x40))
-			setMirroring(SingleLow);
-		break;
-	}
-}
-
-void Mapper032::extSl() {
+void Mapper032::extSl()
+{
 	emsl.var("reg", reg);
 }

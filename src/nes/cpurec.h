@@ -14,34 +14,33 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef NESCPU_H
-#define NESCPU_H
+#ifndef NESCPUREC_H
+#define NESCPUREC_H
 
-#include "mapper.h"
+#include "cpubase.h"
 
-class NesCpu
+class NesCpuRecompiler : public NesCpuBase
 {
 public:
-	void init();
+	bool init(QString *error);
+	void shutdown();
 
-	u32 clock(u32 cycles);
-	void dma(u32 cycles);
-	u32 ticks() const;
+	void run(NesSync *nesSync);
+	void reset();
+
+	s32 ticks() const;
+	void setSignal(InterruptSignal sig, bool on);
+	void dma();
+	void clearBank(int bankIndex);
 
 	void sl();
+private:
+	void saveStateToBase();
+	void loadStateFromBase();
 
-	void apu_irq_i(bool on);
-	void irq0_i(bool on);
-	void nmi_i(bool on);
-	void reset();
-	void mapper_irq_i(bool on);
-
-	static const u8 cyclesTable[256];
-	static const u8 sizeTable[256];
-	static const u8 addressingModeTable[256];
-	static const char *nameTable[256];
+	void setInterrupt(Interrupt interrupt, bool on);
 };
 
-extern NesCpu nesCpu;
+extern NesCpuRecompiler nesCpuRecompiler;
 
-#endif // NESCPU_H
+#endif // NESCPUREC_H

@@ -31,6 +31,18 @@ AdvancedLaunchPage {
 		onClicked: renderMethodDialog.open()
 	}
 
+	SelectionItem {
+		titleText: qsTr("Extra Input")
+		subtitleText: extraInputModel.get(extraInputDialog.selectedIndex).name
+		onClicked: extraInputDialog.open()
+	}
+
+	SelectionItem {
+		titleText: qsTr("Cpu Type")
+		subtitleText: cpuTypeModel.get(cpuTypeDialog.selectedIndex).name
+		onClicked: cpuTypeDialog.open()
+	}
+
 	children: [
 		SelectionDialog {
 			id: renderMethodDialog
@@ -56,6 +68,28 @@ AdvancedLaunchPage {
 			}
 			titleText: qsTr("Select TV Encoding System")
 			selectedIndex: 0
+		},
+		SelectionDialog {
+			id: extraInputDialog
+			model: ListModel {
+				id: extraInputModel
+				ListElement { name: QT_TR_NOOP("Auto") }
+				ListElement { name: QT_TR_NOOP("Zapper") }
+				ListElement { name: QT_TR_NOOP("Paddle") }
+			}
+			titleText: qsTr("Select Extra Input")
+			selectedIndex: 0
+		},
+		SelectionDialog {
+			id: cpuTypeDialog
+			model: ListModel {
+				id: cpuTypeModel
+				ListElement { name: QT_TR_NOOP("Auto") }
+				ListElement { name: QT_TR_NOOP("Recompiler") }
+				ListElement { name: QT_TR_NOOP("Interpreter") }
+			}
+			titleText: qsTr("Select Cpu Type")
+			selectedIndex: 0
 		}
 	]
 
@@ -71,6 +105,17 @@ AdvancedLaunchPage {
 		if (renderMethodDialog.selectedIndex > 0) {
 			str += ","
 			str += "nes.renderMethod="+(renderMethodDialog.selectedIndex-1)
+		}
+		if (extraInputDialog.selectedIndex > 0) {
+			str += ","
+			str += "nes.extraInput="+(extraInputDialog.selectedIndex)
+		}
+		if (cpuTypeDialog.selectedIndex > 0) {
+			str += ",nes.cpuType="
+			switch (cpuTypeDialog.selectedIndex) {
+			case 1: str += "recompiler"; break
+			case 2: str += "interpreter"; break
+			}
 		}
 		// str += ","
 		return str

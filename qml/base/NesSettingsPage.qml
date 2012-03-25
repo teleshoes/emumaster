@@ -17,14 +17,6 @@ import QtQuick 1.1
 import com.nokia.meego 1.1
 
 SettingsPage {
-	inputContent: [
-		SelectionItem {
-			titleText: qsTr("NES Extra Input")
-			subtitleText: extraInputModel.get(extraInputDialog.selectedIndex).name
-			onClicked: extraInputDialog.open()
-		}
-	]
-
 	videoContent: [
 		EMSwitchOption {
 			text: qsTr("Disable Sprite Limit")
@@ -41,17 +33,4 @@ SettingsPage {
 		SectionSeperator { text: qsTr("ChEaTs") },
 		NesCheats {}
 	]
-
-	SelectionDialog {
-		id: extraInputDialog
-		model: ListModel {
-			id: extraInputModel
-			ListElement { name: QT_TR_NOOP("None") }
-			ListElement { name: QT_TR_NOOP("Zapper") }
-			ListElement { name: QT_TR_NOOP("Paddle") }
-		}
-		titleText: qsTr("Select Extra Input")
-		onSelectedIndexChanged: emu.pad.extraDevice = selectedIndex
-		Component.onCompleted: selectedIndex = emu.pad.extraDevice
-	}
 }

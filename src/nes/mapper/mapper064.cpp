@@ -15,30 +15,19 @@
  */
 
 #include "mapper064.h"
-#include "disk.h"
 #include "ppu.h"
-#include <QDataStream>
 
-void Mapper064::reset() {
-	NesMapper::reset();
+static u8 reg[3];
+static u8 irq_enable;
+static u8 irq_mode;
+static s32 irq_counter;
+static s32 irq_counter2;
+static u8 irq_latch;
+static u8 irq_reset;
 
-	setRom8KBanks(nesRomSize8KB-1, nesRomSize8KB-1, nesRomSize8KB-1, nesRomSize8KB-1);
-
-	if (nesVromSize1KB)
-		setVrom8KBank(0);
-
-	reg[0] = reg[1] = reg[2] = 0;
-
-	irq_enable = 0;
-	irq_mode = 0;
-	irq_counter = 0;
-	irq_counter2 = 0;
-	irq_latch = 0;
-	irq_reset = 0;
-}
-
-void Mapper064::writeHigh(u16 address, u8 data) {
-	switch (address & 0xF003) {
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr & 0xF003) {
 	case 0x8000:
 		reg[0] = data&0x0F;
 		reg[1] = data&0x40;
@@ -49,82 +38,82 @@ void Mapper064::writeHigh(u16 address, u8 data) {
 		switch (reg[0]) {
 		case 0x00:
 			if (reg[2]) {
-				setVrom1KBank(4, data+0);
-				setVrom1KBank(5, data+1);
+				nesSetVrom1KBank(4, data+0);
+				nesSetVrom1KBank(5, data+1);
 			} else {
-				setVrom1KBank(0, data+0);
-				setVrom1KBank(1, data+1);
+				nesSetVrom1KBank(0, data+0);
+				nesSetVrom1KBank(1, data+1);
 			}
 			break;
 		case 0x01:
 			if (reg[2]) {
-				setVrom1KBank(6, data+0);
-				setVrom1KBank(7, data+1);
+				nesSetVrom1KBank(6, data+0);
+				nesSetVrom1KBank(7, data+1);
 			} else {
-				setVrom1KBank(2, data+0);
-				setVrom1KBank(3, data+1);
+				nesSetVrom1KBank(2, data+0);
+				nesSetVrom1KBank(3, data+1);
 			}
 			break;
 		case 0x02:
 			if (reg[2]) {
-				setVrom1KBank(0, data);
+				nesSetVrom1KBank(0, data);
 			} else {
-				setVrom1KBank(4, data);
+				nesSetVrom1KBank(4, data);
 			}
 			break;
 		case 0x03:
 			if (reg[2]) {
-				setVrom1KBank(1, data);
+				nesSetVrom1KBank(1, data);
 			} else {
-				setVrom1KBank(5, data);
+				nesSetVrom1KBank(5, data);
 			}
 			break;
 		case 0x04:
 			if (reg[2]) {
-				setVrom1KBank(2, data);
+				nesSetVrom1KBank(2, data);
 			} else {
-				setVrom1KBank(6, data);
+				nesSetVrom1KBank(6, data);
 			}
 			break;
 		case 0x05:
 			if (reg[2]) {
-				setVrom1KBank(3, data);
+				nesSetVrom1KBank(3, data);
 			} else {
-				setVrom1KBank(7, data);
+				nesSetVrom1KBank(7, data);
 			}
 			break;
 		case 0x06:
 			if (reg[1]) {
-				setRom8KBank(5, data);
+				nesSetRom8KBank(5, data);
 			} else {
-				setRom8KBank(4, data);
+				nesSetRom8KBank(4, data);
 			}
 			break;
 		case 0x07:
 			if (reg[1]) {
-				setRom8KBank(6, data);
+				nesSetRom8KBank(6, data);
 			} else {
-				setRom8KBank(5, data);
+				nesSetRom8KBank(5, data);
 			}
 			break;
 		case 0x08:
-			setVrom1KBank(1, data);
+			nesSetVrom1KBank(1, data);
 			break;
 		case 0x09:
-			setVrom1KBank(3, data);
+			nesSetVrom1KBank(3, data);
 			break;
 		case 0x0F:
 			if (reg[1]) {
-				setRom8KBank(4, data);
+				nesSetRom8KBank(4, data);
 			} else {
-				setRom8KBank(6, data);
+				nesSetRom8KBank(6, data);
 			}
 			break;
 		}
 		break;
 
 	case 0xA000:
-		setMirroring(static_cast<NesMirroring>(data & 0x01));
+		nesSetMirroring(static_cast<NesMirroring>(data & 0x01));
 		break;
 
 	case 0xC000:
@@ -143,7 +132,7 @@ void Mapper064::writeHigh(u16 address, u8 data) {
 		if (irq_reset) {
 			irq_counter = irq_latch;
 		}
-		setIrqSignalOut(false);
+		nesMapperSetIrqSignalOut(false);
 		break;
 	case 0xE001:
 		irq_enable = 0xFF;
@@ -154,7 +143,8 @@ void Mapper064::writeHigh(u16 address, u8 data) {
 	}
 }
 
-void Mapper064::clock(uint cycles) {
+static void clock(int cycles)
+{
 	if (!irq_mode)
 		return;
 
@@ -165,13 +155,14 @@ void Mapper064::clock(uint cycles) {
 			irq_counter--;
 			if (irq_counter < 0) {
 				if (irq_enable)
-					setIrqSignalOut(true);
+					nesMapperSetIrqSignalOut(true);
 			}
 		}
 	}
 }
 
-void Mapper064::horizontalSync() {
+static void horizontalSync()
+{
 	if (irq_mode)
 		return;
 
@@ -183,14 +174,37 @@ void Mapper064::horizontalSync() {
 			if (irq_counter < 0) {
 				if (irq_enable) {
 					irq_reset = 1;
-					setIrqSignalOut(true);
+					nesMapperSetIrqSignalOut(true);
 				}
 			}
 		}
 	}
 }
 
-void Mapper064::extSl() {
+void Mapper064::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+	horizontalSync = ::horizontalSync;
+	clock = ::clock;
+
+	nesSetRom8KBanks(nesRomSize8KB-1, nesRomSize8KB-1, nesRomSize8KB-1, nesRomSize8KB-1);
+
+	if (nesVromSize1KB)
+		nesSetVrom8KBank(0);
+
+	reg[0] = reg[1] = reg[2] = 0;
+
+	irq_enable = 0;
+	irq_mode = 0;
+	irq_counter = 0;
+	irq_counter2 = 0;
+	irq_latch = 0;
+	irq_reset = 0;
+}
+
+void Mapper064::extSl()
+{
 	emsl.array("reg", reg, sizeof(reg));
 	emsl.var("irq_enable", irq_enable);
 	emsl.var("irq_mode", irq_mode);

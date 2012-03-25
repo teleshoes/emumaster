@@ -17,10 +17,35 @@
 #include "mapper002.h"
 #include "disk.h"
 
-void Mapper002::reset() {
-	NesMapper::reset();
+static u8 patch;
+static bool hasBattery;
 
-	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+static void writeLow(u16 addr, u8 data)
+{
+	if (!hasBattery) {
+		if (addr >= 0x5000 && patch == 1)
+			nesSetRom16KBank(4, data);
+	} else {
+		nesDefaultCpuWriteLow(addr, data);
+	}
+}
+
+static void writeHigh(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
+	if (patch != 2)
+		nesSetRom16KBank(4, data);
+	else
+		nesSetRom16KBank(4, data >> 4);
+}
+
+void Mapper002::reset()
+{
+	NesMapper::reset();
+	writeLow = :: writeLow;
+	writeHigh = :: writeHigh;
+
+	nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 	patch = 0;
 	hasBattery = nesDiskHasBatteryBackedRam();
 
@@ -33,21 +58,4 @@ void Mapper002::reset() {
 	if( crc == 0xb20c1030 ) {	// Shanghai(J)(original)
 		patch = 2;
 	}
-}
-
-void Mapper002::writeLow(u16 address, u8 data) {
-	if (!hasBattery) {
-		if (address >= 0x5000 && patch == 1)
-			setRom16KBank(0, data);
-	} else {
-		NesMapper::writeLow(address, data);
-	}
-}
-
-void Mapper002::writeHigh(u16 address, u8 data) {
-	Q_UNUSED(address)
-	if (patch != 2)
-		setRom16KBank(4, data);
-	else
-		setRom16KBank(4, data >> 4);
 }

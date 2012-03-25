@@ -16,15 +16,155 @@
 
 #include "mapper001.h"
 #include "disk.h"
-#include "ppu.h"
-#include <emu.h>
-#include <QDataStream>
+
+static u8 patch;
+static u8 wram_patch;
+static u8 wram_bank;
+static u8 wram_count;
+static u16 last_addr;
+static u8 reg[4];
+static u8 shift;
+static u8 regbuf;
+
+static NesMirroring mirroringFromRegs()
+{
+	switch (reg[0] & 3) {
+	case 0: return SingleLow; break;
+	case 1: return SingleHigh; break;
+	case 2: return VerticalMirroring; break;
+	case 3: return HorizontalMirroring; break;
+	default: UNREACHABLE(); return SingleLow; break;
+	}
+}
+
+static void writeHigh(u16 addr, u8 data)
+{
+	if (wram_patch == 1 && addr == 0xbfff) {
+		wram_count++;
+		wram_bank += data & 0x01;
+		if (wram_count == 5) {
+			nesSetWram8KBank(3, wram_bank ? 1 : 0);
+			wram_bank = wram_count = 0;
+		}
+	}
+	if (patch != 1) {
+		if ((addr & 0x6000) != (last_addr & 0x6000))
+			shift = regbuf = 0;
+		last_addr = addr;
+	}
+	if (data & 0x80) {
+		shift = regbuf = 0;
+		reg[0] |= 0x0c;		// D3=1,D2=1
+		return;
+	}
+	if (data & 0x01)
+		regbuf |= 1 << shift;
+	if (++shift < 5)
+		return;
+	addr = (addr&0x7fff)>>13;
+	reg[addr] = regbuf;
+
+	regbuf = 0;
+	shift = 0;
+	if (patch != 1) {
+		// for normal cartridge
+		switch (addr) {
+		case 0:
+			nesSetMirroring(mirroringFromRegs());
+			break;
+		case 1:
+		case 2:
+			if (nesVromSize1KB) {
+				if (reg[0] & 0x10) {
+					// CHR 4K bank lower($0000-$0fff)
+					nesSetVrom4KBank(0, reg[1]);
+					// CHR 4K bank higher($1000-$1fff)
+					nesSetVrom4KBank(4, reg[2]);
+				} else {
+					// CHR 8K bank($0000-$1fff)
+					nesSetVrom8KBank(reg[1] >> 1);
+				}
+			} else {
+				// for Romancia
+				if (reg[0] & 0x10)
+					nesSetCram4KBank((addr&2)<<1, reg[addr]);
+			}
+			break;
+		case 3:
+			if (!(reg[0] & 0x08)) {
+				// PRG 32K bank ($8000-$ffff)
+				nesSetRom32KBank(reg[3] >> 1);
+			} else {
+				if (reg[0] & 0x04) {
+					// PRG 16K bank ($8000-$bfff)
+					nesSetRom16KBank(4, reg[3]);
+					nesSetRom16KBank(6, nesRomSize16KB-1);
+				} else {
+					// PRG 16K bank ($c000-$ffff)
+					nesSetRom16KBank(6, reg[3]);
+					nesSetRom16KBank(4, 0);
+				}
+			}
+			break;
+		}
+	} else {
+		// for 512K/1M byte cartridge
+		int	promBase = 0;
+		if (nesRomSize16KB >= 32)
+			promBase = reg[1] & 0x10;
+		// for FinalFantasy I&II
+		if (wram_patch == 2) {
+			if (!(reg[1] & 0x18))
+				nesSetWram8KBank(3, 0);
+			else
+				nesSetWram8KBank(3, 1);
+		}
+		if (addr == 0)
+			nesSetMirroring(mirroringFromRegs());
+		// register #1 and #2
+		if (nesVromSize1KB) {
+			if (reg[0] & 0x10) {
+				// CHR 4K bank lower($0000-$0fff)
+				nesSetVrom4KBank(0, reg[1]);
+				// CHR 4K bank higher($1000-$1fff)
+				nesSetVrom4KBank(4, reg[2]);
+			} else {
+				// CHR 8K bank($0000-$1fff)
+				nesSetVrom8KBank(reg[1] >> 1);
+			}
+		} else {
+			// for Romancia
+			if (reg[0] & 0x10) {
+				nesSetCram4KBank(0, reg[1]);
+				nesSetCram4KBank(4, reg[2]);
+			}
+		}
+		// register #3
+		if (!(reg[0] & 0x08)) {
+			// PRG 32K bank ($8000-$ffff)
+			nesSetRom32KBank((reg[3] & (0xf + promBase)) >> 1);
+		} else {
+			if (reg[0] & 0x04) {
+				// PRG 16K bank ($8000-$bfff)
+				nesSetRom16KBank(4, promBase + (reg[3] & 0x0f));
+				if (nesRomSize16KB >= 32)
+					nesSetRom16KBank(6, promBase+16-1);
+			} else {
+				// PRG 16K bank ($c000-$ffff)
+				nesSetRom16KBank(6, promBase + (reg[3] & 0x0f));
+				if (nesRomSize16KB >= 32)
+					nesSetRom16KBank(4, promBase);
+			}
+		}
+	}
+}
 
 void Mapper001::reset()
 {
 	NesMapper::reset();
+	writeHigh = ::writeHigh;
 
-	reg[0] = 0x0C; // D3=1,D2=1
+	reg[0] = 0x0c; // D3=1,D2=1
 	reg[1] = reg[2] = reg[3] = 0;
 	shift = regbuf = 0;
 	last_addr = 0;
@@ -35,11 +175,11 @@ void Mapper001::reset()
 	wram_count = 0;
 
 	if (nesRomSize16KB < 32) {
-		setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+		nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 	} else {
-		// For 512K/1M byte Cartridge
-		setRom16KBank(4, 0);
-		setRom16KBank(6, 16-1);
+		// for 512K/1M byte Cartridge
+		nesSetRom16KBank(4, 0);
+		nesSetRom16KBank(6, 16-1);
 		patch = 1;
 	}
 	u32 crc = nesDiskCrc;
@@ -70,7 +210,7 @@ void Mapper001::reset()
 	if (crc == 0x717e1169) {	// Cosmic Wars(J)
 		nesEmuSetRenderMethod(NesEmu::PreAllRender);
 	}
-	if (crc == 0xC05D2034) {	// Snake's Revenge(U)
+	if (crc == 0xc05d2034) {	// Snake's Revenge(U)
 		nesEmuSetRenderMethod(NesEmu::PreAllRender);
 	}
 
@@ -85,139 +225,6 @@ void Mapper001::reset()
 		wram_patch = 1;
 		wram_bank  = 0;
 		wram_count = 0;
-	}
-}
-
-void Mapper001::writeHigh(u16 address, u8 data)
-{
-	if (wram_patch == 1 && address == 0xBFFF) {
-		wram_count++;
-		wram_bank += data & 0x01;
-		if (wram_count == 5) {
-			setWram8KBank(3, wram_bank ? 1 : 0);
-			wram_bank = wram_count = 0;
-		}
-	}
-	if (patch != 1) {
-		if ((address & 0x6000) != (last_addr & 0x6000))
-			shift = regbuf = 0;
-		last_addr = address;
-	}
-	if (data & 0x80) {
-		shift = regbuf = 0;
-		reg[0] |= 0x0C;		// D3=1,D2=1
-		return;
-	}
-	if (data & 0x01)
-		regbuf |= 1 << shift;
-	if (++shift < 5)
-		return;
-	address = (address&0x7FFF)>>13;
-	reg[address] = regbuf;
-
-	regbuf = 0;
-	shift = 0;
-	if (patch != 1) {
-		// For Normal Cartridge
-		switch (address) {
-		case 0:
-			setMirroring(mirroringFromRegs());
-			break;
-		case 1:
-		case 2:
-			if (nesVromSize1KB) {
-				if (reg[0] & 0x10) {
-					// CHR 4K bank lower($0000-$0FFF)
-					setVrom4KBank(0, reg[1]);
-					// CHR 4K bank higher($1000-$1FFF)
-					setVrom4KBank(4, reg[2]);
-				} else {
-					// CHR 8K bank($0000-$1FFF)
-					setVrom8KBank(reg[1] >> 1);
-				}
-			} else {
-				// for Romancia
-				if (reg[0] & 0x10)
-					setCram4KBank((address&2)<<1, reg[address]);
-			}
-			break;
-		case 3:
-			if (!(reg[0] & 0x08)) {
-				// PRG 32K bank ($8000-$FFFF)
-				setRom32KBank(reg[3] >> 1);
-			} else {
-				if (reg[0] & 0x04) {
-					// PRG 16K bank ($8000-$BFFF)
-					setRom16KBank(4, reg[3]);
-					setRom16KBank(6, nesRomSize16KB-1);
-				} else {
-					// PRG 16K bank ($C000-$FFFF)
-					setRom16KBank(6, reg[3]);
-					setRom16KBank(4, 0);
-				}
-			}
-			break;
-		}
-	} else {
-		// For 512K/1M byte Cartridge
-		int	promBase = 0;
-		if (nesRomSize16KB >= 32)
-			promBase = reg[1] & 0x10;
-		// For FinalFantasy I&II
-		if (wram_patch == 2) {
-			if (!(reg[1] & 0x18))
-				setWram8KBank(3, 0);
-			else
-				setWram8KBank(3, 1);
-		}
-		if (address == 0)
-			setMirroring(mirroringFromRegs());
-		// Register #1 and #2
-		if (nesVromSize1KB) {
-			if (reg[0] & 0x10) {
-				// CHR 4K bank lower($0000-$0FFF)
-				setVrom4KBank(0, reg[1]);
-				// CHR 4K bank higher($1000-$1FFF)
-				setVrom4KBank(4, reg[2]);
-			} else {
-				// CHR 8K bank($0000-$1FFF)
-				setVrom8KBank(reg[1] >> 1);
-			}
-		} else {
-			// For Romancia
-			if (reg[0] & 0x10) {
-				setCram4KBank(0, reg[1]);
-				setCram4KBank(4, reg[2]);
-			}
-		}
-		// Register #3
-		if (!(reg[0] & 0x08)) {
-			// PRG 32K bank ($8000-$FFFF)
-			setRom32KBank((reg[3] & (0xF + promBase)) >> 1);
-		} else {
-			if (reg[0] & 0x04) {
-				// PRG 16K bank ($8000-$BFFF)
-				setRom16KBank(4, promBase + (reg[3] & 0x0F));
-				if (nesRomSize16KB >= 32)
-					setRom16KBank(6, promBase+16-1);
-			} else {
-				// PRG 16K bank ($C000-$FFFF)
-				setRom16KBank(6, promBase + (reg[3] & 0x0F));
-				if (nesRomSize16KB >= 32)
-					setRom16KBank(4, promBase);
-			}
-		}
-	}
-}
-
-NesMirroring Mapper001::mirroringFromRegs() const
-{
-	switch (reg[0] & 3) {
-	case 0: return SingleLow; break;
-	case 1: return SingleHigh; break;
-	case 2: return VerticalMirroring; break;
-	case 3: return HorizontalMirroring; break;
-	default: Q_ASSERT(false); return SingleLow; break;
 	}
 }
 

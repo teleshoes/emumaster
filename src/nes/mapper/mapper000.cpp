@@ -15,13 +15,13 @@
  */
 
 #include "mapper000.h"
-#include "ppu.h"
 #include "disk.h"
 
-void Mapper000::reset() {
+void Mapper000::reset()
+{
 	NesMapper::reset();
 
-	setRom32KBank(0);
+	nesSetRom32KBank(0);
 
 	u32 crc = nesDiskCrc;
 	if (crc == 0x4e7db5af) {	// Circus Charlie(J)

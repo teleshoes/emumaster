@@ -15,27 +15,19 @@
  */
 
 #include "mapper042.h"
-#include <QDataStream>
 
-void Mapper042::reset() {
-	NesMapper::reset();
+static u8 irq_enable;
+static u8 irq_counter;
 
-	setRom8KBank(3, 0);
-	setRom8KBanks(nesRomSize8KB-4, nesRomSize8KB-3, nesRomSize8KB-2, nesRomSize8KB-1);
-	if (nesVromSize1KB)
-		setVrom8KBank(0);
-	irq_enable = 0;
-	irq_counter = 0;
-}
-
-void Mapper042::writeHigh(u16 address, u8 data) {
-	switch (address & 0xE003) {
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr & 0xE003) {
 	case 0xE000:
-		setRom8KBank(3, data&0x0F);
+		nesSetRom8KBank(3, data&0x0F);
 		break;
 
 	case 0xE001:
-		setMirroring(static_cast<NesMirroring>((data & 0x08) >> 3));
+		nesSetMirroring(static_cast<NesMirroring>((data & 0x08) >> 3));
 		break;
 
 	case 0xE002:
@@ -45,25 +37,41 @@ void Mapper042::writeHigh(u16 address, u8 data) {
 			irq_enable = 0;
 			irq_counter = 0;
 		}
-		setIrqSignalOut(false);
+		nesMapperSetIrqSignalOut(false);
 		break;
 	}
 }
 
-void Mapper042::horizontalSync() {
-	setIrqSignalOut(false);
+static void horizontalSync()
+{
+	nesMapperSetIrqSignalOut(false);
 	if (irq_enable) {
 		if (irq_counter < 215) {
 			irq_counter++;
 		}
 		if (irq_counter == 215) {
 			irq_enable = 0;
-			setIrqSignalOut(true);
+			nesMapperSetIrqSignalOut(true);
 		}
 	}
 }
 
-void Mapper042::extSl() {
+void Mapper042::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+	horizontalSync = ::horizontalSync;
+
+	nesSetRom8KBank(3, 0);
+	nesSetRom8KBanks(nesRomSize8KB-4, nesRomSize8KB-3, nesRomSize8KB-2, nesRomSize8KB-1);
+	if (nesVromSize1KB)
+		nesSetVrom8KBank(0);
+	irq_enable = 0;
+	irq_counter = 0;
+}
+
+void Mapper042::extSl()
+{
 	emsl.var("irq_enable", irq_enable);
 	emsl.var("irq_counter", irq_counter);
 }

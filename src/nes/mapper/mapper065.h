@@ -23,18 +23,7 @@ class Mapper065 : public NesMapper
 {
 public:
 	void reset();
-
-	void writeHigh(u16 addr, u8 data);
-	void clock(uint cycles);
-
-	void horizontalSync();
-
 	void extSl();
-private:
-	u8 patch;
-	u8 irq_enable;
-	s32 irq_counter;
-	s32 irq_latch;
 };
 
 #endif // MAPPER065_H

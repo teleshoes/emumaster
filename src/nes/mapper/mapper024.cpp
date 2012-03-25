@@ -15,30 +15,18 @@
  */
 
 #include "mapper024.h"
-#include "ppu.h"
 #include "disk.h"
-#include <QDataStream>
 
-void Mapper024::reset() {
-	NesMapper::reset();
+static u8 irq_enable;
+static u8 irq_counter;
+static u8 irq_latch;
+static int irq_clock;
 
-	irq_enable = 0;
-	irq_counter = 0;
-	irq_latch = 0;
-	irq_clock = 0;
-
-	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
-	if (nesVromSize1KB)
-		setVrom8KBank(0);
-
-	nesEmuSetRenderMethod(NesEmu::PostRender);
-	// TODO nes->apu->SelectExSound( 1);
-}
-
-void Mapper024::writeHigh(u16 address, u8 data) {
-	switch (address & 0xF003) {
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr & 0xF003) {
 	case 0x8000:
-		setRom16KBank(4, data);
+		nesSetRom16KBank(4, data);
 		break;
 
 	case 0x9000: case 0x9001: case 0x9002:
@@ -48,43 +36,43 @@ void Mapper024::writeHigh(u16 address, u8 data) {
 		break;
 
 	case 0xB003:
-		setMirroring(static_cast<NesMirroring>((data >> 3) & 0x03));
+		nesSetMirroring(static_cast<NesMirroring>((data >> 3) & 0x03));
 		break;
 
 	case 0xC000:
-		setRom8KBank(6, data);
+		nesSetRom8KBank(6, data);
 		break;
 
 	case 0xD000:
-		setVrom1KBank(0, data);
+		nesSetVrom1KBank(0, data);
 		break;
 
 	case 0xD001:
-		setVrom1KBank(1, data);
+		nesSetVrom1KBank(1, data);
 		break;
 
 	case 0xD002:
-		setVrom1KBank(2, data);
+		nesSetVrom1KBank(2, data);
 		break;
 
 	case 0xD003:
-		setVrom1KBank(3, data);
+		nesSetVrom1KBank(3, data);
 		break;
 
 	case 0xE000:
-		setVrom1KBank(4, data);
+		nesSetVrom1KBank(4, data);
 		break;
 
 	case 0xE001:
-		setVrom1KBank(5, data);
+		nesSetVrom1KBank(5, data);
 		break;
 
 	case 0xE002:
-		setVrom1KBank(6, data);
+		nesSetVrom1KBank(6, data);
 		break;
 
 	case 0xE003:
-		setVrom1KBank(7, data);
+		nesSetVrom1KBank(7, data);
 		break;
 
 	case 0xF000:
@@ -96,22 +84,23 @@ void Mapper024::writeHigh(u16 address, u8 data) {
 			irq_counter = irq_latch;
 			irq_clock = 0;
 		}
-		setIrqSignalOut(false);
+		nesMapperSetIrqSignalOut(false);
 		break;
 	case 0xF002:
 		irq_enable = (irq_enable & 0x01) * 3;
-		setIrqSignalOut(false);
+		nesMapperSetIrqSignalOut(false);
 		break;
 	}
 }
 
-void Mapper024::clock(uint cycles) {
+static void clock(int cycles)
+{
 	if (irq_enable & 0x02) {
 		if ((irq_clock+=cycles) >= 0x72) {
 			irq_clock -= 0x72;
 			if (irq_counter == 0xFF) {
 				irq_counter = irq_latch;
-				setIrqSignalOut(true);
+				nesMapperSetIrqSignalOut(true);
 			} else {
 				irq_counter++;
 			}
@@ -119,7 +108,27 @@ void Mapper024::clock(uint cycles) {
 	}
 }
 
-void Mapper024::extSl() {
+void Mapper024::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+	clock = ::clock;
+
+	irq_enable = 0;
+	irq_counter = 0;
+	irq_latch = 0;
+	irq_clock = 0;
+
+	nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	if (nesVromSize1KB)
+		nesSetVrom8KBank(0);
+
+	nesEmuSetRenderMethod(NesEmu::PostRender);
+	// TODO nes->apu->SelectExSound( 1);
+}
+
+void Mapper024::extSl()
+{
 	emsl.var("irq_enable", irq_enable);
 	emsl.var("irq_counter", irq_counter);
 	emsl.var("irq_latch", irq_latch);

@@ -81,6 +81,8 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	if (!loadConfiguration())
 		m_error = constructSlErrorString();
 
+	// TODO detect if USB mass storage is used
+
 	if (m_error.isEmpty()) {
 		QString diskPath = QString("%1/%2")
 				.arg(pathManager.diskDirPath())
@@ -376,7 +378,7 @@ bool EmuView::loadConfiguration()
 	parseConfArg(confArg);
 
 	// load conf from global settings
-	loadSettings();
+	finishSetupConfiguration();
 
 	return true;
 }
@@ -496,7 +498,7 @@ void EmuView::setSwipeEnabled(bool on)
 
 //-------------------------------SETTINGS SECTION-------------------------------
 
-void EmuView::loadSettings()
+void EmuView::finishSetupConfiguration()
 {
 	QSettings s;
 	m_swipeEnabled = loadOptionFromSettings(s, "swipeEnable").toBool();

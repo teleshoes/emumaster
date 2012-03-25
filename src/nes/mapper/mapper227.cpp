@@ -15,47 +15,48 @@
  */
 
 #include "mapper227.h"
-#include "ppu.h"
-#include "disk.h"
 
-void Mapper227::reset() {
-	NesMapper::reset();
-
-	setRom8KBanks(0, 1, 0, 1);
-}
-
-void Mapper227::writeHigh(u16 address, u8 data) {
+static void writeHigh(u16 addr, u8 data)
+{
 	Q_UNUSED(data)
 
-	u8 bank = ((address&0x0100)>>4) | ((address&0x0078)>>3);
+	u8 bank = ((addr&0x0100)>>4) | ((addr&0x0078)>>3);
 
-	if (address & 0x0001) {
-		setRom32KBank(bank);
+	if (addr & 0x0001) {
+		nesSetRom32KBank(bank);
 	} else {
-		if (address & 0x0004) {
-			setRom8KBank(4, bank*4+2);
-			setRom8KBank(5, bank*4+3);
-			setRom8KBank(6, bank*4+2);
-			setRom8KBank(7, bank*4+3);
+		if (addr & 0x0004) {
+			nesSetRom8KBank(4, bank*4+2);
+			nesSetRom8KBank(5, bank*4+3);
+			nesSetRom8KBank(6, bank*4+2);
+			nesSetRom8KBank(7, bank*4+3);
 		} else {
-			setRom8KBank(4, bank*4+0);
-			setRom8KBank(5, bank*4+1);
-			setRom8KBank(6, bank*4+0);
-			setRom8KBank(7, bank*4+1);
+			nesSetRom8KBank(4, bank*4+0);
+			nesSetRom8KBank(5, bank*4+1);
+			nesSetRom8KBank(6, bank*4+0);
+			nesSetRom8KBank(7, bank*4+1);
 		}
 	}
 
-	if (!(address & 0x0080)) {
-		if (address & 0x0200) {
-			setRom8KBank(6, (bank&0x1C)*4+14);
-			setRom8KBank(7, (bank&0x1C)*4+15);
+	if (!(addr & 0x0080)) {
+		if (addr & 0x0200) {
+			nesSetRom8KBank(6, (bank&0x1C)*4+14);
+			nesSetRom8KBank(7, (bank&0x1C)*4+15);
 		} else {
-			setRom8KBank(6, (bank&0x1C)*4+0);
-			setRom8KBank(7, (bank&0x1C)*4+1);
+			nesSetRom8KBank(6, (bank&0x1C)*4+0);
+			nesSetRom8KBank(7, (bank&0x1C)*4+1);
 		}
 	}
-	if (address & 0x0002)
-		setMirroring(HorizontalMirroring);
+	if (addr & 0x0002)
+		nesSetMirroring(HorizontalMirroring);
 	else
-		setMirroring(VerticalMirroring);
+		nesSetMirroring(VerticalMirroring);
+}
+
+void Mapper227::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	nesSetRom8KBanks(0, 1, 0, 1);
 }

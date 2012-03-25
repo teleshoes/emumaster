@@ -15,29 +15,15 @@
  */
 
 #include "mapper243.h"
-#include "ppu.h"
 #include "disk.h"
 
-void Mapper243::reset() {
-	NesMapper::reset();
+static u8 reg[4];
 
-	setRom32KBank(0);
-
-	if (nesVromSize8KB > 4)
-		setVrom8KBank(4);
-	else
-		setVrom8KBank(0);
-
-	setMirroring(VerticalMirroring);
-
-	for (int i = 0; i < 4; i++)
-		reg[i] = 0;
-}
-
-void Mapper243::writeLow(u16 address, u8 data) {
-	if ((address&0x4101) == 0x4100) {
+static void writeLow(u16 addr, u8 data)
+{
+	if ((addr&0x4101) == 0x4100) {
 		reg[0] = data;
-	} else if ((address&0x4101) == 0x4101) {
+	} else if ((addr&0x4101) == 0x4101) {
 		switch (reg[0] & 0x07) {
 		case 0:
 			reg[1] = 0;
@@ -59,16 +45,35 @@ void Mapper243::writeLow(u16 address, u8 data) {
 			break;
 		}
 
-		setRom32KBank(reg[1]);
-		setVrom8KBank(reg[2]);
+		nesSetRom32KBank(reg[1]);
+		nesSetVrom8KBank(reg[2]);
 
 		if (reg[3])
-			setMirroring(VerticalMirroring);
+			nesSetMirroring(VerticalMirroring);
 		else
-			setMirroring(HorizontalMirroring);
+			nesSetMirroring(HorizontalMirroring);
 	}
 }
 
-void Mapper243::extSl() {
+void Mapper243::reset()
+{
+	NesMapper::reset();
+	writeLow = ::writeLow;
+
+	nesSetRom32KBank(0);
+
+	if (nesVromSize8KB > 4)
+		nesSetVrom8KBank(4);
+	else
+		nesSetVrom8KBank(0);
+
+	nesSetMirroring(VerticalMirroring);
+
+	for (int i = 0; i < 4; i++)
+		reg[i] = 0;
+}
+
+void Mapper243::extSl()
+{
 	emsl.array("reg", reg, sizeof(reg));
 }

@@ -20,7 +20,9 @@
 #include <emu.h>
 
 extern bool nesDiskLoad(const QString &fileName, QString *error);
+extern void nesDiskShutdown();
 extern bool nesDiskHasBatteryBackedRam();
+extern bool nesDiskHasTrainer();
 extern u32 nesDiskCrc;
 
 #endif // NESDISK_H

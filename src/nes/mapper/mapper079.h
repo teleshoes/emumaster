@@ -23,7 +23,6 @@ class Mapper079 : public NesMapper
 {
 public:
 	void reset();
-	void writeLow(u16 addr, u8 data);
 };
 
 #endif // MAPPER079_H

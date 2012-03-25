@@ -41,10 +41,21 @@ typedef quint64 u64;
 #define S32_MAX INT_MAX
 #define U32_MAX UINT_MAX
 
+static const int KB = 1024;
+static const int MB = KB * KB;
+static const int GB = KB * KB * KB;
+
 #define EM_MSG_DISK_LOAD_FAILED QObject::tr("Could not load the disk")
 #define EM_MSG_OPEN_FILE_FAILED QObject::tr("Unable to open the file")
 #define EM_MSG_FILE_CORRUPTED QObject::tr("File is corrupted")
 #define EM_MSG_STATE_DIFFERS QObject::tr("Configuration of loaded state differs from the current one. Mismatch in")
+#define EM_MSG_MMAP_FAILED QObject::tr("Fatal error: mmap() failed")
+
+#define DISABLE_IMPLICIT_CONSTRUCTORS(Class) \
+	Class(); \
+	Q_DISABLE_COPY(Class)
+
+#define UNREACHABLE() Q_ASSERT(false)
 
 class BASE_EXPORT Emu : public QObject
 {
@@ -173,21 +184,5 @@ inline void EMSL::var(const QString &name, T &t)
 		*stream >> t;
 	}
 }
-
-// TODO optimize
-static inline void memset8(void *p, u8 b, int n)
-{ memset(p, b, n); }
-static inline void memcpy8(void *dst, void *src, int n)
-{ memcpy(dst, src, n); }
-
-static inline void memset32(void *p, u32 d, int n)
-{
-	u32 *p32 = (u32 *)p;
-	for (; n > 0; p32++, n--)
-		*p32 = d;
-}
-
-static inline void memcpy32(void *dst, void *src, int n)
-{ memcpy(dst, src, n*4); }
 
 #endif // EMU_H

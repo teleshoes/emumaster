@@ -104,7 +104,7 @@ private slots:
 	void hostVideoShaderChanged();
 private:
 	bool loadConfiguration();
-	void loadSettings();
+	void finishSetupConfiguration();
 	QVariant loadOptionFromSettings(QSettings &s, const QString &name) const;
 	QString extractArg(const QStringList &args, const QString &argName);
 	void parseConfArg(const QString &arg);

@@ -15,46 +15,56 @@
  */
 
 #include "mapper040.h"
-#include <QDataStream>
 
-void Mapper040::reset() {
+static u8 irq_enable;
+static int irq_line;
+
+
+static void writeHigh(u16 address, u8 data)
+{
+	switch (address & 0xe000) {
+	case 0x8000:
+		irq_enable = 0;
+		nesMapperSetIrqSignalOut(false);
+		break;
+	case 0xa000:
+		irq_enable = 0xff;
+		irq_line = 37;
+		nesMapperSetIrqSignalOut(false);
+		break;
+	case 0xc000:
+		break;
+	case 0xe000:
+		nesSetRom8KBank(6, data&0x07);
+		break;
+	}
+}
+
+static void horizontalSync()
+{
+	if (irq_enable) {
+		if (--irq_line <= 0)
+			nesMapperSetIrqSignalOut(true);
+	}
+}
+
+void Mapper040::reset()
+{
 	NesMapper::reset();
+	writeHigh = ::writeHigh;
+	horizontalSync = ::horizontalSync;
 
-	setRom8KBank(3, 6);
-	setRom8KBanks(4, 5, 0, 7);
+	nesSetRom8KBank(3, 6);
+	nesSetRom8KBanks(4, 5, 0, 7);
 	if (nesVromSize1KB)
-		setVrom8KBank(0);
+		nesSetVrom8KBank(0);
+
 	irq_enable = 0;
 	irq_line = 0;
 }
 
-void Mapper040::writeHigh(u16 address, u8 data) {
-	switch (address & 0xE000) {
-	case 0x8000:
-		irq_enable = 0;
-		setIrqSignalOut(false);
-		break;
-	case 0xA000:
-		irq_enable = 0xFF;
-		irq_line = 37;
-		setIrqSignalOut(false);
-		break;
-	case 0xC000:
-		break;
-	case 0xE000:
-		setRom8KBank(6, data&0x07);
-		break;
-	}
-}
-
-void Mapper040::horizontalSync() {
-	if (irq_enable) {
-		if (--irq_line <= 0)
-			setIrqSignalOut(true);
-	}
-}
-
-void Mapper040::extSl() {
+void Mapper040::extSl()
+{
 	emsl.var("irq_enable", irq_enable);
 	emsl.var("irq_line", irq_line);
 }

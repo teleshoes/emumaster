@@ -17,13 +17,16 @@
 #include "mapper003.h"
 #include "disk.h"
 
-void Mapper003::reset() {
-	NesMapper::reset();
-
-	setRom32KBank(0);
+static void writeHigh(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
+	nesSetVrom8KBank(data);
 }
 
-void Mapper003::writeHigh(u16 address, u8 data) {
-	Q_UNUSED(address)
-	setVrom8KBank(data);
+void Mapper003::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	nesSetRom32KBank(0);
 }

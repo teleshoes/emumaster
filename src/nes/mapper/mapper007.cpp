@@ -15,38 +15,43 @@
  */
 
 #include "mapper007.h"
-#include "ppu.h"
 #include "disk.h"
 
-void Mapper007::reset() {
+static u8 patch;
+
+static void writeHigh(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
+	nesSetRom32KBank(data & 0x07);
+	if (!patch) {
+		if (data & 0x10)
+			nesSetMirroring(SingleHigh);
+		else
+			nesSetMirroring(SingleLow);
+	}
+}
+
+void Mapper007::reset()
+{
 	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
 	patch = 0;
-	setRom32KBank(0);
-	setMirroring(SingleLow);
+	nesSetRom32KBank(0);
+	nesSetMirroring(SingleLow);
 
 	u32 crc = nesDiskCrc;
 	if( crc == 0x3c9fe649 ) {	// WWF Wrestlemania Challenge(U)
-		setMirroring(VerticalMirroring);
+		nesSetMirroring(VerticalMirroring);
 		patch = 1;
 	}
 	if( crc == 0x09874777 ) {	// Marble Madness(U)
 		nesEmuSetRenderMethod(NesEmu::TileRender);
 	}
 
-	if( crc == 0x279710DC		// Battletoads (U)
-	 || crc == 0xCEB65B06 ) {	// Battletoads Double Dragon (U)
+	if( crc == 0x279710dc		// Battletoads (U)
+	 || crc == 0xceb65b06 ) {	// Battletoads Double Dragon (U)
 		nesEmuSetRenderMethod(NesEmu::PreAllRender);
 		memset(nesWram, 0, sizeof(nesWram));
-	}
-}
-
-void Mapper007::writeHigh(u16 address, u8 data) {
-	Q_UNUSED(address)
-	setRom32KBank(data & 0x07);
-	if (!patch) {
-		if (data & 0x10)
-			setMirroring(SingleHigh);
-		else
-			setMirroring(SingleLow);
 	}
 }
