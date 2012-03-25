@@ -191,11 +191,11 @@ void NesEmu::shutdown()
 
 void NesEmu::reset()
 {
+	nesSyncReset();
 	nesMapper->reset();
 	nesCpu->reset();
 	nesApuReset();
 	nesInputReset();
-	nesSyncReset();
 }
 
 void NesEmu::resume()

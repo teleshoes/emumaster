@@ -354,6 +354,7 @@ void nesApuSl()
 	SL_CHANNEL(dmch);
 
 	if (!emsl.save) {
+		writeQueue.clear();
 		buffer.reset();
 		dcBlocker.reset();
 	}
