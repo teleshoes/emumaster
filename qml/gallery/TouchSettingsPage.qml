@@ -82,10 +82,10 @@ Page {
 				width: parent.width
 				minimumValue: 0.0
 				maximumValue: 1.0
-				value: diskGallery.globalOption("padOpacity")
-				onValueChanged: diskGallery.setGlobalOption("padOpacity", value)
 				stepSize: 0.05
 				valueIndicatorVisible: true
+				onValueChanged: diskGallery.setGlobalOption("padOpacity", value)
+				Component.onCompleted: value = diskGallery.globalOption("padOpacity")
 			}
 
 			Label { text: qsTr("D-Pad Size") }

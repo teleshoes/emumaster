@@ -160,10 +160,10 @@ Page {
 					width: parent.width
 					minimumValue: 0.0
 					maximumValue: 1.0
-					value: emuView.padOpacity
-					onValueChanged: emuView.padOpacity = value
 					stepSize: 0.05
 					valueIndicatorVisible: true
+					onValueChanged: emuView.padOpacity = value
+					Component.onCompleted: value = emuView.padOpacity
 				}
 				Repeater {
 					id: inputDevicesView
@@ -200,10 +200,10 @@ Page {
 					width: parent.width
 					minimumValue: 0
 					maximumValue: 5
-					value: emuView.frameSkip
-					onValueChanged: emuView.frameSkip = value
 					stepSize: 1
 					valueIndicatorVisible: true
+					onValueChanged: emuView.frameSkip = value
+					Component.onCompleted: value = emuView.frameSkip
 				}
 				SettingsSwitchItem { text: qsTr("Show FPS"); paramName: "fpsVisible" }
 				SettingsSwitchItem { text: qsTr("Keep Aspect Ratio"); paramName: "keepAspectRatio" }
