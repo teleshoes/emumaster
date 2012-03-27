@@ -130,7 +130,9 @@ Item {
 		border.width: 2
 
 		Column {
+			id: regProfColumn
 			width: parent.width
+			height: childrenRect.height
 
 			IconTextHeader {
 				text: "Registers"
@@ -155,6 +157,37 @@ Item {
 				font.family: "Courier New"
 				font.pixelSize: 16
 				text: " " + dbg.bankString
+			}
+
+			IconTextHeader {
+				text: "Profiler"
+			}
+
+			Button {
+				anchors.horizontalCenter: parent.horizontalCenter
+				text: "Fetch"
+				onClicked: dbg.fetchProfiler()
+			}
+			Button {
+				anchors.horizontalCenter: parent.horizontalCenter
+				text: "Reset"
+				onClicked: dbg.resetProfiler()
+			}
+		}
+		ListView {
+			anchors {
+				top: regProfColumn.bottom
+				bottom: parent.bottom
+			}
+			width: parent.width
+			clip: true
+			model: dbg.prof
+
+			delegate: FlatButton {
+				width: parent.width
+				text: pc + ": " + cnt
+				onClicked: mainView.positionViewAtIndex(dbg.indexOf("0x"+pc),
+														ListView.Center)
 			}
 		}
 	}

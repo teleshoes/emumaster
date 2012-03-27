@@ -5,6 +5,7 @@
 
 NesDebugger::NesDebugger(QObject *parent) :
 	QAbstractListModel(parent),
+	m_profiler(m_profilerItems, this),
 	m_disasm(m_memory)
 {
 	QHash<int, QByteArray> roles;
@@ -22,6 +23,8 @@ NesDebugger::NesDebugger(QObject *parent) :
 
 	m_currentIndexOfPcDirty = true;
 	m_breakpointLastTime = false;
+
+	m_profilerData = 0;
 }
 
 void NesDebugger::connectToServer()
@@ -163,6 +166,30 @@ void NesDebugger::toggleBreakpoint(int pos)
 		removeBreakpoint(pos);
 	else
 		insertBreakpoint(pos);
+}
+
+void NesDebugger::fetchProfiler()
+{
+	u8 cmd = SendProfiler;
+	*m_stream << cmd;
+	int size = m_romSize * sizeof(int);
+	if (!m_profilerData)
+		m_profilerData = new int[m_romSize];
+	waitForBytes(size);
+	m_stream->readRawData((char *)m_profilerData, size);
+
+	processProfiler();
+
+	m_profiler.reset();
+}
+
+void NesDebugger::resetProfiler()
+{
+	u8 cmd = ClearProfiler;
+	*m_stream << cmd;
+
+	m_profilerItems.clear();
+	m_profiler.reset();
 }
 
 void NesDebugger::insertBreakpointPc(u16 pc)
@@ -350,6 +377,32 @@ void NesDebugger::waitForBytes(int n)
 		if (!m_sock->waitForReadyRead(-1)) {
 			m_logFile.flush();
 			abort();
+		}
+	}
+}
+
+void NesDebugger::processProfiler()
+{
+	m_profilerItems.clear();
+	processProfilerPage(4);
+	processProfilerPage(5);
+	processProfilerPage(6);
+	processProfilerPage(7);
+	qSort(m_profilerItems);
+}
+
+void NesDebugger::processProfilerPage(int i)
+{
+	int bank = m_currentCpuBanks[i] * NesCpuBankSize;
+	u16 start = i * NesCpuBankSize;
+	u16 end = start + NesCpuBankSize;
+	for (u16 offset = start; offset != end; offset++) {
+		int count = m_profilerData[bank + (offset&NesCpuBankMask)];
+		if (count) {
+			ProfilerItem item;
+			item.first = offset;
+			item.second = count;
+			m_profilerItems.append(item);
 		}
 	}
 }

@@ -2,6 +2,7 @@
 #define NESDEBUGGER_H
 
 #include "disassembler.h"
+#include "profiler.h"
 #include <QAbstractListModel>
 #include <QFile>
 #include <QTcpSocket>
@@ -30,6 +31,7 @@ class NesDebugger : public QAbstractListModel
 	Q_PROPERTY(bool breakOnNmiEnable READ isBreakOnNmiEnabled WRITE setBreakOnNmiEnabled NOTIFY breakOnNmiEnableChanged)
 	Q_PROPERTY(int currentIndexOfPc READ currentIndexOfPc NOTIFY changed)
 	Q_PROPERTY(QString bankString READ bankString NOTIFY changed)
+	Q_PROPERTY(NesProfiler *prof READ prof CONSTANT)
 public:
 	enum Role {
 		DisasmRole = Qt::UserRole+1,
@@ -65,6 +67,8 @@ public:
 	int currentIndexOfPc();
 
 	QString bankString() const;
+
+	NesProfiler *prof() { return &m_profiler; }
 public slots:
 	void connectToServer();
 	void continueRun();
@@ -74,6 +78,9 @@ public slots:
 	void removeBreakpoint(int pos);
 	int indexOf(int pc) const;
 	void toggleBreakpoint(int pos);
+
+	void fetchProfiler();
+	void resetProfiler();
 signals:
 	void changed();
 	void logEnableChanged();
@@ -90,6 +97,9 @@ private:
 	void checkDisasm();
 	void logEvent(DebugEvent ev);
 	void waitForBytes(int n);
+
+	void processProfiler();
+	void processProfilerPage(int i);
 
 	bool m_logEnabled;
 	QFile m_logFile;
@@ -112,6 +122,10 @@ private:
 	bool m_breakOnNmi;
 	int m_currentIndexOfPc;
 	bool m_currentIndexOfPcDirty;
+	int *m_profilerData;
+	QList<ProfilerItem> m_profilerItems;
+
+	NesProfiler m_profiler;
 
 	QList<u16> m_instrPositions;
 

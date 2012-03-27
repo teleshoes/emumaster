@@ -32,7 +32,8 @@ symbian:TARGET.CAPABILITY += NetworkServices
 # The .cpp file which was generated for your project. Feel free to hack it.
 SOURCES += main.cpp \
     debugger.cpp \
-    disassembler.cpp
+    disassembler.cpp \
+    profiler.cpp
 
 # Please do not modify the following two lines. Required for deployment.
 include(qmlapplicationviewer/qmlapplicationviewer.pri)
@@ -40,7 +41,8 @@ qtcAddDeployment()
 
 HEADERS += \
     debugger.h \
-    disassembler.h
+    disassembler.h \
+    profiler.h
 
 include(../tools.pri)
 
