@@ -19,6 +19,9 @@
 #include "nes.h"
 #include "mapper.h"
 #include "apu.h"
+#if defined(ENABLE_DEBUGGING)
+#include "debug.h"
+#endif
 
 static const int C = NesCpuBase::Carry;
 static const int Z = NesCpuBase::Zero;
@@ -126,6 +129,9 @@ static inline void ADDCYC(u32 n)
 
 inline void NesCpuInterpreter::executeOne()
 {
+#if defined(ENABLE_DEBUGGING)
+	nesDebugCpuOp(PC);
+#endif
 	u8 opcode = FETCH_PC8();
 	executedCycles += cyclesTable[opcode];
 
@@ -150,6 +156,9 @@ bool NesCpuInterpreter::handleEvent(Event ev)
 {
 	switch (ev) {
 	case SaveStateEvent:
+		// SaveState occurs on frame end, ticks() will be used on new frame
+		// so set it to zero
+		executedCycles = 0;
 		saveToBase();
 		break;
 	case LoadStateEvent:
@@ -212,6 +221,13 @@ void NesCpuInterpreter::dma()
 	executedCycles += NesDmaCycles;
 }
 
+#if defined(ENABLE_DEBUGGING)
+void NesCpuInterpreter::storeRegistersToBase()
+{
+	saveToBase();
+}
+#endif
+
 s32 NesCpuInterpreter::ticks() const
 {
 	return executedCycles;
@@ -227,6 +243,14 @@ static inline void setInterrupt(NesCpuBase::Interrupt interrupt, bool on)
 
 void NesCpuInterpreter::setSignal(InterruptSignal sig, bool on)
 {
+#if defined(ENABLE_DEBUGGING)
+	if (on) {
+		if (sig == NmiSignal)
+			nesDebugNmi();
+		else
+			nesDebugIrq();
+	}
+#endif
 	int oldSignals = cpuSignals;
 
 	if (on)

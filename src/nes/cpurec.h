@@ -31,7 +31,10 @@ public:
 	s32 ticks() const;
 	void setSignal(InterruptSignal sig, bool on);
 	void dma();
-	void clearBank(int bankIndex);
+	void clearPage(int pageIndex);
+#if defined(ENABLE_DEBUGGING)
+	void storeRegistersToBase();
+#endif
 
 	void sl();
 private:

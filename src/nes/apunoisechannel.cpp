@@ -16,7 +16,6 @@
 
 #include "apunoisechannel.h"
 #include "nes.h"
-#include <QDataStream>
 
 void NesApuNoiseChannel::reset()
 {

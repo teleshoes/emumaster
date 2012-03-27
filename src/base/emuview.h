@@ -72,6 +72,8 @@ public:
 	void setVideoFilter(const QString &name);
 	QString videoFilter() const;
 	QStringList availableVideoFilters() const;
+
+	void disableSafetyTimer();
 public slots:
 	bool close();
 
@@ -140,6 +142,7 @@ private:
 
 	bool m_safetyCheck;
 	QTimer *m_safetyTimer;
+	bool m_safetyTimerDisabled;
 	bool m_swipeEnabled;
 	bool m_runInBackground;
 	bool m_lrButtonsVisible;

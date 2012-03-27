@@ -23,7 +23,6 @@
 #include "nes.h"
 #include "cpubase.h"
 #include <base/audioringbuffer.h>
-#include <QDataStream>
 
 class ApuWrite
 {

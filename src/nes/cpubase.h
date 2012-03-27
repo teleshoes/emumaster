@@ -78,7 +78,11 @@ public:
 	virtual s32 ticks() const = 0;
 	virtual void setSignal(InterruptSignal sig, bool on) = 0;
 	virtual void dma() = 0;
-	virtual void clearBank(int bankIndex) { Q_UNUSED(bankIndex) }
+#if defined(ENABLE_DEBUGGING)
+	NesCpuBaseRegisters stateRegs() const { return m_stateRegs; }
+	virtual void storeRegistersToBase() = 0;
+#endif
+	virtual void clearPage(int pageIndex) { Q_UNUSED(pageIndex) }
 
 	virtual void sl();
 

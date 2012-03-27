@@ -75,6 +75,10 @@ public:
 
 	void (*processCheats)();
 
+#if defined(ENABLE_DEBUGGING)
+	void (*debugStep)(u16 pc);
+#endif
+
 	union {
 		void (*entryPoint)();
 		intptr_t entryPointPtr;
@@ -89,7 +93,7 @@ class NesCpuTranslator
 {
 public:
 	static const int BufferSize = 64 * KB * 32 * Assembler::kInstrSize;
-	static const int BlockSize = BufferSize / NesNumOfCpuBanks;
+	static const int BlockSize = BufferSize / NesNumOfCpuPages;
 
 	bool init();
 	void shutdown();
@@ -107,11 +111,11 @@ public:
 	void *process(u16 instrPointer, u8 *caller);
 	void fixCallerInstruction(u16 instrPointer, u8 *caller);
 
-	void clearBank(int bankIndex);
+	void clearPage(int pageIndex);
 
-	void saveTranslationBoundary(int currentBankIndex,
+	void saveTranslationBoundary(int currentPageIndex,
 								 int numBytesUsedFromNext);
-	void checkTranslationBoundary(int bankIndex);
+	void checkTranslationBoundary(int pageIndex);
 
 	void mTo16Bit(Register reg);
 	void mAddCycles(int n);
@@ -136,6 +140,10 @@ public:
 
 	void mEntryPoint();
 	void mExitPoint();
+
+#if defined(ENABLE_DEBUGGING)
+	void mDebugStep();
+#endif
 
 	void mSingleInstruction();
 	void mNop() {}
@@ -335,8 +343,8 @@ private:
 	u16 m_recPc;
 	u16 m_pad1;
 	u8 *m_codeBuffer;
-	int m_bankTranslationOffset[NesNumOfCpuBanks];
-	int m_bankUsedMask;
+	int m_pageTranslationOffset[NesNumOfCpuPages];
+	int m_pageUsedMask;
 	bool m_checkAlertAfterInstruction;
 	// labels of each instruction in 6502 address space
 	Label *m_labels;
@@ -346,13 +354,16 @@ private:
 	Label m_checkInterruptsForNextInstruction;
 	Label m_alertHandlerLabel;
 	Label m_translateCallerLabel;
+#if defined(ENABLE_DEBUGGING)
+	Label m_debugStepLabel;
+#endif
 
 	u16 m_absAddr;
 	u8 m_zpgAddr;
 	u8 pad2;
 
-	int m_numOfDataUsedFromNextBank[8];
-	u8 m_dataUsedFromNextBank[8][16];
+	int m_numOfDataUsedFromNextPage[8];
+	u8 m_dataUsedFromNextPage[8][16];
 };
 
 #endif // NESCPUREC_P_H

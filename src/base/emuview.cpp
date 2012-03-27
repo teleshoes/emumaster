@@ -48,6 +48,7 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	m_slotToBeLoadedOnStart(StateListModel::InvalidSlot),
 	m_audioEnable(true),
 	m_autoSaveLoadEnable(true),
+	m_safetyTimerDisabled(false),
 	m_swipeEnabled(false),
 	m_runInBackground(false),
 	m_lrButtonsVisible(false)
@@ -204,8 +205,10 @@ void EmuView::resume()
 					 this, SLOT(onFrameGenerated(bool)),
 					 Qt::BlockingQueuedConnection);
 
-	m_safetyCheck = false;
-	m_safetyTimer->start();
+	if (!m_safetyTimerDisabled) {
+		m_safetyCheck = false;
+		m_safetyTimer->start();
+	}
 
 	m_thread->resume();
 
@@ -629,6 +632,12 @@ QString EmuView::videoFilter() const
 QStringList EmuView::availableVideoFilters() const
 {
 	return m_hostVideo->shaderList();
+}
+
+void EmuView::disableSafetyTimer()
+{
+	m_safetyTimerDisabled = true;
+	m_safetyTimer->stop();
 }
 
 void EmuView::hostVideoShaderChanged()

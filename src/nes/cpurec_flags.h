@@ -47,7 +47,8 @@ inline void NesCpuTranslator::mSei() { mSetExternalFlag(NesCpuBase::IrqDisable, 
  */
 inline void NesCpuTranslator::mPackFlags(Register reg)
 {
-	__ orr(reg, mFlags, Operand(NesCpuBase::Negative), LeaveCC, mi);
+	__ mov(reg, mFlags);
+	__ orr(reg, reg, Operand(NesCpuBase::Negative), LeaveCC, mi);
 	__ orr(reg, reg, Operand(NesCpuBase::Overflow), LeaveCC, vs);
 	__ orr(reg, reg, Operand(NesCpuBase::Zero), LeaveCC, eq);
 	__ orr(reg, reg, Operand(NesCpuBase::Carry), LeaveCC, cs);

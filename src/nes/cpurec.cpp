@@ -3,6 +3,9 @@
 #include "ppu.h"
 #include "apu.h"
 #include "cheats.h"
+#if defined(ENABLE_DEBUGGING)
+#include "debug.h"
+#endif
 #include <base/memutils.h>
 
 #include "cpurec_addressing.h"
@@ -52,11 +55,14 @@ bool NesCpuTranslator::init()
 	mTranslateCaller();
 	mSync();
 	mAlertHandler();
+#if defined(ENABLE_DEBUGGING)
+	mDebugStep();
+#endif
 
-	// mark banks "used before" here to force bank clearing
-	m_bankUsedMask = (1<<NesNumOfCpuBanks)-1;
-	for (int i = 1; i < NesNumOfCpuBanks; i++)
-		clearBank(i);
+	// mark pages "used before" here to force page clearing
+	m_pageUsedMask = (1<<NesNumOfCpuPages)-1;
+	for (int i = 0; i < NesNumOfCpuPages; i++)
+		clearPage(i);
 
 	return true;
 }
@@ -76,12 +82,7 @@ void NesCpuTranslator::shutdown()
  */
 inline u8 NesCpuTranslator::fetchPc8()
 {
-	// check PC >= 0x4000, return KIL otherwise
-	u8 data;
-	if (m_recPc < 0x4000)
-		data = 0xf2;
-	else
-		data = nesCpuReadDirect(m_recPc);
+	u8 data = nesCpuReadDirect(m_recPc);
 	m_recPc++;
 	return data;
 }
@@ -106,21 +107,34 @@ inline u16 NesCpuTranslator::fetchPc16()
 inline void *NesCpuTranslator::process(u16 instrPointer, u8 *caller)
 {
 	// check if already translated
-	if (m_labels[instrPointer] == m_translateCallerLabel) {
+	if (m_labels[instrPointer] == m_translateCallerLabel ||
+		instrPointer < 0x4000) {
 		Q_ASSERT(!m_checkAlertAfterInstruction);
 		m_recPc = instrPointer;
-		int bank = nesCpuBankByAddr(instrPointer);
-		int recompiledStart = m_bankTranslationOffset[bank];
-		m_masm->setPcOffset(recompiledStart);
 
 		int count = 128;
+		if (m_recPc < 0x4000) {
+			// TODO activate a warning in settings here
+			clearPage(nesCpuPageByAddr(m_recPc));
+			count = 16;
+		}
+
+		int page = nesCpuPageByAddr(instrPointer);
+		int recompiledStart = m_pageTranslationOffset[page];
+		m_masm->setPcOffset(recompiledStart);
+
 		// recompile here
 		while (m_labels[m_recPc] == m_translateCallerLabel &&
-			   nesCpuBankByAddr(m_recPc) == bank &&
+			   nesCpuPageByAddr(m_recPc) == page &&
 			   count > 0) {
 
 			m_labels[m_recPc].unuse();
 			__ bind(&m_labels[m_recPc]);
+
+#if defined(ENABLE_DEBUGGING)
+			__ mov(r0, Operand(currentPc()));
+			__ bl(&m_debugStepLabel);
+#endif
 
 			mSingleInstruction();
 
@@ -128,9 +142,6 @@ inline void *NesCpuTranslator::process(u16 instrPointer, u8 *caller)
 				mCheckAlert();
 				m_checkAlertAfterInstruction = false;
 			}
-
-			__ mov(r0, Operand(currentPc()));
-			mCheckSync();
 
 			count--;
 		}
@@ -141,21 +152,21 @@ inline void *NesCpuTranslator::process(u16 instrPointer, u8 *caller)
 
 		// flush const pool or any other pending data in the assembler
 		m_masm->flush();
-		// save translation end pointer for this bank
+		// save translation end pointer for this page
 		int recompiledEnd = m_masm->pcOffset();
-		m_bankTranslationOffset[bank] = recompiledEnd;
-		Q_ASSERT(recompiledEnd < (bank+1) * BlockSize);
+		m_pageTranslationOffset[page] = recompiledEnd;
+		Q_ASSERT(page == 0 || recompiledEnd < (page+1) * BlockSize);
 		// flush instruction cache
 		int recompiledSize = recompiledEnd - recompiledStart;
 		Cpu::flushICache(m_codeBuffer + recompiledStart, recompiledSize);
-		// mark translation bank used
-		m_bankUsedMask |= 1 << bank;
+		// mark translation page used
+		m_pageUsedMask |= 1 << page;
 
 		// handle section boundary because 6502 has variable length of
 		// instructions (m_recPc == 0 on KIL instruction so omit that value)
-		int bankNow = nesCpuBankByAddr(m_recPc);
-		if (m_recPc && bankNow != bank)
-			saveTranslationBoundary(bank, m_recPc & NesCpuBankMask);
+		int pageNow = nesCpuPageByAddr(m_recPc);
+		if (m_recPc && pageNow != page)
+			saveTranslationBoundary(page, m_recPc & NesCpuBankMask);
 	}
 	fixCallerInstruction(instrPointer, caller);
 	return m_codeBuffer + m_labels[instrPointer].pos();
@@ -177,62 +188,66 @@ inline void NesCpuTranslator::fixCallerInstruction(u16 instrPointer, u8 *caller)
 }
 
 /*!
-	Clears translation block used for the specified bank \a bankIndex.
+	Clears translation block used for the specified page \a pageIndex.
  */
-void NesCpuTranslator::clearBank(int bankIndex)
+void NesCpuTranslator::clearPage(int pageIndex)
 {
-	Q_ASSERT(bankIndex >= 0 && bankIndex < 8);
+	Q_ASSERT(pageIndex >= 0 && pageIndex < 8);
 	Q_ASSERT(m_translateCallerLabel.isBound());
 
-	if (m_bankUsedMask & (1<<bankIndex)) {
-		m_bankUsedMask &= ~(1<<bankIndex);
-		// in first bank mSync and others stubs will be compiled
+	if (m_pageUsedMask & (1<<pageIndex)) {
+		m_pageUsedMask &= ~(1<<pageIndex);
+		// in first page mSync and others stubs will be compiled
 		// we can assume there should be no execution in 0x0000-0x3fff
-		// so we can move impossible translation of first bank to the space
-		// of second bank
-		int translationBankIndex = bankIndex;
-		if (bankIndex == 0)
-			translationBankIndex = 1;
+		// so we can move impossible translation of first page to the space
+		// of second page
+		if (pageIndex == 0) {
+			m_pageTranslationOffset[0] = 1 * BlockSize;
+			m_pageTranslationOffset[1] = 1 * BlockSize;
+		} else {
+			m_pageTranslationOffset[pageIndex] = pageIndex * BlockSize;
+		}
 
-		m_bankTranslationOffset[translationBankIndex] = bankIndex * BlockSize;
-		int offset = bankIndex * NesCpuBankSize;
+		int offset = pageIndex * NesCpuBankSize;
 		// TODO make a high speed version of memset32
+		// page 0 and 1 will be cleared only once at start, so no need
+		// to call it for both
 		memset32(m_labels + offset,
 				 -m_translateCallerLabel.pos()-1,
 				 NesCpuBankSize);
 
-		m_numOfDataUsedFromNextBank[bankIndex] = 0;
-		checkTranslationBoundary(bankIndex);
+		m_numOfDataUsedFromNextPage[pageIndex] = 0;
+		checkTranslationBoundary(pageIndex);
 	}
 }
 
-void NesCpuTranslator::saveTranslationBoundary(int currentBankIndex,
+void NesCpuTranslator::saveTranslationBoundary(int currentPageIndex,
 											   int numBytesUsedFromNext)
 {
-	int nextBankIndex = (currentBankIndex+1) & 7;
-	m_numOfDataUsedFromNextBank[currentBankIndex] = numBytesUsedFromNext;
+	int nextPageIndex = (currentPageIndex+1) & 7;
+	m_numOfDataUsedFromNextPage[currentPageIndex] = numBytesUsedFromNext;
 	for (int i = 0; i < numBytesUsedFromNext; i++) {
-		u8 data = nesCpuReadDirect((nextBankIndex << 13) + i);
-		m_dataUsedFromNextBank[currentBankIndex][i] = data;
+		u8 data = nesCpuReadDirect((nextPageIndex << 13) + i);
+		m_dataUsedFromNextPage[currentPageIndex][i] = data;
 	}
 }
 
-void NesCpuTranslator::checkTranslationBoundary(int bankIndex)
+void NesCpuTranslator::checkTranslationBoundary(int pageIndex)
 {
-	int previousBankIndex = (bankIndex-1) & 7;
-	int numUsedFromNextBank = m_numOfDataUsedFromNextBank[previousBankIndex];
-	if (numUsedFromNextBank) {
+	int previousPageIndex = (pageIndex-1) & 7;
+	int numUsedFromNextPage = m_numOfDataUsedFromNextPage[previousPageIndex];
+	if (numUsedFromNextPage) {
 		bool same = true;
-		for (int i = 0; i < numUsedFromNextBank; i++) {
-			if (nesCpuReadDirect((bankIndex << 13) + i) !=
-				m_dataUsedFromNextBank[previousBankIndex][i]) {
+		for (int i = 0; i < numUsedFromNextPage; i++) {
+			if (nesCpuReadDirect((pageIndex << 13) + i) !=
+				m_dataUsedFromNextPage[previousPageIndex][i]) {
 				same = false;
 				break;
 			}
 		}
-		m_numOfDataUsedFromNextBank[previousBankIndex] = 0;
+		m_numOfDataUsedFromNextPage[previousPageIndex] = 0;
 		if (!same)
-			clearBank(previousBankIndex);
+			clearPage(previousPageIndex);
 	}
 }
 
@@ -281,20 +296,13 @@ inline void NesCpuTranslator::mTo16Bit(Register reg)
 }
 
 /*!
-	Loads C function address based on the given \a offset and call
+	Loads C function address based on the given \a offset and calls
 	this function.
  */
 inline void NesCpuTranslator::mCallCFunction(int funcOffset)
 {
-	// TODO why it is not working ????
-#if 0//defined(CAN_USE_ARMV7_INSTRUCTIONS)
-	__ mov(ip, Operand(*(u32 *)((u8 *)&cpuRecData + funcOffset)));
-	__ blx(ip);
-#else
 	__ ldr(ip, MemOperand(mDataBase, funcOffset));
 	__ blx(ip);
-#endif
-
 }
 
 /*!
@@ -491,7 +499,7 @@ void NesCpuTranslator::mHandleInterrupts()
 	// check if P.I is cleared
 	__ bind(&irqPending);
 	__ tst(mFlags, Operand(NesCpuBase::IrqDisable));
-	__ b(&exitInterruptCheck, eq);
+	__ b(&exitInterruptCheck, ne);
 	__ mov(r1, Operand(NesCpuBase::IrqVectorAddress));
 
 // doInterrupt:
@@ -650,6 +658,25 @@ void NesCpuTranslator::mExitPoint()
 #endif
 }
 
+#if defined(ENABLE_DEBUGGING)
+void NesCpuTranslator::mDebugStep()
+{
+	// regList from mHandleEvent
+	RegList regList =	r0.bit() | r2.bit() | mA.bit() |
+						mX.bit() | mY.bit() | mS.bit();
+
+	__ bind(&m_debugStepLabel);
+	__ push(lr);
+//	mStoreCurrentCycles();
+	mSaveInternalFlags();
+	mPackFlags(r2);
+	__ stm(ia, mDataBase, regList);
+	mCallCFunction(offsetof(NesCpuRecData,debugStep));
+	mRestoreInternalFlags();
+	__ pop(pc);
+}
+#endif
+
 bool NesCpuRecompiler::init(QString *error)
 {
 	cpuRecData.ram = nesRam;
@@ -673,6 +700,10 @@ bool NesCpuRecompiler::init(QString *error)
 	cpuRecData.mapperClock = nesMapper->clock;
 
 	cpuRecData.processCheats = &nesCheatsProcess;
+
+#if defined(ENABLE_DEBUGGING)
+	cpuRecData.debugStep = &nesDebugCpuOp;
+#endif
 
 	bool ok = translator.init();
 	if (!ok)
@@ -711,6 +742,14 @@ s32 NesCpuRecompiler::ticks() const
 
 void NesCpuRecompiler::setSignal(InterruptSignal sig, bool on)
 {
+#if defined(ENABLE_DEBUGGING)
+	if (on) {
+		if (sig == NmiSignal)
+			nesDebugNmi();
+		else
+			nesDebugIrq();
+	}
+#endif
 	int oldSignals = cpuRecData.interruptSignals;
 
 	if (on)
@@ -739,11 +778,18 @@ void NesCpuRecompiler::dma()
 	cpuRecData.alert = NesCpuRecData::AlertOn;
 }
 
-void NesCpuRecompiler::clearBank(int bankIndex)
+void NesCpuRecompiler::clearPage(int pageIndex)
 {
-	translator.clearBank(bankIndex);
+	translator.clearPage(pageIndex);
 	cpuRecData.alert = NesCpuRecData::AlertOn;
 }
+
+#if defined(ENABLE_DEBUGGING)
+void NesCpuRecompiler::storeRegistersToBase()
+{
+	saveStateToBase();
+}
+#endif
 
 void NesCpuRecompiler::setInterrupt(Interrupt interrupt, bool on)
 {

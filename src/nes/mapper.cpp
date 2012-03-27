@@ -22,7 +22,9 @@
 #include "apu.h"
 #include "input.h"
 #include "cheats.h"
-#include <QDataStream>
+#if defined(ENABLE_DEBUGGING)
+#include "debug.h"
+#endif
 
 #include "mapper/mapper000.h"
 #include "mapper/mapper001.h"
@@ -279,7 +281,7 @@ u8 nesCpuRead40xx(u16 addr)
 		return 0x40;
 	} if (addr == 0x4016) {
 		u8 data = nesInputRead(0);
-		return data | 0x40; // TODO | m_TapeOut
+		return data | 0x40;
 	} else if (addr == 0x4017) {
 		u8 data = nesInputRead(1);
 		return data | nesApuRead(0x17);
@@ -297,7 +299,6 @@ void nesCpuWrite(u16 addr, u8 data)
 		nesRam[addr & 0x07ff] = data;
 		break;
 	case 1: // 0x2000-0x3fff
-		// TODO nsf
 		nesPpuWriteReg(addr & 7, data);
 		break;
 	case 2: // 0x4000-0x5fff
@@ -386,7 +387,10 @@ void nesSetRom8KBank(uint page, uint romBank8K)
 	u8 *romPage = nesRom + romBank8K * 0x2000;
 	if (nesCpuBanks[page] != romPage) {
 		nesCpuBanks[page] = romPage;
-		nesCpu->clearBank(page);
+#if defined(ENABLE_DEBUGGING)
+		nesDebugBankSwitch(page, romBank8K);
+#endif
+		nesCpu->clearPage(page);
 	}
 }
 

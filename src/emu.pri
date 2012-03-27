@@ -28,7 +28,7 @@ linux-g++-maemo {
 }
 
 unix {
-    QMAKE_LFLAGS += -Wl,--rpath-link,../../lib -Wl,--rpath,/opt/emumaster/bin -Wl,--rpath,/opt/emumaster/lib
+	QMAKE_LFLAGS += -Wl,--rpath-link,../../lib -Wl,--rpath,/opt/emumaster/bin -Wl,--rpath,/opt/emumaster/lib
 	target.path = /opt/emumaster/bin
 
 	gameclassify.path = /usr/share/policy/etc/syspart.conf.d

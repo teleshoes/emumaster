@@ -113,11 +113,11 @@ extern u8 *nesPpuBanks[16];
 extern NesPpuBankType nesPpuBanksType[16];
 extern u8 *nesCpuBanks[8]; // 8K banks 0x0000-0xffff
 
-static const int NesNumOfCpuBanks	= 8;
+static const int NesNumOfCpuPages	= 8;
 static const int NesCpuBankSize = 0x2000;
 static const int NesCpuBankMask = NesCpuBankSize-1;
 
-static inline int nesCpuBankByAddr(u16 address)
+static inline int nesCpuPageByAddr(u16 address)
 { return address >> 13; }
 
 extern void nesCpuWrite(u16 addr, u8 data);

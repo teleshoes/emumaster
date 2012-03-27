@@ -25,6 +25,9 @@
 #include "inputzapper.h"
 #include "mapper.h"
 #include "cheats.h"
+#if defined(ENABLE_DEBUGGING)
+#include "debug.h"
+#endif
 #include <base/emuview.h>
 #include <base/configuration.h>
 #include <QSettings>
@@ -95,7 +98,7 @@ static void setupRenderMethod()
 		int method = forcedRenderMethod.toInt(&ok);
 		ok = (ok && method >= NesEmu::PostAllRender && method <= NesEmu::TileRender);
 		if (!ok) {
-			qDebug("Invalid render method passed");
+			qDebug("Unknown render method passed");
 			forcedRenderMethod = QVariant();
 		} else {
 			nesEmuRenderMethod = static_cast<NesEmu::RenderMethod>(method);
@@ -112,7 +115,7 @@ static void setupExtraInputDevice()
 		int device = extraInput.toInt(&ok);
 		ok = (ok && device >= NesInput::Zapper && device <= NesInput::Paddle);
 		if (!ok) {
-			qDebug("Invalid extra input device passed");
+			qDebug("Unknown extra input device passed");
 		} else {
 			nesInput.setExtraDevice(static_cast<NesInput::ExtraDevice>(device));
 		}
@@ -129,7 +132,7 @@ static void setupCpu()
 		} else if (cpuString == "interpreter") {
 			nesCpu = &nesCpuInterpreter;
 		} else {
-			qDebug("Invalid CPU type passed");
+			qDebug("Unknown CPU type passed");
 		}
 	}
 }
@@ -175,6 +178,10 @@ bool NesEmu::init(const QString &diskPath, QString *error)
 	if (!nesSyncInit(error))
 		return false;
 	reset();
+
+#if defined(ENABLE_DEBUGGING)
+	nesDebugInit();
+#endif
 	return true;
 }
 
@@ -186,6 +193,9 @@ void NesEmu::shutdown()
 	nesCpu->shutdown();
 	delete nesMapper;
 	nesDiskShutdown();
+#if defined(ENABLE_DEBUGGING)
+	nesDebugShutdown();
+#endif
 	nesPpuFrame = QImage();
 }
 
@@ -281,5 +291,8 @@ int main(int argc, char *argv[])
 	QApplication app(argc, argv);
 	qmlRegisterType<NesPpu>();
 	EmuView view(&nesEmu, argv[1]);
+#if defined(ENABLE_DEBUGGING)
+	view.disableSafetyTimer();
+#endif
 	return app.exec();
 }

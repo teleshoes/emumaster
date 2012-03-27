@@ -7,6 +7,9 @@
 #include "inputzapper.h"
 #include "apu.h"
 #include <QSemaphore>
+#if defined(ENABLE_DEBUGGING)
+#include "debug.h"
+#endif
 
 /*
 	This file contains asm generator, which creates a frame rendering loop.
@@ -37,6 +40,9 @@ static void updateZapperStub()
 static int beginStub()
 {
 	producerSem->acquire();
+#if defined(ENABLE_DEBUGGING)
+	nesDebugPostInit();
+#endif
 
 	nesInputSyncWithHost(nesEmu.input());
 	nesApuBeginFrame();
@@ -167,6 +173,8 @@ NesSync *NesSyncCompiler::recompile()
 	m_regList = m_dataBase.bit() | m_additionalCpuCycles.bit();
 #if defined(FRAME_POINTER_FOR_GDB)
 	m_regList |= fp.bit();
+#else
+	m_regList |= mInternalFlagsCopy.bit();
 #endif
 
 	// compile the code

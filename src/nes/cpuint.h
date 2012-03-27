@@ -29,6 +29,9 @@ public:
 	s32 ticks() const;
 	void setSignal(InterruptSignal sig, bool on);
 	void dma();
+#if defined(ENABLE_DEBUGGING)
+	void storeRegistersToBase();
+#endif
 private:
 	void executeOne();
 	bool handleEvent(Event ev);

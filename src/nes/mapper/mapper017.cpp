@@ -15,7 +15,6 @@
  */
 
 #include "mapper017.h"
-#include <QDataStream>
 
 static u8 irqEnable;
 static int irqCounter;

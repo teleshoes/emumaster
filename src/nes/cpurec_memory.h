@@ -221,7 +221,7 @@ inline void NesCpuTranslator::mRead8(u16 addr, Register dst, RegList preserve)
 	case 7:	// 0xe000-0xffff
 		if (dst.isValid()) {
 			// check if in same bank - then only read data once if possible
-			if (nesCpuBankByAddr(currentPc()) == nesCpuBankByAddr(addr)) {
+			if (nesCpuPageByAddr(currentPc()) == nesCpuPageByAddr(addr)) {
 				u8 data = nesCpuReadDirect(addr);
 				__ mov(dst, Operand(data));
 			} else {
