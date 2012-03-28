@@ -3,7 +3,8 @@
 
 #include "common.h"
 
-class GbaGameSharkCheat {
+class GbaGameSharkCheat
+{
 public:
 	bool parse(const QString &cheat, bool v3, u16 deadface);
 private:

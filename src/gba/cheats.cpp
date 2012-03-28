@@ -422,24 +422,28 @@ void process_cheat_gs3(cheat_type *cheat)
 }
 */
 
-void process_cheats() {
+void process_cheats()
+{
 }
 
-u32 seed_gen(u8 upper, u8 seed, const u8 *deadtable1, const u8 *deadtable2) {
+u32 seed_gen(u8 upper, u8 seed, const u8 *deadtable1, const u8 *deadtable2)
+{
 	u32 newseed = 0;
 	for (int i = 0; i < 4; i++)
 		newseed = ((newseed << 8) | ((deadtable1[(i + upper) & 0xFF] + deadtable2[seed]) & 0xFF));
 	return newseed;
 }
 
-void GbaGameSharkCheat::changeEncryption(u16 data, bool v3) {
+void GbaGameSharkCheat::changeEncryption(u16 data, bool v3)
+{
 	const u8 *deadtable1 = (v3 ? v3_deadtable1 : v1_deadtable1);
 	const u8 *deadtable2 = (v3 ? v3_deadtable2 : v1_deadtable2);
 	for (int i = 0; i < 4; i++)
 		m_seeds[i] = seed_gen(((data & 0xFF00) >> 8), (data & 0xFF) + i, deadtable1, deadtable2);
 }
 
-void GbaGameSharkCheat::decrypt(u32 *address, u32 *data) {
+void GbaGameSharkCheat::decrypt(u32 *address, u32 *data)
+{
 	u32 rollingseed = 0xC6EF3720;
 	int bitsleft = 32;
 	while (bitsleft > 0) {
@@ -452,7 +456,8 @@ void GbaGameSharkCheat::decrypt(u32 *address, u32 *data) {
 	}
 }
 
-bool GbaGameSharkCheat::parse(const QString &cheat, bool v3, u16 deadface) {
+bool GbaGameSharkCheat::parse(const QString &cheat, bool v3, u16 deadface)
+{
 	if (cheat.size() != 16)
 		return false;
 	for (int i = 0; i < 16; i++) {
