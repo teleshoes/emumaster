@@ -146,6 +146,8 @@ public:
 #endif
 
 	bool mTryOptimize();
+	bool mOptimAslAcc();
+	bool mOptimLsrAcc();
 	bool mOptimBitAbs();
 	bool mOptimBitAbsBxx(Condition cond);
 	bool mOptimJmpAbs();
@@ -153,9 +155,17 @@ public:
 	bool mOptimLdaAbsBpl();
 	bool mOptimLdaAbsAndImm();
 	bool mOptimLdaAbsAndImmBneBeq(Condition cond);
-	bool mOptimizeIncReg(u8 op, Register reg);
-	bool mOptimizeDecReg(u8 op, Register reg);
+	bool mOptimIncReg(u8 op, Register reg);
+	bool mOptimDecReg(u8 op, Register reg);
+	bool mOptimDecRegBne(Register reg);
+	bool mOptimCmpZpg();
+	bool mOptimCmpZpgBxx(Condition cond);
+	bool mOptimLdaZpg();
+	bool mOptimLdaZpgBxx(Condition cond);
+	bool mOptimNop(u8 op);
+	bool mOptimNopJmpAbs(int nopCycles, int nopCount);
 	void mSaturateCycles(int modValue);
+	Condition bxxToCondition(u8 op) const;
 
 	void mSingleInstruction();
 	void mNop() {}

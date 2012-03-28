@@ -174,7 +174,7 @@ NesSync *NesSyncCompiler::recompile()
 #if defined(FRAME_POINTER_FOR_GDB)
 	m_regList |= fp.bit();
 #else
-	m_regList |= mInternalFlagsCopy.bit();
+	m_regList |= fp.bit(); // save mInternalFlagsCopy
 #endif
 
 	// compile the code
