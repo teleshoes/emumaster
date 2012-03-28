@@ -749,7 +749,7 @@ static void fillPens()
 	 */
 
 	int entry = 0;
-	qreal tint = 0.28f;	// adjust to taste
+	qreal tint = 0.25f;	// adjust to taste
 	qreal hue = 287.0f;
 
 	qreal Kr = 0.2989f;
