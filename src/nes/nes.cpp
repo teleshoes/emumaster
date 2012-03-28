@@ -124,11 +124,12 @@ static void setupExtraInputDevice()
 
 static void setupCpu()
 {
-	nesCpu = &nesCpuRecompiler;
+	nesCpu = &nesCpuInterpreter;
 	QVariant cpuType = emConf.value(cpuTypeConfName);
 	if (!cpuType.isNull()) {
 		QString cpuString = cpuType.toString();
 		if (cpuString == "recompiler") {
+			nesCpu = &nesCpuRecompiler;
 		} else if (cpuString == "interpreter") {
 			nesCpu = &nesCpuInterpreter;
 		} else {
