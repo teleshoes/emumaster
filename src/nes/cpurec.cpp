@@ -110,7 +110,6 @@ inline void *NesCpuTranslator::process(u16 instrPointer, u8 *caller)
 {
 	int count = 128;
 	if (instrPointer < 0x4000) {
-		// TODO activate a warning in settings here
 		count = 16;
 		memset32(m_labels + m_lastRecompilationInRam,
 				 -m_translateCallerLabel.pos()-1,
@@ -215,7 +214,6 @@ void NesCpuTranslator::clearPage(int pageIndex)
 		}
 
 		int offset = pageIndex * NesCpuBankSize;
-		// TODO make a high speed version of memset32
 		// page 0 and 1 will be cleared only once at start, so no need
 		// to call it for both
 		memset32(m_labels + offset,
@@ -407,7 +405,6 @@ void NesCpuTranslator::mHandleEvent()
 	__ b(&loadState, eq);
 
 // exitEvent:
-	// TODO mCheckEq(r1, Operand(NesCpuBase::ExitEvent));
 	mExitPoint();
 
 // loadState:
@@ -522,7 +519,6 @@ void NesCpuTranslator::mSync()
 	// r0 - 6502.PC address of the next instruction
 
 	__ bind(&m_syncLabel);
-	// TODO assert-check if mCycles >= 0
 	Label exitSync;
 	Label handleEvent;
 	mSaveInternalFlags();

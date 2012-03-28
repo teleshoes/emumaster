@@ -559,6 +559,7 @@ bool nesPpuDrawPrologue()
 
 	bgWr = bgWritten;
 	bgCurrPens = currentPens();
+	bgExtLatch = nesMapper->extensionLatch;
 
 	fetchTileAddress();
 	return true;
