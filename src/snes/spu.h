@@ -43,7 +43,7 @@
 
 #include "spc700.h"
 #include "port.h"
-#include <emu.h>
+#include <base/emu.h>
 
 extern void snesSpuSl();
 

@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <emu.h>
+#include <base/emu.h>
 #include "cd_sys.h"
 
 extern u8 *picoRom;

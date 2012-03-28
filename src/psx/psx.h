@@ -17,7 +17,7 @@
 #ifndef PSXEMU_H
 #define PSXEMU_H
 
-#include <emu.h>
+#include <base/emu.h>
 #include <QThread>
 #include <QSemaphore>
 

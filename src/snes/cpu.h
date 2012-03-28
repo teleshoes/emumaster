@@ -43,7 +43,7 @@
 #include "ppu.h"
 #include "mem.h"
 #include "65c816.h"
-#include <emu.h>
+#include <base/emu.h>
 
 extern void snesCpuSl();
 

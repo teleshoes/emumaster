@@ -15,17 +15,6 @@
  */
 
 #include "psx.h"
-#include <pathmanager.h>
-#include <QString>
-#include <QImage>
-#include <QPainter>
-#include <QApplication>
-#include <QTimer>
-#include <QFileInfo>
-#include <QDir>
-#include <emuview.h>
-#include <sys/time.h>
-
 #include "common.h"
 #include "cdrom.h"
 #include "misc.h"
@@ -42,6 +31,17 @@
 #include "bios.h"
 #include "cdriso.h"
 #include "counters.h"
+
+#include <base/pathmanager.h>
+#include <base/emuview.h>
+#include <QString>
+#include <QImage>
+#include <QPainter>
+#include <QApplication>
+#include <QTimer>
+#include <QFileInfo>
+#include <QDir>
+#include <sys/time.h>
 
 PcsxConfig Config;
 

@@ -17,7 +17,7 @@
 #ifndef AMIGABLIT_H
 #define AMIGABLIT_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 static inline u32 blit_func(u32 srca, u32 srcb, u32 srcc, u8 mt) {
 switch (mt) {

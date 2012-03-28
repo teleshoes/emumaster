@@ -7,11 +7,11 @@
 */
 
 #include "pico.h"
-#include "emuview.h"
 #include "cart.h"
-#include "pathmanager.h"
 #include "mp3player.h"
 #include "ym2612.h"
+#include <base/pathmanager.h>
+#include <base/emuview.h>
 #include <QImage>
 #include <QApplication>
 #include <QFile>

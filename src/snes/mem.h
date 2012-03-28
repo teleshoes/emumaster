@@ -41,7 +41,7 @@
 #ifndef SNESMEMORY_H
 #define SNESMEMORY_H
 
-#include <emu.h>
+#include <base/emu.h>
 #include "snes9x.h"
 
 extern void snesMemSl();

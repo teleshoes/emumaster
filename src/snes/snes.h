@@ -1,7 +1,7 @@
 #ifndef SNESEMU_H
 #define SNESEMU_H
 
-#include <emu.h>
+#include <base/emu.h>
 #include <QImage>
 
 typedef u8 bool8;

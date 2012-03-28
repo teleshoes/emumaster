@@ -17,7 +17,7 @@
 #ifndef AMIGADISK_H
 #define AMIGADISK_H
 
-#include <emu.h>
+#include <base/emu.h>
 #include <QFile>
 
 typedef enum { TRACK_AMIGADOS, TRACK_RAW, TRACK_RAW1 } image_tracktype;

@@ -4,10 +4,10 @@
 #include "spu.h"
 #include "gfx.h"
 #include "soundux.h"
-#include "emuview.h"
 #include "srtc.h"
 #include "dma.h"
 #include "sdd1.h"
+#include <base/emuview.h>
 #include <QApplication>
 
 // TODO set sound enabled

@@ -65,7 +65,7 @@ static inline void SysPrintf(const char *fmt, ...)
 #define __inline inline
 
 #ifdef __cplusplus
-#include <emu.h>
+#include <base/emu.h>
 extern "C" {
 #endif
 

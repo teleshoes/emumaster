@@ -15,12 +15,6 @@
  */
 
 #include "amiga.h"
-#include <emuview.h>
-#include <pathmanager.h>
-#include <QImage>
-#include <QSemaphore>
-#include <QApplication>
-
 #include "events.h"
 #include "mem.h"
 #include "spu.h"
@@ -30,6 +24,11 @@
 #include "disk.h"
 #include "drawing.h"
 #include "cia.h"
+#include <base/emuview.h>
+#include <base/pathmanager.h>
+#include <QImage>
+#include <QSemaphore>
+#include <QApplication>
 
 static volatile bool amigaGoingShutdown = false;
 static QImage amigaFrame;

@@ -14,7 +14,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <emu.h>
+#include <base/emu.h>
 #include "amiga.h"
 #include "mem.h"
 #include "custom.h"

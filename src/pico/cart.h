@@ -7,7 +7,7 @@
 #ifndef PICOCART_H
 #define PICOCART_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 class PicoCart {
 public:

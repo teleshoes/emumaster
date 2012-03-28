@@ -17,7 +17,7 @@
 #ifndef AMIGACPU_H
 #define AMIGACPU_H
 
-#include <emu.h>
+#include <base/emu.h>
 #include "cyclone.h"
 
 enum SpcFlag {

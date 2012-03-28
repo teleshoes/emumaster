@@ -5,7 +5,7 @@
 	(c) Copyright 2011, elemental
 */
 
-#include <emu.h>
+#include <base/emu.h>
 
 #ifdef _ASM_MEMORY_C
 extern "C" u32 OtherRead16End(u32 a, int realsize);

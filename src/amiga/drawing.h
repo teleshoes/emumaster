@@ -17,7 +17,7 @@
 #ifndef AMIGADRAW_H
 #define AMIGADRAW_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 #define MAX_PLANES 6
 

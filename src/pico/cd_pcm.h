@@ -8,7 +8,7 @@
 #ifndef PICOMCDPCM_H
 #define PICOMCDPCM_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 #define PCM_STEP_SHIFT 11
 

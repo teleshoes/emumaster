@@ -17,7 +17,7 @@
 #ifndef AMIGAEMU_H
 #define AMIGAEMU_H
 
-#include <emu.h>
+#include <base/emu.h>
 #include <QThread>
 
 #define _GCCRES_ __restrict__

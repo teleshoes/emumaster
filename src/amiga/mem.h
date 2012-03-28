@@ -17,7 +17,7 @@
 #ifndef AMIGAMEM_H
 #define AMIGAMEM_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 typedef u32 (*AmigaMemGetFunc)(u32);
 typedef void (*AmigaMemPutFunc)(u32, u32);

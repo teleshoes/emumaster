@@ -23,10 +23,10 @@
 
 // TODO: Implement caches & cycle penalty.
 
-#include <pathmanager.h>
 #include "mem.h"
 #include "cpu.h"
 #include "hw.h"
+#include <base/pathmanager.h>
 #include <QFile>
 #include <sys/mman.h>
 

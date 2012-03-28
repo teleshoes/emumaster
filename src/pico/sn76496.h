@@ -8,7 +8,7 @@
 #ifndef PICOSN76496_H
 #define PICOSN76496_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 class SN76496 {
 public:
