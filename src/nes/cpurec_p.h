@@ -386,6 +386,9 @@ private:
 
 	int m_numOfDataUsedFromNextPage[8];
 	u8 m_dataUsedFromNextPage[8][16];
+
+	u16 m_lastRecompilationInRam;
+	u16 pad3;
 };
 
 #endif // NESCPUREC_P_H

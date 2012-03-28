@@ -65,6 +65,7 @@ bool NesCpuTranslator::init()
 	for (int i = 0; i < NesNumOfCpuPages; i++)
 		clearPage(i);
 
+	m_lastRecompilationInRam = 0;
 	return true;
 }
 
@@ -110,12 +111,14 @@ inline void *NesCpuTranslator::process(u16 instrPointer, u8 *caller)
 	int count = 128;
 	if (instrPointer < 0x4000) {
 		// TODO activate a warning in settings here
-		clearPage(nesCpuPageByAddr(instrPointer));
 		count = 16;
+		memset32(m_labels + m_lastRecompilationInRam,
+				 -m_translateCallerLabel.pos()-1,
+				 count * 4);
+		m_lastRecompilationInRam = instrPointer;
 	}
 	// check if already translated
-	if (m_labels[instrPointer] == m_translateCallerLabel ||
-		instrPointer < 0x4000) {
+	if (m_labels[instrPointer] == m_translateCallerLabel) {
 		Q_ASSERT(!m_checkAlertAfterInstruction);
 		m_recPc = instrPointer;
 

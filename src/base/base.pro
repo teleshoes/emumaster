@@ -64,7 +64,8 @@ SOURCES += \
     emu.cpp \
     emuinput.cpp \
     stringlistproxy.cpp \
-    memutils.cpp
+	memutils.cpp \
+	memset32_neon.S
 
 unix {
 	qml.path = /opt/emumaster/qml/base
