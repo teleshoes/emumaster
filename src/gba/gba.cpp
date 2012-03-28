@@ -1,7 +1,3 @@
-#include <emuview.h>
-#include <pathmanager.h>
-#include <QFile>
-#include <QApplication>
 #include "common.h"
 #include "cpu.h"
 #include "mem.h"
@@ -9,6 +5,10 @@
 #include "spu.h"
 #include "gba.h"
 #include "cheats.h"
+#include <base/emuview.h>
+#include <base/pathmanager.h>
+#include <QFile>
+#include <QApplication>
 
 timer_type timer[4];
 
