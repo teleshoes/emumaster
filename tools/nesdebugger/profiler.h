@@ -7,7 +7,14 @@
 class ProfilerItem : public QPair<u16, int>
 {
 public:
-	bool operator <(const ProfilerItem &i) const { return second > i.second; }
+	bool operator <(const ProfilerItem &i) const
+	{
+		if (second > i.second)
+			return true;
+		if (second == i.second && first < i.first)
+			return true;
+		return false;
+	}
 };
 
 class NesProfiler : public QAbstractListModel

@@ -146,6 +146,8 @@ public:
 #endif
 
 	bool mTryOptimize();
+	bool mOptimBitAbs();
+	bool mOptimBitAbsBxx(Condition cond);
 	bool mOptimJmpAbs();
 	bool mOptimLdaAbs();
 	bool mOptimLdaAbsBpl();

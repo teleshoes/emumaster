@@ -8,6 +8,7 @@ bool NesCpuTranslator::mTryOptimize()
 	u8 op = nesCpuReadDirect(m_recPc);
 	bool optimized;
 	switch (op) {
+	case 0x2c:	optimized = mOptimBitAbs(); break;
 	case 0x4c:	optimized = mOptimJmpAbs(); break;
 	case 0xad:	optimized = mOptimLdaAbs(); break;
 	case 0x88:	optimized = mOptimizeDecReg(0x88, mY); break;
@@ -17,6 +18,59 @@ bool NesCpuTranslator::mTryOptimize()
 	default:	optimized = false; break;
 	}
 	return optimized;
+}
+
+bool NesCpuTranslator::mOptimBitAbs()
+{
+	u8 lo = nesCpuReadDirect(m_recPc+1);
+	u8 hi = nesCpuReadDirect(m_recPc+2);
+	u16 addr = lo | (hi << 8);
+
+	if (addr != 0x2002) // PPU Status Register
+		return false;
+
+	u8 nextOp = nesCpuReadDirect(m_recPc+3);
+	Condition cond;
+	switch (nextOp) {
+	case 0x10: cond = pl; break;
+	case 0x30: cond = mi; break;
+	case 0x50: cond = vc; break;
+	case 0x70: cond = vs; break;
+	case 0xd0: cond = ne; break;
+	case 0xf0: cond = eq; break;
+	default:
+		return false;
+	}
+
+	return mOptimBitAbsBxx(cond);
+}
+
+bool NesCpuTranslator::mOptimBitAbsBxx(Condition cond)
+{
+	u8 disp = nesCpuReadDirect(m_recPc+4);
+	if (disp != 0xfb)
+		return false;
+
+	Label begin;
+	Label end;
+	__ bind(&begin);
+	mRead8(0x2002, mDT, 0);
+	mBit();
+	mAddCycles(4+2, NegateCondition(cond));
+	__ b(&end, NegateCondition(cond));
+	u16 ET = m_recPc + 5;
+	u16 EA = m_recPc;
+	int cycles = 4+2+1;
+	bool boundary = ((ET^EA) >> 8) & 1;
+	if (boundary)
+		cycles++;
+	mSaturateCycles(cycles);
+	__ mov(r0, Operand(m_recPc));
+	__ bl(&m_syncLabel);
+	__ b(&begin);
+	__ bind(&end);
+	m_recPc += 5;
+	return true;
 }
 
 bool NesCpuTranslator::mOptimJmpAbs()
@@ -163,13 +217,16 @@ void NesCpuTranslator::mSaturateCycles(int modValue)
 		// if mCycles negative - saturate it
 		__ and_(mCycles, mCycles, Operand(modValue-1));
 		// continue otherwise
-	} else if (modValue == 3) {
-		__ mov(r3, Operand(1431655766));
+	} else if (modValue == 3 || modValue == 6) {
+		__ mov(r3, Operand((modValue == 3) ? 0x55555556 : 0x2aaaaaab));
 		__ smull(r2, ip, r3, mCycles);
 		__ sub(r1, ip, Operand(mCycles, ASR, 31));
 		__ add(r3, r1, Operand(r1, LSL, 1));
-		__ rsb(mCycles, r3, Operand(mCycles));
-		__ add(mCycles, mCycles, Operand(3));
+		if (modValue == 3)
+			__ rsb(mCycles, r3, Operand(mCycles));
+		else
+			__ sub(mCycles, mCycles, Operand(r3, LSL, 1));
+		__ add(mCycles, mCycles, Operand(modValue));
 	} else {
 		__ mrs(ip, CPSR);
 		Label loop;

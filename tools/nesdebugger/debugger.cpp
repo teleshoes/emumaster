@@ -38,9 +38,12 @@ void NesDebugger::connectToServer()
 	}
 
 	m_sock = new QTcpSocket(this);
-	m_sock->connectToHost(QHostAddress("192.168.2.15"), DefaultPort);
-	if (!m_sock->waitForConnected())
+	static const char *peerAddr = "192.168.2.15";
+	m_sock->connectToHost(QHostAddress(peerAddr), DefaultPort);
+	if (!m_sock->waitForConnected()) {
+		qDebug("Could not connect to the client at %s!", peerAddr);
 		abort();
+	}
 
 	m_stream = new QDataStream(m_sock);
 	m_stream->setByteOrder(QDataStream::LittleEndian);
