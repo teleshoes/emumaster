@@ -687,6 +687,10 @@ bool NesCpuTranslator::mTryOptimize()
 	switch (op) {
 	case 0x4c:	optimized = mOptimJmpAbs(); break;
 	case 0xad:	optimized = mOptimLdaAbs(); break;
+	case 0x88:	optimized = mOptimizeDecReg(0x88, mY); break;
+	case 0xca:	optimized = mOptimizeDecReg(0xca, mX); break;
+	case 0xc8:	optimized = mOptimizeIncReg(0xc8, mY); break;
+	case 0xe8:	optimized = mOptimizeIncReg(0xe8, mX); break;
 	default:	optimized = false; break;
 	}
 	return optimized;
@@ -752,6 +756,30 @@ bool NesCpuTranslator::mOptimLdaAbsBpl()
 	__ b(&begin);
 	__ bind(&end);
 	m_recPc += 5;
+	return true;
+}
+
+bool NesCpuTranslator::mOptimizeIncReg(u8 op, Register reg)
+{
+	int count = 1;
+	while (nesCpuReadDirect(m_recPc + count) == op)
+		count++;
+
+	mIncRegMultiple(reg, count);
+	mAddCycles(count * 2);
+	m_recPc += count;
+	return true;
+}
+
+bool NesCpuTranslator::mOptimizeDecReg(u8 op, Register reg)
+{
+	int count = 1;
+	while (nesCpuReadDirect(m_recPc + count) == op)
+		count++;
+
+	mDecRegMultiple(reg, count);
+	mAddCycles(count * 2);
+	m_recPc += count;
 	return true;
 }
 
