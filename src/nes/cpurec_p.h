@@ -149,6 +149,8 @@ public:
 	bool mOptimJmpAbs();
 	bool mOptimLdaAbs();
 	bool mOptimLdaAbsBpl();
+	bool mOptimLdaAbsAndImm();
+	bool mOptimLdaAbsAndImmBneBeq(Condition cond);
 	bool mOptimizeIncReg(u8 op, Register reg);
 	bool mOptimizeDecReg(u8 op, Register reg);
 	void mSaturateCycles(int modValue);

@@ -2,6 +2,7 @@ include(../emu.pri)
 include(../arm.pri)
 DEFINES += FRAME_POINTER_FOR_GDB
 DEFINES += ENABLE_DEBUGGING
+#DEFINES += DISABLE_RECOMPILER_OPTIMIZATIONS
 
 contains(DEFINES,ENABLE_DEBUGGING) {
 	HEADERS += debug.h
@@ -123,7 +124,8 @@ HEADERS += \
 	mapper/mapper003.h \
 	mapper/mapper002.h \
 	mapper/mapper001.h \
-	mapper/mapper000.h
+	mapper/mapper000.h \
+    cpurec_optimizations.h
 
 SOURCES += \
 	ppu.cpp \

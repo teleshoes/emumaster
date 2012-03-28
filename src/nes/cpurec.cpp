@@ -18,6 +18,7 @@
 #include "cpurec_stack.h"
 #include "cpurec_transfer.h"
 #include "cpurec_undocummented.h"
+#include "cpurec_optimizations.h"
 
 NesCpuRecompiler nesCpuRecompiler;
 static NesCpuTranslator translator Q_DECL_ALIGN(4);
@@ -106,18 +107,17 @@ inline u16 NesCpuTranslator::fetchPc16()
  */
 inline void *NesCpuTranslator::process(u16 instrPointer, u8 *caller)
 {
+	int count = 128;
+	if (instrPointer < 0x4000) {
+		// TODO activate a warning in settings here
+		clearPage(nesCpuPageByAddr(instrPointer));
+		count = 16;
+	}
 	// check if already translated
 	if (m_labels[instrPointer] == m_translateCallerLabel ||
 		instrPointer < 0x4000) {
 		Q_ASSERT(!m_checkAlertAfterInstruction);
 		m_recPc = instrPointer;
-
-		int count = 128;
-		if (m_recPc < 0x4000) {
-			// TODO activate a warning in settings here
-			clearPage(nesCpuPageByAddr(m_recPc));
-			count = 16;
-		}
 
 		int page = nesCpuPageByAddr(instrPointer);
 		int recompiledStart = m_pageTranslationOffset[page];
@@ -679,121 +679,6 @@ void NesCpuTranslator::mDebugStep()
 	__ pop(pc);
 }
 #endif
-
-bool NesCpuTranslator::mTryOptimize()
-{
-	u8 op = nesCpuReadDirect(m_recPc);
-	bool optimized;
-	switch (op) {
-	case 0x4c:	optimized = mOptimJmpAbs(); break;
-	case 0xad:	optimized = mOptimLdaAbs(); break;
-	case 0x88:	optimized = mOptimizeDecReg(0x88, mY); break;
-	case 0xca:	optimized = mOptimizeDecReg(0xca, mX); break;
-	case 0xc8:	optimized = mOptimizeIncReg(0xc8, mY); break;
-	case 0xe8:	optimized = mOptimizeIncReg(0xe8, mX); break;
-	default:	optimized = false; break;
-	}
-	return optimized;
-}
-
-bool NesCpuTranslator::mOptimJmpAbs()
-{
-	u8 lo = nesCpuReadDirect(m_recPc+1);
-	u8 hi = nesCpuReadDirect(m_recPc+2);
-	u16 dst = lo | (hi << 8);
-
-	if (dst != m_recPc)
-		return false;
-
-	Label begin;
-	__ bind(&begin);
-	mSaturateCycles(3);
-	__ mov(r0, Operand(m_recPc));
-	__ bl(&m_syncLabel);
-	__ b(&begin);
-	m_recPc += 3;
-	return true;
-}
-
-bool NesCpuTranslator::mOptimLdaAbs()
-{
-	u8 lo = nesCpuReadDirect(m_recPc+1);
-	u8 hi = nesCpuReadDirect(m_recPc+2);
-	u16 addr = lo | (hi << 8);
-
-	if (addr != 0x2002) // PPU Status Register
-		return false;
-
-	u8 nextOp = nesCpuReadDirect(m_recPc+3);
-	if (nextOp != 0x10) // bpl
-		return false;
-
-	return mOptimLdaAbsBpl();
-}
-
-bool NesCpuTranslator::mOptimLdaAbsBpl()
-{
-	u8 disp = nesCpuReadDirect(m_recPc+4);
-	if (disp != 0xfb)
-		return false;
-
-	Label begin;
-	Label end;
-	__ bind(&begin);
-	mRead8(0x2002, mDT, 0);
-	mLda();
-	mAddCycles(3+2, mi);
-	__ b(&end, mi);
-	u16 ET = m_recPc + 5;
-	u16 EA = m_recPc;
-	int cycles = 3+2+1;
-	bool boundary = ((ET^EA) >> 8) & 1;
-	if (boundary)
-		cycles++;
-	mSaturateCycles(cycles);
-	__ mov(r0, Operand(m_recPc));
-	__ bl(&m_syncLabel);
-	__ b(&begin);
-	__ bind(&end);
-	m_recPc += 5;
-	return true;
-}
-
-bool NesCpuTranslator::mOptimizeIncReg(u8 op, Register reg)
-{
-	int count = 1;
-	while (nesCpuReadDirect(m_recPc + count) == op)
-		count++;
-
-	mIncRegMultiple(reg, count);
-	mAddCycles(count * 2);
-	m_recPc += count;
-	return true;
-}
-
-bool NesCpuTranslator::mOptimizeDecReg(u8 op, Register reg)
-{
-	int count = 1;
-	while (nesCpuReadDirect(m_recPc + count) == op)
-		count++;
-
-	mDecRegMultiple(reg, count);
-	mAddCycles(count * 2);
-	m_recPc += count;
-	return true;
-}
-
-void NesCpuTranslator::mSaturateCycles(int modValue)
-{
-	// TODO special version for modValue = 3
-
-	__ mrs(ip, CPSR);
-	Label loop;
-	__ bind(&loop);
-	__ add(mCycles, mCycles, Operand(modValue), SetCC);
-	__ b(&loop, mi);
-	__ msr(CPSR_f, Operand(ip));
-}
 
 bool NesCpuRecompiler::init(QString *error)
 {
