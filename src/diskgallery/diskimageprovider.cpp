@@ -15,7 +15,7 @@
  */
 
 #include "diskimageprovider.h"
-#include <pathmanager.h>
+#include <base/pathmanager.h>
 #include <QImage>
 #include <QPainter>
 #include <QFile>

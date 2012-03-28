@@ -175,16 +175,18 @@ Item {
 			}
 		}
 		ListView {
+			id: profilerView
 			anchors {
 				top: regProfColumn.bottom
 				bottom: parent.bottom
 			}
-			width: parent.width
+			x: 3
+			width: parent.width-6
 			clip: true
 			model: dbg.prof
 
 			delegate: FlatButton {
-				width: parent.width
+				width: profilerView.width
 				text: pc + ": " + cnt
 				onClicked: mainView.positionViewAtIndex(dbg.indexOf("0x"+pc),
 														ListView.Center)

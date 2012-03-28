@@ -118,7 +118,7 @@ public:
 	void checkTranslationBoundary(int pageIndex);
 
 	void mTo16Bit(Register reg);
-	void mAddCycles(int n);
+	void mAddCycles(int n, Condition cond = al);
 	void mStoreCurrentCycles();
 	void mFetchAdditionalCycles();
 	void mTranslateCaller();
@@ -144,6 +144,12 @@ public:
 #if defined(ENABLE_DEBUGGING)
 	void mDebugStep();
 #endif
+
+	bool mTryOptimize();
+	bool mOptimJmpAbs();
+	bool mOptimLdaAbs();
+	bool mOptimLdaAbsBpl();
+	void mSaturateCycles(int modValue);
 
 	void mSingleInstruction();
 	void mNop() {}

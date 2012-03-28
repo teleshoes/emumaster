@@ -15,7 +15,7 @@
 
 #include "sixaxisinputdevice.h"
 #include "emu.h"
-#include <sixaxis.h>
+#include <sixaxisclient/sixaxis.h>
 
 // TODO check mouse
 

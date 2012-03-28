@@ -15,7 +15,7 @@
  */
 
 #include "touchinputview.h"
-#include <touchinputdevice.h>
+#include <base/touchinputdevice.h>
 #include <QPainter>
 
 TouchInputView::TouchInputView(QDeclarativeItem *parent) :
