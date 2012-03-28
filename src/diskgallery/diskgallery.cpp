@@ -18,11 +18,11 @@
 #include "disklistmodel.h"
 #include "diskimageprovider.h"
 #include "touchinputview.h"
-#include <accelinputdevice.h>
-#include <keybinputdevice.h>
-#include <touchinputdevice.h>
-#include <pathmanager.h>
-#include <configuration.h>
+#include <base/accelinputdevice.h>
+#include <base/keybinputdevice.h>
+#include <base/touchinputdevice.h>
+#include <base/pathmanager.h>
+#include <base/configuration.h>
 #include <QDeclarativeEngine>
 #include <QDeclarativeContext>
 #include <QFile>

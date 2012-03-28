@@ -15,40 +15,30 @@
  */
 
 #include "mapper235.h"
-#include "ppu.h"
-#include "disk.h"
 
-void Mapper235::reset()
-{
-	NesMapper::reset();
-
-	memset(nesWram+0x2000, 0xFF, 0x2000);
-	setRom32KBank(0);
-}
-
-void Mapper235::writeHigh(u16 address, u8 data)
+static void writeHigh(u16 addr, u8 data)
 {
 	Q_UNUSED(data)
 
-	u8 prg = ((address&0x0300)>>3) | (address&0x001F);
+	u8 prg = ((addr&0x0300)>>3) | (addr&0x001F);
 	u8 bus = 0;
 
 	if (nesRomSize8KB == 64*2) {
-		switch (address & 0x0300) {
+		switch (addr & 0x0300) {
 		case 0x0000: break;
 		case 0x0100: bus = 1; break;
 		case 0x0200: bus = 1; break;
 		case 0x0300: bus = 1; break;
 		}
 	} else if (nesRomSize8KB == 128*2) {
-		switch (address & 0x0300) {
+		switch (addr & 0x0300) {
 		case 0x0000: break;
 		case 0x0100: bus = 1; break;
 		case 0x0200: prg = (prg&0x1F)|0x20; break;
 		case 0x0300: bus = 1; break;
 		}
 	} else if (nesRomSize8KB == 192*2) {
-		switch (address & 0x0300) {
+		switch (addr & 0x0300) {
 		case 0x0000: break;
 		case 0x0100: bus = 1; break;
 		case 0x0200: prg = (prg&0x1F)|0x20; break;
@@ -56,31 +46,40 @@ void Mapper235::writeHigh(u16 address, u8 data)
 		}
 	}
 
-	if (address & 0x0800) {
-		if (address & 0x1000) {
-			setRom8KBank(4, prg*4+2);
-			setRom8KBank(5, prg*4+3);
-			setRom8KBank(6, prg*4+2);
-			setRom8KBank(7, prg*4+3);
+	if (addr & 0x0800) {
+		if (addr & 0x1000) {
+			nesSetRom8KBank(4, prg*4+2);
+			nesSetRom8KBank(5, prg*4+3);
+			nesSetRom8KBank(6, prg*4+2);
+			nesSetRom8KBank(7, prg*4+3);
 		} else {
-			setRom8KBank(4, prg*4+0);
-			setRom8KBank(5, prg*4+1);
-			setRom8KBank(6, prg*4+0);
-			setRom8KBank(7, prg*4+1);
+			nesSetRom8KBank(4, prg*4+0);
+			nesSetRom8KBank(5, prg*4+1);
+			nesSetRom8KBank(6, prg*4+0);
+			nesSetRom8KBank(7, prg*4+1);
 		}
 	} else {
-		setRom32KBank(prg);
+		nesSetRom32KBank(prg);
 	}
 
 	if (bus) {
 		for (int i = 4; i < 8; i++)
-			setWram8KBank(i, 1);
+			nesSetWram8KBank(i, 1);
 	}
 
-	if (address & 0x0400)
-		setMirroring(SingleLow);
-	else if (address & 0x2000)
-		setMirroring(HorizontalMirroring);
+	if (addr & 0x0400)
+		nesSetMirroring(SingleLow);
+	else if (addr & 0x2000)
+		nesSetMirroring(HorizontalMirroring);
 	else
-		setMirroring(VerticalMirroring);
+		nesSetMirroring(VerticalMirroring);
+}
+
+void Mapper235::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	memset(nesWram+0x2000, 0xFF, 0x2000);
+	nesSetRom32KBank(0);
 }

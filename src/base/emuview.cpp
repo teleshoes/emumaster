@@ -48,6 +48,7 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 	m_slotToBeLoadedOnStart(StateListModel::InvalidSlot),
 	m_audioEnable(true),
 	m_autoSaveLoadEnable(true),
+	m_safetyTimerDisabled(false),
 	m_swipeEnabled(false),
 	m_runInBackground(false),
 	m_lrButtonsVisible(false)
@@ -80,6 +81,8 @@ EmuView::EmuView(Emu *emu, const QString &diskFileName) :
 
 	if (!loadConfiguration())
 		m_error = constructSlErrorString();
+
+	// TODO detect if USB mass storage is used
 
 	if (m_error.isEmpty()) {
 		QString diskPath = QString("%1/%2")
@@ -202,8 +205,10 @@ void EmuView::resume()
 					 this, SLOT(onFrameGenerated(bool)),
 					 Qt::BlockingQueuedConnection);
 
-	m_safetyCheck = false;
-	m_safetyTimer->start();
+	if (!m_safetyTimerDisabled) {
+		m_safetyCheck = false;
+		m_safetyTimer->start();
+	}
 
 	m_thread->resume();
 
@@ -376,7 +381,7 @@ bool EmuView::loadConfiguration()
 	parseConfArg(confArg);
 
 	// load conf from global settings
-	loadSettings();
+	finishSetupConfiguration();
 
 	return true;
 }
@@ -496,7 +501,7 @@ void EmuView::setSwipeEnabled(bool on)
 
 //-------------------------------SETTINGS SECTION-------------------------------
 
-void EmuView::loadSettings()
+void EmuView::finishSetupConfiguration()
 {
 	QSettings s;
 	m_swipeEnabled = loadOptionFromSettings(s, "swipeEnable").toBool();
@@ -627,6 +632,12 @@ QString EmuView::videoFilter() const
 QStringList EmuView::availableVideoFilters() const
 {
 	return m_hostVideo->shaderList();
+}
+
+void EmuView::disableSafetyTimer()
+{
+	m_safetyTimerDisabled = true;
+	m_safetyTimer->stop();
 }
 
 void EmuView::hostVideoShaderChanged()

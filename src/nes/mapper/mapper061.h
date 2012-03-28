@@ -19,12 +19,10 @@
 
 #include "../mapper.h"
 
-class Mapper061 : public NesMapper {
-
+class Mapper061 : public NesMapper
+{
 public:
 	void reset();
-
-	void writeHigh(u16 address, u8 data);
 };
 
 #endif // MAPPER061_H

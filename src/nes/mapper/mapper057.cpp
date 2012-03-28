@@ -15,40 +15,45 @@
  */
 
 #include "mapper057.h"
-#include <QDataStream>
 
-void Mapper057::reset() {
-	NesMapper::reset();
+static u8 reg;
 
-	setRom8KBanks(0, 1, 0, 1);
-	setVrom8KBank(0);
-
-	reg = 0;
-}
-
-void Mapper057::writeHigh(u16 address, u8 data) {
-	switch (address) {
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr) {
 	case 0x8000:
 	case 0x8001:
 	case 0x8002:
 	case 0x8003:
 		if (data & 0x40)
-			setVrom8KBank((data&0x03) + ((reg&0x10)>>1) + (reg&0x07));
+			nesSetVrom8KBank((data&0x03) + ((reg&0x10)>>1) + (reg&0x07));
 		break;
 	case 0x8800:
 		reg = data;
 		if (data & 0x80) {
-			setRom32KBank(((data & 0x40) >> 6) + 2);
+			nesSetRom32KBank(((data & 0x40) >> 6) + 2);
 		} else {
-			setRom16KBank(4, (data & 0x60) >> 5);
-			setRom16KBank(6, (data & 0x60) >> 5);
+			nesSetRom16KBank(4, (data & 0x60) >> 5);
+			nesSetRom16KBank(6, (data & 0x60) >> 5);
 		}
-		setVrom8KBank((data&0x07) + ((data&0x10)>>1));
-		setMirroring(static_cast<NesMirroring>((data & 0x08) >> 3));
+		nesSetVrom8KBank((data&0x07) + ((data&0x10)>>1));
+		nesSetMirroring(static_cast<NesMirroring>((data & 0x08) >> 3));
 		break;
 	}
 }
 
-void Mapper057::extSl() {
+void Mapper057::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	nesSetRom8KBanks(0, 1, 0, 1);
+	nesSetVrom8KBank(0);
+
+	reg = 0;
+}
+
+void Mapper057::extSl()
+{
 	emsl.var("reg", reg);
 }

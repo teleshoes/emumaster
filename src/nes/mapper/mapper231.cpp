@@ -15,32 +15,33 @@
  */
 
 #include "mapper231.h"
-#include "ppu.h"
-#include "disk.h"
 
-void Mapper231::reset() {
-	NesMapper::reset();
-
-	setRom32KBank(0);
-	if (nesVromSize1KB)
-		setVrom8KBank(0);
-}
-
-void Mapper231::writeHigh(u16 address, u8 data) {
+static void writeHigh(u16 addr, u8 data)
+{
 	Q_UNUSED(data)
 
-	if (address & 0x0020) {
-		setRom32KBank(u8(address>>1));
+	if (addr & 0x0020) {
+		nesSetRom32KBank(u8(addr>>1));
 	} else {
-		u8 bank = address & 0x1E;
-		setRom8KBank(4, bank*2+0);
-		setRom8KBank(5, bank*2+1);
-		setRom8KBank(6, bank*2+0);
-		setRom8KBank(7, bank*2+1);
+		u8 bank = addr & 0x1E;
+		nesSetRom8KBank(4, bank*2+0);
+		nesSetRom8KBank(5, bank*2+1);
+		nesSetRom8KBank(6, bank*2+0);
+		nesSetRom8KBank(7, bank*2+1);
 	}
 
-	if (address & 0x0080)
-		setMirroring(HorizontalMirroring);
+	if (addr & 0x0080)
+		nesSetMirroring(HorizontalMirroring);
 	else
-		setMirroring(VerticalMirroring);
+		nesSetMirroring(VerticalMirroring);
+}
+
+void Mapper231::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	nesSetRom32KBank(0);
+	if (nesVromSize1KB)
+		nesSetVrom8KBank(0);
 }

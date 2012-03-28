@@ -17,7 +17,7 @@
 #ifndef NESINPUT_H
 #define NESINPUT_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 class NesInput : public QObject
 {
@@ -55,6 +55,6 @@ extern NesInputExtraDevice nesInputNullExtra;
 extern void nesInputReset();
 extern void nesInputWrite(u16 addr, u8 data);
 extern   u8 nesInputRead(u16 addr);
-extern void nesInputSync(const EmuInput *hostInput);
+extern void nesInputSyncWithHost(const EmuInput *hostInput);
 
 #endif // NESINPUT_H

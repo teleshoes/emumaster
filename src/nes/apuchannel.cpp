@@ -15,8 +15,7 @@
  */
 
 #include "apuchannel.h"
-#include <emu.h>
-#include <QDataStream>
+#include <base/emu.h>
 
 void NesApuLengthCounter::sl()
 {

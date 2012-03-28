@@ -18,28 +18,28 @@
 
 #include "emu.h"
 
-template <int Size>
+template <uint Size>
 class AudioRingBuffer
 {
 public:
 	void reset();
 	void writeSample(s16 l, s16 r);
-	int fillBuffer(char *stream, int maxSize);
+	int fillBuffer(char *stream, uint maxSize);
 private:
-	int m_head;
-	int m_tail;
+	uint m_head;
+	uint m_tail;
 
 	s16 m_buffer[Size];
 };
 
-template <int Size>
+template <uint Size>
 void AudioRingBuffer<Size>::reset()
 {
 	m_head = 0;
 	m_tail = 0;
 }
 
-template <int Size>
+template <uint Size>
 void AudioRingBuffer<Size>::writeSample(s16 l, s16 r)
 {
 	m_buffer[m_head+0] = l;
@@ -47,8 +47,8 @@ void AudioRingBuffer<Size>::writeSample(s16 l, s16 r)
 	m_head = (m_head+2) % Size;
 }
 
-template <int Size>
-int AudioRingBuffer<Size>::fillBuffer(char *stream, int maxSize)
+template <uint Size>
+int AudioRingBuffer<Size>::fillBuffer(char *stream, uint maxSize)
 {
 	// maxSize is size in bytes
 	int maxLength = maxSize/2;
@@ -57,10 +57,10 @@ int AudioRingBuffer<Size>::fillBuffer(char *stream, int maxSize)
 		length = maxLength;
 	if (length) {
 		if (m_tail+length >= Size) {
-			u32 partialLength = Size - m_tail;
+			uint partialLength = Size - m_tail;
 			memcpy((s16 *)stream, m_buffer+m_tail, partialLength*2);
 			m_tail = 0;
-			u32 remainderLength = length - partialLength;
+			uint remainderLength = length - partialLength;
 			memcpy((s16 *)stream+partialLength, m_buffer+m_tail, remainderLength*2);
 			m_tail = remainderLength;
 		} else {

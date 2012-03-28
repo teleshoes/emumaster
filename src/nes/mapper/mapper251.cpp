@@ -15,24 +15,55 @@
  */
 
 #include "mapper251.h"
-#include "ppu.h"
 #include "disk.h"
-#include <emu.h>
-#include <QDataStream>
+#include "ppu.h"
 
-void Mapper251::reset() {
-	NesMapper::reset();
+static u8 reg[11];
+static u8 breg[4];
 
-	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
-	setMirroring(VerticalMirroring);
+static void setBank()
+{
+	int chr[6];
+	int prg[4];
 
-	memset(reg, 0, sizeof(reg));
-	memset(breg, 0, sizeof(breg));
+	for (int i = 0; i < 6; i++)
+		chr[i] = (reg[i]|(breg[1]<<4)) & ((breg[2]<<4)|0x0F);
+
+	if (reg[8] & 0x80) {
+		nesSetVrom1KBank(4, chr[0]);
+		nesSetVrom1KBank(5, chr[0]+1);
+		nesSetVrom1KBank(6, chr[1]);
+		nesSetVrom1KBank(7, chr[1]+1);
+		nesSetVrom1KBank(0, chr[2]);
+		nesSetVrom1KBank(1, chr[3]);
+		nesSetVrom1KBank(2, chr[4]);
+		nesSetVrom1KBank(3, chr[5]);
+	} else {
+		nesSetVrom1KBank(0, chr[0]);
+		nesSetVrom1KBank(1, chr[0]+1);
+		nesSetVrom1KBank(2, chr[1]);
+		nesSetVrom1KBank(3, chr[1]+1);
+		nesSetVrom1KBank(4, chr[2]);
+		nesSetVrom1KBank(5, chr[3]);
+		nesSetVrom1KBank(6, chr[4]);
+		nesSetVrom1KBank(7, chr[5]);
+	}
+
+	prg[0] = (reg[6]&((breg[3]&0x3F)^0x3F))|(breg[1]);
+	prg[1] = (reg[7]&((breg[3]&0x3F)^0x3F))|(breg[1]);
+	prg[2] = prg[3] =((breg[3]&0x3F)^0x3F)|(breg[1]);
+	prg[2] &= nesRomSize8KB-1;
+
+	if (reg[8] & 0x40)
+		nesSetRom8KBanks(prg[2],prg[1],prg[0],prg[3]);
+	else
+		nesSetRom8KBanks(prg[0],prg[1],prg[2],prg[3]);
 }
 
-void Mapper251::writeLow(u16 address, u8 data) {
-	Q_UNUSED(address)
-	if ((address & 0xE001) == 0x6000) {
+static void writeLow(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
+	if ((addr & 0xE001) == 0x6000) {
 		if (reg[9]) {
 			breg[reg[10]++] = data;
 			if (reg[10] == 4) {
@@ -43,8 +74,9 @@ void Mapper251::writeLow(u16 address, u8 data) {
 	}
 }
 
-void Mapper251::writeHigh(u16 address, u8 data) {
-	switch (address & 0xE001) {
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr & 0xE001) {
 	case 0x8000:
 		reg[8] = data;
 		setBank();
@@ -64,45 +96,21 @@ void Mapper251::writeHigh(u16 address, u8 data) {
 	}
 }
 
-void Mapper251::setBank() {
-	int chr[6];
-	int prg[4];
+void Mapper251::reset()
+{
+	NesMapper::reset();
+	writeLow = ::writeLow;
+	writeHigh = ::writeHigh;
 
-	for (int i = 0; i < 6; i++)
-		chr[i] = (reg[i]|(breg[1]<<4)) & ((breg[2]<<4)|0x0F);
+	nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	nesSetMirroring(VerticalMirroring);
 
-	if (reg[8] & 0x80) {
-		setVrom1KBank(4, chr[0]);
-		setVrom1KBank(5, chr[0]+1);
-		setVrom1KBank(6, chr[1]);
-		setVrom1KBank(7, chr[1]+1);
-		setVrom1KBank(0, chr[2]);
-		setVrom1KBank(1, chr[3]);
-		setVrom1KBank(2, chr[4]);
-		setVrom1KBank(3, chr[5]);
-	} else {
-		setVrom1KBank(0, chr[0]);
-		setVrom1KBank(1, chr[0]+1);
-		setVrom1KBank(2, chr[1]);
-		setVrom1KBank(3, chr[1]+1);
-		setVrom1KBank(4, chr[2]);
-		setVrom1KBank(5, chr[3]);
-		setVrom1KBank(6, chr[4]);
-		setVrom1KBank(7, chr[5]);
-	}
-
-	prg[0] = (reg[6]&((breg[3]&0x3F)^0x3F))|(breg[1]);
-	prg[1] = (reg[7]&((breg[3]&0x3F)^0x3F))|(breg[1]);
-	prg[2] = prg[3] =((breg[3]&0x3F)^0x3F)|(breg[1]);
-	prg[2] &= nesRomSize8KB-1;
-
-	if (reg[8] & 0x40)
-		setRom8KBanks(prg[2],prg[1],prg[0],prg[3]);
-	else
-		setRom8KBanks(prg[0],prg[1],prg[2],prg[3]);
+	memset(reg, 0, sizeof(reg));
+	memset(breg, 0, sizeof(breg));
 }
 
-void Mapper251::extSl() {
+void Mapper251::extSl()
+{
 	emsl.array("reg", reg, sizeof(reg));
 	emsl.array("breg", breg, sizeof(breg));
 }

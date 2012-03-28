@@ -16,64 +16,69 @@
 
 #include "mapper015.h"
 
-void Mapper015::reset() {
-	NesMapper::reset();
-	setRom32KBank(0);
+static u8 prg[4];
+static u8 mirror;
+
+static void updateBanks()
+{
+	//EMU->SetPRG_RAM8(0x6, 0);
+	nesSetRom8KBank(4, prg[0]);
+	nesSetRom8KBank(5, prg[1]);
+	nesSetRom8KBank(6, prg[2]);
+	nesSetRom8KBank(7, prg[3]);
+
+	nesSetCram8KBank(0);
+	if (mirror)
+		nesSetMirroring(HorizontalMirroring);
+	else
+		nesSetMirroring(VerticalMirroring);
 }
 
-void Mapper015::writeHigh(u16 address, u8 data) {
-	switch (address) {
+static void writeHigh(u16 addr, u8 data)
+{
+	u8 prgBank = (data & 0x3f) << 1;
+	u8 prgFlip = (data & 0x80) >> 7;
+
+	switch (addr) {
 	case 0x8000:
-		if (data & 0x80) {
-			setRom8KBank(4, (data&0x3F)*2+1);
-			setRom8KBank(5, (data&0x3F)*2+0);
-			setRom8KBank(6, (data&0x3F)*2+3);
-			setRom8KBank(7, (data&0x3F)*2+2);
-		} else {
-			setRom8KBank(4, (data&0x3F)*2+0);
-			setRom8KBank(5, (data&0x3F)*2+1);
-			setRom8KBank(6, (data&0x3F)*2+2);
-			setRom8KBank(7, (data&0x3F)*2+3);
-		}
-		if (data & 0x40)
-			setMirroring(HorizontalMirroring);
-		else
-			setMirroring(VerticalMirroring);
+		prgBank &= 0x7c;
+		prg[0] = prgBank | (0 ^ prgFlip);
+		prg[1] = prgBank | (1 ^ prgFlip);
+		prg[2] = prgBank | (2 ^ prgFlip);
+		prg[3] = prgBank | (3 ^ prgFlip);
 		break;
 	case 0x8001:
-		if (data & 0x80) {
-			setRom8KBank(6, (data&0x3F)*2+1);
-			setRom8KBank(7, (data&0x3F)*2+0);
-		} else {
-			setRom8KBank(6, (data&0x3F)*2+0);
-			setRom8KBank(7, (data&0x3F)*2+1);
-		}
+		prg[0] = prgBank | (0 ^ prgFlip);
+		prg[1] = prgBank | (1 ^ prgFlip);
+		prg[2] = 0x7e | (0 ^ prgFlip);
+		prg[3] = 0x7f | (1 ^ prgFlip);
 		break;
 	case 0x8002:
-		if (data & 0x80) {
-			setRom8KBank(4, (data&0x3F)*2+1);
-			setRom8KBank(5, (data&0x3F)*2+1);
-			setRom8KBank(6, (data&0x3F)*2+1);
-			setRom8KBank(7, (data&0x3F)*2+1);
-		} else {
-			setRom8KBank(4, (data&0x3F)*2+0);
-			setRom8KBank(5, (data&0x3F)*2+0);
-			setRom8KBank(6, (data&0x3F)*2+0);
-			setRom8KBank(7, (data&0x3F)*2+0);
-		}
+		prg[0] = prgBank ^ prgFlip;
+		prg[1] = prgBank ^ prgFlip;
+		prg[2] = prgBank ^ prgFlip;
+		prg[3] = prgBank ^ prgFlip;
 		break;
 	case 0x8003:
-		if (data & 0x80) {
-			setRom8KBank(6, (data&0x3F)*2+1);
-			setRom8KBank(7, (data&0x3F)*2+0);
-		} else {
-			setRom8KBank(6, (data&0x3F)*2+0);
-			setRom8KBank(7, (data&0x3F)*2+1);
-		}
-		if (data & 0x40)
-			setMirroring(HorizontalMirroring);
-		else
-			setMirroring(VerticalMirroring);
+		prg[0] = prgBank | (0 ^ prgFlip);
+		prg[1] = prgBank | (1 ^ prgFlip);
+		prg[2] = prgBank | (0 ^ prgFlip);
+		prg[3] = prgBank | (1 ^ prgFlip);
 		break;
 	}
+	updateBanks();
+}
+
+void Mapper015::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	prg[0]=0;
+	prg[1]=1;
+	prg[2]=2;
+	prg[3]=3;
+	mirror = 0;
+
+	nesSetRom32KBank(0);
 }

@@ -15,79 +15,87 @@
  */
 
 #include "mapper009.h"
-#include "ppu.h"
 #include "disk.h"
-#include <QDataStream>
 
-void Mapper009::reset() {
-	NesMapper::reset();
+static u8 reg[4];
+static u8 latch_a, latch_b;
 
-	setRom8KBanks(0, nesRomSize8KB-3, nesRomSize8KB-2, nesRomSize8KB-1);
-
-	latch_a = 0xFE;
-	latch_b = 0xFE;
-
-	nesPpuSetCharacterLatchEnabled(true);
-
-	setVrom4KBank(0, 4);
-	setVrom4KBank(4, 0);
-}
-
-void Mapper009::writeHigh(u16 address, u8 data) {
-	switch (address & 0xF000) {
-	case 0xA000:
-		setRom8KBank(4, data);
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr & 0xf000) {
+	case 0xa000:
+		nesSetRom8KBank(4, data);
 		break;
-	case 0xB000:
+	case 0xb000:
 		reg[0] = data;
-		if (latch_a == 0xFD) {
-			setVrom4KBank(0, reg[0]);
+		if (latch_a == 0xfd) {
+			nesSetVrom4KBank(0, reg[0]);
 		}
 		break;
-	case 0xC000:
+	case 0xc000:
 		reg[1] = data;
-		if (latch_a == 0xFE) {
-			setVrom4KBank(0, reg[1]);
+		if (latch_a == 0xfe) {
+			nesSetVrom4KBank(0, reg[1]);
 		}
 		break;
-	case 0xD000:
+	case 0xd000:
 		reg[2] = data;
-		if (latch_b == 0xFD) {
-			setVrom4KBank(4, reg[2]);
+		if (latch_b == 0xfd) {
+			nesSetVrom4KBank(4, reg[2]);
 		}
 		break;
-	case 0xE000:
+	case 0xe000:
 		reg[3] = data;
-		if (latch_b == 0xFE) {
-			setVrom4KBank(4, reg[3]);
+		if (latch_b == 0xfe) {
+			nesSetVrom4KBank(4, reg[3]);
 		}
 		break;
-	case 0xF000:
+	case 0xf000:
 		if (data & 0x01)
-			setMirroring(HorizontalMirroring);
+			nesSetMirroring(HorizontalMirroring);
 		else
-			setMirroring(VerticalMirroring);
+			nesSetMirroring(VerticalMirroring);
 		break;
 	}
 }
 
-void Mapper009::characterLatch(u16 address) {
-	if ((address&0x1FF0) == 0x0FD0 && latch_a != 0xFD) {
-		latch_a = 0xFD;
-		setVrom4KBank(0, reg[0]);
-	} else if ((address&0x1FF0) == 0x0FE0 && latch_a != 0xFE) {
-		latch_a = 0xFE;
-		setVrom4KBank(0, reg[1]);
-	} else if ((address&0x1FF0) == 0x1FD0 && latch_b != 0xFD) {
-		latch_b = 0xFD;
-		setVrom4KBank(4, reg[2]);
-	} else if ((address&0x1FF0) == 0x1FE0 && latch_b != 0xFE) {
-		latch_b = 0xFE;
-		setVrom4KBank(4, reg[3]);
+static void characterLatch(u16 addr)
+{
+	if ((addr&0x1ff0) == 0x0fd0 && latch_a != 0xfd) {
+		latch_a = 0xfd;
+		nesSetVrom4KBank(0, reg[0]);
+	} else if ((addr&0x1ff0) == 0x0fe0 && latch_a != 0xfe) {
+		latch_a = 0xfe;
+		nesSetVrom4KBank(0, reg[1]);
+	} else if ((addr&0x1ff0) == 0x1fd0 && latch_b != 0xfd) {
+		latch_b = 0xfd;
+		nesSetVrom4KBank(4, reg[2]);
+	} else if ((addr&0x1ff0) == 0x1fe0 && latch_b != 0xfe) {
+		latch_b = 0xfe;
+		nesSetVrom4KBank(4, reg[3]);
 	}
 }
 
-void Mapper009::extSl() {
+void Mapper009::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+	characterLatch = ::characterLatch;
+
+	nesSetRom8KBanks(0, nesRomSize8KB-3, nesRomSize8KB-2, nesRomSize8KB-1);
+
+	latch_a = 0xfe;
+	latch_b = 0xfe;
+
+	reg[0] = 0; reg[1] = 4;
+	reg[2] = 0; reg[3] = 0;
+
+	nesSetVrom4KBank(0, 4);
+	nesSetVrom4KBank(4, 0);
+}
+
+void Mapper009::extSl()
+{
 	emsl.array("reg", reg, sizeof(reg));
 	emsl.var("latch_a", latch_a);
 	emsl.var("latch_b", latch_b);

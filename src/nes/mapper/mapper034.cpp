@@ -16,24 +16,29 @@
 
 #include "mapper034.h"
 
-void Mapper034::reset() {
+static void writeLow(u16 addr, u8 data)
+{
+	if (addr == 0x7FFD)
+		nesSetRom32KBank(data);
+	else if (addr == 0x7FFE)
+		nesSetVrom4KBank(0, data);
+	else if (addr == 0x7FFF)
+		nesSetVrom4KBank(4, data);
+}
+
+static void writeHigh(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
+	nesSetRom32KBank(data);
+}
+
+void Mapper034::reset()
+{
 	NesMapper::reset();
+	writeLow = ::writeLow;
+	writeHigh = ::writeHigh;
 
-	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+	nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 	if (nesVromSize1KB)
-		setVrom8KBank(0);
-}
-
-void Mapper034::writeLow(u16 address, u8 data) {
-	if (address == 0x7FFD)
-		setRom32KBank(data);
-	else if (address == 0x7FFE)
-		setVrom4KBank(0, data);
-	else if (address == 0x7FFF)
-		setVrom4KBank(4, data);
-}
-
-void Mapper034::writeHigh(u16 address, u8 data) {
-	Q_UNUSED(address)
-	setRom32KBank(data);
+		nesSetVrom8KBank(0);
 }

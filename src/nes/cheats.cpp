@@ -19,11 +19,39 @@
 #include "mapper.h"
 #include "disk.h"
 #include "cheats.h"
-#include <pathmanager.h>
+#include <base/pathmanager.h>
 #include <QFile>
 #include <QFileInfo>
 
 NesCheats nesCheats;
+static QList<GameGenieCode> enabledCheats;
+
+void nesCheatsProcess()
+{
+	for (int i = 0; i < enabledCheats.size(); i++) {
+		GameGenieCode &code = enabledCheats[i];
+		uint addr = code.address() | 0x8000;
+		if (code.isEightCharWide()) {
+			if (nesCpuReadDirect(addr) == code.expectedData())
+				nesCpuWriteDirect(addr, code.replaceData());
+		} else {
+			code.setExpectedData(nesCpuReadDirect(addr));
+			nesCpuWriteDirect(addr, code.replaceData());
+		}
+	}
+}
+
+void NesCheats::setCurrent(const QList<GameGenieCode> &codes)
+{
+	for (int i = 0; i < enabledCheats.size(); i++) {
+		const GameGenieCode &code = enabledCheats.at(i);
+		u16 addr = code.address() | 0x8000;
+		if (nesCpuReadDirect(addr) == code.replaceData())
+			nesCpuWriteDirect(addr, code.expectedData());
+	}
+	enabledCheats = codes;
+	nesCheatsProcess();
+}
 
 static const char *gameGenieString = "APZLGITYEOXUKSVN";
 
@@ -118,7 +146,7 @@ void NesCheats::sl()
 	emsl.var("enable", m_enable);
 	emsl.end();
 	if (!emsl.save)
-		nesMapper->setCheats(enabledList());
+		setCurrent(enabledList());
 }
 
 QList<GameGenieCode> NesCheats::enabledList() const
@@ -139,7 +167,7 @@ void NesCheats::setEnabled(int i, bool on)
 	if (i >= 0 && i < m_enable.size() && m_enable.at(i) != on) {
 		m_enable[i] = on;
 		emit dataChanged(index(i), index(i));
-		nesMapper->setCheats(enabledList());
+		setCurrent(enabledList());
 	}
 }
 
@@ -177,7 +205,7 @@ void NesCheats::addNew(const QString &code, const QString &description)
 	m_enable.append(true);
 	endInsertRows();
 
-	nesMapper->setCheats(enabledList());
+	setCurrent(enabledList());
 	emit modified();
 }
 
@@ -192,6 +220,6 @@ void NesCheats::removeAt(int i)
 	m_enable.removeAt(i);
 	endRemoveRows();
 
-	nesMapper->setCheats(enabledList());
+	setCurrent(enabledList());
 	emit modified();
 }

@@ -17,12 +17,14 @@
 #include "mapper.h"
 #include "nes.h"
 #include "disk.h"
-#include "cpu.h"
+#include "cpubase.h"
 #include "ppu.h"
 #include "apu.h"
 #include "input.h"
 #include "cheats.h"
-#include <QDataStream>
+#if defined(ENABLE_DEBUGGING)
+#include "debug.h"
+#endif
 
 #include "mapper/mapper000.h"
 #include "mapper/mapper001.h"
@@ -133,9 +135,9 @@ u8 nesCram[32*1024];
 
 u8 *nesPpuBanks[16];
 NesPpuBankType nesPpuBanksType[16];
-u8 *nesCpuBanks[8]; // 8K banks 0x0000-0xFFFF
+u8 *nesCpuBanks[8]; // 8K banks 0x0000-0xffff
 
-static QList<GameGenieCode> nesGameGenieList;
+static bool mapperIrqOut;
 
 #define NES_MAPPER_CREATE_CASE(i,name) \
 		mapper = new Mapper##i(); \
@@ -231,18 +233,266 @@ NesMapper *NesMapper::create(u8 type)
 	return mapper;
 }
 
+void nesDefaultCpuWriteLow(u16 addr, u8 data)
+{
+	if (addr >= 0x6000) // < 0x8000
+		nesCpuWriteDirect(addr, data);
+}
+
+u8 nesDefaultCpuReadLow(u16 addr)
+{
+	if (addr >= 0x6000) // < 0x8000
+		return nesCpuReadDirect(addr);
+	return addr >> 8;
+}
+
+void nesDefaultCpuWriteEx(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
+	Q_UNUSED(data)
+}
+
+u8 nesDefaultCpuReadEx(u16 addr)
+{
+	Q_UNUSED(addr)
+	return 0x00;
+}
+
+void nesCpuWrite40xx(u16 addr, u8 data)
+{
+	if (addr == 0x4014) {
+		nesPpuDma(data);
+		nesCpu->dma();
+	} else if (addr == 0x4016) {
+		nesInputWrite(0, data);
+	} else if (addr == 0x4017) {
+		nesApuWrite(0x17, data);
+		nesInputWrite(1, data);
+	} else if (addr < 0x4017) {
+		nesApuWrite(addr & 0x1f, data);
+	} else {
+		(*nesMapper->writeEx)(addr, data);
+	}
+}
+
+u8 nesCpuRead40xx(u16 addr)
+{
+	if (addr == 0x4014) {
+		return 0x40;
+	} if (addr == 0x4016) {
+		u8 data = nesInputRead(0);
+		return data | 0x40;
+	} else if (addr == 0x4017) {
+		u8 data = nesInputRead(1);
+		return data | nesApuRead(0x17);
+	} else if (addr < 0x4017) {
+		return nesApuRead(addr & 0x1f);
+	} else {
+		return (*nesMapper->readEx)(addr);
+	}
+}
+
+void nesCpuWrite(u16 addr, u8 data)
+{
+	switch (addr >> 13) {
+	case 0: // 0x0000-0x1fff
+		nesRam[addr & 0x07ff] = data;
+		break;
+	case 1: // 0x2000-0x3fff
+		nesPpuWriteReg(addr & 7, data);
+		break;
+	case 2: // 0x4000-0x5fff
+		if (addr < 0x4100)
+			nesCpuWrite40xx(addr, data);
+		else
+			(*nesMapper->writeLow)(addr, data);
+		break;
+	case 3: // 0x6000-0x7fff
+		(*nesMapper->writeLow)(addr, data);
+		break;
+	case 4: // 0x8000-0x9fff
+	case 5:	// 0xa000-0xbfff
+	case 6:	// 0xc000-0xdfff
+	case 7:	// 0xe000-0xffff
+		if (nesMapper->writeHigh) {
+			(*nesMapper->writeHigh)(addr, data);
+			nesCheatsProcess();
+		}
+		break;
+	}
+}
+
+u8 nesCpuRead(u16 addr)
+{
+	u8 data;
+	switch (addr >> 13) {
+	case 0:	// 0x0000-0x1fff
+		data = nesRam[addr & 0x07ff];
+		break;
+	case 1:	// 0x2000-0x3fff
+		data = nesPpuReadReg(addr & 7);
+		break;
+	case 2:	// 0x4000-0x5fff
+		if (addr < 0x4100)
+			data = nesCpuRead40xx(addr);
+		else
+			data = (*nesMapper->readLow)(addr);
+		break;
+	case 3:	// 0x6000-0x7fff
+		data = (*nesMapper->readLow)(addr);
+		break;
+	case 4:	// 0x8000-0x9fff
+	case 5:	// 0xa000-0xbfff
+	case 6:	// 0xc000-0xdfff
+	case 7:	// 0xe000-0xffff
+		data = nesCpuReadDirect(addr);
+		break;
+	}
+	return data;
+}
+
+void nesMapperSetIrqSignalOut(bool on)
+{
+	if (on != mapperIrqOut) {
+		mapperIrqOut = on;
+		nesCpu->setSignal(NesCpuBase::MapperIrqSignal, mapperIrqOut);
+	}
+}
+
+void nesSetMirroring(uint bank0, uint bank1, uint bank2, uint bank3)
+{
+	nesPpuBanks[ 8] = nesPpuBanks[12] = nesVram + bank0*0x400;
+	nesPpuBanks[ 9] = nesPpuBanks[13] = nesVram + bank1*0x400;
+	nesPpuBanks[10] = nesPpuBanks[14] = nesVram + bank2*0x400;
+	nesPpuBanks[11] = nesPpuBanks[15] = nesVram + bank3*0x400;
+}
+
+void nesSetMirroring(NesMirroring mirroring)
+{
+	if (mirroring == VerticalMirroring)
+		nesSetMirroring(0, 1, 0, 1);
+	else if (mirroring == HorizontalMirroring)
+		nesSetMirroring(0, 0, 1, 1);
+	else if (mirroring == SingleHigh)
+		nesSetMirroring(1, 1, 1, 1);
+	else if (mirroring == SingleLow)
+		nesSetMirroring(0, 0, 0, 0);
+	else if (mirroring == FourScreenMirroring)
+		nesSetMirroring(0, 1, 2, 3);
+}
+
+void nesSetRom8KBank(uint page, uint romBank8K)
+{
+	romBank8K = romBank8K % nesRomSize8KB;
+	u8 *romPage = nesRom + romBank8K * 0x2000;
+	if (nesCpuBanks[page] != romPage) {
+		nesCpuBanks[page] = romPage;
+#if defined(ENABLE_DEBUGGING)
+		nesDebugBankSwitch(page, romBank8K);
+#endif
+		nesCpu->clearPage(page);
+	}
+}
+
+void nesSetRom16KBank(uint page, uint romBank16K)
+{
+	nesSetRom8KBank(page+0, romBank16K * 2 + 0);
+	nesSetRom8KBank(page+1, romBank16K * 2 + 1);
+}
+
+void nesSetRom32KBank(uint romBank32K)
+{
+	nesSetRom16KBank(4, romBank32K * 2 + 0);
+	nesSetRom16KBank(6, romBank32K * 2 + 1);
+}
+
+void nesSetRom8KBanks(uint bank4, uint bank5, uint bank6, uint bank7)
+{
+	nesSetRom8KBank(4, bank4);
+	nesSetRom8KBank(5, bank5);
+	nesSetRom8KBank(6, bank6);
+	nesSetRom8KBank(7, bank7);
+}
+
+void nesSetWram8KBank(uint page, uint wramBank8K)
+{
+	wramBank8K = wramBank8K % 128;
+	nesCpuBanks[page] = nesWram + wramBank8K * 0x2000;
+}
+
+void nesSetVrom1KBank(uint page, uint vromBank1K)
+{
+	Q_ASSERT(page < 16);
+	if (nesVromSize1KB) {
+		vromBank1K = vromBank1K % nesVromSize1KB;
+		nesPpuBanks[page] = nesVrom + vromBank1K * 0x0400;
+		nesPpuBanksType[page] = VromBank;
+	} else {
+		nesSetCram1KBank(page, vromBank1K);
+	}
+}
+
+void nesSetVrom2KBank(uint page, uint vromBank2K)
+{
+	nesSetVrom1KBank(page+0, vromBank2K * 2 + 0);
+	nesSetVrom1KBank(page+1, vromBank2K * 2 + 1);
+}
+
+void nesSetVrom4KBank(uint page, uint vromBank4K)
+{
+	nesSetVrom2KBank(page+0, vromBank4K * 2 + 0);
+	nesSetVrom2KBank(page+2, vromBank4K * 2 + 1);
+}
+
+void nesSetVrom8KBank(uint vromBank8K)
+{
+	nesSetVrom4KBank(0, vromBank8K * 2 + 0);
+	nesSetVrom4KBank(4, vromBank8K * 2 + 1);
+}
+
+void nesSetCram1KBank(uint page, uint cramBank1K)
+{
+	Q_ASSERT(page < 16);
+	nesPpuBanks[page] = nesCram + (cramBank1K % (sizeof(nesCram) / 0x400)) * 0x400;
+	nesPpuBanksType[page] = CramBank;
+}
+
+void nesSetCram2KBank(uint page, uint cramBank2K)
+{
+	nesSetCram1KBank(page+0, cramBank2K * 2 + 0);
+	nesSetCram1KBank(page+1, cramBank2K * 2 + 1);
+}
+
+void nesSetCram4KBank(uint page, uint cramBank4K)
+{
+	nesSetCram2KBank(page+0, cramBank4K * 2 + 0);
+	nesSetCram2KBank(page+2, cramBank4K * 2 + 1);
+}
+
+void nesSetCram8KBank(uint cramBank8K)
+{
+	nesSetCram4KBank(0, cramBank8K * 2 + 0);
+	nesSetCram4KBank(4, cramBank8K * 2 + 1);
+}
+
+void nesSetVram1KBank(uint page, uint vramBank1K)
+{
+	Q_ASSERT(page < 16);
+	nesPpuBanks[page] = nesVram + (vramBank1K % (sizeof(nesVram) / 0x400)) * 0x400;
+	nesPpuBanksType[page] = VramBank;
+}
+
 void NesMapper::reset()
 {
 	memset(nesRam, 0, sizeof(nesRam));
 	if (nesDiskCrc == 0x29401686) // Minna no Taabou no Nakayoshi Dai Sakusen(J)
-		memset(nesRam, 0xFF, sizeof(nesRam));
+		memset(nesRam, 0xff, sizeof(nesRam));
 
 	if (!nesDiskHasBatteryBackedRam() && nesMapperType != 20)
-		memset(nesWram, 0xFF, sizeof(nesWram));
+		memset(nesWram, 0xff, sizeof(nesWram));
 
-	// TODO hasTrainer
-	// TODO load SRAM
-	memcpy(nesWram + 0x1000, nesTrainer, 512);
+	if (nesDiskHasTrainer())
+		memcpy(nesWram + 0x1000, nesTrainer, 512);
 
 	memset(nesCpuBanks, 0, sizeof(nesCpuBanks));
 	nesCpuBanks[0] = nesRam;
@@ -250,12 +500,12 @@ void NesMapper::reset()
 	nesCpuBanks[2] = nesXram;
 	nesCpuBanks[3] = nesWram;
 
-	m_irqOut = true;
-	setIrqSignalOut(false);
+	mapperIrqOut = true;
+	nesMapperSetIrqSignalOut(false);
 
-	setRom32KBank(0);
+	nesSetRom32KBank(0);
 
-	processGameGenieCodes();
+	nesCheatsProcess();
 
 	memset(nesPpuBanks, 0, sizeof(nesPpuBanks));
 	for (int i = 0; i < 16; i++)
@@ -263,242 +513,29 @@ void NesMapper::reset()
 	memset(nesVram, 0, sizeof(nesVram));
 	memset(nesCram, 0, sizeof(nesCram));
 
-	nesEmuSetRenderMethod(NesEmu::PreRender);
-	nesPpuSetCharacterLatchEnabled(false);
-	nesPpuSetExternalLatchEnabled(false);
+	nesSetMirroring(nesDefaultMirroring);
+	nesSetVrom8KBank(0);
 
-	setMirroring(nesDefaultMirroring);
-	setVrom8KBank(0);
+	writeLow = &nesDefaultCpuWriteLow;
+	readLow = &nesDefaultCpuReadLow;
+	writeHigh = 0;
+	writeEx = &nesDefaultCpuWriteEx;
+	readEx = &nesDefaultCpuReadEx;
+	clock = 0;
+	horizontalSync = 0;
+	verticalSync = 0;
+	characterLatch = 0;
+	extensionLatch = 0;
 }
 
-void NesMapper::write(u16 addr, u8 data)
+void NesMapper::sl()
 {
-	switch (addr >> 13) {
-	case 0: // 0x0000-0x1FFF
-		nesRam[addr & 0x07FF] = data;
-		break;
-	case 1: // 0x2000-0x3FFF
-		// TODO nsf
-		nesPpuWrite(addr & 7, data);
-		break;
-	case 2: // 0x4000-0x5FFF
-		if (addr < 0x4100)
-			writeReg(addr, data);
-		else
-			writeLow(addr, data);
-		break;
-	case 3: // 0x6000-0x7FFF
-		writeLow(addr, data);
-		break;
-	case 4: // 0x8000-0x9FFF
-	case 5:	// 0xA000-0xBFFF
-	case 6:	// 0xC000-0xDFFF
-	case 7:	// 0xE000-0xFFFF
-		writeHigh(addr, data);
-		processGameGenieCodes();
-		break;
-	}
-}
-
-u8 NesMapper::read(u16 addr)
-{
-	u8 data;
-	switch (addr >> 13) {
-	case 0:	// 0x0000-0x1FFF
-		data = nesRam[addr & 0x07FF];
-		break;
-	case 1:	// 0x2000-0x3FFF
-		data = nesPpuRead(addr & 7);
-		break;
-	case 2:	// 0x4000-0x5FFF
-		if (addr < 0x4100)
-			data = readReg(addr);
-		else
-			data = readLow(addr);
-		break;
-	case 3:	// 0x6000-0x7FFF
-		data = readLow(addr);
-		break;
-	case 4:	// 0x8000-0x9FFF
-	case 5:	// 0xA000-0xBFFF
-	case 6:	// 0xC000-0xDFFF
-	case 7:	// 0xE000-0xFFFF
-		data = readDirect(addr);
-		break;
-	}
-	return data;
-}
-
-void NesMapper::writeLow(u16 addr, u8 data)
-{
-	if (addr >= 0x6000) // < 0x8000
-		writeDirect(addr, data);
-}
-
-u8 NesMapper::readLow(u16 addr)
-{
-	if (addr >= 0x6000) // < 0x8000
-		return readDirect(addr);
-	return addr >> 8;
-}
-
-void NesMapper::writeHigh(u16 addr, u8 data)
-{
-	Q_UNUSED(addr)
-	Q_UNUSED(data)
-}
-
-void NesMapper::writeReg(u16 addr, u8 data)
-{
-	if (addr == 0x4014) {
-		nesPpuDma(data);
-		// TODO check it
-		nesCpu.dma(514);
-	} else if (addr == 0x4016) {
-		nesInputWrite(0, data);
-	} else if (addr == 0x4017) {
-		nesApuWrite(0x17, data);
-		nesInputWrite(1, data);
-	} else if (addr < 0x4017) {
-		nesApuWrite(addr & 0x1F, data);
-	} else {
-		writeEx(addr, data);
-	}
-}
-
-u8 NesMapper::readReg(u16 addr)
-{
-	if (addr == 0x4014) {
-		return 0x40;
-	} if (addr == 0x4016) {
-		u8 data = nesInputRead(0);
-		return data | 0x40; // TODO | m_TapeOut
-	} else if (addr == 0x4017) {
-		u8 data = nesInputRead(1);
-		return data | nesApuRead(0x17);
-	} else if (addr < 0x4017) {
-		return nesApuRead(addr & 0x1F);
-	} else {
-		return readEx(addr);
-	}
-}
-
-void NesMapper::writeEx(u16 addr, u8 data)
-{
-	Q_UNUSED(addr)
-	Q_UNUSED(data)
-}
-
-u8 NesMapper::readEx(u16 addr)
-{
-	Q_UNUSED(addr)
-	return 0x00;
-}
-
-void NesMapper::clock(u32 cycles)
-{
-	Q_UNUSED(cycles)
-}
-
-void NesMapper::setIrqSignalOut(bool on)
-{
-	if (on != m_irqOut) {
-		m_irqOut = on;
-		nesCpu.mapper_irq_i(on);
-	}
-}
-
-void NesMapper::setCheats(const QList<GameGenieCode> &codes)
-{
-	for (int i = 0; i < nesGameGenieList.size(); i++) {
-		const GameGenieCode &code = nesGameGenieList.at(i);
-		u16 addr = code.address() | 0x8000;
-		if (readDirect(addr) == code.replaceData())
-			writeDirect(addr, code.expectedData());
-	}
-	nesGameGenieList = codes;
-	processGameGenieCodes();
-}
-
-void NesMapper::processGameGenieCodes()
-{
-	for (int i = 0; i < nesGameGenieList.size(); i++) {
-		GameGenieCode &code = nesGameGenieList[i];
-		uint addr = code.address() | 0x8000;
-		if (code.isEightCharWide()) {
-			if (readDirect(addr) == code.expectedData())
-				writeDirect(addr, code.replaceData());
-		} else {
-			code.setExpectedData(readDirect(addr));
-			writeDirect(addr, code.replaceData());
-		}
-	}
-}
-
-void NesMapper::setMirroring(NesMirroring mirroring)
-{
-	if (mirroring == VerticalMirroring)
-		setMirroring(0, 1, 0, 1);
-	else if (mirroring == HorizontalMirroring)
-		setMirroring(0, 0, 1, 1);
-	else if (mirroring == SingleHigh)
-		setMirroring(1, 1, 1, 1);
-	else if (mirroring == SingleLow)
-		setMirroring(0, 0, 0, 0);
-	else if (mirroring == FourScreenMirroring)
-		setMirroring(0, 1, 2, 3);
-}
-
-void NesMapper::setMirroring(uint bank0, uint bank1, uint bank2, uint bank3)
-{
-	nesPpuBanks[8] = nesPpuBanks[12] = nesVram + bank0*0x400;
-	nesPpuBanks[9] = nesPpuBanks[13] = nesVram + bank1*0x400;
-	nesPpuBanks[10] = nesPpuBanks[14] = nesVram + bank2*0x400;
-	nesPpuBanks[11] = nesPpuBanks[15] = nesVram + bank3*0x400;
-}
-
-void NesMapper::horizontalSync()
-{
-}
-
-void NesMapper::verticalSync()
-{
-}
-
-void NesMapper::addressBusLatch(u16 addr)
-{
-	Q_UNUSED(addr)
-}
-
-void NesMapper::characterLatch(u16 addr)
-{
-	Q_UNUSED(addr)
-}
-
-void NesMapper::extensionLatchX(uint x)
-{
-	Q_UNUSED(x)
-}
-
-void NesMapper::extensionLatch(u16 addr, u8 *plane1, u8 *plane2, u8 *attribute)
-{
-	Q_UNUSED(addr)
-	Q_UNUSED(plane1)
-	Q_UNUSED(plane2)
-	Q_UNUSED(attribute)
-}
-
-void NesMapper::extSl()
-{
-}
-
-void NesMapper::sl() {
 	// CPU
 	emsl.begin("mapper.cpu");
 	emsl.array("ram", nesRam, sizeof(nesRam));
 	emsl.array("wram", nesWram, sizeof(nesWram));
 	emsl.array("xram", nesXram, sizeof(nesXram));
-	emsl.var("irqOut", m_irqOut);
+	emsl.var("irqOut", mapperIrqOut);
 	if (emsl.save) {
 		for (int i = 0; i < 8; i++) {
 			u8 *bank = nesCpuBanks[i];

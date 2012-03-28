@@ -15,53 +15,55 @@
  */
 
 #include "mapper226.h"
-#include "ppu.h"
-#include "disk.h"
-#include <emu.h>
-#include <QDataStream>
 
-void Mapper226::reset() {
-	NesMapper::reset();
+static u8 reg[2];
 
-	setRom32KBank(0);
-
-	reg[0] = 0;
-	reg[1] = 0;
-}
-
-void Mapper226::writeHigh(u16 address, u8 data) {
-	if (address & 0x001 )
+static void writeHigh(u16 addr, u8 data)
+{
+	if (addr & 0x001 )
 		reg[1] = data;
 	else
 		reg[0] = data;
 
 	if (reg[0] & 0x40)
-		setMirroring(VerticalMirroring);
+		nesSetMirroring(VerticalMirroring);
 	else
-		setMirroring(HorizontalMirroring);
+		nesSetMirroring(HorizontalMirroring);
 
 	u8 bank = ((reg[0]&0x1E)>>1)|((reg[0]&0x80)>>3)|((reg[1]&0x01)<<5);
 
 	if (reg[0] & 0x20) {
 		if (reg[0] & 0x01) {
-			setRom8KBank(4, bank*4+2 );
-			setRom8KBank(5, bank*4+3 );
-			setRom8KBank(6, bank*4+2 );
-			setRom8KBank(7, bank*4+3 );
+			nesSetRom8KBank(4, bank*4+2 );
+			nesSetRom8KBank(5, bank*4+3 );
+			nesSetRom8KBank(6, bank*4+2 );
+			nesSetRom8KBank(7, bank*4+3 );
 		} else {
-			setRom8KBank(4, bank*4+0 );
-			setRom8KBank(5, bank*4+1 );
-			setRom8KBank(6, bank*4+0 );
-			setRom8KBank(7, bank*4+1 );
+			nesSetRom8KBank(4, bank*4+0 );
+			nesSetRom8KBank(5, bank*4+1 );
+			nesSetRom8KBank(6, bank*4+0 );
+			nesSetRom8KBank(7, bank*4+1 );
 		}
 	} else {
-		setRom8KBank(4, bank*4+0 );
-		setRom8KBank(5, bank*4+1 );
-		setRom8KBank(6, bank*4+2 );
-		setRom8KBank(7, bank*4+3 );
+		nesSetRom8KBank(4, bank*4+0 );
+		nesSetRom8KBank(5, bank*4+1 );
+		nesSetRom8KBank(6, bank*4+2 );
+		nesSetRom8KBank(7, bank*4+3 );
 	}
 }
 
-void Mapper226::extSl() {
+void Mapper226::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	nesSetRom32KBank(0);
+
+	reg[0] = 0;
+	reg[1] = 0;
+}
+
+void Mapper226::extSl()
+{
 	emsl.array("reg", reg, sizeof(reg));
 }

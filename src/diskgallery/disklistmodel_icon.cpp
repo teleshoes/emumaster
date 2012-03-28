@@ -1,6 +1,6 @@
 #include "disklistmodel.h"
-#include <pathmanager.h>
 #include "diskimageprovider.h"
+#include <base/pathmanager.h>
 #include <QPainter>
 #include <QTextStream>
 

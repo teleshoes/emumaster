@@ -15,33 +15,57 @@
  */
 
 #include "mapper068.h"
-#include "disk.h"
-#include "ppu.h"
-#include <QDataStream>
 
-// TODO coin ???
+static u8 reg[4];
 
-void Mapper068::reset() {
-	NesMapper::reset();
-
-	reg[0] = reg[1] = reg[2] = reg[3] = 0;
-
-	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+static void updateBanks()
+{
+	if (reg[0]) {
+		switch (reg[1]) {
+		case 0:
+			nesSetVrom1KBank( 8, reg[2]+0x80);
+			nesSetVrom1KBank( 9, reg[3]+0x80);
+			nesSetVrom1KBank(10, reg[2]+0x80);
+			nesSetVrom1KBank(11, reg[3]+0x80);
+			break;
+		case 1:
+			nesSetVrom1KBank( 8, reg[2]+0x80);
+			nesSetVrom1KBank( 9, reg[2]+0x80);
+			nesSetVrom1KBank(10, reg[3]+0x80);
+			nesSetVrom1KBank(11, reg[3]+0x80);
+			break;
+		case 2:
+			nesSetVrom1KBank( 8, reg[2]+0x80);
+			nesSetVrom1KBank( 9, reg[2]+0x80);
+			nesSetVrom1KBank(10, reg[2]+0x80);
+			nesSetVrom1KBank(11, reg[2]+0x80);
+			break;
+		case 3:
+			nesSetVrom1KBank( 8, reg[3]+0x80);
+			nesSetVrom1KBank( 9, reg[3]+0x80);
+			nesSetVrom1KBank(10, reg[3]+0x80);
+			nesSetVrom1KBank(11, reg[3]+0x80);
+			break;
+		}
+	} else {
+		nesSetMirroring(static_cast<NesMirroring>(reg[1] & 0x03));
+	}
 }
 
-void Mapper068::writeHigh(u16 address, u8 data) {
-	switch (address & 0xF000) {
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr & 0xF000) {
 	case 0x8000:
-		setVrom2KBank(0, data);
+		nesSetVrom2KBank(0, data);
 		break;
 	case 0x9000:
-		setVrom2KBank(2, data);
+		nesSetVrom2KBank(2, data);
 		break;
 	case 0xA000:
-		setVrom2KBank(4, data);
+		nesSetVrom2KBank(4, data);
 		break;
 	case 0xB000:
-		setVrom2KBank(6, data);
+		nesSetVrom2KBank(6, data);
 		break;
 
 	case 0xC000:
@@ -59,44 +83,22 @@ void Mapper068::writeHigh(u16 address, u8 data) {
 		break;
 
 	case 0xF000:
-		setRom16KBank(4, data);
+		nesSetRom16KBank(4, data);
 		break;
 	}
 }
 
-void Mapper068::updateBanks() {
-	if (reg[0]) {
-		switch (reg[1]) {
-		case 0:
-			setVrom1KBank( 8, reg[2]+0x80);
-			setVrom1KBank( 9, reg[3]+0x80);
-			setVrom1KBank(10, reg[2]+0x80);
-			setVrom1KBank(11, reg[3]+0x80);
-			break;
-		case 1:
-			setVrom1KBank( 8, reg[2]+0x80);
-			setVrom1KBank( 9, reg[2]+0x80);
-			setVrom1KBank(10, reg[3]+0x80);
-			setVrom1KBank(11, reg[3]+0x80);
-			break;
-		case 2:
-			setVrom1KBank( 8, reg[2]+0x80);
-			setVrom1KBank( 9, reg[2]+0x80);
-			setVrom1KBank(10, reg[2]+0x80);
-			setVrom1KBank(11, reg[2]+0x80);
-			break;
-		case 3:
-			setVrom1KBank( 8, reg[3]+0x80);
-			setVrom1KBank( 9, reg[3]+0x80);
-			setVrom1KBank(10, reg[3]+0x80);
-			setVrom1KBank(11, reg[3]+0x80);
-			break;
-		}
-	} else {
-		setMirroring(static_cast<NesMirroring>(reg[1] & 0x03));
-	}
+void Mapper068::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	reg[0] = reg[1] = reg[2] = reg[3] = 0;
+
+	nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 }
 
-void Mapper068::extSl() {
+void Mapper068::extSl()
+{
 	emsl.array("reg", reg, sizeof(reg));
 }

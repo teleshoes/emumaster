@@ -21,7 +21,8 @@
 #include "accelinputdevice.h"
 #include "keybinputdevice.h"
 #include "sixaxisinputdevice.h"
-#include <sixaxis.h>
+#include "memutils.h"
+#include <sixaxisclient/sixaxis.h>
 #include <QKeyEvent>
 #include <QTouchEvent>
 

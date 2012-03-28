@@ -1,8 +1,7 @@
 #include "apudmchannel.h"
 #include "apu.h"
 #include "mapper.h"
-#include <emu.h>
-#include <QDataStream>
+#include <base/emu.h>
 
 void NesApuDMChannel::reset()
 {
@@ -79,7 +78,7 @@ void NesApuDMChannel::clockDac()
 bool NesApuDMChannel::clockDma()
 {
 	if (!(m_dmaLength&7)) {
-		m_buffer = nesMapper->read(m_address);
+		m_buffer = nesCpuRead(m_address);
 		m_address = 0x8000 | (m_address+1);
 	}
 

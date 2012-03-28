@@ -15,7 +15,7 @@
  */
 
 #include "disklistmodel.h"
-#include <pathmanager.h>
+#include <base/pathmanager.h>
 #include <QFileInfo>
 #include <QSettings>
 #include <QUrl>

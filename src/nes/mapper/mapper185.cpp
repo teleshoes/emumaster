@@ -17,13 +17,29 @@
 #include "mapper185.h"
 #include "disk.h"
 
+static int patch;
+
+static void writeHigh(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
+	if ((!patch && (data&0x03)) || (patch && data == 0x21)) {
+		nesSetVrom8KBank(0);
+	} else {
+		for (int i = 0; i < 8; i++)
+			nesSetVram1KBank(i, 2);	// use vram bank 2
+	}
+}
+
 void Mapper185::reset()
 {
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
 	if (nesRomSize16KB == 1) {
-		setRom16KBank(4, 0);
-		setRom16KBank(6, 0);
+		nesSetRom16KBank(4, 0);
+		nesSetRom16KBank(6, 0);
 	} else {
-		setRom32KBank(0);
+		nesSetRom32KBank(0);
 	}
 
 	for (int i = 0; i < 0x400; i++)
@@ -34,21 +50,5 @@ void Mapper185::reset()
 	uint crc = nesDiskCrc;
 	if (crc == 0xb36457c7) {	// Spy vs Spy(J)
 		patch = 1;
-	}
-}
-
-void Mapper185::writeHigh(u16 addr, u8 data)
-{
-	if ((!patch && (data&0x03)) || (patch && data == 0x21)) {
-		setVrom8KBank(0);
-	} else {
-		setVram1KBank(0, 2);	// use vram bank 2
-		setVram1KBank(1, 2);
-		setVram1KBank(2, 2);
-		setVram1KBank(3, 2);
-		setVram1KBank(4, 2);
-		setVram1KBank(5, 2);
-		setVram1KBank(6, 2);
-		setVram1KBank(7, 2);
 	}
 }

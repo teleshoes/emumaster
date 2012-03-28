@@ -19,7 +19,8 @@
 
 #include "../mapper.h"
 
-class Mapper000 : public NesMapper {
+class Mapper000 : public NesMapper
+{
 public:
 	void reset();
 };

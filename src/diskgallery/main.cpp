@@ -15,8 +15,8 @@
  */
 
 #include "diskgallery.h"
-#include <configuration.h>
-#include <pathmanager.h>
+#include <base/configuration.h>
+#include <base/pathmanager.h>
 #include <QApplication>
 
 int main(int argc, char *argv[])

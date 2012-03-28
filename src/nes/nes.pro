@@ -1,25 +1,51 @@
 include(../emu.pri)
-QT += opengl declarative
+include(../arm.pri)
+#DEFINES += FRAME_POINTER_FOR_GDB
+#DEFINES += ENABLE_DEBUGGING
+#DEFINES += DISABLE_RECOMPILER_OPTIMIZATIONS
+
+contains(DEFINES,ENABLE_DEBUGGING) {
+	HEADERS += debug.h
+	SOURCES += debug.cpp
+	QT += network
+}
 
 HEADERS += \
-    apu.h \
-    apuchannel.h \
-    apudmchannel.h \
-    apunoisechannel.h \
-    apurectanglechannel.h \
-    aputrianglechannel.h \
-    cpu.h \
-    disk.h \
-    mapper.h \
-    ppu.h \
-    eeprom.h \
-    nes.h \
-    timings.h \
-    cheats.h \
-    input.h \
-    inputpaddle.h \
-    inputzapper.h \
-    mapper/mapper255.h \
+	apu.h \
+	apuchannel.h \
+	apudmchannel.h \
+	apunoisechannel.h \
+	apurectanglechannel.h \
+	aputrianglechannel.h \
+	disk.h \
+	mapper.h \
+	ppusprite.h \
+	ppuscroll.h \
+	ppu.h \
+	eeprom.h \
+	nes.h \
+	cheats.h \
+	input.h \
+	inputpaddle.h \
+	inputzapper.h \
+	cpubase.h \
+	cpuint.h \
+	sync.h \
+	sync_p.h \
+	cpurec.h \
+	cpurec_p.h \
+	cpurec_transfer.h \
+	cpurec_math.h \
+	cpurec_logical.h \
+	cpurec_shift.h \
+	cpurec_undocummented.h \
+	cpurec_flags.h \
+	cpurec_addressing.h \
+	cpurec_stack.h \
+	cpurec_memory.h \
+	cpurec_flow.h \
+	\
+	mapper/mapper255.h \
 	mapper/mapper254.h \
 	mapper/mapper252.h \
 	mapper/mapper251.h \
@@ -44,6 +70,8 @@ HEADERS += \
 	mapper/mapper202.h \
 	mapper/mapper201.h \
 	mapper/mapper200.h \
+	mapper/mapper185.h \
+	mapper/mapper079.h \
 	mapper/mapper071.h \
 	mapper/mapper070.h \
 	mapper/mapper069.h \
@@ -96,30 +124,32 @@ HEADERS += \
 	mapper/mapper003.h \
 	mapper/mapper002.h \
 	mapper/mapper001.h \
-    mapper/mapper000.h \
-    ppusprite.h \
-    ppuscroll.h \
-    mapper/mapper079.h \
-    mapper/mapper185.h
+	mapper/mapper000.h \
+    cpurec_optimizations.h
 
 SOURCES += \
-    ppu.cpp \
-    mapper.cpp \
-    disk.cpp \
-    cpu.cpp \
-    apu.cpp \
-    apuchannel.cpp \
-    apudmchannel.cpp \
-    apunoisechannel.cpp \
-    apurectanglechannel.cpp \
-    aputrianglechannel.cpp \
-    eeprom.cpp \
-    nes.cpp \
-    cheats.cpp \
-    input.cpp \
-    inputpaddle.cpp \
-    inputzapper.cpp \
-    mapper/mapper255.cpp \
+	ppu.cpp \
+	ppu_neon.S \
+	mapper.cpp \
+	disk.cpp \
+	apu.cpp \
+	apuchannel.cpp \
+	apudmchannel.cpp \
+	apunoisechannel.cpp \
+	apurectanglechannel.cpp \
+	aputrianglechannel.cpp \
+	eeprom.cpp \
+	nes.cpp \
+	cheats.cpp \
+	input.cpp \
+	inputpaddle.cpp \
+	inputzapper.cpp \
+	cpubase.cpp \
+	cpuint.cpp \
+	cpurec.cpp \
+	sync.cpp \
+	\
+	mapper/mapper255.cpp \
 	mapper/mapper254.cpp \
 	mapper/mapper252.cpp \
 	mapper/mapper251.cpp \
@@ -144,6 +174,8 @@ SOURCES += \
 	mapper/mapper202.cpp \
 	mapper/mapper201.cpp \
 	mapper/mapper200.cpp \
+	mapper/mapper185.cpp \
+	mapper/mapper079.cpp \
 	mapper/mapper071.cpp \
 	mapper/mapper070.cpp \
 	mapper/mapper069.cpp \
@@ -196,6 +228,4 @@ SOURCES += \
 	mapper/mapper003.cpp \
 	mapper/mapper002.cpp \
 	mapper/mapper001.cpp \
-    mapper/mapper000.cpp \
-    mapper/mapper079.cpp \
-    mapper/mapper185.cpp
+	mapper/mapper000.cpp

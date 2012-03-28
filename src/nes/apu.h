@@ -17,7 +17,7 @@
 #ifndef NESAPU_H
 #define NESAPU_H
 
-#include <emu.h>
+#include <base/emu.h>
 
 extern void nesApuInit();
 extern void nesApuReset();

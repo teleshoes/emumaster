@@ -15,34 +15,43 @@
  */
 
 #include "mapper046.h"
-#include <QDataStream>
 
-void Mapper046::reset() {
-	NesMapper::reset();
-	memset(reg, 0, 4);
-	updateBanks();
-	setMirroring(VerticalMirroring);
+static u32 reg[4];
+
+static void updateBanks()
+{
+	nesSetRom32KBank(reg[0]*2+reg[2]);
+	nesSetVrom8KBank(reg[1]*8+reg[3]);
 }
 
-void Mapper046::writeLow(u16 address, u8 data) {
-	Q_UNUSED(address)
+static void writeLow(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
 	reg[0] = data & 0x0F;
 	reg[1] = (data & 0xF0) >> 4;
 	updateBanks();
 }
 
-void Mapper046::writeHigh(u16 address, u8 data) {
-	Q_UNUSED(address)
+static void writeHigh(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
 	reg[2] = data & 0x01;
 	reg[3] = (data & 0x70) >> 4;
 	updateBanks();
 }
 
-void Mapper046::updateBanks() {
-	setRom32KBank(reg[0]*2+reg[2]);
-	setVrom8KBank(reg[1]*8+reg[3]);
+void Mapper046::reset()
+{
+	NesMapper::reset();
+	writeLow = ::writeLow;
+	writeHigh = ::writeHigh;
+
+	memset(reg, 0, 4);
+	updateBanks();
+	nesSetMirroring(VerticalMirroring);
 }
 
-void Mapper046::extSl() {
+void Mapper046::extSl()
+{
 	emsl.array("reg", reg, sizeof(reg));
 }

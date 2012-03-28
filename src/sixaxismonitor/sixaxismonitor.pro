@@ -1,5 +1,5 @@
 DESTDIR = ../../bin
-INCLUDEPATH += ../../include
+INCLUDEPATH += ..
 LIBS += -L../../lib -lbase
 QT += opengl declarative network
 

@@ -1,5 +1,5 @@
 #include "disklistmodel.h"
-#include <pathmanager.h>
+#include <base/pathmanager.h>
 #include <QDataStream>
 
 void DiskListModel::loadFav()

@@ -16,27 +16,31 @@
 
 #include "mapper022.h"
 
-void Mapper022::reset() {
-	NesMapper::reset();
-	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
-}
-
-void Mapper022::writeHigh(u16 address, u8 data) {
-	switch (address) {
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr) {
 	case 0x8000:
-		setRom8KBank(4, data);
+		nesSetRom8KBank(4, data);
 		break;
 	case 0x9000:
-		setMirroring(static_cast<NesMirroring>(data & 3));
+		nesSetMirroring(static_cast<NesMirroring>(data & 3));
 		break;
-	case 0xA000: setRom8KBank(5, data); break;
-	case 0xB000: setVrom1KBank(0, data >> 1); break;
-	case 0xB001: setVrom1KBank(1, data >> 1); break;
-	case 0xC000: setVrom1KBank(2, data >> 1); break;
-	case 0xC001: setVrom1KBank(3, data >> 1); break;
-	case 0xD000: setVrom1KBank(4, data >> 1); break;
-	case 0xD001: setVrom1KBank(5, data >> 1); break;
-	case 0xE000: setVrom1KBank(6, data >> 1); break;
-	case 0xE001: setVrom1KBank(7, data >> 1); break;
+	case 0xA000: nesSetRom8KBank(5, data); break;
+	case 0xB000: nesSetVrom1KBank(0, data >> 1); break;
+	case 0xB001: nesSetVrom1KBank(1, data >> 1); break;
+	case 0xC000: nesSetVrom1KBank(2, data >> 1); break;
+	case 0xC001: nesSetVrom1KBank(3, data >> 1); break;
+	case 0xD000: nesSetVrom1KBank(4, data >> 1); break;
+	case 0xD001: nesSetVrom1KBank(5, data >> 1); break;
+	case 0xE000: nesSetVrom1KBank(6, data >> 1); break;
+	case 0xE001: nesSetVrom1KBank(7, data >> 1); break;
 	}
+}
+
+void Mapper022::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
 }

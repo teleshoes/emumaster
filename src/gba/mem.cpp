@@ -17,13 +17,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <emu.h>
-#include <pathmanager.h>
-#include <QDataStream>
 #include "mem.h"
 #include "gpu.h"
 #include "spu.h"
 #include "gba.h"
+#include <base/pathmanager.h>
 #include <QFile>
 
 // This table is configured for sequential access on system defaults
@@ -2646,7 +2644,8 @@ void bios_region_read_allow() {
 
 static QFile gamepack_file;
 
-u8 *load_gamepak_page(u32 physical_index) {
+u8 *load_gamepak_page(u32 physical_index)
+{
 	if (physical_index >= (gamepak_size >> 15))
 		return gamepak_rom;
 
@@ -2672,7 +2671,8 @@ u8 *load_gamepak_page(u32 physical_index) {
 
 GbaMem gbaMem;
 
-bool GbaMem::loadGamePack(const QString &fileName) {
+bool GbaMem::loadGamePack(const QString &fileName)
+{
 	gamepack_file.close();
 	gamepack_file.setFileName(fileName);
 	if (!gamepack_file.open(QIODevice::ReadOnly))
@@ -2695,9 +2695,11 @@ bool GbaMem::loadGamePack(const QString &fileName) {
 	return -1;
 }
 
-QPair<QString, QString> GbaMem::parseLine(const QString &line) {
+QPair<QString, QString> GbaMem::parseLine(QString line, int count)
+{
+	line = line.left(line.size()-1);
 	QPair<QString, QString> result;
-	if (line.at(0) == '\0' || line.at(0) == '#')
+	if (line.isEmpty() || line.at(0) == '#')
 		return result;
 
 	bool ok = false;
@@ -2715,11 +2717,12 @@ QPair<QString, QString> GbaMem::parseLine(const QString &line) {
 		}
 	}
 	if (!ok)
-		qDebug("invalid config line: %s", qPrintable(line));
+		qDebug("invalid config line at %d: %s", count, qPrintable(line));
 	return result;
 }
 
-void GbaMem::loadConfig() {
+void GbaMem::loadConfig()
+{
 	idle_loop_target_pc = 0xFFFFFFFF;
 	iwram_stack_optimize = 1;
 	bios_rom[0x39] = 0x00;
@@ -2727,6 +2730,7 @@ void GbaMem::loadConfig() {
 	translation_gate_targets = 0;
 	flash_device_id = FLASH_DEVICE_MACRONIX_64KB;
 
+	int count = 0;
 	QString path = pathManager.installationDirPath() + "/data/gba_game_config.txt";
 	QFile f(path);
 	if (!f.open(QIODevice::ReadOnly)) {
@@ -2735,21 +2739,25 @@ void GbaMem::loadConfig() {
 	}
 	while (!f.atEnd()) {
 		QString line = f.readLine();
-		QPair<QString, QString> vars = parseLine(line);
+		count++;
+		QPair<QString, QString> vars = parseLine(line, count);
 		if (vars.first != "game_name" || vars.second != m_gamePackTitle)
 			continue;
 		line = f.readLine();
-		vars = parseLine(line);
-		if (vars.first != "game_code" || vars.second != m_gamePackTitle)
+		count++;
+		vars = parseLine(line, count);
+		if (vars.first != "game_code" || vars.second != m_gamePackCode)
 			continue;
 		line = f.readLine();
-		vars = parseLine(line);
-		if (vars.first == "vender_code" && vars.second == m_gamePackTitle)
+		count++;
+		vars = parseLine(line, count);
+		if (vars.first == "vender_code" && vars.second == m_gamePackMaker)
 			break;
 	}
 	while (!f.atEnd()) {
 		QString line = f.readLine();
-		QPair<QString, QString> vars = parseLine(line);
+		count++;
+		QPair<QString, QString> vars = parseLine(line, count);
 		if (vars.first == "game_name")
 			return;
 		if (vars.first == "idle_loop_eliminate_target")
@@ -2771,7 +2779,8 @@ void GbaMem::loadConfig() {
 	}
 }
 
-void GbaMem::invalidate() {
+void GbaMem::invalidate()
+{
 	flush_translation_cache_ram();
 	flush_translation_cache_rom();
 	flush_translation_cache_bios();
@@ -2793,7 +2802,8 @@ void GbaMem::invalidate() {
 	reg[CHANGED_PC_STATUS] = 1;
 }
 
-void GbaMem::sl() {
+void GbaMem::sl()
+{
 	emsl.begin("mem");
 	int flash_bank_ptr_offset = flash_bank_ptr - gamepak_backup;
 	emsl.var("backup_type", backup_type);

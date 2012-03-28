@@ -17,7 +17,7 @@
 #ifndef NESEMU_H
 #define NESEMU_H
 
-#include <emu.h>
+#include <base/emu.h>
 class NesPpu;
 
 enum SystemType { NES_NTSC, NES_PAL };
@@ -26,7 +26,6 @@ class NesEmu : public Emu
 {
 	Q_OBJECT
 	Q_PROPERTY(QObject *ppu READ ppu CONSTANT)
-	Q_PROPERTY(QObject *pad READ pad CONSTANT)
 	Q_PROPERTY(QObject *cheats READ cheats CONSTANT)
 	Q_PROPERTY(QString diskInfo READ diskInfo CONSTANT)
 public:
@@ -52,14 +51,15 @@ public:
 	QObject *pad() const;
 	QObject *cheats() const;
 	QString diskInfo() const;
+
+	qreal systemFrameRate() const;
+	qreal baseClock() const;
+	int clockDividerForCpu() const;
+	int clockDividerForPpu() const;
 protected:
 	void sl();
-private:
-	void setupTimings();
 };
 
-extern void nesEmuClockCpu(uint cycles);
-extern u64 nesEmuCpuCycles();
 extern void nesEmuSetRenderMethod(NesEmu::RenderMethod renderMethod);
 
 extern NesEmu nesEmu;

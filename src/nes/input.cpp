@@ -96,7 +96,7 @@ static inline u8 hostToEmu(int buttons)
 	return result;
 }
 
-void nesInputSync(const EmuInput *hostInput)
+void nesInputSyncWithHost(const EmuInput *hostInput)
 {
 	for (int i = 0; i < 2; i++) {
 		int lastPad = pad[i];

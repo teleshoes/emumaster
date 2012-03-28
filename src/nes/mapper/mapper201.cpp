@@ -15,24 +15,25 @@
  */
 
 #include "mapper201.h"
-#include "ppu.h"
-#include "disk.h"
 
-void Mapper201::reset() {
-	NesMapper::reset();
-
-	setRom16KBank(4, 0);
-	setRom16KBank(6, 0);
-	if (nesVromSize1KB)
-		setVrom8KBank(0);
-}
-
-void Mapper201::writeHigh(u16 address, u8 data) {
+static void writeHigh(u16 addr, u8 data)
+{
 	Q_UNUSED(data)
 
-	u8 bank = address & 0x03;
-	if (!(address & 0x08))
+	u8 bank = addr & 0x03;
+	if (!(addr & 0x08))
 		bank = 0;
-	setRom32KBank(bank);
-	setVrom8KBank(bank);
+	nesSetRom32KBank(bank);
+	nesSetVrom8KBank(bank);
+}
+
+void Mapper201::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	nesSetRom16KBank(4, 0);
+	nesSetRom16KBank(6, 0);
+	if (nesVromSize1KB)
+		nesSetVrom8KBank(0);
 }

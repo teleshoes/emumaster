@@ -16,17 +16,20 @@
 
 #include "mapper079.h"
 
-void Mapper079::reset()
-{
-	setRom32KBank(0);
-	if (nesVromSize1KB)
-		setVrom8KBank(0);
-}
-
-void Mapper079::writeLow(u16 addr, u8 data)
+static void writeLow(u16 addr, u8 data)
 {
 	if (addr & 0x0100) {
-		setRom32KBank((data>>3) & 0x01);
-		setVrom8KBank(data & 0x07);
+		nesSetRom32KBank((data>>3) & 0x01);
+		nesSetVrom8KBank(data & 0x07);
 	}
+}
+
+void Mapper079::reset()
+{
+	NesMapper::reset();
+	writeLow = ::writeLow;
+
+	nesSetRom32KBank(0);
+	if (nesVromSize1KB)
+		nesSetVrom8KBank(0);
 }

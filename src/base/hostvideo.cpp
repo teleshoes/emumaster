@@ -119,6 +119,9 @@ static inline void setCoords(GLfloat *coords, const QGLRect &rect)
 /*! \internal */
 void HostVideo::paintEvent(QPaintEvent *)
 {
+	if (!m_thread->m_inFrameGenerated)
+		return;
+
 	if (m_programDirty) {
 		if (!loadShaderProgram())
 			return;
@@ -131,16 +134,13 @@ void HostVideo::paintEvent(QPaintEvent *)
 	if (m_keepAspectRatio)
 		painter.fillRect(rect(), Qt::black);
 
-	if (m_thread->m_inFrameGenerated) {
-		painter.beginNativePainting();
-		paintEmuFrame();
-		painter.endNativePainting();
+	painter.beginNativePainting();
+	paintEmuFrame();
+	painter.endNativePainting();
 
-		if (m_fpsVisible)
-			paintFps(&painter);
-	} else if (!m_keepAspectRatio) {
-		painter.fillRect(rect(), Qt::black);
-	}
+	if (m_fpsVisible)
+		paintFps(&painter);
+
 	// draw buttons
 	m_hostInput->paint(&painter);
 	painter.end();

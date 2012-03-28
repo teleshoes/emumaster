@@ -16,50 +16,33 @@
 
 #include "mapper065.h"
 #include "disk.h"
-#include "ppu.h"
-#include <QDataStream>
 
-void Mapper065::reset()
-{
-	NesMapper::reset();
+static u8 patch;
+static u8 irq_enable;
+static s32 irq_counter;
+static s32 irq_latch;
 
-	patch = 0;
-
-	// Kaiketsu Yanchamaru 3(J)
-	if (nesDiskCrc == 0xe30b7f64)
-		patch = 1;
-
-	setRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
-
-	if (nesVromSize1KB)
-		setVrom8KBank(0);
-
-	irq_enable = 0;
-	irq_counter = 0;
-	irq_latch = 0;
-}
-
-void Mapper065::writeHigh(u16 addr, u8 data)
+static void writeHigh(u16 addr, u8 data)
 {
 	switch (addr) {
 	case 0x8000:
-		setRom8KBank(4, data);
+		nesSetRom8KBank(4, data);
 		break;
 
 	case 0x9000:
 		if (!patch)
-			setMirroring(static_cast<NesMirroring>(((data & 0x40)^0x40) >> 6));
+			nesSetMirroring(static_cast<NesMirroring>(((data & 0x40)^0x40) >> 6));
 		break;
 
 	case 0x9001:
 		if (patch)
-			setMirroring(static_cast<NesMirroring>((data & 0x80) >> 7));
+			nesSetMirroring(static_cast<NesMirroring>((data & 0x80) >> 7));
 		break;
 
 	case 0x9003:
 		if (!patch) {
 			irq_enable = data & 0x80;
-			setIrqSignalOut(false);
+			nesMapperSetIrqSignalOut(false);
 		}
 		break;
 	case 0x9004:
@@ -71,7 +54,7 @@ void Mapper065::writeHigh(u16 addr, u8 data)
 		if (patch) {
 			irq_counter = (u8)(data<<1);
 			irq_enable = data;
-			setIrqSignalOut(false);
+			nesMapperSetIrqSignalOut(false);
 		} else {
 			irq_latch = (irq_latch & 0x00FF)|(data<<8);
 		}
@@ -93,43 +76,70 @@ void Mapper065::writeHigh(u16 addr, u8 data)
 	case 0xB005:
 	case 0xB006:
 	case 0xB007:
-		setVrom1KBank(addr & 0x0007, data);
+		nesSetVrom1KBank(addr & 0x0007, data);
 		break;
 
 	case 0xA000:
-		setRom8KBank(5, data);
+		nesSetRom8KBank(5, data);
 		break;
 	case 0xC000:
-		setRom8KBank(6, data);
+		nesSetRom8KBank(6, data);
 		break;
 	}
 }
 
-void Mapper065::clock(uint cycles) {
-	if (!patch) {
-		if (irq_enable) {
-			if (irq_counter <= 0) {
-				setIrqSignalOut(true);
-			} else {
-				irq_counter -= cycles;
-			}
+static void clock(int cycles)
+{
+	Q_ASSERT(!patch);
+	if (irq_enable) {
+		if (irq_counter <= 0) {
+			nesMapperSetIrqSignalOut(true);
+		} else {
+			irq_counter -= cycles;
 		}
 	}
 }
 
-void Mapper065::horizontalSync() {
-	if (patch) {
-		if (irq_enable) {
-			if (irq_counter == 0) {
-				setIrqSignalOut(true);
-			} else {
-				irq_counter--;
-			}
+static void horizontalSync()
+{
+	Q_ASSERT(patch);
+	if (irq_enable) {
+		if (irq_counter == 0) {
+			nesMapperSetIrqSignalOut(true);
+		} else {
+			irq_counter--;
 		}
 	}
 }
 
-void Mapper065::extSl() {
+void Mapper065::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	patch = 0;
+
+	// Kaiketsu Yanchamaru 3(J)
+	if (nesDiskCrc == 0xe30b7f64)
+		patch = 1;
+
+	nesSetRom8KBanks(0, 1, nesRomSize8KB-2, nesRomSize8KB-1);
+
+	if (nesVromSize1KB)
+		nesSetVrom8KBank(0);
+
+	irq_enable = 0;
+	irq_counter = 0;
+	irq_latch = 0;
+
+	if (patch)
+		horizontalSync = ::horizontalSync;
+	else
+		clock = ::clock;
+}
+
+void Mapper065::extSl()
+{
 	emsl.var("irq_enable", irq_enable);
 	emsl.var("irq_counter", irq_counter);
 	emsl.var("irq_latch", irq_latch);

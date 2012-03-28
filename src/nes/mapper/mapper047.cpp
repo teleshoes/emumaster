@@ -17,10 +17,142 @@
 #include "mapper047.h"
 #include "disk.h"
 #include "ppu.h"
-#include <QDataStream>
 
-void Mapper047::reset() {
+static u8 reg[8];
+static u8 patch;
+static u8 bank;
+static u8 prg0, prg1;
+static u8 chr01,chr23,chr4,chr5,chr6,chr7;
+static u8 irq_enable;
+static u8 irq_counter;
+static u8 irq_latch;
+
+static void setBankCpu()
+{
+	if (reg[0] & 0x40) {
+		nesSetRom8KBank(4, bank * 8 + ((patch && bank != 2)?6:14));
+		nesSetRom8KBank(5, bank * 8 + prg1);
+		nesSetRom8KBank(6, bank * 8 + prg0);
+		nesSetRom8KBank(7, bank * 8 + ((patch && bank != 2)?7:15));
+	} else {
+		nesSetRom8KBank(4, bank * 8 + prg0);
+		nesSetRom8KBank(5, bank * 8 + prg1);
+		nesSetRom8KBank(6, bank * 8 + ((patch && bank != 2)?6:14));
+		nesSetRom8KBank(7, bank * 8 + ((patch && bank != 2)?7:15));
+	}
+}
+
+static void setBankPpu()
+{
+	if (nesVromSize1KB) {
+		if (reg[0] & 0x80) {
+			nesSetVrom1KBank(0, (bank & 0x02) * 64 + chr4);
+			nesSetVrom1KBank(1, (bank & 0x02) * 64 + chr5);
+			nesSetVrom1KBank(2, (bank & 0x02) * 64 + chr6);
+			nesSetVrom1KBank(3, (bank & 0x02) * 64 + chr7);
+			nesSetVrom1KBank(4, (bank & 0x02) * 64 + chr01 + 0);
+			nesSetVrom1KBank(5, (bank & 0x02) * 64 + chr01 + 1);
+			nesSetVrom1KBank(6, (bank & 0x02) * 64 + chr23 + 0);
+			nesSetVrom1KBank(7, (bank & 0x02) * 64 + chr23 + 1);
+		} else {
+			nesSetVrom1KBank(0, (bank & 0x02) * 64 + chr01 + 0);
+			nesSetVrom1KBank(1, (bank & 0x02) * 64 + chr01 + 1);
+			nesSetVrom1KBank(2, (bank & 0x02) * 64 + chr23 + 0);
+			nesSetVrom1KBank(3, (bank & 0x02) * 64 + chr23 + 1);
+			nesSetVrom1KBank(4, (bank & 0x02) * 64 + chr4);
+			nesSetVrom1KBank(5, (bank & 0x02) * 64 + chr5);
+			nesSetVrom1KBank(6, (bank & 0x02) * 64 + chr6);
+			nesSetVrom1KBank(7, (bank & 0x02) * 64 + chr7);
+		}
+	}
+}
+
+static void writeLow(u16 addr, u8 data)
+{
+	if (addr == 0x6000) {
+		if (patch) {
+			bank = (data & 0x06) >> 1;
+		} else {
+			bank = (data & 0x01) << 1;
+		}
+		setBankCpu();
+		setBankPpu();
+	}
+}
+
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr & 0xE001) {
+	case 0x8000:
+		reg[0] = data;
+		setBankCpu();
+		setBankPpu();
+		break;
+	case 0x8001:
+		reg[1] = data;
+		switch( reg[0] & 0x07) {
+			case 0x00: chr01 = data & 0xFE; setBankPpu(); break;
+			case 0x01: chr23 = data & 0xFE; setBankPpu(); break;
+			case 0x02: chr4 = data; setBankPpu(); break;
+			case 0x03: chr5 = data; setBankPpu(); break;
+			case 0x04: chr6 = data; setBankPpu(); break;
+			case 0x05: chr7 = data; setBankPpu(); break;
+			case 0x06: prg0 = data; setBankCpu(); break;
+			case 0x07: prg1 = data; setBankCpu(); break;
+		}
+		break;
+	case 0xA000:
+		reg[2] = data;
+		if (nesMirroring != FourScreenMirroring)
+			nesSetMirroring(static_cast<NesMirroring>(data & 0x01));
+		break;
+	case 0xA001:
+		reg[3] = data;
+		bank = data & 0x07;
+		if (bank == 7) {
+			bank = 6;
+		}
+		setBankCpu();
+		setBankPpu();
+		break;
+	case 0xC000:
+		reg[4] = data;
+		irq_counter = data;
+		break;
+	case 0xC001:
+		reg[5] = data;
+		irq_latch = data;
+		break;
+	case 0xE000:
+		reg[6] = data;
+		irq_enable = 0;
+		nesMapperSetIrqSignalOut(false);
+		break;
+	case 0xE001:
+		reg[7] = data;
+		irq_enable = 1;
+		break;
+	}
+}
+
+static void horizontalSync()
+{
+	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
+		if (irq_enable) {
+			if (!(--irq_counter)) {
+				irq_counter = irq_latch;
+				nesMapperSetIrqSignalOut(true);
+			}
+		}
+	}
+}
+
+void Mapper047::reset()
+{
 	NesMapper::reset();
+	writeLow = ::writeLow;
+	writeHigh = ::writeHigh;
+	horizontalSync = ::horizontalSync;
 
 	patch = 0;
 
@@ -55,122 +187,8 @@ void Mapper047::reset() {
 	irq_latch = 0;
 }
 
-void Mapper047::writeLow(u16 address, u8 data) {
-	if (address == 0x6000) {
-		if (patch) {
-			bank = (data & 0x06) >> 1;
-		} else {
-			bank = (data & 0x01) << 1;
-		}
-		setBankCpu();
-		setBankPpu();
-	}
-}
-
-void Mapper047::writeHigh(u16 address, u8 data) {
-	switch (address & 0xE001) {
-	case 0x8000:
-		reg[0] = data;
-		setBankCpu();
-		setBankPpu();
-		break;
-	case 0x8001:
-		reg[1] = data;
-		switch( reg[0] & 0x07) {
-			case 0x00: chr01 = data & 0xFE; setBankPpu(); break;
-			case 0x01: chr23 = data & 0xFE; setBankPpu(); break;
-			case 0x02: chr4 = data; setBankPpu(); break;
-			case 0x03: chr5 = data; setBankPpu(); break;
-			case 0x04: chr6 = data; setBankPpu(); break;
-			case 0x05: chr7 = data; setBankPpu(); break;
-			case 0x06: prg0 = data; setBankCpu(); break;
-			case 0x07: prg1 = data; setBankCpu(); break;
-		}
-		break;
-	case 0xA000:
-		reg[2] = data;
-		if (nesMirroring != FourScreenMirroring)
-			setMirroring(static_cast<NesMirroring>(data & 0x01));
-		break;
-	case 0xA001:
-		reg[3] = data;
-		bank = data & 0x07;
-		if (bank == 7) {
-			bank = 6;
-		}
-		setBankCpu();
-		setBankPpu();
-		break;
-	case 0xC000:
-		reg[4] = data;
-		irq_counter = data;
-		break;
-	case 0xC001:
-		reg[5] = data;
-		irq_latch = data;
-		break;
-	case 0xE000:
-		reg[6] = data;
-		irq_enable = 0;
-		setIrqSignalOut(false);
-		break;
-	case 0xE001:
-		reg[7] = data;
-		irq_enable = 1;
-		break;
-	}
-}
-
-void Mapper047::setBankCpu() {
-	if (reg[0] & 0x40) {
-		setRom8KBank(4, bank * 8 + ((patch && bank != 2)?6:14));
-		setRom8KBank(5, bank * 8 + prg1);
-		setRom8KBank(6, bank * 8 + prg0);
-		setRom8KBank(7, bank * 8 + ((patch && bank != 2)?7:15));
-	} else {
-		setRom8KBank(4, bank * 8 + prg0);
-		setRom8KBank(5, bank * 8 + prg1);
-		setRom8KBank(6, bank * 8 + ((patch && bank != 2)?6:14));
-		setRom8KBank(7, bank * 8 + ((patch && bank != 2)?7:15));
-	}
-}
-
-void Mapper047::setBankPpu() {
-	if (nesVromSize1KB) {
-		if (reg[0] & 0x80) {
-			setVrom1KBank(0, (bank & 0x02) * 64 + chr4);
-			setVrom1KBank(1, (bank & 0x02) * 64 + chr5);
-			setVrom1KBank(2, (bank & 0x02) * 64 + chr6);
-			setVrom1KBank(3, (bank & 0x02) * 64 + chr7);
-			setVrom1KBank(4, (bank & 0x02) * 64 + chr01 + 0);
-			setVrom1KBank(5, (bank & 0x02) * 64 + chr01 + 1);
-			setVrom1KBank(6, (bank & 0x02) * 64 + chr23 + 0);
-			setVrom1KBank(7, (bank & 0x02) * 64 + chr23 + 1);
-		} else {
-			setVrom1KBank(0, (bank & 0x02) * 64 + chr01 + 0);
-			setVrom1KBank(1, (bank & 0x02) * 64 + chr01 + 1);
-			setVrom1KBank(2, (bank & 0x02) * 64 + chr23 + 0);
-			setVrom1KBank(3, (bank & 0x02) * 64 + chr23 + 1);
-			setVrom1KBank(4, (bank & 0x02) * 64 + chr4);
-			setVrom1KBank(5, (bank & 0x02) * 64 + chr5);
-			setVrom1KBank(6, (bank & 0x02) * 64 + chr6);
-			setVrom1KBank(7, (bank & 0x02) * 64 + chr7);
-		}
-	}
-}
-
-void Mapper047::horizontalSync() {
-	if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
-		if (irq_enable) {
-			if (!(--irq_counter)) {
-				irq_counter = irq_latch;
-				setIrqSignalOut(true);
-			}
-		}
-	}
-}
-
-void Mapper047::extSl() {
+void Mapper047::extSl()
+{
 	emsl.array("reg", reg, sizeof(reg));
 	emsl.var("bank", bank);
 	emsl.var("prg0", prg0);

@@ -16,17 +16,21 @@
 
 #include "mapper011.h"
 
-void Mapper011::reset() {
-	NesMapper::reset();
-	setRom32KBank(0);
+static void writeHigh(u16 addr, u8 data)
+{
+	Q_UNUSED(addr)
+	nesSetRom32KBank(data);
 	if (nesVromSize1KB)
-		setVrom8KBank(0);
-	setMirroring(VerticalMirroring);
+		nesSetVrom8KBank(data >> 4);
 }
 
-void Mapper011::writeHigh(u16 address, u8 data) {
-	Q_UNUSED(address)
-	setRom32KBank(data);
+void Mapper011::reset()
+{
+	NesMapper::reset();
+	writeHigh = ::writeHigh;
+
+	nesSetRom32KBank(0);
 	if (nesVromSize1KB)
-		setVrom8KBank(data >> 4);
+		nesSetVrom8KBank(0);
+	nesSetMirroring(VerticalMirroring);
 }

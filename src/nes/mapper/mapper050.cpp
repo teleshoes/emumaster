@@ -16,50 +16,59 @@
 
 #include "mapper050.h"
 #include "ppu.h"
-#include <QDataStream>
 
-void Mapper050::reset() {
-	NesMapper::reset();
+static u8 irq_enable;
 
-	irq_enable = 0;
-	setRom8KBank(3, 15);
-	setRom8KBank(4, 8);
-	setRom8KBank(5, 9);
-	setRom8KBank(6, 0);
-	setRom8KBank(7, 11);
-	if (nesVromSize1KB)
-		setVrom8KBank(0);
-}
-
-void Mapper050::writeEx(u16 address, u8 data) {
-	if ((address & 0xE060) == 0x4020) {
-		if (address & 0x0100) {
+static void writeEx(u16 addr, u8 data)
+{
+	if ((addr & 0xE060) == 0x4020) {
+		if (addr & 0x0100) {
 			irq_enable = data & 0x01;
-			setIrqSignalOut(false);
+			nesMapperSetIrqSignalOut(false);
 		} else {
-			setRom8KBank(6, (data&0x08)|((data&0x01)<<2)|((data&0x06)>>1));
+			nesSetRom8KBank(6, (data&0x08)|((data&0x01)<<2)|((data&0x06)>>1));
 		}
 	}
 }
 
-void Mapper050::writeLow(u16 address, u8 data) {
-	if ((address & 0xE060) == 0x4020) {
-		if (address & 0x0100) {
+static void writeLow(u16 addr, u8 data)
+{
+	if ((addr & 0xE060) == 0x4020) {
+		if (addr & 0x0100) {
 			irq_enable = data & 0x01;
-			setIrqSignalOut(false);
+			nesMapperSetIrqSignalOut(false);
 		} else {
-			setRom8KBank(6, (data&0x08)|((data&0x01)<<2)|((data&0x06)>>1));
+			nesSetRom8KBank(6, (data&0x08)|((data&0x01)<<2)|((data&0x06)>>1));
 		}
 	}
 }
 
-void Mapper050::horizontalSync() {
+static void horizontalSync()
+{
 	if (irq_enable) {
 		if (nesPpuScanline == 21)
-			setIrqSignalOut(true);
+			nesMapperSetIrqSignalOut(true);
 	}
 }
 
-void Mapper050::extSl() {
+void Mapper050::reset()
+{
+	NesMapper::reset();
+	writeEx = ::writeEx;
+	writeLow = ::writeLow;
+	horizontalSync = ::horizontalSync;
+
+	irq_enable = 0;
+	nesSetRom8KBank(3, 15);
+	nesSetRom8KBank(4, 8);
+	nesSetRom8KBank(5, 9);
+	nesSetRom8KBank(6, 0);
+	nesSetRom8KBank(7, 11);
+	if (nesVromSize1KB)
+		nesSetVrom8KBank(0);
+}
+
+void Mapper050::extSl()
+{
 	emsl.var("irq_enable", irq_enable);
 }

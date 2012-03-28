@@ -16,7 +16,7 @@
 
 #include "disk.h"
 #include "mapper.h"
-#include <crc32.h>
+#include <base/crc32.h>
 #include <QAbstractFileEngine>
 
 class NesDiskHeader
@@ -44,14 +44,14 @@ static NesDiskHeader header;
 
 static void patchRom();
 
-static inline bool hasTrainer()
+bool nesDiskHasTrainer()
 {
 	return header.flagsA & NesDiskHeader::TrainerFlagA;
 }
 
 static void computeChecksum(QFile *file)
 {
-	if (hasTrainer()) {
+	if (nesDiskHasTrainer()) {
 		file->seek(sizeof(NesDiskHeader));
 		QByteArray ba = file->read(nesRomSizeInBytes+512);
 		nesDiskCrc = qChecksum32(ba.constData(), nesRomSizeInBytes+512);
@@ -68,7 +68,7 @@ static bool loadHeaderAndMemory(QFile *file)
 		return false;
 
 	file->seek(16);
-	if (hasTrainer()) {
+	if (nesDiskHasTrainer()) {
 		if (file->read((char *)nesTrainer, 512) != 512)
 			return false;
 	}
@@ -118,6 +118,12 @@ bool nesDiskLoad(const QString &fileName, QString *error)
 		nesMirroring = HorizontalMirroring;
 	nesDefaultMirroring = nesMirroring;
 	return true;
+}
+
+void nesDiskShutdown()
+{
+	delete[] nesRom;
+	delete[] nesVrom;
 }
 
 bool nesDiskHasBatteryBackedRam()

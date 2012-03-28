@@ -16,7 +16,6 @@
 
 #include "apurectanglechannel.h"
 #include "nes.h"
-#include <QDataStream>
 #include <qmath.h>
 
 void NesApuRectangleChannel::reset()

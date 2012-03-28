@@ -17,10 +17,515 @@
 #include "mapper005.h"
 #include "disk.h"
 #include "ppu.h"
-#include <QDataStream>
 
-void Mapper005::reset() {
+enum Irq {
+	IrqDefault = 0,
+	IrqMetal
+};
+static u8	sram_size;
+
+static u8	prg_size;		// $5100
+static u8	chr_size;		// $5101
+static u8	sram_we_a, sram_we_b;	// $5102-$5103
+static u8	graphic_mode;		// $5104
+static u8	nametable_mode;		// $5105
+static u8	nametable_type[4];	// $5105 use
+
+static u8	sram_page;		// $5113
+
+static u8	fill_chr, fill_pal;	// $5106-$5107
+static u8	split_control;		// $5200
+static u8	split_scroll;		// $5201
+static u8	split_page;		// $5202
+
+static u8	split_x;
+static u16	split_addr;
+static u16	split_yofs;
+
+static u8	chr_type;
+static u8	chr_mode;		// $5120-$512B use
+static u8	chr_page[2][8];		// $5120-$512B
+static u8 * bg_mem_bank[8];
+
+static u8	irq_status;		// $5204(R)
+static u8	irq_enable;		// $5204(W)
+static u8	irq_line;		// $5203
+static u8	irq_scanline;
+static u8	irq_clear;		// HSync
+static u8	irq_type;
+
+static u8	mult_a, mult_b;		// $5205-$5206
+
+static bool cpu_bank_wren[8];
+
+static void updatePpuBanks()
+{
+	if (chr_mode == 0) {
+		// PPU SP Bank
+		switch (chr_size) {
+		case 0:
+			nesSetVrom8KBank(chr_page[0][7]);
+			break;
+		case 1:
+			nesSetVrom4KBank(0, chr_page[0][3]);
+			nesSetVrom4KBank(4, chr_page[0][7]);
+			break;
+		case 2:
+			nesSetVrom2KBank(0, chr_page[0][1]);
+			nesSetVrom2KBank(2, chr_page[0][3]);
+			nesSetVrom2KBank(4, chr_page[0][5]);
+			nesSetVrom2KBank(6, chr_page[0][7]);
+			break;
+		case 3:
+			for (int i = 0; i < 8; i++)
+				nesSetVrom1KBank(i, chr_page[0][i]);
+			break;
+		}
+	} else if (chr_mode == 1) {
+		// PPU BG Bank
+		switch (chr_size) {
+		case 0:
+			for (int i = 0; i < 8; i++) {
+				bg_mem_bank[i] = nesVrom+0x2000*(chr_page[1][7]%nesVromSize8KB)+0x0400*i;
+			}
+			break;
+		case 1:
+			for (int i = 0; i < 4; i++) {
+				bg_mem_bank[i+0] = nesVrom+0x1000*(chr_page[1][3]%nesVromSize4KB)+0x0400*i;
+				bg_mem_bank[i+4] = nesVrom+0x1000*(chr_page[1][7]%nesVromSize4KB)+0x0400*i;
+			}
+			break;
+		case 2:
+			for (int i = 0; i < 2; i++) {
+				bg_mem_bank[i+0] = nesVrom+0x0800*(chr_page[1][1]%nesVromSize2KB)+0x0400*i;
+				bg_mem_bank[i+2] = nesVrom+0x0800*(chr_page[1][3]%nesVromSize2KB)+0x0400*i;
+				bg_mem_bank[i+4] = nesVrom+0x0800*(chr_page[1][5]%nesVromSize2KB)+0x0400*i;
+				bg_mem_bank[i+6] = nesVrom+0x0800*(chr_page[1][7]%nesVromSize2KB)+0x0400*i;
+			}
+			break;
+		case 3:
+			for (int i = 0; i < 8; i++) {
+				bg_mem_bank[i] = nesVrom+0x0400*(chr_page[1][i]%nesVromSize1KB);
+			}
+			break;
+		}
+	}
+}
+
+static void setBankSram(u8 page, u8 data)
+{
+	if (sram_size == 0) data = (data > 3) ? 8 : 0;
+	if (sram_size == 1) data = (data > 3) ? 1 : 0;
+	if (sram_size == 2) data = (data > 3) ? 8 : data;
+	if (sram_size == 3) data = (data > 3) ? 4 : data;
+
+	if (data != 8) {
+		nesSetWram8KBank(page, data);
+		cpu_bank_wren[page] = true;
+	} else {
+		cpu_bank_wren[page] = false;
+	}
+}
+
+static void setBankCpu(u16 addr, u8 data)
+{
+	if (data & 0x80) {
+		// PROM Bank
+		switch (addr & 7) {
+		case 4:
+			if (prg_size == 3) {
+				nesSetRom8KBank(4, data&0x7f);
+				cpu_bank_wren[4] = false;
+			}
+			break;
+		case 5:
+			if (prg_size == 1 || prg_size == 2) {
+				nesSetRom16KBank(4, (data&0x7f)>>1);
+				cpu_bank_wren[4] = false;
+				cpu_bank_wren[5] = false;
+			} else if (prg_size == 3) {
+				nesSetRom8KBank(5, (data&0x7f));
+				cpu_bank_wren[5] = false;
+			}
+			break;
+		case 6:
+			if (prg_size == 2 || prg_size == 3) {
+				nesSetRom8KBank(6, (data&0x7f));
+				cpu_bank_wren[6] = false;
+			}
+			break;
+		case 7:
+			if (prg_size == 0) {
+				nesSetRom32KBank((data&0x7f)>>2);
+				cpu_bank_wren[4] = false;
+				cpu_bank_wren[5] = false;
+				cpu_bank_wren[6] = false;
+				cpu_bank_wren[7] = false;
+			} else if (prg_size == 1) {
+				nesSetRom16KBank(6, (data&0x7f)>>1);
+				cpu_bank_wren[6] = false;
+				cpu_bank_wren[7] = false;
+			} else if (prg_size == 2 || prg_size == 3) {
+				nesSetRom8KBank(7, (data&0x7f));
+				cpu_bank_wren[7] = false;
+			}
+			break;
+		}
+	} else {
+		// WRAM Bank
+		switch (addr & 7) {
+		case 4:
+			if (prg_size == 3) {
+				setBankSram(4, data&0x07);
+			}
+			break;
+		case 5:
+			if (prg_size == 1 || prg_size == 2) {
+				setBankSram(4, (data&0x06)+0);
+				setBankSram(5, (data&0x06)+1);
+			} else if (prg_size == 3) {
+				setBankSram(5, data&0x07);
+			}
+			break;
+		case 6:
+			if (prg_size == 2 || prg_size == 3) {
+				setBankSram(6, data&0x07);
+			}
+			break;
+		}
+	}
+}
+
+static u8 readLow(u16 addr)
+{
+	u8 data = addr >> 8;
+
+	switch (addr) {
+	case 0x5015:
+		// TODO ex souund data = nes->apu->ExRead( address);
+		break;
+
+	case 0x5204:
+		data = irq_status;
+//		irq_status = 0;
+		irq_status &= ~0x80;
+		nesMapperSetIrqSignalOut(false);
+		break;
+	case 0x5205:
+		data = mult_a*mult_b;
+		break;
+	case 0x5206:
+		data = (u8)(((u16)mult_a*(u16)mult_b)>>8);
+		break;
+	}
+
+	if (addr >= 0x5c00 && addr <= 0x5fff) {
+		if (graphic_mode >= 2) { // ExRAM mode
+			data = nesVram[0x0800+(addr&0x3ff)];
+		}
+	} else if (addr >= 0x6000 && addr <= 0x7fff) {
+		data = nesDefaultCpuReadLow(addr);
+	}
+	return data;
+}
+
+static void writeLow(u16 addr, u8 data)
+{
+	switch (addr) {
+	case 0x5100:
+		prg_size = data & 0x03;
+		break;
+	case 0x5101:
+		chr_size = data & 0x03;
+		break;
+
+	case 0x5102:
+		sram_we_a = data & 0x03;
+		break;
+	case 0x5103:
+		sram_we_b = data & 0x03;
+		break;
+
+	case 0x5104:
+		graphic_mode = data & 0x03;
+		break;
+	case 0x5105:
+		nametable_mode = data;
+		for (int i = 0; i < 4; i++) {
+			nametable_type[i] = data&0x03;
+			nesSetVram1KBank(8+i, nametable_type[i]);
+			data >>= 2;
+		}
+		break;
+
+	case 0x5106:
+		fill_chr = data;
+		break;
+	case 0x5107:
+		fill_pal = data & 0x03;
+		break;
+
+	case 0x5113:
+		setBankSram(3, data&0x07);
+		break;
+
+	case 0x5114:
+	case 0x5115:
+	case 0x5116:
+	case 0x5117:
+		setBankCpu(addr, data);
+		break;
+
+	case 0x5120:
+	case 0x5121:
+	case 0x5122:
+	case 0x5123:
+	case 0x5124:
+	case 0x5125:
+	case 0x5126:
+	case 0x5127:
+		chr_mode = 0;
+		chr_page[0][addr&0x07] = data;
+		updatePpuBanks();
+		break;
+
+	case 0x5128:
+	case 0x5129:
+	case 0x512a:
+	case 0x512b:
+		chr_mode = 1;
+		chr_page[1][(addr&0x03)+0] = data;
+		chr_page[1][(addr&0x03)+4] = data;
+		updatePpuBanks();
+		break;
+
+	case 0x5200:
+		split_control = data;
+		break;
+	case 0x5201:
+		split_scroll = data;
+		break;
+	case 0x5202:
+		split_page = data&0x3f;
+		break;
+
+	case 0x5203:
+		irq_line = data;
+		nesMapperSetIrqSignalOut(false);
+		break;
+	case 0x5204:
+		irq_enable = data;
+		nesMapperSetIrqSignalOut(false);
+		break;
+
+	case 0x5205:
+		mult_a = data;
+		break;
+	case 0x5206:
+		mult_b = data;
+		break;
+
+	default:
+		if (addr >= 0x5000 && addr <= 0x5015) {
+			// TODO ex apu nes->apu->ExWrite( address, data);
+		} else if (addr >= 0x5c00 && addr <= 0x5fff) {
+			if (graphic_mode == 2) {		// ExRAM
+				nesVram[0x0800+(addr&0x3ff)] = data;
+			} else if (graphic_mode != 3) {	// Split,ExGraphic
+				if (irq_status&0x40) {
+					nesVram[0x0800+(addr&0x3ff)] = data;
+				} else {
+					nesVram[0x0800+(addr&0x3ff)] = 0;
+				}
+			}
+		} else if (addr >= 0x6000 && addr <= 0x7fff) {
+			if ((sram_we_a == 0x02) && (sram_we_b == 0x01)) {
+				if (cpu_bank_wren[3]) {
+					nesCpuWriteDirect(addr, data);
+				}
+			}
+		}
+		break;
+	}
+}
+
+static void writeHigh(u16 addr, u8 data)
+{
+	if (sram_we_a == 0x02 && sram_we_b == 0x01) {
+		if (addr >= 0x8000 && addr < 0xe000) {
+			if (cpu_bank_wren[addr >> 13]) {
+				nesCpuWriteDirect(addr, data);
+			}
+		}
+	}
+}
+
+static void horizontalSync()
+{
+	if (irq_type & IrqMetal) {
+		if (irq_scanline == irq_line) {
+			irq_status |= 0x80;
+		}
+	}
+	if (nesPpuIsDisplayOn() && nesPpuScanline < NesPpu::VisibleScreenHeight) {
+		irq_scanline++;
+		irq_status |= 0x40;
+		irq_clear = 0;
+	} else if (irq_type & IrqMetal) {
+		irq_scanline = 0;
+		irq_status &= ~0x80;
+		irq_status &= ~0x40;
+	}
+
+	if (!(irq_type & IrqMetal)) {
+		if (irq_scanline == irq_line) {
+			irq_status |= 0x80;
+		}
+
+		if (++irq_clear > 2) {
+			irq_scanline = 0;
+			irq_status &= ~0x80;
+			irq_status &= ~0x40;
+			nesMapperSetIrqSignalOut(false);
+		}
+	}
+
+	if ((irq_enable & 0x80) && (irq_status & 0x80) && (irq_status & 0x40)) {
+		nesMapperSetIrqSignalOut(true);
+	}
+
+	// For Split mode!
+	if (nesPpuScanline == 0) {
+		split_yofs = split_scroll&0x07;
+		split_addr = ((split_scroll&0xF8)<<2);
+	} else if (nesPpuIsDisplayOn()) {
+		if (split_yofs == 7) {
+			split_yofs = 0;
+			if ((split_addr & 0x03E0) == 0x03A0) {
+				split_addr &= 0x001F;
+			} else {
+				if ((split_addr & 0x03E0) == 0x03E0) {
+					split_addr &= 0x001F;
+				} else {
+					split_addr += 0x0020;
+				}
+			}
+		} else {
+			split_yofs++;
+		}
+	}
+}
+
+static NesMapper::ExtensionLatchResult extensionLatch(int i, u16 addr)
+{
+	NesMapper::ExtensionLatchResult result;
+	split_x = i;
+
+	u16	ntbladr, attradr, tileadr;
+	uint tilebank;
+	bool bSplit;
+
+	bSplit = false;
+	if (split_control & 0x80) {
+		if (!(split_control&0x40)) {
+			// Left side
+			if ((split_control&0x1F) > split_x) {
+				bSplit = true;
+			}
+		} else {
+			// Right side
+			if ((split_control&0x1F) <= split_x) {
+				bSplit = true;
+			}
+		}
+	}
+
+	if (!bSplit) {
+		if (nametable_type[(addr&0x0C00)>>10] == 3) {
+			// Fill mode
+			if (graphic_mode == 1) {
+				// ExGraphic mode
+				ntbladr = 0x2000+(addr&0x0FFF);
+				// Get Nametable
+				tileadr = fill_chr*0x10+nesPpuScroll.yFine();
+				// Get TileBank
+				tilebank = 0x1000*((nesVram[0x0800+(ntbladr&0x03FF)]&0x3F)%nesVromSize4KB);
+				// Attribute
+				result.attribute = (fill_pal<<2)&0x0C;
+				// Get Pattern
+				result.plane1 = nesVrom[tilebank+tileadr  ];
+				result.plane2 = nesVrom[tilebank+tileadr+8];
+			} else {
+				// Normal
+				tileadr = nesPpuTilePageOffset+fill_chr*0x10+nesPpuScroll.yFine();
+				result.attribute = (fill_pal<<2)&0x0C;
+				// Get Pattern
+				if (chr_type) {
+					result.plane1 = nesPpuRead(tileadr + 0);
+					result.plane2 = nesPpuRead(tileadr + 8);
+				} else {
+					result.plane1 = bg_mem_bank[tileadr>>10][ tileadr&0x03FF   ];
+					result.plane2 = bg_mem_bank[tileadr>>10][(tileadr&0x03FF)+8];
+				}
+			}
+		} else if (graphic_mode == 1) {
+			// ExGraphic mode
+			ntbladr = 0x2000+(addr&0x0FFF);
+			// Get Nametable
+			tileadr = (u16)nesPpuRead(ntbladr)*0x10+nesPpuScroll.yFine();
+			// Get TileBank
+			tilebank = 0x1000*((nesVram[0x0800+(ntbladr&0x03FF)]&0x3F)%nesVromSize4KB);
+			// Get Attribute
+			result.attribute = (nesVram[0x0800+(ntbladr&0x03FF)]&0xC0)>>4;
+			// Get Pattern
+			result.plane1 = nesVrom[tilebank+tileadr  ];
+			result.plane2 = nesVrom[tilebank+tileadr+8];
+		} else {
+			// Normal or ExVRAM
+			ntbladr = 0x2000+(addr&0x0FFF);
+			attradr = 0x23C0+(addr&0x0C00)+((addr&0x0380)>>4)+((addr&0x001C)>>2);
+			// Get Nametable
+			tileadr = nesPpuTilePageOffset+nesPpuRead(ntbladr)*0x10+nesPpuScroll.yFine();
+			// Get Attribute
+			result.attribute = nesPpuRead(attradr);
+			if (ntbladr & 0x0002) result.attribute >>= 2;
+			if (ntbladr & 0x0040) result.attribute >>= 4;
+			result.attribute = (result.attribute&0x03)<<2;
+			// Get Pattern
+			if (chr_type) {
+				result.plane1 = nesPpuRead(tileadr + 0);
+				result.plane2 = nesPpuRead(tileadr + 8);
+			} else {
+				result.plane1 = bg_mem_bank[tileadr>>10][ tileadr&0x03FF   ];
+				result.plane2 = bg_mem_bank[tileadr>>10][(tileadr&0x03FF)+8];
+			}
+		}
+	} else {
+		ntbladr = ((split_addr&0x03E0)|(split_x&0x1F))&0x03FF;
+		// Get Split TileBank
+		tilebank = 0x1000*((int)split_page%nesVromSize4KB);
+		tileadr  = (u16)nesVram[0x0800+ntbladr]*0x10+split_yofs;
+		// Get Attribute
+		attradr = 0x03C0+((ntbladr&0x0380)>>4)+((ntbladr&0x001C)>>2);
+		result.attribute = nesVram[0x0800+attradr];
+		if (ntbladr & 0x0002) result.attribute >>= 2;
+		if (ntbladr & 0x0040) result.attribute >>= 4;
+		result.attribute = (result.attribute&0x03)<<2;
+		// Get Pattern
+		result.plane1 = nesVrom[tilebank+tileadr  ];
+		result.plane2 = nesVrom[tilebank+tileadr+8];
+	}
+	return result;
+}
+
+void Mapper005::reset()
+{
 	NesMapper::reset();
+	readLow = ::readLow;
+	writeLow = ::writeLow;
+	writeHigh = ::writeHigh;
+	horizontalSync = ::horizontalSync;
+	extensionLatch = ::extensionLatch;
 
 	cpu_bank_wren[0] = true;
 	cpu_bank_wren[1] = true;
@@ -52,7 +557,7 @@ void Mapper005::reset() {
 	irq_line = 0;
 	irq_clear = 0;
 
-	irq_type = IrqNone;
+	irq_type = IrqDefault;
 
 	mult_a = mult_b = 0;
 
@@ -64,7 +569,13 @@ void Mapper005::reset() {
 		chr_page[1][i] = 4+(i&0x03);
 	}
 	for (int i = 4; i < 8; i++)
-		setRom8KBank(i, nesRomSize8KB-1);
+		nesSetRom8KBank(i, nesRomSize8KB-1);
+	nesSetVrom8KBank(0);
+
+	for (int i = 0; i < 8; i++) {
+		bg_mem_bank[i] = nesVrom+0x0400*i;
+	}
+
 	setBankSram(3, 0);
 
 	sram_size = 0;
@@ -102,469 +613,11 @@ void Mapper005::reset() {
 		chr_type = 1;
 	}
 
-	nesPpuSetExternalLatchEnabled(true);
 // TODO ex sound	nes->apu->SelectExSound( 8);
-
-	setVrom8KBank(0);
-
-	for (int i = 0; i < 8; i++) {
-		BG_MEM_BANK[i] = nesVrom+0x0400*i;
-	}
 }
 
-u8 Mapper005::readLow(u16 address) {
-	u8 data = address >> 8;
-
-	switch (address) {
-	case 0x5015:
-		// TODO ex souund data = nes->apu->ExRead( address);
-		break;
-
-	case 0x5204:
-		data = irq_status;
-//		irq_status = 0;
-		irq_status &= ~0x80;
-		setIrqSignalOut(false);
-		break;
-	case 0x5205:
-		data = mult_a*mult_b;
-		break;
-	case 0x5206:
-		data = (u8)(((u16)mult_a*(u16)mult_b)>>8);
-		break;
-	}
-
-	if (address >= 0x5C00 && address <= 0x5FFF) {
-		if (graphic_mode >= 2) { // ExRAM mode
-			data = nesVram[0x0800+(address&0x3FF)];
-		}
-	} else if (address >= 0x6000 && address <= 0x7FFF) {
-		data = NesMapper::readLow(address);
-	}
-	return data;
-}
-
-void Mapper005::writeLow(u16 address, u8 data) {
-	switch (address) {
-	case 0x5100:
-		prg_size = data & 0x03;
-		break;
-	case 0x5101:
-		chr_size = data & 0x03;
-		break;
-
-	case 0x5102:
-		sram_we_a = data & 0x03;
-		break;
-	case 0x5103:
-		sram_we_b = data & 0x03;
-		break;
-
-	case 0x5104:
-		graphic_mode = data & 0x03;
-		break;
-	case 0x5105:
-		nametable_mode = data;
-		for (int i = 0; i < 4; i++) {
-			nametable_type[i] = data&0x03;
-			setVram1KBank(8+i, nametable_type[i]);
-			data >>= 2;
-		}
-		break;
-
-	case 0x5106:
-		fill_chr = data;
-		break;
-	case 0x5107:
-		fill_pal = data & 0x03;
-		break;
-
-	case 0x5113:
-		setBankSram(3, data&0x07);
-		break;
-
-	case 0x5114:
-	case 0x5115:
-	case 0x5116:
-	case 0x5117:
-		setBank(address, data);
-		break;
-
-	case 0x5120:
-	case 0x5121:
-	case 0x5122:
-	case 0x5123:
-	case 0x5124:
-	case 0x5125:
-	case 0x5126:
-	case 0x5127:
-		chr_mode = 0;
-		chr_page[0][address&0x07] = data;
-		updatePpuBanks();
-		break;
-
-	case 0x5128:
-	case 0x5129:
-	case 0x512A:
-	case 0x512B:
-		chr_mode = 1;
-		chr_page[1][(address&0x03)+0] = data;
-		chr_page[1][(address&0x03)+4] = data;
-		updatePpuBanks();
-		break;
-
-	case 0x5200:
-		split_control = data;
-		break;
-	case 0x5201:
-		split_scroll = data;
-		break;
-	case 0x5202:
-		split_page = data&0x3F;
-		break;
-
-	case 0x5203:
-		irq_line = data;
-		setIrqSignalOut(false);
-		break;
-	case 0x5204:
-		irq_enable = data;
-		setIrqSignalOut(false);
-		break;
-
-	case 0x5205:
-		mult_a = data;
-		break;
-	case 0x5206:
-		mult_b = data;
-		break;
-
-	default:
-		if (address >= 0x5000 && address <= 0x5015) {
-			// TODO ex apu nes->apu->ExWrite( address, data);
-		} else if (address >= 0x5C00 && address <= 0x5FFF) {
-			if (graphic_mode == 2) {		// ExRAM
-				nesVram[0x0800+(address&0x3FF)] = data;
-			} else if (graphic_mode != 3) {	// Split,ExGraphic
-				if (irq_status&0x40) {
-					nesVram[0x0800+(address&0x3FF)] = data;
-				} else {
-					nesVram[0x0800+(address&0x3FF)] = 0;
-				}
-			}
-		} else if (address >= 0x6000 && address <= 0x7FFF) {
-			if ((sram_we_a == 0x02) && (sram_we_b == 0x01)) {
-				if (cpu_bank_wren[3]) {
-					writeDirect(address, data);
-				}
-			}
-		}
-		break;
-	}
-}
-
-void Mapper005::writeHigh(u16 address, u8 data) {
-	if (sram_we_a == 0x02 && sram_we_b == 0x01) {
-		if (address >= 0x8000 && address < 0xE000) {
-			if (cpu_bank_wren[address >> 13]) {
-				writeDirect(address, data);
-			}
-		}
-	}
-}
-
-void Mapper005::setBank(u16 address, u8 data) {
-	if (data & 0x80) {
-		// PROM Bank
-		switch (address & 7) {
-		case 4:
-			if (prg_size == 3) {
-				setRom8KBank(4, data&0x7F);
-				cpu_bank_wren[4] = false;
-			}
-			break;
-		case 5:
-			if (prg_size == 1 || prg_size == 2) {
-				setRom16KBank(4, (data&0x7F)>>1);
-				cpu_bank_wren[4] = false;
-				cpu_bank_wren[5] = false;
-			} else if (prg_size == 3) {
-				setRom8KBank(5, (data&0x7F));
-				cpu_bank_wren[5] = false;
-			}
-			break;
-		case 6:
-			if (prg_size == 2 || prg_size == 3) {
-				setRom8KBank(6, (data&0x7F));
-				cpu_bank_wren[6] = false;
-			}
-			break;
-		case 7:
-			if (prg_size == 0) {
-				setRom32KBank((data&0x7F)>>2);
-				cpu_bank_wren[4] = false;
-				cpu_bank_wren[5] = false;
-				cpu_bank_wren[6] = false;
-				cpu_bank_wren[7] = false;
-			} else if (prg_size == 1) {
-				setRom16KBank(6, (data&0x7F)>>1);
-				cpu_bank_wren[6] = false;
-				cpu_bank_wren[7] = false;
-			} else if (prg_size == 2 || prg_size == 3) {
-				setRom8KBank(7, (data&0x7F));
-				cpu_bank_wren[7] = false;
-			}
-			break;
-		}
-	} else {
-		// WRAM Bank
-		switch (address & 7) {
-		case 4:
-			if (prg_size == 3) {
-				setBankSram(4, data&0x07);
-			}
-			break;
-		case 5:
-			if (prg_size == 1 || prg_size == 2) {
-				setBankSram(4, (data&0x06)+0);
-				setBankSram(5, (data&0x06)+1);
-			} else if (prg_size == 3) {
-				setBankSram(5, data&0x07);
-			}
-			break;
-		case 6:
-			if (prg_size == 2 || prg_size == 3) {
-				setBankSram(6, data&0x07);
-			}
-			break;
-		}
-	}
-}
-
-void Mapper005::setBankSram(u8 page, u8 data) {
-	if (sram_size == 0) data = (data > 3) ? 8 : 0;
-	if (sram_size == 1) data = (data > 3) ? 1 : 0;
-	if (sram_size == 2) data = (data > 3) ? 8 : data;
-	if (sram_size == 3) data = (data > 3) ? 4 : data;
-
-	if (data != 8) {
-		setWram8KBank(page, data);
-		cpu_bank_wren[page] = true;
-	} else {
-		cpu_bank_wren[page] = false;
-	}
-}
-
-void Mapper005::updatePpuBanks() {
-	if (chr_mode == 0) {
-		// PPU SP Bank
-		switch (chr_size) {
-		case 0:
-			setVrom8KBank(chr_page[0][7]);
-			break;
-		case 1:
-			setVrom4KBank(0, chr_page[0][3]);
-			setVrom4KBank(4, chr_page[0][7]);
-			break;
-		case 2:
-			setVrom2KBank(0, chr_page[0][1]);
-			setVrom2KBank(2, chr_page[0][3]);
-			setVrom2KBank(4, chr_page[0][5]);
-			setVrom2KBank(6, chr_page[0][7]);
-			break;
-		case 3:
-			for (int i = 0; i < 8; i++)
-				setVrom1KBank(i, chr_page[0][i]);
-			break;
-		}
-	} else if (chr_mode == 1) {
-		// PPU BG Bank
-		switch (chr_size) {
-		case 0:
-			for (int i = 0; i < 8; i++) {
-				BG_MEM_BANK[i] = nesVrom+0x2000*(chr_page[1][7]%nesVromSize8KB)+0x0400*i;
-			}
-			break;
-		case 1:
-			for (int i = 0; i < 4; i++) {
-				BG_MEM_BANK[i+0] = nesVrom+0x1000*(chr_page[1][3]%nesVromSize4KB)+0x0400*i;
-				BG_MEM_BANK[i+4] = nesVrom+0x1000*(chr_page[1][7]%nesVromSize4KB)+0x0400*i;
-			}
-			break;
-		case 2:
-			for (int i = 0; i < 2; i++) {
-				BG_MEM_BANK[i+0] = nesVrom+0x0800*(chr_page[1][1]%nesVromSize2KB)+0x0400*i;
-				BG_MEM_BANK[i+2] = nesVrom+0x0800*(chr_page[1][3]%nesVromSize2KB)+0x0400*i;
-				BG_MEM_BANK[i+4] = nesVrom+0x0800*(chr_page[1][5]%nesVromSize2KB)+0x0400*i;
-				BG_MEM_BANK[i+6] = nesVrom+0x0800*(chr_page[1][7]%nesVromSize2KB)+0x0400*i;
-			}
-			break;
-		case 3:
-			for (int i = 0; i < 8; i++) {
-				BG_MEM_BANK[i] = nesVrom+0x0400*(chr_page[1][i]%nesVromSize1KB);
-			}
-			break;
-		}
-	}
-}
-
-void Mapper005::horizontalSync() {
-	if (irq_type & IrqMetal) {
-		if (irq_scanline == irq_line) {
-			irq_status |= 0x80;
-		}
-	}
-	if (nesPpuIsDisplayOn() && nesPpuScanline < NesPpu::VisibleScreenHeight) {
-		irq_scanline++;
-		irq_status |= 0x40;
-		irq_clear = 0;
-	} else if (irq_type & IrqMetal) {
-		irq_scanline = 0;
-		irq_status &= ~0x80;
-		irq_status &= ~0x40;
-	}
-
-	if (!(irq_type & IrqMetal)) {
-		if (irq_scanline == irq_line) {
-			irq_status |= 0x80;
-		}
-
-		if (++irq_clear > 2) {
-			irq_scanline = 0;
-			irq_status &= ~0x80;
-			irq_status &= ~0x40;
-			setIrqSignalOut(false);
-		}
-	}
-
-	if ((irq_enable & 0x80) && (irq_status & 0x80) && (irq_status & 0x40)) {
-		setIrqSignalOut(true);
-	}
-
-	// For Split mode!
-	if (nesPpuScanline == 0) {
-		split_yofs = split_scroll&0x07;
-		split_addr = ((split_scroll&0xF8)<<2);
-	} else if (nesPpuIsDisplayOn()) {
-		if (split_yofs == 7) {
-			split_yofs = 0;
-			if ((split_addr & 0x03E0) == 0x03A0) {
-				split_addr &= 0x001F;
-			} else {
-				if ((split_addr & 0x03E0) == 0x03E0) {
-					split_addr &= 0x001F;
-				} else {
-					split_addr += 0x0020;
-				}
-			}
-		} else {
-			split_yofs++;
-		}
-	}
-}
-
-void Mapper005::extensionLatchX(uint x) {
-	split_x = x;
-}
-
-void Mapper005::extensionLatch(u16 address, u8 *plane1, u8 *plane2, u8 *attribute) {
-	u16	ntbladr, attradr, tileadr;
-	uint tilebank;
-	bool bSplit;
-
-	bSplit = false;
-	if (split_control & 0x80) {
-		if (!(split_control&0x40)) {
-			// Left side
-			if ((split_control&0x1F) > split_x) {
-				bSplit = true;
-			}
-		} else {
-			// Right side
-			if ((split_control&0x1F) <= split_x) {
-				bSplit = true;
-			}
-		}
-	}
-
-	if (!bSplit) {
-		if (nametable_type[(address&0x0C00)>>10] == 3) {
-			// Fill mode
-			if (graphic_mode == 1) {
-				// ExGraphic mode
-				ntbladr = 0x2000+(address&0x0FFF);
-				// Get Nametable
-				tileadr = fill_chr*0x10+nesPpuScroll.yFine();
-				// Get TileBank
-				tilebank = 0x1000*((nesVram[0x0800+(ntbladr&0x03FF)]&0x3F)%nesVromSize4KB);
-				// Attribute
-				*attribute = (fill_pal<<2)&0x0C;
-				// Get Pattern
-				*plane1 = nesVrom[tilebank+tileadr  ];
-				*plane2 = nesVrom[tilebank+tileadr+8];
-			} else {
-				// Normal
-				tileadr = nesPpuTilePageOffset+fill_chr*0x10+nesPpuScroll.yFine();
-				*attribute = (fill_pal<<2)&0x0C;
-				// Get Pattern
-				if (chr_type) {
-					*plane1 = ppuRead(tileadr + 0);
-					*plane2 = ppuRead(tileadr + 8);
-				} else {
-					*plane1 = BG_MEM_BANK[tileadr>>10][ tileadr&0x03FF   ];
-					*plane2 = BG_MEM_BANK[tileadr>>10][(tileadr&0x03FF)+8];
-				}
-			}
-		} else if (graphic_mode == 1) {
-			// ExGraphic mode
-			ntbladr = 0x2000+(address&0x0FFF);
-			// Get Nametable
-			tileadr = (u16)ppuRead(ntbladr)*0x10+nesPpuScroll.yFine();
-			// Get TileBank
-			tilebank = 0x1000*((nesVram[0x0800+(ntbladr&0x03FF)]&0x3F)%nesVromSize4KB);
-			// Get Attribute
-			*attribute = (nesVram[0x0800+(ntbladr&0x03FF)]&0xC0)>>4;
-			// Get Pattern
-			*plane1 = nesVrom[tilebank+tileadr  ];
-			*plane2 = nesVrom[tilebank+tileadr+8];
-		} else {
-			// Normal or ExVRAM
-			ntbladr = 0x2000+(address&0x0FFF);
-			attradr = 0x23C0+(address&0x0C00)+((address&0x0380)>>4)+((address&0x001C)>>2);
-			// Get Nametable
-			tileadr = nesPpuTilePageOffset+ppuRead(ntbladr)*0x10+nesPpuScroll.yFine();
-			// Get Attribute
-			*attribute = ppuRead(attradr);
-			if (ntbladr & 0x0002) *attribute >>= 2;
-			if (ntbladr & 0x0040) *attribute >>= 4;
-			*attribute = (*attribute&0x03)<<2;
-			// Get Pattern
-			if (chr_type) {
-				*plane1 = ppuRead(tileadr + 0);
-				*plane2 = ppuRead(tileadr + 8);
-			} else {
-				*plane1 = BG_MEM_BANK[tileadr>>10][ tileadr&0x03FF   ];
-				*plane2 = BG_MEM_BANK[tileadr>>10][(tileadr&0x03FF)+8];
-			}
-		}
-	} else {
-		ntbladr = ((split_addr&0x03E0)|(split_x&0x1F))&0x03FF;
-		// Get Split TileBank
-		tilebank = 0x1000*((int)split_page%nesVromSize4KB);
-		tileadr  = (u16)nesVram[0x0800+ntbladr]*0x10+split_yofs;
-		// Get Attribute
-		attradr = 0x03C0+((ntbladr&0x0380)>>4)+((ntbladr&0x001C)>>2);
-		*attribute = nesVram[0x0800+attradr];
-		if (ntbladr & 0x0002) *attribute >>= 2;
-		if (ntbladr & 0x0040) *attribute >>= 4;
-		*attribute = (*attribute&0x03)<<2;
-		// Get Pattern
-		*plane1 = nesVrom[tilebank+tileadr  ];
-		*plane2 = nesVrom[tilebank+tileadr+8];
-	}
-}
-
-void Mapper005::extSl() {
+void Mapper005::extSl()
+{
 	emsl.var("prg_size", prg_size);
 	emsl.var("chr_size", chr_size);
 	emsl.var("sram_we_a", sram_we_a);

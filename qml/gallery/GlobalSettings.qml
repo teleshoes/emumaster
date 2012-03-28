@@ -69,10 +69,10 @@ Page {
 			width: parent.width
 			minimumValue: 0
 			maximumValue: 5
-			value: diskGallery.globalOption("frameSkip")
-			onValueChanged: diskGallery.setGlobalOption("frameSkip", value)
 			stepSize: 1
 			valueIndicatorVisible: true
+			onValueChanged: diskGallery.setGlobalOption("frameSkip", value)
+			Component.onCompleted: value = diskGallery.globalOption("frameSkip")
 		}
 		GlobalSettingsSwitchItem { text: qsTr("Show FPS"); optionName: "fpsVisible" }
 		GlobalSettingsSwitchItem { text: qsTr("Keep Aspect Ratio"); optionName: "keepAspectRatio" }

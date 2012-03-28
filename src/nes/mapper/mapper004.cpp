@@ -15,12 +15,289 @@
  */
 
 #include "mapper004.h"
-#include "ppu.h"
 #include "disk.h"
-#include <emu.h>
+#include "ppu.h"
 
-void Mapper004::reset() {
+enum Irq {
+	IrqDefault,
+	IrqKlax,
+	IrqShougimeikan,
+	IrqDai2JiSuper,
+	IrqDBZ2,
+	IrqRockman3
+};
+
+static u8	reg[8];
+static u8	prg0, prg1;
+static u8	chr01, chr23, chr4, chr5, chr6, chr7;
+
+static u8	irq_type;
+static u8	irq_enable;
+static u8	irq_counter;
+static u8	irq_latch;
+static u8	irq_request;
+static u8	irq_preset;
+static u8	irq_preset_vbl;
+
+static u8	vs_patch;
+static u8	vs_index;
+
+static void updatePpuBanks()
+{
+	if (nesVromSize1KB) {
+		if (reg[0] & 0x80) {
+			nesSetVrom1KBank(4, chr01);
+			nesSetVrom1KBank(5, chr01+1);
+			nesSetVrom1KBank(6, chr23);
+			nesSetVrom1KBank(7, chr23+1);
+			nesSetVrom1KBank(0, chr4);
+			nesSetVrom1KBank(1, chr5);
+			nesSetVrom1KBank(2, chr6);
+			nesSetVrom1KBank(3, chr7);
+		} else {
+			nesSetVrom1KBank(0, chr01);
+			nesSetVrom1KBank(1, chr01+1);
+			nesSetVrom1KBank(2, chr23);
+			nesSetVrom1KBank(3, chr23+1);
+			nesSetVrom1KBank(4, chr4);
+			nesSetVrom1KBank(5, chr5);
+			nesSetVrom1KBank(6, chr6);
+			nesSetVrom1KBank(7, chr7);
+		}
+	} else {
+		if (reg[0] & 0x80) {
+			nesSetCram1KBank(4, (chr01+0)&0x07);
+			nesSetCram1KBank(5, (chr01+1)&0x07);
+			nesSetCram1KBank(6, (chr23+0)&0x07);
+			nesSetCram1KBank(7, (chr23+1)&0x07);
+			nesSetCram1KBank(0, chr4&0x07);
+			nesSetCram1KBank(1, chr5&0x07);
+			nesSetCram1KBank(2, chr6&0x07);
+			nesSetCram1KBank(3, chr7&0x07);
+		} else {
+			nesSetCram1KBank(0, (chr01+0)&0x07);
+			nesSetCram1KBank(1, (chr01+1)&0x07);
+			nesSetCram1KBank(2, (chr23+0)&0x07);
+			nesSetCram1KBank(3, (chr23+1)&0x07);
+			nesSetCram1KBank(4, chr4&0x07);
+			nesSetCram1KBank(5, chr5&0x07);
+			nesSetCram1KBank(6, chr6&0x07);
+			nesSetCram1KBank(7, chr7&0x07);
+		}
+	}
+}
+
+static void updateCpuBanks()
+{
+	if (reg[0] & 0x40)
+		nesSetRom8KBanks(nesRomSize8KB-2, prg1, prg0, nesRomSize8KB-1);
+	else
+		nesSetRom8KBanks(prg0, prg1, nesRomSize8KB-2, nesRomSize8KB-1);
+}
+
+static u8 readLow(u16 addr)
+{
+	if (!vs_patch) {
+		if (addr >= 0x5000 && addr < 0x6000)
+			return nesXram[addr - 0x4000];
+	} else {
+		if (vs_patch == 1) {
+			// VS TKO Boxing Security
+			if (addr == 0x5e00) {
+				vs_index = 0;
+				return 0x00;
+			} else if (addr == 0x5e01) {
+				static u8 vsTKOBoxingSecurity[32] = {
+					0xff, 0xbf, 0xb7, 0x97, 0x97, 0x17, 0x57, 0x4f,
+					0x6f, 0x6b, 0xeb, 0xa9, 0xb1, 0x90, 0x94, 0x14,
+					0x56, 0x4e, 0x6f, 0x6b, 0xeb, 0xa9, 0xb1, 0x90,
+					0xd4, 0x5c, 0x3e, 0x26, 0x87, 0x83, 0x13, 0x00
+				};
+				return vsTKOBoxingSecurity[(vs_index++) & 0x1f];
+			}
+		} else if (vs_patch == 2) {
+			// VS Atari RBI Baseball Security
+			if (addr == 0x5e00) {
+				vs_index = 0;
+				return 0x00;
+			} else if (addr == 0x5e01) {
+				if (vs_index++ == 9)
+					return 0x6f;
+				else
+					return 0xb4;
+			}
+		} else if (vs_patch == 3) {
+			// VS Super Xevious
+			switch (addr) {
+			case 0x54ff:
+				return 0x05;
+			case 0x5678:
+				if (vs_index)
+					return 0x00;
+				else
+					return 0x01;
+				break;
+			case 0x578f:
+				if (vs_index)
+					return 0xd1;
+				else
+					return 0x89;
+				break;
+			case 0x5567:
+				if (vs_index) {
+					vs_index = 0;
+					return 0x3e;
+				} else {
+					vs_index = 1;
+					return 0x37;
+				}
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	return nesDefaultCpuReadLow(addr);
+}
+
+static void writeLow(u16 addr, u8 data)
+{
+	if (addr >= 0x5000 && addr < 0x6000)
+		nesXram[addr - 0x4000] = data;
+	else
+		nesDefaultCpuWriteLow(addr, data);
+}
+
+static void writeHigh(u16 addr, u8 data)
+{
+	switch (addr & 0xe001) {
+	case 0x8000:
+		reg[0] = data;
+		updateCpuBanks();
+		updatePpuBanks();
+		break;
+	case 0x8001:
+		reg[1] = data;
+		switch (reg[0] & 0x07) {
+		case 0x00: chr01 = data & 0xfe; updatePpuBanks(); break;
+		case 0x01: chr23 = data & 0xfe; updatePpuBanks(); break;
+		case 0x02: chr4 = data; updatePpuBanks(); break;
+		case 0x03: chr5 = data; updatePpuBanks(); break;
+		case 0x04: chr6 = data; updatePpuBanks(); break;
+		case 0x05: chr7 = data; updatePpuBanks(); break;
+		case 0x06: prg0 = data; updateCpuBanks(); break;
+		case 0x07: prg1 = data; updateCpuBanks(); break;
+		}
+		break;
+	case 0xa000:
+		reg[2] = data;
+		if (nesMirroring != FourScreenMirroring) {
+			if (data & 0x01)
+				nesSetMirroring(HorizontalMirroring);
+			else
+				nesSetMirroring(VerticalMirroring);
+		}
+		break;
+	case 0xa001:
+		reg[3] = data;
+		break;
+	case 0xc000:
+		reg[4] = data;
+		if (irq_type == IrqKlax || irq_type == IrqRockman3)
+			irq_counter = data;
+		else
+			irq_latch = data;
+		if (irq_type == IrqDBZ2)
+			irq_latch = 0x07;
+		break;
+	case 0xc001:
+		reg[5] = data;
+		if (irq_type == IrqKlax || irq_type == IrqRockman3) {
+			irq_latch = data;
+		} else {
+			if ((nesPpuScanline < NesPpu::VisibleScreenHeight) || (irq_type == IrqShougimeikan)) {
+				irq_counter |= 0x80;
+				irq_preset = 0xff;
+			} else {
+				irq_counter |= 0x80;
+				irq_preset_vbl = 0xff;
+				irq_preset = 0;
+			}
+		}
+		break;
+	case 0xe000:
+		reg[6] = data;
+		irq_enable = 0;
+		irq_request = 0;
+		nesMapperSetIrqSignalOut(false);
+		break;
+	case 0xe001:
+		reg[7] = data;
+		irq_enable = 1;
+		irq_request = 0;
+		break;
+	}
+}
+
+static void horizontalSync()
+{
+	if (irq_type == IrqKlax) {
+		if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
+			if (irq_enable) {
+				if (irq_counter == 0) {
+					irq_counter = irq_latch;
+					irq_request = 0xff;
+				}
+				if (irq_counter > 0)
+					irq_counter--;
+			}
+		}
+		if (irq_request)
+			nesMapperSetIrqSignalOut(true);
+	} else if (irq_type == IrqRockman3) {
+		if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
+			if (irq_enable) {
+				if (!(--irq_counter)) {
+					irq_request = 0xff;
+					irq_counter = irq_latch;
+				}
+			}
+		}
+		if (irq_request)
+			nesMapperSetIrqSignalOut(true);
+	} else {
+		if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
+			if (irq_preset_vbl) {
+				irq_counter = irq_latch;
+				irq_preset_vbl = 0;
+			}
+			if (irq_preset) {
+				irq_counter = irq_latch;
+				irq_preset = 0;
+				if (irq_type == IrqDai2JiSuper && nesPpuScanline == 0) {
+					irq_counter--;
+				}
+			} else if (irq_counter > 0) {
+				irq_counter--;
+			}
+			if (irq_counter == 0) {
+				if (irq_enable) {
+					irq_request = 0xff;
+					nesMapperSetIrqSignalOut(true);
+				}
+				irq_preset = 0xff;
+			}
+		}
+	}
+}
+
+void Mapper004::reset()
+{
 	NesMapper::reset();
+	readLow = ::readLow;
+	writeLow = ::writeLow;
+	writeHigh = ::writeHigh;
+	horizontalSync = ::horizontalSync;
 
 	memset(reg, 0, sizeof(reg));
 	prg0 = 0;
@@ -29,12 +306,12 @@ void Mapper004::reset() {
 
 	irq_enable = 0;	// Disable
 	irq_counter = 0;
-	irq_latch = 0xFF;
+	irq_latch = 0xff;
 	irq_request = 0;
 	irq_preset = 0;
 	irq_preset_vbl = 0;
 
-	irq_type = IrqNone;
+	irq_type = IrqDefault;
 
 	chr01 = 0;
 	chr23 = 2;
@@ -104,250 +381,8 @@ void Mapper004::reset() {
 	}
 }
 
-u8 Mapper004::readLow(u16 address) {
-	if (!vs_patch) {
-		if (address >= 0x5000 && address < 0x6000)
-			return nesXram[address - 0x4000];
-	} else {
-		if (vs_patch == 1) {
-			// VS TKO Boxing Security
-			if (address == 0x5E00) {
-				vs_index = 0;
-				return 0x00;
-			} else if (address == 0x5E01) {
-				static u8 vsTKOBoxingSecurity[32] = {
-					0xFF, 0xBF, 0xB7, 0x97, 0x97, 0x17, 0x57, 0x4F,
-					0x6F, 0x6B, 0xEB, 0xA9, 0xB1, 0x90, 0x94, 0x14,
-					0x56, 0x4E, 0x6F, 0x6B, 0xEB, 0xA9, 0xB1, 0x90,
-					0xD4, 0x5C, 0x3E, 0x26, 0x87, 0x83, 0x13, 0x00
-				};
-				return vsTKOBoxingSecurity[(vs_index++) & 0x1F];
-			}
-		} else if (vs_patch == 2) {
-			// VS Atari RBI Baseball Security
-			if (address == 0x5E00) {
-				vs_index = 0;
-				return 0x00;
-			} else if (address == 0x5E01) {
-				if (vs_index++ == 9)
-					return 0x6F;
-				else
-					return 0xB4;
-			}
-		} else if (vs_patch == 3) {
-			// VS Super Xevious
-			switch (address) {
-			case 0x54FF:
-				return 0x05;
-			case 0x5678:
-				if (vs_index)
-					return 0x00;
-				else
-					return 0x01;
-				break;
-			case 0x578F:
-				if (vs_index)
-					return 0xD1;
-				else
-					return 0x89;
-				break;
-			case 0x5567:
-				if (vs_index) {
-					vs_index = 0;
-					return 0x3E;
-				} else {
-					vs_index = 1;
-					return 0x37;
-				}
-				break;
-			default:
-				break;
-			}
-		}
-	}
-	return NesMapper::readLow(address);
-}
-
-void Mapper004::writeLow(u16 address, u8 data) {
-	if (address >= 0x5000 && address < 0x6000)
-		nesXram[address - 0x4000] = data;
-	else
-		NesMapper::writeLow(address, data);
-}
-
-void Mapper004::writeHigh(u16 address, u8 data) {
-	switch (address & 0xE001) {
-	case 0x8000:
-		reg[0] = data;
-		updateCpuBanks();
-		updatePpuBanks();
-		break;
-	case 0x8001:
-		reg[1] = data;
-		switch (reg[0] & 0x07) {
-		case 0x00: chr01 = data & 0xFE; updatePpuBanks(); break;
-		case 0x01: chr23 = data & 0xFE; updatePpuBanks(); break;
-		case 0x02: chr4 = data; updatePpuBanks(); break;
-		case 0x03: chr5 = data; updatePpuBanks(); break;
-		case 0x04: chr6 = data; updatePpuBanks(); break;
-		case 0x05: chr7 = data; updatePpuBanks(); break;
-		case 0x06: prg0 = data; updateCpuBanks(); break;
-		case 0x07: prg1 = data; updateCpuBanks(); break;
-		}
-		break;
-	case 0xA000:
-		reg[2] = data;
-		if (nesMirroring != FourScreenMirroring) {
-			if (data & 0x01)
-				setMirroring(HorizontalMirroring);
-			else
-				setMirroring(VerticalMirroring);
-		}
-		break;
-	case 0xA001:
-		reg[3] = data;
-		break;
-	case 0xC000:
-		reg[4] = data;
-		if (irq_type == IrqKlax || irq_type == IrqRockman3)
-			irq_counter = data;
-		else
-			irq_latch = data;
-		if (irq_type == IrqDBZ2)
-			irq_latch = 0x07;
-		break;
-	case 0xC001:
-		reg[5] = data;
-		if (irq_type == IrqKlax || irq_type == IrqRockman3) {
-			irq_latch = data;
-		} else {
-			if ((nesPpuScanline < NesPpu::VisibleScreenHeight) || (irq_type == IrqShougimeikan)) {
-				irq_counter |= 0x80;
-				irq_preset = 0xFF;
-			} else {
-				irq_counter |= 0x80;
-				irq_preset_vbl = 0xFF;
-				irq_preset = 0;
-			}
-		}
-		break;
-	case 0xE000:
-		reg[6] = data;
-		irq_enable = 0;
-		irq_request = 0;
-		setIrqSignalOut(false);
-		break;
-	case 0xE001:
-		reg[7] = data;
-		irq_enable = 1;
-		irq_request = 0;
-		break;
-	}
-}
-
-void Mapper004::updateCpuBanks() {
-	if (reg[0] & 0x40)
-		setRom8KBanks(nesRomSize8KB-2, prg1, prg0, nesRomSize8KB-1);
-	else
-		setRom8KBanks(prg0, prg1, nesRomSize8KB-2, nesRomSize8KB-1);
-}
-
-void Mapper004::horizontalSync() {
-	if (irq_type == IrqKlax) {
-		if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
-			if (irq_enable) {
-				if (irq_counter == 0) {
-					irq_counter = irq_latch;
-					irq_request = 0xFF;
-				}
-				if (irq_counter > 0)
-					irq_counter--;
-			}
-		}
-		if (irq_request)
-			setIrqSignalOut(true);
-	} else if (irq_type == IrqRockman3) {
-		if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
-			if (irq_enable) {
-				if (!(--irq_counter)) {
-					irq_request = 0xFF;
-					irq_counter = irq_latch;
-				}
-			}
-		}
-		if (irq_request)
-			setIrqSignalOut(true);
-	} else {
-		if (nesPpuScanline < NesPpu::VisibleScreenHeight && nesPpuIsDisplayOn()) {
-			if (irq_preset_vbl) {
-				irq_counter = irq_latch;
-				irq_preset_vbl = 0;
-			}
-			if (irq_preset) {
-				irq_counter = irq_latch;
-				irq_preset = 0;
-				if (irq_type == IrqDai2JiSuper && nesPpuScanline == 0) {
-					irq_counter--;
-				}
-			} else if (irq_counter > 0) {
-				irq_counter--;
-			}
-			if (irq_counter == 0) {
-				if (irq_enable) {
-					irq_request = 0xFF;
-					setIrqSignalOut(true);
-				}
-				irq_preset = 0xFF;
-			}
-		}
-	}
-}
-
-void Mapper004::updatePpuBanks() {
-	if (nesVromSize1KB) {
-		if (reg[0] & 0x80) {
-			setVrom1KBank(4, chr01);
-			setVrom1KBank(5, chr01+1);
-			setVrom1KBank(6, chr23);
-			setVrom1KBank(7, chr23+1);
-			setVrom1KBank(0, chr4);
-			setVrom1KBank(1, chr5);
-			setVrom1KBank(2, chr6);
-			setVrom1KBank(3, chr7);
-		} else {
-			setVrom1KBank(0, chr01);
-			setVrom1KBank(1, chr01+1);
-			setVrom1KBank(2, chr23);
-			setVrom1KBank(3, chr23+1);
-			setVrom1KBank(4, chr4);
-			setVrom1KBank(5, chr5);
-			setVrom1KBank(6, chr6);
-			setVrom1KBank(7, chr7);
-		}
-	} else {
-		if (reg[0] & 0x80) {
-			setCram1KBank(4, (chr01+0)&0x07);
-			setCram1KBank(5, (chr01+1)&0x07);
-			setCram1KBank(6, (chr23+0)&0x07);
-			setCram1KBank(7, (chr23+1)&0x07);
-			setCram1KBank(0, chr4&0x07);
-			setCram1KBank(1, chr5&0x07);
-			setCram1KBank(2, chr6&0x07);
-			setCram1KBank(3, chr7&0x07);
-		} else {
-			setCram1KBank(0, (chr01+0)&0x07);
-			setCram1KBank(1, (chr01+1)&0x07);
-			setCram1KBank(2, (chr23+0)&0x07);
-			setCram1KBank(3, (chr23+1)&0x07);
-			setCram1KBank(4, chr4&0x07);
-			setCram1KBank(5, chr5&0x07);
-			setCram1KBank(6, chr6&0x07);
-			setCram1KBank(7, chr7&0x07);
-		}
-	}
-}
-
-void Mapper004::extSl() {
+void Mapper004::extSl()
+{
 	emsl.array("reg", reg, sizeof(reg));
 	emsl.var("prg0", prg0);
 	emsl.var("prg1", prg1);

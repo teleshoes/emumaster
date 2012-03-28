@@ -168,7 +168,7 @@ public:
 private:
 	void loadConfig();
 	void invalidate();
-	QPair<QString, QString> parseLine(const QString &line);
+	QPair<QString, QString> parseLine(QString line, int count);
 
 	QString m_gamePackTitle;
 	QString m_gamePackCode;

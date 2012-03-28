@@ -20,7 +20,7 @@
 class NesPpu;
 #include "ppusprite.h"
 #include "ppuscroll.h"
-#include <emu.h>
+#include <base/emu.h>
 #include <QImage>
 #include <QVector>
 #include <QRgb>
@@ -120,10 +120,15 @@ public:
 	static const int VisibleScreenWidth = 32 * 8;
 	static const int VisibleScreenHeight = 30 * 8;
 
-	static const int FetchCycles = 8;
+	static const int FetchCycles = 2;
+	static const int ScanlineCycles = 341;
+	static const int HDrawCycles = 256;
+	static const int HBlankCycles = 85;
+	static const int ScanlineEndCycles = 1;
 
 	void setSpriteLimit(bool on);
 	bool spriteLimit() const;
+	int scanlineCount() const;
 signals:
 	void spriteLimitChanged();
 };
@@ -136,20 +141,21 @@ static inline bool nesPpuIsDisplayOn()
 { return nesPpuIsBackgroundVisible() || nesPpuIsSpriteVisible(); }
 
 extern void nesPpuInit();
-extern void nesPpuWrite(u16 addr, u8 data);
-extern   u8 nesPpuRead(u16 addr);
+extern void nesPpuWriteReg(u16 addr, u8 data);
+extern   u8 nesPpuReadReg(u16 addr);
 extern void nesPpuDma(u8 page);
 extern void nesPpuSetVBlank(bool on);
 
-extern void nesPpuSetCharacterLatchEnabled(bool on);
-extern void nesPpuSetExternalLatchEnabled(bool on);
-
-extern void nesPpuNextScanline();
+extern  int nesPpuNextScanline();
 extern void nesPpuProcessFrameStart();
 extern void nesPpuProcessScanlineStart();
 extern void nesPpuProcessScanlineNext();
-extern void nesPpuProcessScanline();
 extern void nesPpuProcessDummyScanline();
+
+extern bool nesPpuDrawPrologue();
+extern void nesPpuDrawEpilogue();
+extern void nesPpuDrawBackgroundTile(int i);
+extern void nesPpuDrawBackgroundLine();
 
 extern bool nesPpuCheckSprite0HitHere();
 

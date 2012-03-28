@@ -1,6 +1,6 @@
 TEMPLATE = lib
 DESTDIR = ../../lib
-INCLUDEPATH += ../../include
+INCLUDEPATH += ..
 QT += declarative opengl network
 LIBS += -L../../lib -lpulse -lsixaxisclient
 CONFIG += mobility
@@ -42,7 +42,8 @@ HEADERS += \
     emu.h \
     emuinput.h \
     stringlistproxy.h \
-    audioringbuffer.h
+    audioringbuffer.h \
+    memutils.h
 
 SOURCES += \
     hostaudio.cpp \
@@ -62,7 +63,9 @@ SOURCES += \
     emuthread.cpp \
     emu.cpp \
     emuinput.cpp \
-    stringlistproxy.cpp
+    stringlistproxy.cpp \
+	memutils.cpp \
+	memset32_neon.S
 
 unix {
 	qml.path = /opt/emumaster/qml/base

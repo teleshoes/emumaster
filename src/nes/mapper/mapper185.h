@@ -23,9 +23,6 @@ class Mapper185 : public NesMapper
 {
 public:
 	void reset();
-	void writeHigh(u16 addr, u8 data);
-private:
-	int patch;
 };
 
 #endif // MAPPER185_H

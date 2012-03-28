@@ -15,79 +15,93 @@
  */
 
 #include "mapper043.h"
-#include <QDataStream>
 
-void Mapper043::reset() {
-	NesMapper::reset();
+static u8 irq_enable;
+static int irq_counter;
 
-	setRom8KBank(3, 2);
-	setRom8KBanks(1, 0, 4, 9);
-	if (nesVromSize1KB)
-		setVrom8KBank(0);
-	irq_enable = 0xFF;
-	irq_counter = 0;
+static u8 readLow(u16 addr)
+{
+	if (0x5000 <= addr && addr < 0x6000)
+		return	nesRom[0x2000*8+0x1000+(addr-0x5000)];
+	return addr >> 8;
 }
 
-u8 Mapper043::readLow(u16 address) {
-	if (0x5000 <= address && address < 0x6000)
-		return	nesRom[0x2000*8+0x1000+(address-0x5000)];
-	return address >> 8;
-}
-
-void Mapper043::writeEx(u16 address, u8 data) {
-	if ((address&0xF0FF) == 0x4022) {
+static void writeEx(u16 addr, u8 data)
+{
+	if ((addr&0xF0FF) == 0x4022) {
 		switch (data&0x07) {
 		case 0x00:
 		case 0x02:
 		case 0x03:
 		case 0x04:
-			setRom8KBank(6, 4);
+			nesSetRom8KBank(6, 4);
 			break;
 		case 0x01:
-			setRom8KBank(6, 3);
+			nesSetRom8KBank(6, 3);
 			break;
 		case 0x05:
-			setRom8KBank(6, 7);
+			nesSetRom8KBank(6, 7);
 			break;
 		case 0x06:
-			setRom8KBank(6, 5);
+			nesSetRom8KBank(6, 5);
 			break;
 		case 0x07:
-			setRom8KBank(6, 6);
+			nesSetRom8KBank(6, 6);
 			break;
 		}
 	}
 }
 
-void Mapper043::writeLow(u16 address, u8 data) {
-	if ((address&0xF0FF) == 0x4022)
-		writeEx(address, data);
+static void writeLow(u16 addr, u8 data)
+{
+	if ((addr&0xF0FF) == 0x4022)
+		writeEx(addr, data);
 }
 
-void Mapper043::writeHigh(u16 address, u8 data) {
-	if (address == 0x8122) {
+static void writeHigh(u16 addr, u8 data)
+{
+	if (addr == 0x8122) {
 		if (data & 0x03) {
 			irq_enable = 1;
 		} else {
 			irq_counter = 0;
 			irq_enable = 0;
 		}
-		setIrqSignalOut(false);
+		nesMapperSetIrqSignalOut(false);
 	}
 }
 
-void Mapper043::horizontalSync() {
-	setIrqSignalOut(false);
+static void horizontalSync()
+{
+	nesMapperSetIrqSignalOut(false);
 	if (irq_enable) {
 		irq_counter += 341;
 		if (irq_counter >= 12288) {
 			irq_counter = 0;
-			setIrqSignalOut(true);
+			nesMapperSetIrqSignalOut(true);
 		}
 	}
 }
 
-void Mapper043::extSl() {
+void Mapper043::reset()
+{
+	NesMapper::reset();
+	readLow = ::readLow;
+	writeEx = ::writeEx;
+	writeLow = ::writeLow;
+	writeHigh = ::writeHigh;
+	horizontalSync = ::horizontalSync;
+
+	nesSetRom8KBank(3, 2);
+	nesSetRom8KBanks(1, 0, 4, 9);
+	if (nesVromSize1KB)
+		nesSetVrom8KBank(0);
+	irq_enable = 0xFF;
+	irq_counter = 0;
+}
+
+void Mapper043::extSl()
+{
 	emsl.var("irq_enable", irq_enable);
 	emsl.var("irq_counter", irq_counter);
 }
