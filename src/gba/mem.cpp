@@ -2543,7 +2543,6 @@ void init_gamepak_buffer()
 
 void init_memory()
 {
-  u32 i;
   u32 map_offset = 0;
 
   memory_regions[0x00] = (u8 *)bios_rom;
@@ -2638,8 +2637,14 @@ void init_memory()
   bios_read_protect = 0xe129f000;
 }
 
-void bios_region_read_allow() {
+void bios_region_read_allow()
+{
 	memory_map_read[0] = bios_rom;
+}
+
+void bios_region_read_protect()
+{
+	memory_map_read[0] = 0;
 }
 
 QString gbaGamePackTitle;

@@ -25,6 +25,7 @@
 #include "gpu.h"
 #include "mem.h"
 #include "gba.h"
+#include <arm/cpu.h>
 
 const u8 bit_count[256] =
 {
@@ -4294,9 +4295,15 @@ void move_reg(u32 *new_reg) {
 	reg = new_reg;
 }
 
+extern "C" void sys_cacheflush_size(void *addr, int size)
+{
+	Arm::Cpu::flushICache(addr, size);
+}
+
 GbaCpu gbaCpu;
 
-void GbaCpu::sl() {
+void GbaCpu::sl()
+{
 	emsl.begin("cpu");
 	emsl.array("regs", reg, 0x100);
 	emsl.array("spsr", spsr, sizeof(spsr));

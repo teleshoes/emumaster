@@ -175,7 +175,7 @@ expand_normal:
   stmia r0!, { r4, r5, r6, r7 }
 
   subs r1, r1, #8
-  bgt 2b
+  bne 2b
 
   ldmia sp!, { r4, r5, r6, r7, pc }
 

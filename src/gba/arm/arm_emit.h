@@ -21,32 +21,7 @@
 #define ARM_EMIT_H
 
 #include "arm_codegen.h"
-#include <QtGlobal>
-#if defined(Q_WS_MAEMO_5)
-#include <syscall.h>
-#endif
-
-static inline void sys_cacheflush(void *start, void *end) {
-#if defined(MEEGO_EDITION_HARMATTAN)
-	__builtin___clear_cache(start, end);
-#elif defined(Q_WS_MAEMO_5)
-	int num = __ARM_NR_cacheflush;
-	__asm __volatile (
-		"mov	 r0, %0\n"
-		"mov	 r1, %1\n"
-		"mov	 r7, %2\n"
-		"mov     r2, #0x0\n"
-		"svc     0x00000000\n"
-		:
-		:	"r" (start), "r" (end), "r" (num)
-				:	"r0","r2", "r1", "r7"
-	);
-#endif
-}
-
-static inline void sys_cacheflush_size(void *start, int size) {
-	sys_cacheflush(start, (char *)start + size);
-}
+void sys_cacheflush_size(void *addr, int size);
 
 u32 arm_update_gba_arm(u32 pc);
 u32 arm_update_gba_thumb(u32 pc);
@@ -192,7 +167,7 @@ s32 arm_register_allocation[] =
   reg_x4,       // GBA r12
   mem_reg,      // GBA r13
   reg_x5,       // GBA r14
-  mem_reg,       // GBA r15
+  reg_a0        // GBA r15
 
   mem_reg,
   mem_reg,
@@ -229,7 +204,7 @@ s32 thumb_register_allocation[] =
   mem_reg,      // GBA r12
   mem_reg,      // GBA r13
   mem_reg,      // GBA r14
-  mem_reg,       // GBA r15
+  reg_a0        // GBA r15
 
   mem_reg,
   mem_reg,
@@ -405,7 +380,7 @@ u32 arm_disect_imm_32bit(u32 imm, u32 *stores, u32 *rotations)
 
 #define generate_branch_filler(condition_code, writeback_location)            \
   (writeback_location) = translation_ptr;                                     \
-  ARM_B_COND(0, condition_code, 0)											  \
+  ARM_B_COND(0, condition_code, 0)                                            \
 
 #define generate_update_pc(new_pc)                                            \
   generate_load_pc(reg_a0, new_pc)                                            \
@@ -674,7 +649,6 @@ u8 *last_bios_translation_ptr = bios_translation_cache;
   {                                                                           \
 	sys_cacheflush_size(last_##which##_translation_ptr,          \
       which##_translation_ptr - last_##which##_translation_ptr);              \
-	sys_cacheflush_size(last_##which##_translation_ptr, 32);\
     last_##which##_translation_ptr = which##_translation_ptr;                 \
   }
 
@@ -690,6 +664,7 @@ u8 *last_bios_translation_ptr = bios_translation_cache;
 
 
 #define block_prologue_size 0
+
 
 // It should be okay to still generate result flags, spsr will overwrite them.
 // This is pretty infrequent (returning from interrupt handlers, et al) so
@@ -1249,7 +1224,7 @@ u32 function_cc execute_spsr_restore_body(u32 pc)
   complete_store_reg(_rd, rd)                                                 \
 
 #define arm_psr_read_spsr()                                                   \
-  generate_function_call(execute_read_spsr);                                  \
+  generate_function_call(execute_read_spsr)                                   \
   generate_store_reg(reg_a0, rd)                                              \
 
 #define arm_psr_read(op_type, psr_reg)                                        \
@@ -1957,7 +1932,8 @@ void execute_swi_hle_div_thumb();
 void execute_swi_hle_div_c()
 {
   if (reg[1] == 0)
-	return; // real BIOS supposedly locks up, but game can recover on interrupt
+    // real BIOS supposedly locks up, but game can recover on interrupt
+    return;
   s32 result = (s32)reg[0] / (s32)reg[1];
   reg[1] = (s32)reg[0] % (s32)reg[1];
   reg[0] = result;

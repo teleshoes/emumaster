@@ -47,7 +47,6 @@ static QSemaphore consumerSem;
 static volatile bool requestQuit;
 static QImage gpuFrame;
 static GbaThread gbaThread;
-static volatile bool lastSyncLoad = false;
 
 GbaEmu gbaEmu;
 
@@ -304,11 +303,6 @@ u32 update_gba()
 
 					gbaSync();
 
-					if (lastSyncLoad) {
-						lastSyncLoad = false;
-						return execute_cycles;
-					}
-
 					update_gbc_sound(cpu_ticks);
 					gbaCheatsProcess();
 					vcount = 0;
@@ -363,7 +357,4 @@ void GbaEmu::sl()
 	gbaGpu.sl();
 	gbaMemSl();
 	gbaCheats.sl();
-
-	if (!emsl.save)
-		lastSyncLoad = true;
 }

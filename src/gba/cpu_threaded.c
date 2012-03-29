@@ -2761,11 +2761,15 @@ u8 function_cc *block_lookup_address_##type(u32 pc)                           \
     case 0x2:                                                                 \
       location = (u16 *)(ewram + (pc & 0x7FFF) + ((pc & 0x38000) * 2));       \
       block_lookup_translate(type, ram, 1);                                   \
+      if(translation_recursion_level == 0)                                    \
+        bios_region_read_protect();                                           \
       break;                                                                  \
                                                                               \
     case 0x3:                                                                 \
       location = (u16 *)(iwram + (pc & 0x7FFF));                              \
       block_lookup_translate(type, ram, 1);                                   \
+      if(translation_recursion_level == 0)                                    \
+        bios_region_read_protect();                                           \
       break;                                                                  \
                                                                               \
     case 0x8 ... 0xD:                                                         \
@@ -2816,6 +2820,8 @@ u8 function_cc *block_lookup_address_##type(u32 pc)                           \
         if(translation_recursion_level == 0)                                  \
           translate_invalidate_dcache();                                      \
       }                                                                       \
+      if(translation_recursion_level == 0)                                    \
+        bios_region_read_protect();                                           \
       break;                                                                  \
     }                                                                         \
                                                                               \
@@ -3396,8 +3402,8 @@ void flush_translation_cache_ram()
   invalidate_icache_region(ram_translation_cache,
    (ram_translation_ptr - ram_translation_cache) + 0x100);
 
-  ram_translation_ptr = ram_translation_cache;
   last_ram_translation_ptr = ram_translation_cache;
+  ram_translation_ptr = ram_translation_cache;
   ram_block_tag_top = 0x0101;
   if(iwram_code_min != 0xFFFFFFFF)
   {
@@ -3449,8 +3455,8 @@ void flush_translation_cache_rom()
 {
   invalidate_icache_region(rom_translation_cache,
    rom_translation_ptr - rom_translation_cache + 0x100);
-  rom_translation_ptr = rom_translation_cache;
   last_rom_translation_ptr = rom_translation_cache;
+  rom_translation_ptr = rom_translation_cache;
   memset(rom_branch_hash, 0, sizeof(rom_branch_hash));
 }
 

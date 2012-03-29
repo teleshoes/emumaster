@@ -191,6 +191,7 @@ u8 *memory_region(u32 address, u32 *memory_limit);
 void init_memory();
 void init_gamepak_buffer();
 void bios_region_read_allow();
+void bios_region_read_protect();
 u8 *load_gamepak_page(u32 physical_index);
 u32 function_cc read_eeprom();
 u8 read_backup(u32 address);
