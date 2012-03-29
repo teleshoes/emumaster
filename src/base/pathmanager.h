@@ -54,8 +54,6 @@ private:
 	QString m_installationDirPath;
 	QString m_userDataDirPath;
 	QString m_diskDirBase;
-
-	static PathManager *inst;
 };
 
 inline QStringList PathManager::emus() const

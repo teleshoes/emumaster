@@ -37,6 +37,12 @@ DiskGallery::DiskGallery(QWidget *parent) :
 
 	m_sock.bind(QHostAddress::LocalHost, 5798);
 	QObject::connect(&m_sock, SIGNAL(readyRead()), SLOT(receiveDatagram()));
+
+	m_usbMode = new MeeGo::QmUSBMode(this);
+	QObject::connect(m_usbMode, SIGNAL(modeChanged(MeeGo::QmUSBMode::Mode)),
+					 SIGNAL(massStorageInUseChanged()));
+
+	m_lastMode = m_usbMode->getMode();
 }
 
 DiskGallery::~DiskGallery()
@@ -61,8 +67,6 @@ void DiskGallery::setupQml()
 	QString qmlPath = QString("%1/qml/gallery/main.qml")
 			.arg(pathManager.installationDirPath());
 	setSource(QUrl::fromLocalFile(qmlPath));
-
-	QMetaObject::invokeMethod(this, "checkUsb", Qt::QueuedConnection);
 }
 
 void DiskGallery::launch(int index)
@@ -129,13 +133,6 @@ void DiskGallery::wiki()
 	QProcess::startDetached("grob", args);
 }
 
-/** Emitted on start if the phone uses USB mass storage. */
-void DiskGallery::checkUsb()
-{
-	if (!QFile::exists(pathManager.diskDirPath("nes")))
-		emit detachUsb();
-}
-
 /** Received from one of emulated systems. Decodes the packet,
 	and updates the screen shot. */
 void DiskGallery::receiveDatagram()
@@ -167,4 +164,9 @@ void DiskGallery::setGlobalOption(const QString &name, const QVariant &value)
 		m_settings.setValue(name, value);
 		m_settings.sync();
 	}
+}
+
+bool DiskGallery::massStorageInUse() const
+{
+	return m_usbMode->getMode() == MeeGo::QmUSBMode::MassStorage;
 }

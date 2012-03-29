@@ -59,16 +59,6 @@ PageStackWindow {
 		errorDialog.open()
 	}
 
-	Connections {
-		target: diskGallery
-		onDetachUsb: {
-			errorDialog.message = qsTr("\"emumaster\" directory not found! Detach USB cable if " +
-									   "connected and restart the application."	)
-			errorDialog.quitOnReject = true
-			errorDialog.open()
-		}
-	}
-
 	QueryDialog {
 		property bool quitOnReject: false
 

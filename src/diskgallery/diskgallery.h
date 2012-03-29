@@ -21,10 +21,12 @@ class DiskListModel;
 #include <QDeclarativeView>
 #include <QUdpSocket>
 #include <QSettings>
+#include <qmusbmode.h>
 
 class DiskGallery : public QDeclarativeView
 {
 	Q_OBJECT
+	Q_PROPERTY(bool massStorageInUse READ massStorageInUse NOTIFY massStorageInUseChanged)
 public:
 	explicit DiskGallery(QWidget *parent = 0);
 	~DiskGallery();
@@ -39,10 +41,11 @@ public:
 
 	Q_INVOKABLE QVariant globalOption(const QString &name);
 	Q_INVOKABLE void setGlobalOption(const QString &name, const QVariant &value);
+
+	bool massStorageInUse() const;
 signals:
-	void detachUsb();
+	void massStorageInUseChanged();
 private slots:
-	void checkUsb();
 	void receiveDatagram();
 private:
 	void setupQml();
@@ -50,6 +53,8 @@ private:
 	DiskListModel *m_diskListModel;
 	QUdpSocket m_sock;
 	QSettings m_settings;
+	MeeGo::QmUSBMode *m_usbMode;
+	MeeGo::QmUSBMode::Mode m_lastMode;
 };
 
 #endif // DISKGALLERY_H

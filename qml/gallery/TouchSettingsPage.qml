@@ -113,12 +113,14 @@ Page {
 				maximumValue: dpadSizeSlider.value/2
 				stepSize: 1
 				valueIndicatorVisible: true
-				value: diskGallery.globalOption("touchAreaDiagonalSize")
 				onValueChanged: {
 					touchInputDevice.dpadAreaDiagonalSize = value
 					diskGallery.setGlobalOption("touchAreaDiagonalSize", value)
 				}
-				Component.onCompleted: touchInputDevice.dpadAreaDiagonalSize = diskGallery.globalOption("touchAreaDiagonalSize")
+				Component.onCompleted: {
+					value = diskGallery.globalOption("touchAreaDiagonalSize")
+					touchInputDevice.dpadAreaDiagonalSize = value
+				}
 			}
 
 			GlobalSettingsSwitchItem { text: qsTr("Haptic Feedback Enabled"); optionName: "hapticFeedbackEnable" }

@@ -50,6 +50,7 @@ Page {
 		anchors.fill: parent
 		contentWidth: width
 		contentHeight: collectionGrid.height
+		visible: !diskGallery.massStorageInUse
 
 		Grid {
 			id: collectionGrid
@@ -68,4 +69,6 @@ Page {
 
 	}
 	ScrollDecorator { flickableItem: flickable }
+
+	MassStorageWarning {}
 }

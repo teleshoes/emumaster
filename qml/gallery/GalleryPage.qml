@@ -21,6 +21,14 @@ import "../base"
 Page {
 	id: galleryPage
 
+	Connections {
+		target: diskGallery
+		onMassStorageInUseChanged: {
+			if (diskGallery.massStorageInUse)
+				appWindow.pageStack.pop()
+		}
+	}
+
 	GalleryMenu { id: galleryMenu }
 
 	ListModel { id: nullModel }

@@ -32,6 +32,16 @@ Page {
 		}
 	}
 
+	Connections {
+		target: diskGallery
+		onMassStorageInUseChanged: {
+			if (diskGallery.massStorageInUse) {
+				appWindow.pageStack.pop()
+				appWindow.pageStack.pop()
+			}
+		}
+	}
+
 	children: [
 		Flickable {
 			id: flickable
