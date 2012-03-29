@@ -6,7 +6,8 @@ QMAKE_CFLAGS += -std=c99
 SOURCES += \
     arm/video_blend.S \
     arm/arm_stub.S \
-    gba.cpp
+    gba.cpp \
+    input.cpp
 
 HEADERS += \
     arm/arm_emit.h \
@@ -18,7 +19,8 @@ HEADERS += \
     mem.h \
     spu.h \
     gpu.h \
-    gba.h
+    gba.h \
+    input.h
 
 SOURCES += \
     cheats.cpp \

@@ -158,24 +158,14 @@ typedef enum
 
 #if defined(__cplusplus)
 
-#include <QObject>
-#include <QPair>
+#include <QString>
 
-class GbaMem {
-public:
-	void sl();
-	bool loadGamePack(const QString &fileName);
-private:
-	void loadConfig();
-	void invalidate();
-	QPair<QString, QString> parseLine(QString line, int count);
+extern void gbaMemSl();
+extern bool gbaMemLoadGamePack(const QString &fileName);
 
-	QString m_gamePackTitle;
-	QString m_gamePackCode;
-	QString m_gamePackMaker;
-};
-
-extern GbaMem gbaMem;
+extern QString gbaGamePackTitle;
+extern QString gbaGamePackCode;
+extern QString gbaGamePackMaker;
 
 extern "C" {
 #endif

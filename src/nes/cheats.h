@@ -75,8 +75,6 @@ public:
 	Q_INVOKABLE void setEnabled(int i, bool on);
 	Q_INVOKABLE void addNew(const QString &code, const QString &description);
 	Q_INVOKABLE void removeAt(int i);
-signals:
-	void modified();
 private:
 	void setCurrent(const QList<GameGenieCode> &codes);
 

@@ -1,22 +1,45 @@
+/*
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 #ifndef GBAEMU_H
 #define GBAEMU_H
 
 #if defined(__cplusplus)
 #include "common.h"
-#include <QImage>
 #include <QThread>
-#include <QSemaphore>
 
-class GbaThread : public QThread {
+class GbaCheats;
+
+class GbaThread : public QThread
+{
 	Q_OBJECT
 protected:
 	void run();
 };
 
-class GbaEmu : public Emu {
+class GbaEmu : public Emu
+{
 	Q_OBJECT
+	Q_PROPERTY(QString gamePackTitle READ gamePackTitle CONSTANT)
+	Q_PROPERTY(QString gamePackCode READ gamePackCode CONSTANT)
+	Q_PROPERTY(QString gamePackMaker READ gamePackMaker CONSTANT)
+	Q_PROPERTY(GbaCheats *cheats READ cheats CONSTANT)
 public:
 	GbaEmu();
+
 	bool init(const QString &diskPath, QString *error);
 	void shutdown();
 	void reset();
@@ -25,22 +48,16 @@ public:
 	const QImage &frame() const;
 	int fillAudioBuffer(char *stream, int streamSize);
 
-	void sync();
-
-	QSemaphore m_prodSem;
-	QSemaphore m_consSem;
+	QString gamePackTitle() const;
+	QString gamePackCode() const;
+	QString gamePackMaker() const;
+	GbaCheats *cheats() const;
 protected:
 	void sl();
 	void resume();
 private:
 	QString setDisk(const QString &path);
 	QString loadBios();
-	void updateInput();
-
-	QString m_biosError;
-	volatile bool m_quit;
-
-	static const int m_buttonsMapping[];
 };
 
 extern GbaEmu gbaEmu;

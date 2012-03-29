@@ -2642,6 +2642,9 @@ void bios_region_read_allow() {
 	memory_map_read[0] = bios_rom;
 }
 
+QString gbaGamePackTitle;
+QString gbaGamePackCode;
+QString gbaGamePackMaker;
 static QFile gamepack_file;
 
 u8 *load_gamepak_page(u32 physical_index)
@@ -2669,33 +2672,7 @@ u8 *load_gamepak_page(u32 physical_index)
 	return swap_location;
 }
 
-GbaMem gbaMem;
-
-bool GbaMem::loadGamePack(const QString &fileName)
-{
-	gamepack_file.close();
-	gamepack_file.setFileName(fileName);
-	if (!gamepack_file.open(QIODevice::ReadOnly))
-		return false;
-	if (gamepack_file.size() < 0x100)
-		return false;
-	if (gamepack_file.size() <= gamepak_ram_buffer_size) {
-		gamepack_file.read(reinterpret_cast<char *>(gamepak_rom),
-							gamepack_file.size());
-		gamepack_file.close();
-	} else {
-		gamepack_file.read(reinterpret_cast<char *>(gamepak_rom),
-							0x100);
-	}
-	gamepak_size = (gamepack_file.size() + 0x7FFF) & ~0x7FFF;
-	m_gamePackTitle = QString::fromAscii(reinterpret_cast<char *>(gamepak_rom + 0xA0), 12);
-	m_gamePackCode = QString::fromAscii(reinterpret_cast<char *>(gamepak_rom + 0xAC), 4);
-	m_gamePackMaker = QString::fromAscii(reinterpret_cast<char *>(gamepak_rom + 0xB0), 2);
-	loadConfig();
-	return -1;
-}
-
-QPair<QString, QString> GbaMem::parseLine(QString line, int count)
+static QPair<QString, QString> parseLine(QString line, int count)
 {
 	line = line.left(line.size()-1);
 	QPair<QString, QString> result;
@@ -2721,7 +2698,7 @@ QPair<QString, QString> GbaMem::parseLine(QString line, int count)
 	return result;
 }
 
-void GbaMem::loadConfig()
+static void loadConfig()
 {
 	idle_loop_target_pc = 0xFFFFFFFF;
 	iwram_stack_optimize = 1;
@@ -2741,17 +2718,17 @@ void GbaMem::loadConfig()
 		QString line = f.readLine();
 		count++;
 		QPair<QString, QString> vars = parseLine(line, count);
-		if (vars.first != "game_name" || vars.second != m_gamePackTitle)
+		if (vars.first != "game_name" || vars.second != gbaGamePackTitle)
 			continue;
 		line = f.readLine();
 		count++;
 		vars = parseLine(line, count);
-		if (vars.first != "game_code" || vars.second != m_gamePackCode)
+		if (vars.first != "game_code" || vars.second != gbaGamePackCode)
 			continue;
 		line = f.readLine();
 		count++;
 		vars = parseLine(line, count);
-		if (vars.first == "vender_code" && vars.second == m_gamePackMaker)
+		if (vars.first == "vender_code" && vars.second == gbaGamePackMaker)
 			break;
 	}
 	while (!f.atEnd()) {
@@ -2779,7 +2756,36 @@ void GbaMem::loadConfig()
 	}
 }
 
-void GbaMem::invalidate()
+bool gbaMemLoadGamePack(const QString &fileName)
+{
+	gamepack_file.close();
+	gamepack_file.setFileName(fileName);
+	if (!gamepack_file.open(QIODevice::ReadOnly))
+		return false;
+	if (gamepack_file.size() < 0x100)
+		return false;
+	if (gamepack_file.size() <= gamepak_ram_buffer_size) {
+		gamepack_file.read(reinterpret_cast<char *>(gamepak_rom),
+							gamepack_file.size());
+		gamepack_file.close();
+	} else {
+		gamepack_file.read(reinterpret_cast<char *>(gamepak_rom),
+							0x100);
+	}
+	gamepak_size = (gamepack_file.size() + 0x7FFF) & ~0x7FFF;
+
+	const char *titlePtr = (const char *)(gamepak_rom + 0xa0);
+	const char *codePtr = (const char *)(gamepak_rom + 0xac);
+	const char *makerPtr = (const char *)(gamepak_rom + 0xb0);
+	gbaGamePackTitle = QString::fromAscii(titlePtr, qstrnlen(titlePtr, 12));
+	gbaGamePackCode = QString::fromAscii(codePtr, qstrnlen(codePtr, 4));
+	gbaGamePackMaker = QString::fromAscii(makerPtr, qstrnlen(makerPtr, 2));
+
+	loadConfig();
+	return -1;
+}
+
+void gbaMemInvalidate()
 {
 	flush_translation_cache_ram();
 	flush_translation_cache_rom();
@@ -2802,7 +2808,7 @@ void GbaMem::invalidate()
 	reg[CHANGED_PC_STATUS] = 1;
 }
 
-void GbaMem::sl()
+void gbaMemSl()
 {
 	emsl.begin("mem");
 	int flash_bank_ptr_offset = flash_bank_ptr - gamepak_backup;
@@ -2846,5 +2852,5 @@ void GbaMem::sl()
 	emsl.end();
 
 	if (!emsl.save)
-		invalidate();
+		gbaMemInvalidate();
 }

@@ -45,13 +45,14 @@ Item {
 			model: emu.cheats
 			delegate: SelectionItem {
 				titleText: codeDescription
-				subtitleText: code
+				subtitleText: codeList.join(",")
 				onClicked: cheatsView.currentIndex = index
 				selected: cheatsView.currentIndex === index
 				iconSource: ""
 				width: column.width
 
 				Switch {
+					id: cheatSwitch
 					anchors {
 						verticalCenter: parent.verticalCenter
 						right: parent.right
@@ -67,8 +68,9 @@ Item {
 
 	Sheet {
 		id: addCheatSheet
+		property variant codeList: []
 
-		acceptButton.enabled: !codeEdit.errorHighlight && descriptionEdit.text !== ""
+		acceptButton.enabled: addCheatSheet.codeList.length !== 0 && descriptionEdit.text !== ""
 		acceptButtonText: qsTr("Add")
 		rejectButtonText: qsTr("Cancel")
 
@@ -77,28 +79,57 @@ Item {
 			spacing: 10
 			anchors.fill: parent
 
-			Label { text: qsTr("Description:") }
+			Label { text: qsTr("Group Description:") }
 			TextField {
 				id: descriptionEdit
 				anchors { left: parent.left; right: parent.right }
-				onAccepted: codeEdit.focus = true
+				onAccepted:codeEdit.focus = true
 			}
 
-			Label { text: qsTr("Game Genie Code:") }
+			ButtonRow {
+				id: generationSelection
+				anchors.horizontalCenter: parent.horizontalCenter
+
+				Button {
+					property bool v3: true
+					text: "GameShark V3"
+				}
+				Button {
+					property bool v3: false
+					text: "GameShark V1"
+				}
+			}
+
+			Label { text: qsTr("GameShark Codes:") }
+			Repeater {
+				model: addCheatSheet.codeList
+				delegate: Label {
+					text: modelData
+				}
+			}
+
 			TextField {
 				id: codeEdit
 				anchors { left: parent.left; right: parent.right }
 				inputMethodHints: Qt.ImhUppercaseOnly | Qt.ImhNoPredictiveText
-				onAccepted: addCheatSheet.accept()
-				validator: GameGenieValidator { }
+				onAccepted: {
+					var copy = addCheatSheet.codeList
+					copy.push(codeEdit.text)
+					addCheatSheet.codeList = copy
+					codeEdit.text = ""
+				}
+				validator: GbaGameSharkValidator { }
 			}
 		}
 
-		onAccepted: emu.cheats.addNew(codeEdit.text, descriptionEdit.text)
+		onAccepted: emu.cheats.addNew(addCheatSheet.codeList,
+									  descriptionEdit.text,
+									  generationSelection.checkedButton.v3)
 
 		function clearAndOpen() {
-			codeEdit.text = ""
+			codeList = []
 			descriptionEdit.text = ""
+			codeEdit.text = ""
 			open()
 		}
 	}

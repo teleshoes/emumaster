@@ -1,14 +1,33 @@
+/*
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 #include "common.h"
 #include "cpu.h"
 #include "mem.h"
 #include "gpu.h"
 #include "spu.h"
 #include "gba.h"
+#include "input.h"
 #include "cheats.h"
 #include <base/emuview.h>
 #include <base/pathmanager.h>
 #include <QFile>
 #include <QApplication>
+#include <qdeclarative.h>
+#include <QSemaphore>
 
 timer_type timer[4];
 
@@ -23,6 +42,9 @@ extern "C" u16 *screen_pixels_ptr;
 extern "C" void return_to_host(u32 *returnRegs);
 static u32 return_to_host_regs[2];
 
+static QSemaphore producerSem;
+static QSemaphore consumerSem;
+static volatile bool requestQuit;
 static QImage gpuFrame;
 static GbaThread gbaThread;
 static volatile bool lastSyncLoad = false;
@@ -30,16 +52,18 @@ static volatile bool lastSyncLoad = false;
 GbaEmu gbaEmu;
 
 GbaEmu::GbaEmu() :
-	Emu("gba") {
+	Emu("gba")
+{
 }
 
-bool GbaEmu::init(const QString &diskPath, QString *error) {
+bool GbaEmu::init(const QString &diskPath, QString *error)
+{
 	gpuFrame = QImage(240, 160, QImage::Format_RGB16);
 	setVideoSrcRect(gpuFrame.rect());
 	setFrameRate(60);
 
 	screen_pixels_ptr = (quint16 *)gpuFrame.bits();
-	m_quit = false;
+	requestQuit = false;
 
 	*error = loadBios();
 	if (error->isEmpty())
@@ -47,14 +71,16 @@ bool GbaEmu::init(const QString &diskPath, QString *error) {
 	return error->isEmpty();
 }
 
-void GbaEmu::shutdown() {
-	m_quit = true;
+void GbaEmu::shutdown()
+{
+	requestQuit = true;
 	emulateFrame(false);
 	gbaThread.wait();
 	gpuFrame = QImage();
 }
 
-void GbaEmu::reset() {
+void GbaEmu::reset()
+{
 	skip_next_frame = 0;
 
 	for (int i = 0; i < 4; i++) {
@@ -83,7 +109,8 @@ void GbaEmu::reset() {
 	flush_translation_cache_bios();
 }
 
-QString GbaEmu::loadBios() {
+QString GbaEmu::loadBios()
+{
 	QString path = pathManager.diskDirPath() + "/gba_bios.bin";
 	QFile biosFile(path);
 
@@ -113,68 +140,73 @@ QString GbaEmu::loadBios() {
 	return QString();
 }
 
-QString GbaEmu::setDisk(const QString &path) {
+QString GbaEmu::setDisk(const QString &path)
+{
 	init_gamepak_buffer();
-	if (!gbaMem.loadGamePack(path))
+	if (!gbaMemLoadGamePack(path))
 		return tr("Could not load disk");
 	reset();
 	skip_next_frame = 1;
 
 	gbaThread.start();
-	m_consSem.acquire();
+	consumerSem.acquire();
 	return QString();
 }
 
 const QImage &GbaEmu::frame() const
-{ return gpuFrame; }
+{
+	return gpuFrame;
+}
 
-void GbaEmu::emulateFrame(bool drawEnabled) {
+void GbaEmu::emulateFrame(bool drawEnabled)
+{
+	gbaInputUpdate(input());
 	skip_next_frame = !drawEnabled;
 	screen_pixels_ptr = (quint16 *)gpuFrame.bits();
-	m_prodSem.release();
-	m_consSem.acquire();
-	updateInput();
+	producerSem.release();
+	consumerSem.acquire();
 }
 
-void GbaEmu::sync() {
-	m_consSem.release();
-	if (m_quit)
+static void gbaSync()
+{
+	consumerSem.release();
+	if (requestQuit)
 		return_to_host(return_to_host_regs);
-	m_prodSem.acquire();
-}
-
-const int GbaEmu::m_buttonsMapping[10] = {
-	EmuPad::Button_A,
-	EmuPad::Button_B,
-	EmuPad::Button_Select,
-	EmuPad::Button_Start,
-	EmuPad::Button_Right,
-	EmuPad::Button_Left,
-	EmuPad::Button_Up,
-	EmuPad::Button_Down,
-	EmuPad::Button_R1,
-	EmuPad::Button_L1
-};
-
-void GbaEmu::updateInput() {
-	int keys = input()->pad[0].buttons();
-	int gbaKeys = 0x3FF;
-	for (int i = 0; i < 10; i++) {
-		if (keys & m_buttonsMapping[i])
-			gbaKeys &= ~(1 << i);
-	}
-	io_registers[REG_P1] = gbaKeys;
+	producerSem.acquire();
 }
 
 int GbaEmu::fillAudioBuffer(char *stream, int streamSize)
-{ return gbaSpu.fillBuffer(stream, streamSize); }
+{
+	return gbaSpu.fillBuffer(stream, streamSize);
+}
+
+QString GbaEmu::gamePackTitle() const
+{
+	return gbaGamePackTitle;
+}
+
+QString GbaEmu::gamePackCode() const
+{
+	return gbaGamePackCode;
+}
+
+QString GbaEmu::gamePackMaker() const
+{
+	return gbaGamePackMaker;
+}
+
+GbaCheats *GbaEmu::cheats() const
+{
+	return &gbaCheats;
+}
 
 void GbaEmu::resume()
 {
 	gbaSpu.setEnabled(isAudioEnabled());
 }
 
-void GbaThread::run() {
+void GbaThread::run()
+{
 	execute_arm_translate(execute_cycles, return_to_host_regs);
 }
 
@@ -209,7 +241,8 @@ void GbaThread::run() {
 		} \
 	}
 
-u32 update_gba() {
+u32 update_gba()
+{
 	int irq_raised = IRQ_NONE;
 	do {
 		cpu_ticks += execute_cycles;
@@ -269,7 +302,7 @@ u32 update_gba() {
 					// Transition from vblank to next screen
 					dispstat &= ~0x01;
 
-					gbaEmu.sync();
+					gbaSync();
 
 					if (lastSyncLoad) {
 						lastSyncLoad = false;
@@ -277,7 +310,7 @@ u32 update_gba() {
 					}
 
 					update_gbc_sound(cpu_ticks);
-					process_cheats();
+					gbaCheatsProcess();
 					vcount = 0;
 				}
 				if (vcount == (dispstat >> 8)) {
@@ -304,15 +337,20 @@ u32 update_gba() {
 	return execute_cycles;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	if (argc < 2)
 		return -1;
+	qmlRegisterType<GbaCheats>();
+	qmlRegisterType<GbaGameSharkValidator>("EmuMaster", 1, 0,
+										   "GbaGameSharkValidator");
 	QApplication app(argc, argv);
 	EmuView view(&gbaEmu, argv[1]);
 	return app.exec();
 }
 
-void GbaEmu::sl() {
+void GbaEmu::sl()
+{
 	emsl.begin("machine");
 	emsl.var("cpu_ticks", cpu_ticks);
 	emsl.var("execute_cycles", execute_cycles);
@@ -323,7 +361,8 @@ void GbaEmu::sl() {
 	gbaCpu.sl();
 	gbaSpu.sl();
 	gbaGpu.sl();
-	gbaMem.sl();
+	gbaMemSl();
+	gbaCheats.sl();
 
 	if (!emsl.save)
 		lastSyncLoad = true;

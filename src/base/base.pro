@@ -78,6 +78,7 @@ unix {
         ../../qml/base/NesCheats.qml \
         ../../qml/base/SnesSettingsPage.qml \
         ../../qml/base/GbaSettingsPage.qml \
+		../../qml/base/GbaCheats.qml \
         ../../qml/base/PsxSettingsPage.qml \
         ../../qml/base/AmigaSettingsPage.qml \
         ../../qml/base/PicoSettingsPage.qml \

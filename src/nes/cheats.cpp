@@ -145,8 +145,11 @@ void NesCheats::sl()
 	emsl.var("descriptions", m_descriptions);
 	emsl.var("enable", m_enable);
 	emsl.end();
-	if (!emsl.save)
+
+	if (!emsl.save) {
 		setCurrent(enabledList());
+		reset();
+	}
 }
 
 QList<GameGenieCode> NesCheats::enabledList() const
@@ -206,7 +209,6 @@ void NesCheats::addNew(const QString &code, const QString &description)
 	endInsertRows();
 
 	setCurrent(enabledList());
-	emit modified();
 }
 
 void NesCheats::removeAt(int i)
@@ -221,5 +223,4 @@ void NesCheats::removeAt(int i)
 	endRemoveRows();
 
 	setCurrent(enabledList());
-	emit modified();
 }

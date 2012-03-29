@@ -17,4 +17,18 @@ import QtQuick 1.1
 import com.nokia.meego 1.1
 
 SettingsPage {
+	miscContent: [
+		Label {
+			width: parent.width
+			text: qsTr("Disk Info: ") +
+				  "\nTitle: " + emu.gamePackTitle +
+				  "\nCode: " + emu.gamePackCode +
+				  "\nMaker: " + emu.gamePackMaker
+		}
+	]
+
+	columnContent: [
+		SectionSeperator { text: qsTr("ChEaTs") },
+		GbaCheats {}
+	]
 }
