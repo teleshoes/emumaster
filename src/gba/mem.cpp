@@ -22,6 +22,7 @@
 #include "spu.h"
 #include "gba.h"
 #include <base/pathmanager.h>
+#include <base/configuration.h>
 #include <QFile>
 
 // This table is configured for sequential access on system defaults
@@ -131,6 +132,8 @@ u8 *flash_bank_ptr = gamepak_backup;
 u32 flash_device_id = FLASH_DEVICE_MACRONIX_64KB;
 u32 flash_manufacturer_id = FLASH_MANUFACTURER_MACRONIX;
 u32 flash_size = FLASH_SIZE_64KB;
+
+static const char *flashDeviceConfName = "gbaMem.flashDevice";
 
 u8 read_backup(u32 address)
 {
@@ -2761,6 +2764,35 @@ static void loadConfig()
 	}
 }
 
+static void setupFlashDevice()
+{
+	bool ok;
+	QVariant forcedFlashDevice = emConf.value(flashDeviceConfName);
+	if (!forcedFlashDevice.isNull()) {
+		u16 id  = forcedFlashDevice.toInt(&ok);
+		if (ok) {
+			flash_device_id = (id>>0) & 0xff;
+			flash_manufacturer_id = (id>>8) & 0xff;
+		} else {
+			qDebug("Unknown flash device option passed");
+		}
+	}
+}
+
+static void slCheckFlashDevice()
+{
+	Q_ASSERT(!emsl.save);
+	u32 id;
+	u32 maker;
+	emsl.var("flash_device_id", id);
+	emsl.var("flash_manufacturer_id", maker);
+	// check if flash device used in the saved state is the same as current
+	if (id != flash_device_id || maker != flash_manufacturer_id) {
+		emsl.error = QString("%1 \"%2\"").arg(EM_MSG_STATE_DIFFERS)
+				.arg(flashDeviceConfName);
+	}
+}
+
 bool gbaMemLoadGamePack(const QString &fileName)
 {
 	gamepack_file.close();
@@ -2787,6 +2819,8 @@ bool gbaMemLoadGamePack(const QString &fileName)
 	gbaGamePackMaker = QString::fromAscii(makerPtr, qstrnlen(makerPtr, 2));
 
 	loadConfig();
+
+	setupFlashDevice();
 	return -1;
 }
 
@@ -2816,6 +2850,8 @@ void gbaMemInvalidate()
 void gbaMemSl()
 {
 	emsl.begin("mem");
+	if (!emsl.save)
+		slCheckFlashDevice();
 	int flash_bank_ptr_offset = flash_bank_ptr - gamepak_backup;
 	emsl.var("backup_type", backup_type);
 	emsl.array("backup", gamepak_backup, sizeof(gamepak_backup));
