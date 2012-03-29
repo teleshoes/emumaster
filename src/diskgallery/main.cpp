@@ -18,10 +18,26 @@
 #include <base/configuration.h>
 #include <base/pathmanager.h>
 #include <QApplication>
+#include <QSystemInfo>
+#include <QDeclarativeEngine>
+
+QTM_USE_NAMESPACE
 
 int main(int argc, char *argv[])
 {
 	QApplication app(argc, argv);
+
+	QSystemInfo sysInfo;
+	if (sysInfo.version(QSystemInfo::Os) < QString("1.2")) {
+		QDeclarativeView view;
+		QObject::connect(view.engine(), SIGNAL(quit()), &view, SLOT(close()));
+		QString qmlPath = QString("%1/qml/gallery/osVersionError.qml")
+				.arg(pathManager.installationDirPath());
+		view.setSource(QUrl::fromLocalFile(qmlPath));
+		view.showFullScreen();
+		return app.exec();
+	}
+
 	Configuration::setupAppInfo();
 	pathManager.buildLocalDirTree();
 

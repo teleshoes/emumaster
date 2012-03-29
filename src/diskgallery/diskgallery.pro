@@ -4,7 +4,7 @@ LIBS += -L../../lib -lbase
 QT += opengl declarative network
 CONFIG += mobility
 CONFIG += qmsystem2
-MOBILITY += sensors feedback
+MOBILITY += sensors feedback systeminfo
 
 SOURCES += \
 	main.cpp \
@@ -35,6 +35,7 @@ unix {
 	qml.path = /opt/emumaster/qml/gallery
 	qml.files = \
 		../../qml/gallery/main.qml \
+		../../qml/gallery/osVersionError.qml \
 		../../qml/gallery/AboutPage.qml \
 		../../qml/gallery/AdvancedLaunchPage.qml \
 		../../qml/gallery/CoverSelectorPage.qml \
