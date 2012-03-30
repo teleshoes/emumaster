@@ -20,7 +20,8 @@
 #include <QObject>
 #include <bluetooth/bluetooth.h>
 
-class SixAxisDevice : public QObject {
+class SixAxisDevice : public QObject
+{
 	Q_OBJECT
 public:
 	explicit SixAxisDevice(int ctrl, int data, bdaddr_t *addr, QObject *parent = 0);

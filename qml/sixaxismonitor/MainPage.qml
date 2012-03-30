@@ -21,29 +21,44 @@ import "../base"
 Page {
 	id: mainPage
 
-	Label {
-		id: helpLabel
-		anchors.horizontalCenter: parent.horizontalCenter
-		y: 10
-		text: qsTr("Read wiki before using it !!!")
-	}
+	Column {
+		id: column
+		width: parent.width
+		spacing: 8
 
-	Button {
-		id: startButton
-		anchors {
-			horizontalCenter: parent.horizontalCenter
-			top: helpLabel.bottom
-			topMargin: 10
+		Label {
+			id: helpLabel
+			anchors.horizontalCenter: parent.horizontalCenter
+			y: 10
+			text: qsTr("Read wiki before using it !!!")
 		}
-		text: qsTr("Start Monitor")
-		onClicked: {
-			var err = sixAxisMonitor.start()
-			if (err === "") {
-				helpLabel.text = qsTr("Monitor Running")
-				startButton.visible = false
-			} else {
-				errDialog.message = err
-				errDialog.open()
+
+		Label {
+			id: enterPasswordLabel
+			text: qsTr("Enter password for devel-su:")
+		}
+
+		TextField {
+			id: develsuPasswordEdit
+			echoMode: TextInput.Password
+		}
+
+		Button {
+			id: startButton
+			anchors.horizontalCenter: parent.horizontalCenter
+			text: qsTr("Start Monitor")
+			visible: develsuPasswordEdit.text.length !== 0
+			onClicked: {
+				var err = sixAxisMonitor.start(develsuPasswordEdit.text)
+				if (err === "") {
+					helpLabel.text = qsTr("Monitor Running")
+					startButton.visible = false
+					enterPasswordLabel.visible = false
+					develsuPasswordEdit.visible = false
+				} else {
+					errDialog.message = err
+					errDialog.open()
+				}
 			}
 		}
 	}
@@ -52,11 +67,12 @@ Page {
 		id: sixAxisListView
 		width: parent.width
 		anchors {
-			top: startButton.bottom
+			top: column.bottom
 			topMargin: 10
 			bottom: parent.bottom
 		}
 		spacing: 10
+		clip: true
 		model: sixAxisMonitor.addresses
 		delegate: Column {
 			anchors.horizontalCenter: parent.horizontalCenter

@@ -20,8 +20,9 @@
 #include <sys/socket.h>
 
 /** Converts bdaddr \a a to QString and returns as a result. */
-static QString bdaddrToString(const bdaddr_t *a) {
-	return QString().sprintf("%02X:%02X:%02X:%02X:%02X:%02X",
+static QString bdaddrToString(const bdaddr_t *a)
+{
+	return QString().sprintf("%02x:%02x:%02x:%02x:%02x:%02x",
 							a->b[5], a->b[4], a->b[3],
 							a->b[2], a->b[1], a->b[0]);
 }
@@ -37,7 +38,8 @@ SixAxisDevice::SixAxisDevice(int ctrl, int data, bdaddr_t *addr, QObject *parent
 	QObject(parent),
 	m_ctrl(ctrl),
 	m_data(data),
-	m_leds(0) {
+	m_leds(0)
+{
 	bacpy(&m_addr, addr);
 
 	QSocketNotifier *dataNotifier = new QSocketNotifier(m_data, QSocketNotifier::Read, this);
@@ -49,7 +51,8 @@ SixAxisDevice::SixAxisDevice(int ctrl, int data, bdaddr_t *addr, QObject *parent
 }
 
 /** Destroys SixAxisDevice. */
-SixAxisDevice::~SixAxisDevice() {
+SixAxisDevice::~SixAxisDevice()
+{
 	shutdown(m_ctrl, SHUT_RDWR);
 	shutdown(m_data, SHUT_RDWR);
 	close(m_ctrl);
@@ -58,38 +61,41 @@ SixAxisDevice::~SixAxisDevice() {
 }
 
 /** Enables sixaxis reporting. */
-void SixAxisDevice::enableReporting() {
+void SixAxisDevice::enableReporting()
+{
 	qDebug("SixAxis %s connected", qPrintable(bdaddrToString(&m_addr)));
 
 	uchar enablePacket[] = {
 		0x53,							  /* HIDP_TRANS_SET_REPORT | HIDP_DATA_RTYPE_FEATURE */
-		0xF4, 0x42, 0x03, 0x00, 0x00
+		0xf4, 0x42, 0x03, 0x00, 0x00
 	};
 	send(m_ctrl, enablePacket, sizeof(enablePacket), 0);
 	recv(m_ctrl, m_buf, sizeof(m_buf), 0);
 }
 
 /** Sets LEDs at the back of the controller. */
-void SixAxisDevice::setLeds(int leds) {
+void SixAxisDevice::setLeds(int leds)
+{
 	uchar setLedsPacket[] = {
 		0x52,							  /* HIDP_TRANS_SET_REPORT | HIDP_DATA_RTYPE_OUTPUT */
 		0x01,
 		0x00, 0x00, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00, 0x1E,
-		0xFF, 0x27, 0x10, 0x00, 0x32,
-		0xFF, 0x27, 0x10, 0x00, 0x32,
-		0xFF, 0x27, 0x10, 0x00, 0x32,
-		0xFF, 0x27, 0x10, 0x00, 0x32,
+		0x00, 0x00, 0x00, 0x00, 0x1e,
+		0xff, 0x27, 0x10, 0x00, 0x32,
+		0xff, 0x27, 0x10, 0x00, 0x32,
+		0xff, 0x27, 0x10, 0x00, 0x32,
+		0xff, 0x27, 0x10, 0x00, 0x32,
 		0x00, 0x00, 0x00, 0x00, 0x00,
 	};
-	m_leds = leds & 0xF;
+	m_leds = leds & 0xf;
 	setLedsPacket[11] = m_leds << 1;
 	send(m_ctrl, setLedsPacket, sizeof(setLedsPacket), 0);
 	recv(m_ctrl, m_buf, sizeof(m_buf), 0);
 }
 
 /** Sets rumble of the controller. */
-void SixAxisDevice::setRumble(int weak, int strong) {
+void SixAxisDevice::setRumble(int weak, int strong)
+{
 	uchar setRumblePacket[] = {
 		0x52,								/* HIDP_TRANS_SET_REPORT | HIDP_DATA_RTYPE_OUTPUT */
 		0x01,
@@ -98,7 +104,7 @@ void SixAxisDevice::setRumble(int weak, int strong) {
 	if (weak || strong) {
 		setRumblePacket[3] = setRumblePacket[5] = 254; // stay on for a long while
 		setRumblePacket[4] = weak ? 255 : 0;
-		setRumblePacket[6] = qMin(0x40 + strong, 0xFF);;
+		setRumblePacket[6] = qMin(0x40 + strong, 0xff);;
 	} else {
 		setRumblePacket[3] = setRumblePacket[5] = 0; // off
 		setRumblePacket[4] = setRumblePacket[6] = 0; // minimum rumble
@@ -108,7 +114,8 @@ void SixAxisDevice::setRumble(int weak, int strong) {
 }
 
 /** Receives a packet from the sixaxis. */
-void SixAxisDevice::receiveData() {
+void SixAxisDevice::receiveData()
+{
 	int len = recv(m_data, m_buf, 1024, MSG_DONTWAIT);
 	if (len > 0) {
 		SixAxisServer *srv = static_cast<SixAxisServer *>(parent());
@@ -117,12 +124,14 @@ void SixAxisDevice::receiveData() {
 }
 
 /** Handles disconnection of the sixaxis. */
-void SixAxisDevice::onDisconnected() {
+void SixAxisDevice::onDisconnected()
+{
 	SixAxisServer *srv = static_cast<SixAxisServer *>(parent());
 	srv->disconnectDevice(this);
 }
 
 /** Returns BT address of the sixaxis. */
-QString SixAxisDevice::addressString() const {
+QString SixAxisDevice::addressString() const
+{
 	return bdaddrToString(&m_addr);
 }

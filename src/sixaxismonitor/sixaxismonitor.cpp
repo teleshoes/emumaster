@@ -21,6 +21,8 @@
 #include <QTimer>
 #include <QtDeclarative>
 #include <QApplication>
+#include <QProcess>
+#include <QTextStream>
 
 /**
 	\class SixAxisMonitor
@@ -28,7 +30,8 @@
  */
 
 /** Creates SixAxisMonitor. */
-SixAxisMonitor::SixAxisMonitor() {
+SixAxisMonitor::SixAxisMonitor()
+{
 	m_identifyDev = 0;
 	m_server = new SixAxisServer(this);
 	QObject::connect(m_server, SIGNAL(countChanged()), SIGNAL(addressesChanged()));
@@ -44,12 +47,51 @@ SixAxisMonitor::SixAxisMonitor() {
 	Starts listening for new PS3 controllers.
 	Returns non-empty string on error.
  */
-QString SixAxisMonitor::start() {
-	return m_server->open();
+QString SixAxisMonitor::start(const QString &develSuPassword)
+{
+	QProcess process;
+	process.start("devel-su");
+	if (!process.waitForStarted())
+		return QObject::tr("Couldn't run devel-su!");
+
+	QString error;
+	// read "Password:"
+	process.waitForReadyRead();
+	process.readAllStandardOutput();
+
+	// write password
+	QTextStream stream(&process);
+	stream << develSuPassword << endl;
+	stream.flush();
+	process.waitForReadyRead();
+	process.readAllStandardOutput();
+
+	process.write("echo test\n");
+	process.waitForReadyRead();
+	QByteArray ba = process.readAllStandardOutput();
+	if (ba == "test\n") {
+		for (int i = 0; i < 6; i++) {
+			process.write("killall -9 bluetoothd\n");
+			process.waitForBytesWritten();
+			usleep(500000);
+		}
+		process.write("/usr/sbin/hciconfig hci0 up\n");
+		process.write("/usr/sbin/hciconfig hci0 lm master\n");
+		process.write("/usr/sbin/hciconfig hci0 piscan\n");
+	} else {
+		error = QObject::tr("Couldn't get needed privileges: Incorrect Password?");
+	}
+	process.write("exit\n");
+	process.waitForFinished();
+
+	if (error.isEmpty())
+		error = m_server->open();
+	return error;
 }
 
 /** Starts the animation sequence of LEDs in sixaxis. */
-void SixAxisMonitor::identify(int i) {
+void SixAxisMonitor::identify(int i)
+{
 	if (m_identifyDev)
 		return;
 	if (i < 0 || i >= m_server->numDevices())
@@ -65,7 +107,8 @@ void SixAxisMonitor::identify(int i) {
 }
 
 /** Disconnects sixaxis with ID \a i. */
-void SixAxisMonitor::disconnectDev(int i) {
+void SixAxisMonitor::disconnectDev(int i)
+{
 	if (i < 0 || i >= m_server->numDevices())
 		return;
 	SixAxisDevice *dev = m_server->device(i);
@@ -73,12 +116,14 @@ void SixAxisMonitor::disconnectDev(int i) {
 }
 
 /** Called when device was destroyed while identifying. */
-void SixAxisMonitor::onIdentifyDevDestroyed() {
+void SixAxisMonitor::onIdentifyDevDestroyed()
+{
 	m_identifyDev = 0;
 }
 
 /** Advances LED animation. */
-void SixAxisMonitor::onIdentifyEvent() {
+void SixAxisMonitor::onIdentifyEvent()
+{
 	if (!m_identifyDev)
 		return;
 
@@ -103,14 +148,16 @@ void SixAxisMonitor::onIdentifyEvent() {
 }
 
 /** Returns the list of addresses of connected controllers. */
-QStringList SixAxisMonitor::addresses() const {
+QStringList SixAxisMonitor::addresses() const
+{
 	QStringList result;
 	for (int i = 0; i < m_server->numDevices(); i++)
 		result << m_server->device(i)->addressString();
 	return result;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	QApplication app(argc, argv);
 	SixAxisMonitor view;
 	view.showFullScreen();

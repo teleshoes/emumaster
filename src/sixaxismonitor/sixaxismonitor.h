@@ -22,12 +22,13 @@
 class SixAxisServer;
 class SixAxisDevice;
 
-class SixAxisMonitor : public QDeclarativeView {
+class SixAxisMonitor : public QDeclarativeView
+{
 	Q_OBJECT
 	Q_PROPERTY(QStringList addresses READ addresses NOTIFY addressesChanged)
 public:
 	explicit SixAxisMonitor();
-	Q_INVOKABLE QString start();
+	Q_INVOKABLE QString start(const QString &develSuPassword);
 	QStringList addresses() const;
 	Q_INVOKABLE void identify(int i);
 	Q_INVOKABLE void disconnectDev(int i);

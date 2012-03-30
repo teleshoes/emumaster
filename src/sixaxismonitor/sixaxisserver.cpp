@@ -29,7 +29,8 @@
 
 /** Creates SixAxisServer. */
 SixAxisServer::SixAxisServer(QObject *parent) :
-	QObject(parent) {
+	QObject(parent)
+{
 	m_ctrl = -1;
 	m_data = -1;
 	m_localServer = new QLocalServer(this);
@@ -37,7 +38,8 @@ SixAxisServer::SixAxisServer(QObject *parent) :
 }
 
 /** Destroys SixAxisServer. */
-SixAxisServer::~SixAxisServer() {
+SixAxisServer::~SixAxisServer()
+{
 	close();
 	m_localServer->close();
 }
@@ -46,7 +48,8 @@ SixAxisServer::~SixAxisServer() {
 	Opens bluetooth device and starts listening for new PS3 controllers.
 	Returns nonempty string on error.
  */
-QString SixAxisServer::open() {
+QString SixAxisServer::open()
+{
 	m_ctrl = l2Listen(BTCTRL);
 	if (m_ctrl < 0)
 		return tr("Can't bind to psm %1").arg(BTCTRL);
@@ -61,12 +64,14 @@ QString SixAxisServer::open() {
 }
 
 /** Stops listening and closes bluetooth device. */
-void SixAxisServer::close() {
+void SixAxisServer::close()
+{
 	::close(m_ctrl);
 	::close(m_data);
 }
 
-int SixAxisServer::l2Listen(int psm) {
+int SixAxisServer::l2Listen(int psm)
+{
 	int fd;
 	struct sockaddr_l2 addr;
 
@@ -87,7 +92,8 @@ int SixAxisServer::l2Listen(int psm) {
 	Tries to establish connection with newly detected PS3 controller.
 	If succeeds informs clients about the new controller.
  */
-void SixAxisServer::acceptNewDevice() {
+void SixAxisServer::acceptNewDevice()
+{
 	struct sockaddr_l2 addrCtrl;
 	struct sockaddr_l2 addrData;
 	socklen_t len = sizeof(addrCtrl);
@@ -124,7 +130,8 @@ void SixAxisServer::acceptNewDevice() {
 }
 
 /** Disconnects the controller. Informs clients about disconnection. */
-void SixAxisServer::disconnectDevice(SixAxisDevice *dev) {
+void SixAxisServer::disconnectDevice(SixAxisDevice *dev)
+{
 	if (!m_devices.removeOne(dev))
 		return;
 	for (int i = 0; i < m_localClients.size(); i++) {
@@ -137,7 +144,8 @@ void SixAxisServer::disconnectDevice(SixAxisDevice *dev) {
 }
 
 /** Streams the data received from a sixaxis to the clients. */
-void SixAxisServer::streamPacket(SixAxisDevice *dev, int len) {
+void SixAxisServer::streamPacket(SixAxisDevice *dev, int len)
+{
 	for (int i = 0; i < m_localClients.size(); i++) {
 		QLocalSocket *io = m_localClients.at(i);
 		io->write("p");
@@ -153,7 +161,8 @@ void SixAxisServer::streamPacket(SixAxisDevice *dev, int len) {
 	l - set leds   000L L-leds
 	r - set rumble SSWW S-strong W-weak
 */
-void SixAxisServer::dataFromSocket() {
+void SixAxisServer::dataFromSocket()
+{
 	QLocalSocket *io = static_cast<QLocalSocket *>(sender());
 	while (io->bytesAvailable() >= 1+sizeof(bdaddr_t)+sizeof(int)) {
 		char c;
@@ -176,7 +185,8 @@ void SixAxisServer::dataFromSocket() {
 }
 
 /** Finds and returns the controller with specified BT address \a addr. */
-SixAxisDevice *SixAxisServer::deviceByAddr(const bdaddr_t *addr) const {
+SixAxisDevice *SixAxisServer::deviceByAddr(const bdaddr_t *addr) const
+{
 	for (int i = 0; i < m_devices.size(); i++) {
 		SixAxisDevice *dev = m_devices.at(i);
 		if (bacmp(dev->address(), addr) == 0)
@@ -186,17 +196,20 @@ SixAxisDevice *SixAxisServer::deviceByAddr(const bdaddr_t *addr) const {
 }
 
 /** Returns number of connected controllers. */
-int SixAxisServer::numDevices() const {
+int SixAxisServer::numDevices() const
+{
 	return m_devices.size();
 }
 
 /** Returns a device of \a i index. */
-SixAxisDevice *SixAxisServer::device(int i) const {
+SixAxisDevice *SixAxisServer::device(int i) const
+{
 	return m_devices.at(i);
 }
 
 /** Accepts new client. */
-void SixAxisServer::newClient() {
+void SixAxisServer::newClient()
+{
 	while (m_localServer->hasPendingConnections()) {
 		QLocalSocket *io = m_localServer->nextPendingConnection();
 		QObject::connect(io, SIGNAL(disconnected()), SLOT(clientDisconnected()));
@@ -211,7 +224,8 @@ void SixAxisServer::newClient() {
 }
 
 /** Called when client disconnected from the server. */
-void SixAxisServer::clientDisconnected() {
+void SixAxisServer::clientDisconnected()
+{
 	QLocalSocket *io = static_cast<QLocalSocket *>(sender());
 	if (m_localClients.removeOne(io))
 		io->deleteLater();

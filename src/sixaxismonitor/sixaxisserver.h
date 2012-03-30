@@ -24,7 +24,8 @@
 #include <bluetooth/bluetooth.h>
 class SixAxisDevice;
 
-class SixAxisServer : public QObject {
+class SixAxisServer : public QObject
+{
 	Q_OBJECT
 public:
 	explicit SixAxisServer(QObject *parent = 0);
