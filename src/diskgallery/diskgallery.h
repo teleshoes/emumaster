@@ -47,6 +47,7 @@ signals:
 	void massStorageInUseChanged();
 private slots:
 	void receiveDatagram();
+	void checkMassStorage();
 private:
 	void setupQml();
 

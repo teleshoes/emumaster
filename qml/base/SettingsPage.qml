@@ -156,7 +156,6 @@ Page {
 				SectionSeperator { text: qsTr("INPUT") }
 				Label { text: qsTr("Pad Opacity") }
 				Slider {
-					// TODO binding loop for SliderStyle
 					width: parent.width
 					minimumValue: 0.0
 					maximumValue: 1.0

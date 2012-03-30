@@ -40,7 +40,7 @@ DiskGallery::DiskGallery(QWidget *parent) :
 
 	m_usbMode = new MeeGo::QmUSBMode(this);
 	QObject::connect(m_usbMode, SIGNAL(modeChanged(MeeGo::QmUSBMode::Mode)),
-					 SIGNAL(massStorageInUseChanged()));
+					 SLOT(checkMassStorage()));
 
 	m_lastMode = m_usbMode->getMode();
 }
@@ -143,6 +143,16 @@ void DiskGallery::receiveDatagram()
 	QString diskFileName;
 	s >> diskFileName;
 	m_diskListModel->updateScreenShot(diskFileName);
+}
+
+void DiskGallery::checkMassStorage()
+{
+	MeeGo::QmUSBMode::Mode mode = m_usbMode->getMode();
+	if (m_lastMode == MeeGo::QmUSBMode::MassStorage ||
+		mode == MeeGo::QmUSBMode::MassStorage) {
+		emit massStorageInUseChanged();
+	}
+	m_lastMode = mode;
 }
 
 /** Starts SixAxis Monitor app. */
